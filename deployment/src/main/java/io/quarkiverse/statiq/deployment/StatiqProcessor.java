@@ -67,7 +67,10 @@ class StatiqProcessor {
                         .toList()))
                 .build();
         // Can't use RouteBuildItem because of cycles
-        vertxHttpRecorder.addRoute(router.getFrameworkRouter(), route.getRouteFunction(), route.getHandler(), route.getType());
+        if (router.getFrameworkRouter() != null) {
+            vertxHttpRecorder.addRoute(router.getFrameworkRouter(), route.getRouteFunction(), route.getHandler(),
+                    route.getType());
+        }
 
     }
 

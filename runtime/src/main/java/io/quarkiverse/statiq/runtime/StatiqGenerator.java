@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -24,17 +25,24 @@ import io.vertx.ext.web.client.WebClient;
 
 @Singleton
 public class StatiqGenerator implements Handler<RoutingContext> {
-    private final Vertx vertx;
+    private final Instance<Vertx> vertx;
     private final StatiqGeneratorConfig config;
-    private final WebClient client;
+    private WebClient client;
     private final List<StatiqPage> statiqPages = new ArrayList<>();
 
     @Inject
-    public StatiqGenerator(final Vertx vertx, final StatiqGeneratorConfig config, @All final List<StatiqPages> statiqPages) {
+    public StatiqGenerator(final Instance<Vertx> vertx, final StatiqGeneratorConfig config,
+            @All final List<StatiqPages> statiqPages) {
         this.vertx = vertx;
         this.config = config;
-        this.client = WebClient.create(vertx);
         this.statiqPages.addAll(statiqPages.stream().map(StatiqPages::pages).flatMap(List::stream).toList());
+    }
+
+    private WebClient client() {
+        if (client == null) {
+            client = WebClient.create(vertx.get());
+        }
+        return client;
     }
 
     public void addFixedStaticPages(List<String> staticPaths) {
@@ -56,7 +64,7 @@ public class StatiqGenerator implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext event) {
-        final FileSystem fs = vertx.fileSystem();
+        final FileSystem fs = vertx.get().fileSystem();
         final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(config.outputDir).toAbsolutePath();
         final List<String> paths = this.statiqPages.stream().map(StatiqPage::path).toList();
@@ -99,7 +107,7 @@ public class StatiqGenerator implements Handler<RoutingContext> {
     }
 
     private CompletionStage<HttpResponse<Buffer>> fetchContent(HttpServerRequest request, String path) {
-        return client.get(request.localAddress().port(), "localhost", path)
+        return client().get(request.localAddress().port(), "localhost", path)
                 .send().toCompletionStage();
     }
 
