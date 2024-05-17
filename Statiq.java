@@ -13,7 +13,10 @@ public class Statiq {
 
         String directory = args.length > 0 ?  args[0] : "target/statiq/";
 
-        if(Files.)
+        if (Files.isDirectory(Path.of(directory))) {
+            System.err.println("Directory not found: " + directory);
+            System.exit(1);
+        }
 
         System.out.println("Serving: " + directory);
 
