@@ -23,7 +23,7 @@ public class Statiq {
 
         vertx.createHttpServer()
                 .requestHandler(router)
-                .listen(port, result -> {
+                .listen(Integer.parseInt(port), result -> {
                     if (result.succeeded()) {
                         System.out.println("Server started on port http://localhost:" + port);
                     } else {
