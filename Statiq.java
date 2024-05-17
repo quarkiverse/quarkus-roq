@@ -12,6 +12,9 @@ public class Statiq {
     public static void main(String[] args) {
 
         String directory = args.length > 0 ?  args[0] : "target/statiq/";
+
+        if(Files.)
+
         System.out.println("Serving: " + directory);
 
         String port = args.length > 1 ? args[1]: "8181";
