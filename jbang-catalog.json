@@ -3,7 +3,7 @@
   "aliases": {
     "statiq": {
       "description": "Serve the generated static website locally",
-      "script-ref": "Statiq.java"
+      "script-ref": "statiq.java"
     }
   },
   "templates": {}

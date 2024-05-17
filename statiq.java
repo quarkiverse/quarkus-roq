@@ -9,7 +9,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
-public class Statiq {
+public class statiq {
 
     public static void main(String[] args) {
 
