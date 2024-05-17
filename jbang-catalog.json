@@ -1,7 +1,7 @@
 {
   "catalogs": {},
   "aliases": {
-    "quarkus-reveal": {
+    "statiq": {
       "description": "Serve the generated static website locally",
       "script-ref": "Statiq.java"
     }
