@@ -1,0 +1,46 @@
+
+:summaryTableId: quarkus-statiq
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[[quarkus-statiq_configuration]]link:#quarkus-statiq_configuration[Configuration property]
+
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-statiq_quarkus-statiq-fixed]]`link:#quarkus-statiq_quarkus-statiq-fixed[quarkus.statiq.fixed]`
+
+
+[.description]
+--
+The fixed paths to include in the static website Glob syntax is authorized to add static resources
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_STATIQ_FIXED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_STATIQ_FIXED+++`
+endif::add-copy-button-to-env-var[]
+--|list of string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-statiq_quarkus-statiq-output-dir]]`link:#quarkus-statiq_quarkus-statiq-output-dir[quarkus.statiq.output-dir]`
+
+
+[.description]
+--
+Output directory for the static website relative to the target directory
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_STATIQ_OUTPUT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_STATIQ_OUTPUT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`statiq`
+
+|===

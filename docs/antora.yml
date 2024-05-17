@@ -1,0 +1,5 @@
+name: quarkus-statiq
+title: Statiq
+version: dev
+nav:
+  - modules/ROOT/nav.adoc
