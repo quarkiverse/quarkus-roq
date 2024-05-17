@@ -6,8 +6,8 @@
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.StaticHandler;
-import java.nio.Path;
-import java.nio.Files;
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 public class Statiq {
 
