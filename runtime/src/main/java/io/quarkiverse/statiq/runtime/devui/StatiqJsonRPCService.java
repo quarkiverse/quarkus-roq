@@ -9,7 +9,7 @@ import io.quarkiverse.statiq.runtime.StatiqGenerator;
 import io.quarkiverse.statiq.runtime.StatiqPage;
 import io.quarkiverse.statiq.runtime.StatiqPages;
 import io.quarkus.arc.All;
-import io.smallrye.common.annotation.NonBlocking;
+import io.smallrye.common.annotation.Blocking;
 
 @ApplicationScoped
 public class StatiqJsonRPCService {
@@ -21,7 +21,7 @@ public class StatiqJsonRPCService {
     @Inject
     StatiqGenerator generator;
 
-    @NonBlocking
+    @Blocking
     public List<StatiqPage> getPages() {
         return StatiqPages.merge(statiqPages);
     }

@@ -73,6 +73,7 @@ class StatiqProcessor {
 
         final RouteBuildItem route = nonApplicationRootPath.routeBuilder()
                 .management()
+                .blockingRoute()
                 .route("statiq/generate")
                 .handler(recorder.createGenerateHandler())
                 .build();
