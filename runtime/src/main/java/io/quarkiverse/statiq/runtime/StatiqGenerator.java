@@ -1,15 +1,12 @@
 package io.quarkiverse.statiq.runtime;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import io.quarkus.arc.All;
 import io.smallrye.mutiny.Uni;
@@ -23,19 +20,20 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
-@Singleton
+@ApplicationScoped
 public class StatiqGenerator implements Handler<RoutingContext> {
     private final Instance<Vertx> vertx;
     private final StatiqGeneratorConfig config;
     private WebClient client;
-    private final List<StatiqPage> statiqPages = new ArrayList<>();
+    private final List<StatiqPage> statiqPages;
 
     @Inject
     public StatiqGenerator(final Instance<Vertx> vertx, final StatiqGeneratorConfig config,
             @All final List<StatiqPages> statiqPages) {
         this.vertx = vertx;
         this.config = config;
-        this.statiqPages.addAll(statiqPages.stream().map(StatiqPages::pages).flatMap(List::stream).toList());
+        this.statiqPages = statiqPages.stream().map(StatiqPages::pages).flatMap(List::stream)
+                .sorted(Comparator.comparing(StatiqPage::outputPath)).toList();
     }
 
     private WebClient client() {
@@ -45,33 +43,15 @@ public class StatiqGenerator implements Handler<RoutingContext> {
         return client;
     }
 
-    public void addFixedStaticPages(List<String> staticPaths) {
-        for (String p : config.fixedPaths) {
-            if (!isGlobPattern(p) && p.startsWith("/")) {
-                // fixed paths are directly added
-                this.statiqPages.add(new StatiqPage(p));
-                continue;
-            }
-            // Try to detect fixed paths from glob pattern
-            for (String staticPath : staticPaths) {
-                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
-                if (matcher.matches(Path.of(staticPath))) {
-                    this.statiqPages.add(new StatiqPage(staticPath));
-                }
-            }
-        }
-    }
-
     @Override
     public void handle(RoutingContext event) {
         final FileSystem fs = vertx.get().fileSystem();
         final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(config.outputDir).toAbsolutePath();
-        final List<String> paths = this.statiqPages.stream().map(StatiqPage::path).toList();
-        for (String path : paths) {
-            all.add(Uni.createFrom().completionStage(() -> fetchContent(event.request(), path))
+        for (StatiqPage page : this.statiqPages) {
+            all.add(Uni.createFrom().completionStage(() -> fetchContent(event.request(), page.path()))
                     .chain(r -> {
-                        final Path targetPath = computeStatiqPath(outputDir, path);
+                        final Path targetPath = outputDir.resolve(page.outputPath());
                         return Uni.createFrom()
                                 .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
                                 .chain(() -> Uni.createFrom().completionStage(fs
@@ -95,26 +75,9 @@ public class StatiqGenerator implements Handler<RoutingContext> {
 
     }
 
-    private static Path computeStatiqPath(Path outputDir, String path) {
-        String statiqPath = path;
-        if (statiqPath.endsWith("/")) {
-            statiqPath += "index.html";
-        }
-        if (statiqPath.startsWith("/")) {
-            statiqPath = statiqPath.substring(1);
-        }
-        return outputDir.resolve(statiqPath).toAbsolutePath();
-    }
-
     private CompletionStage<HttpResponse<Buffer>> fetchContent(HttpServerRequest request, String path) {
         return client().get(request.localAddress().port(), "localhost", path)
                 .send().toCompletionStage();
-    }
-
-    private static boolean isGlobPattern(String s) {
-        // Check if the string contains any glob pattern special characters
-        return s.contains("*") || s.contains("?") || s.contains("{") || s.contains("}") || s.contains("[") || s.contains("]")
-                || s.contains("**");
     }
 
 }

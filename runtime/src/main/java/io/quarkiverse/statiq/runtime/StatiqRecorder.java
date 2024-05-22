@@ -1,6 +1,7 @@
 package io.quarkiverse.statiq.runtime;
 
 import java.util.List;
+import java.util.Set;
 
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
@@ -21,10 +22,12 @@ public class StatiqRecorder {
         };
     }
 
-    public Handler<RoutingContext> createGenerateHandler(List<String> staticPaths) {
+    public void setStatiqPages(Set<String> staticPaths) {
+        FixedStaticPagesProvider.setStaticPaths(staticPaths);
+    }
+
+    public Handler<RoutingContext> createGenerateHandler() {
         final InstanceHandle<StatiqGenerator> generatorInstanceHandle = Arc.container().instance(StatiqGenerator.class);
-        final StatiqGenerator statiqGenerator = generatorInstanceHandle.get();
-        statiqGenerator.addFixedStaticPages(staticPaths);
-        return statiqGenerator;
+        return generatorInstanceHandle.get();
     }
 }

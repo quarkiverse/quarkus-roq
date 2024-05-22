@@ -7,11 +7,13 @@ import java.util.*;
 
 import jakarta.inject.Singleton;
 
+import io.quarkiverse.statiq.runtime.FixedStaticPagesProvider;
 import io.quarkiverse.statiq.runtime.StatiqGenerator;
 import io.quarkiverse.statiq.runtime.StatiqGeneratorConfig;
 import io.quarkiverse.statiq.runtime.StatiqRecorder;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
@@ -19,9 +21,8 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
-import io.quarkus.vertx.http.deployment.VertxWebRouterBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
-import io.quarkus.vertx.http.runtime.VertxHttpRecorder;
+import io.quarkus.vertx.http.deployment.spi.StaticResourcesBuildItem;
 
 class StatiqProcessor {
 
@@ -45,32 +46,38 @@ class StatiqProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem produceStatiqGenerator() {
-        return AdditionalBeanBuildItem.unremovableOf(StatiqGenerator.class);
+    void produceBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeanProducer) {
+        additionalBeanProducer.produce(AdditionalBeanBuildItem.unremovableOf(StatiqGenerator.class));
+        additionalBeanProducer.produce(AdditionalBeanBuildItem.unremovableOf(FixedStaticPagesProvider.class));
     }
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    void initHandler(
-            VertxWebRouterBuildItem router,
+    void initHandler(List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
+            StaticResourcesBuildItem staticResourcesBuildItem,
+            StatiqRecorder recorder) {
+
+        Set<String> staticPaths = new HashSet<>(staticResourcesBuildItem.getPaths());
+        staticPaths.addAll(notFoundPageDisplayableEndpoints.stream()
+                .filter(not(NotFoundPageDisplayableEndpointBuildItem::isAbsolutePath))
+                .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
+                .toList());
+        recorder.setStatiqPages(staticPaths);
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void initHandler(BuildProducer<RouteBuildItem> routes,
             NonApplicationRootPathBuildItem nonApplicationRootPath,
-            List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
-            StatiqRecorder recorder,
-            VertxHttpRecorder vertxHttpRecorder) {
+            StatiqRecorder recorder) {
 
         final RouteBuildItem route = nonApplicationRootPath.routeBuilder()
                 .management()
                 .route("statiq/generate")
-                .handler(recorder.createGenerateHandler(notFoundPageDisplayableEndpoints.stream()
-                        .filter(not(NotFoundPageDisplayableEndpointBuildItem::isAbsolutePath))
-                        .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
-                        .toList()))
+                .handler(recorder.createGenerateHandler())
                 .build();
-        // Can't use RouteBuildItem because of cycles
-        if (router.getFrameworkRouter() != null) {
-            vertxHttpRecorder.addRoute(router.getFrameworkRouter(), route.getRouteFunction(), route.getHandler(),
-                    route.getType());
-        }
+
+        routes.produce(route);
 
     }
 
