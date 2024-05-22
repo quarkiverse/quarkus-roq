@@ -26,7 +26,7 @@ public class StatiqResourceTest {
     @Test
     public void testGenerate() {
         given()
-                .baseUri("http://localhost:9001")
+                .baseUri("http://localhost:9000")
                 .when().get("/q/statiq/generate")
                 .then()
                 .statusCode(200)
