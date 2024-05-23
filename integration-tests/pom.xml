@@ -27,7 +27,7 @@
         <dependency>
             <groupId>io.quarkiverse.qute.web</groupId>
             <artifactId>quarkus-qute-web</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.statiq</groupId>
