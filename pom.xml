@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.quarkiverse.statiq</groupId>
     <artifactId>quarkus-statiq-parent</artifactId>
-    <version>0.0.3</version>
+    <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus Statiq - Parent</name>
 
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</connection>
         <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</developerConnection>
         <url>https://github.com/quarkiverse/quarkus-statiq</url>
-      <tag>0.0.3</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <properties>
