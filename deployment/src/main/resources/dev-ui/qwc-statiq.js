@@ -42,7 +42,7 @@ export class QwcStatiq extends LitElement {
      */
     connectedCallback() {
         super.connectedCallback();
-        this.jsonRpc.getPages().then(jsonRpcResponse => {
+        this.jsonRpc.getStatiqPages().then(jsonRpcResponse => {
             this._pages = [];
             jsonRpcResponse.result.forEach(c => {
                 this._pages.push(c);

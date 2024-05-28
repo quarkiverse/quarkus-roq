@@ -22,8 +22,13 @@ public class StatiqJsonRPCService {
     StatiqGenerator generator;
 
     @Blocking
-    public List<StatiqPage> getPages() {
+    public List<StatiqPage> getStatiqPages() {
         return StatiqPages.merge(statiqPages);
+    }
+
+    @Blocking
+    public int getStatiqCount() {
+        return getStatiqPages().size();
     }
 
 }

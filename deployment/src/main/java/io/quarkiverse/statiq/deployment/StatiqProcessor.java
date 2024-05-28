@@ -56,12 +56,16 @@ class StatiqProcessor {
     void initHandler(List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
             StaticResourcesBuildItem staticResourcesBuildItem,
             StatiqRecorder recorder) {
-
-        Set<String> staticPaths = new HashSet<>(staticResourcesBuildItem.getPaths());
-        staticPaths.addAll(notFoundPageDisplayableEndpoints.stream()
-                .filter(not(NotFoundPageDisplayableEndpointBuildItem::isAbsolutePath))
-                .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
-                .toList());
+        Set<String> staticPaths = new HashSet<>();
+        if (staticResourcesBuildItem != null) {
+            staticPaths.addAll(staticResourcesBuildItem.getPaths());
+        }
+        if (notFoundPageDisplayableEndpoints != null) {
+            staticPaths.addAll(notFoundPageDisplayableEndpoints.stream()
+                    .filter(not(NotFoundPageDisplayableEndpointBuildItem::isAbsolutePath))
+                    .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
+                    .toList());
+        }
         recorder.setStatiqPages(staticPaths);
     }
 

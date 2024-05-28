@@ -13,9 +13,10 @@ public class StatiqDevUIProcessor {
     CardPageBuildItem create(CurateOutcomeBuildItem bi) {
         CardPageBuildItem pageBuildItem = new CardPageBuildItem();
         pageBuildItem.addPage(Page.webComponentPageBuilder()
-                .title("Pages")
+                .title("Statiq files")
                 .componentLink("qwc-statiq.js")
-                .icon("font-awesome-solid:link"));
+                .icon("font-awesome-solid:link")
+                .dynamicLabelJsonRPCMethodName("getStatiqCount"));
 
         return pageBuildItem;
     }
