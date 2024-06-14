@@ -1,4 +1,4 @@
-package io.quarkiverse.statiq.deployment;
+package io.quarkiverse.statiq.runtime;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +9,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
 @ConfigMapping(prefix = "quarkus.statiq")
-@ConfigRoot(phase = ConfigPhase.BUILD_TIME)
+@ConfigRoot(phase = ConfigPhase.RUN_TIME)
 public interface StatiqConfig {
 
     /**
@@ -25,4 +25,15 @@ public interface StatiqConfig {
     @WithDefault("statiq")
     String outputDir();
 
+    /**
+     * Build as a CLI to export the static website
+     */
+    @WithDefault("false")
+    boolean batch();
+
+    /**
+     * Timeout for generation in seconds
+     */
+    @WithDefault("30")
+    long timeout();
 }

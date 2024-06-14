@@ -46,8 +46,9 @@ public class StatiqResource {
     @Transactional
     StatiqPages produce() {
         return new StatiqPages(List.of(
-                new StatiqPage("/statiq?name=foo"),
-                new StatiqPage("/statiq?name=bar")));
+                StatiqPage.builder().html("/statiq?name=foo-html").build(),
+                StatiqPage.builder().path("/statiq?name=foo").build(),
+                StatiqPage.builder().path("/statiq?name=bar").build()));
     }
 
 }

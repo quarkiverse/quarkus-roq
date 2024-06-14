@@ -13,8 +13,9 @@ import jakarta.inject.Singleton;
 
 @Singleton
 public class FixedStaticPagesProvider {
+    private static String targetDir;
     @Inject
-    StatiqGeneratorConfig config;
+    StatiqConfig config;
 
     private static volatile Set<String> staticPaths;
 
@@ -22,22 +23,30 @@ public class FixedStaticPagesProvider {
         FixedStaticPagesProvider.staticPaths = staticPaths;
     }
 
+    public static void setOutputTarget(String targetDir) {
+        FixedStaticPagesProvider.targetDir = targetDir;
+    }
+
+    public static String targetDir() {
+        return targetDir;
+    }
+
     @Produces
     @Singleton
     StatiqPages produce() {
         List<StatiqPage> statiqPages = new ArrayList<>();
-        for (String p : config.fixedPaths) {
+        for (String p : config.fixed().orElse(List.of())) {
 
             if (!isGlobPattern(p) && p.startsWith("/")) {
                 // fixed paths are directly added
-                statiqPages.add(new StatiqPage(p, PageType.FIXED));
+                statiqPages.add(StatiqPage.builder().path(p).fixed().build());
                 continue;
             }
             // Try to detect fixed paths from glob pattern
             for (String staticPath : staticPaths) {
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
                 if (matcher.matches(Path.of(staticPath))) {
-                    statiqPages.add(new StatiqPage(staticPath, PageType.FIXED));
+                    statiqPages.add(StatiqPage.builder().fixed().path(staticPath).build());
                 }
             }
         }
