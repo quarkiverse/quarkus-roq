@@ -10,6 +10,7 @@ import '@vaadin/checkbox';
 import '@vaadin/grid';
 import { columnBodyRenderer } from '@vaadin/grid/lit.js';
 import '@vaadin/grid/vaadin-grid-sort-column.js';
+import '@qomponent/qui-alert';
 
 export class QwcStatiq extends LitElement {
 
@@ -66,36 +67,48 @@ export class QwcStatiq extends LitElement {
 
     _renderTable() {
         return html`
-            <div class="menubar">
-                <a href="/q/statiq/generate" target="_blank">
-                  <vaadin-button id="start-cnt-testing-btn" theme="tertiary" tabindex="0" role="button">
-                    <vaadin-icon icon="font-awesome-solid:play"></vaadin-icon>
-                    Generate
-                  </vaadin-button>
-                </a>
-            </div>
-            <vaadin-grid .items="${this._pages}" class="datatable" theme="no-border">
-              <vaadin-grid-column auto-width
-                                  header="Path"
-                                  flex-grow="1"
-                                  ${columnBodyRenderer(this._pathRenderer, [])}>
-              </vaadin-grid-column>
-              <vaadin-grid-column auto-width
-                                  header="File"
-                                  flex-grow="1"
-                                  ${columnBodyRenderer(this._fileRenderer, [])}>
-              </vaadin-grid-column>
-              
-                <vaadin-grid-column path="type" flex-grow="0" width="12em"></vaadin-grid-column>
-              <vaadin-grid-column header="Link"
-                                  width="6em"
-                                  flex-grow="0"
-                                  ${columnBodyRenderer(this._linkRenderer, [])}>
-              </vaadin-grid-column>
-            </vaadin-grid>
-                
-        
+          <div class="menubar">
+            <qui-alert level="warning">
+              <div>
+                <p>Generating in dev-mode is not using the production application. <br/> Run <code>QUARKUS_STATIQ_BATCH=true
+                  java -jar target/quarkus-app/quarkus-run.jar</code></p>
+                <br/>
+                <vaadin-button @click="${this._generate}" id="start-cnt-testing-btn" theme="tertiary" tabindex="0"
+                               role="button">
+                  <vaadin-icon icon="font-awesome-solid:play"></vaadin-icon>
+                  Generate
+                </vaadin-button>
+              </div>
+            </qui-alert>
+          </div>
+          <vaadin-grid .items="${this._pages}" class="datatable" theme="no-border">
+            <vaadin-grid-column auto-width
+                                header="Path"
+                                flex-grow="1"
+                                ${columnBodyRenderer(this._pathRenderer, [])}>
+            </vaadin-grid-column>
+            <vaadin-grid-column auto-width
+                                header="File"
+                                flex-grow="1"
+                                ${columnBodyRenderer(this._fileRenderer, [])}>
+            </vaadin-grid-column>
+
+            <vaadin-grid-column path="type" flex-grow="0" width="12em"></vaadin-grid-column>
+            <vaadin-grid-column header="Link"
+                                width="6em"
+                                flex-grow="0"
+                                ${columnBodyRenderer(this._linkRenderer, [])}>
+            </vaadin-grid-column>
+          </vaadin-grid>
+
+
         `;
+    }
+
+    _generate() {
+        this.jsonRpc.generate().then(jsonRpcResponse => {
+            alert("Statiq generation succeeded in directory: " + jsonRpcResponse.result);
+        });
     }
 
     _fileRenderer(page) {

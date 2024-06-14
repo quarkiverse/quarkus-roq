@@ -10,7 +10,7 @@ h|[[quarkus-statiq_configuration]]link:#quarkus-statiq_configuration[Configurati
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-statiq_quarkus-statiq-fixed]]`link:#quarkus-statiq_quarkus-statiq-fixed[quarkus.statiq.fixed]`
+a| [[quarkus-statiq_quarkus-statiq-fixed]]`link:#quarkus-statiq_quarkus-statiq-fixed[quarkus.statiq.fixed]`
 
 
 [.description]
@@ -27,7 +27,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-statiq_quarkus-statiq-output-dir]]`link:#quarkus-statiq_quarkus-statiq-output-dir[quarkus.statiq.output-dir]`
+a| [[quarkus-statiq_quarkus-statiq-output-dir]]`link:#quarkus-statiq_quarkus-statiq-output-dir[quarkus.statiq.output-dir]`
 
 
 [.description]
@@ -42,5 +42,39 @@ Environment variable: `+++QUARKUS_STATIQ_OUTPUT_DIR+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |`statiq`
+
+
+a| [[quarkus-statiq_quarkus-statiq-batch]]`link:#quarkus-statiq_quarkus-statiq-batch[quarkus.statiq.batch]`
+
+
+[.description]
+--
+Build as a CLI to export the static website
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_STATIQ_BATCH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_STATIQ_BATCH+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a| [[quarkus-statiq_quarkus-statiq-timeout]]`link:#quarkus-statiq_quarkus-statiq-timeout[quarkus.statiq.timeout]`
+
+
+[.description]
+--
+Timeout for generation in seconds
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_STATIQ_TIMEOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_STATIQ_TIMEOUT+++`
+endif::add-copy-button-to-env-var[]
+--|long 
+|`30`
 
 |===
