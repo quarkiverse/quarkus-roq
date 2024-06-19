@@ -3,37 +3,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.quarkiverse</groupId>
-        <artifactId>quarkiverse-parent</artifactId>
-        <version>16</version>
+        <groupId>io.quarkiverse.statiq</groupId>
+        <artifactId>quarkus-statiq-parent</artifactId>
+        <version>999-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
-    <groupId>io.quarkiverse.statiq</groupId>
-    <artifactId>quarkus-statiq-parent</artifactId>
+    <artifactId>quarkus-statiq-data-parent</artifactId>
     <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Quarkus Statiq - Parent</name>
+    <name>Quarkus Statiq - Data</name>
 
     <modules>
         <module>deployment</module>
         <module>runtime</module>
-        <module>docs</module>
-        <module>statiq-data</module>
     </modules>
-
-    <scm>
-        <connection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</connection>
-        <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</developerConnection>
-        <url>https://github.com/quarkiverse/quarkus-statiq</url>
-      <tag>HEAD</tag>
-  </scm>
-
-    <properties>
-        <compiler-plugin.version>3.13.0</compiler-plugin.version>
-        <maven.compiler.release>17</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.11.2</quarkus.version>
-    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -77,9 +60,6 @@
                     <value>!true</value>
                 </property>
             </activation>
-            <modules>
-                <module>integration-tests</module>
-            </modules>
         </profile>
     </profiles>
 </project>
