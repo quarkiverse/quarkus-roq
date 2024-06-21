@@ -13,17 +13,17 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkus.test.QuarkusUnitTest;
 import io.vertx.core.json.JsonObject;
 
-public class StatiqDataInjectableBeanLookingDefaultLocationTest {
+public class StatiqDataInjectableBeanLookingCustomLocationTest {
 
     @RegisterExtension
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addClass(SimpleBean.class)
-                    .add(new StringAsset(""),
+                    .add(new StringAsset("quarkus.statiq.data.location=custom\n"),
                             "application.properties")
-                    .addAsResource("foo.json", "META-INF/resources/data/foo.json")
-                    .addAsResource("foo.yaml", "META-INF/resources/data/foo.yaml")
-                    .addAsResource("foo.yml", "META-INF/resources/data/foo.yml"));
+                    .addAsResource("foo.json", "META-INF/resources/custom/foo.json")
+                    .addAsResource("foo.yaml", "META-INF/resources/custom/foo.yaml")
+                    .addAsResource("foo.yml", "META-INF/resources/custom/foo.yml"));
 
     @Inject
     Instance<SimpleBean> simpleBean;
