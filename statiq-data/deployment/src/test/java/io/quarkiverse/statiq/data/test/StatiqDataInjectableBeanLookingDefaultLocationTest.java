@@ -6,6 +6,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -20,16 +21,32 @@ public class StatiqDataInjectableBeanLookingDefaultLocationTest {
                     .addClass(SimpleBean.class)
                     .add(new StringAsset(""),
                             "application.properties")
-                    .addAsResource("application.json", "META-INF/resources/data/application.json"));
+                    .addAsResource("application.json", "META-INF/resources/data/application.json")
+                    .addAsResource("application.yaml", "META-INF/resources/data/application.yaml")
+                    .addAsResource("application.yml", "META-INF/resources/data/application.yml"));
 
     @Inject
     Instance<SimpleBean> simpleBean;
 
     @Test
-    public void writeYourOwnProdModeTest() {
+    public void whenUseApplicationJsonShouldGetSuperHeroesJson() {
+        String fromJson = simpleBean.get().getNameFromApplicationJson();
 
-        String name = simpleBean.get().getName();
-        assert name.equals("Super Heroes");
+        Assertions.assertEquals("Super Heroes from Json", fromJson);
+    }
+
+    @Test
+    public void whenUseApplicationYamlShouldGetSuperHeroesYaml() {
+        String fromYaml = simpleBean.get().getNameFromApplicationYaml();
+
+        Assertions.assertEquals("Super Heroes from Yaml", fromYaml);
+    }
+
+    @Test
+    public void whenUseApplicationYmlShouldGetSuperHeroesYml() {
+        String fromYml = simpleBean.get().getNameFromApplicationYml();
+
+        Assertions.assertEquals("Super Heroes from Yml", fromYml);
     }
 
     @Singleton
@@ -37,10 +54,26 @@ public class StatiqDataInjectableBeanLookingDefaultLocationTest {
 
         @Inject
         @Named("application.json")
-        JsonObject jsonObject;
+        JsonObject applicationJson;
 
-        public String getName() {
-            return jsonObject.getString("name");
+        @Inject
+        @Named("application.yaml")
+        JsonObject applicationYaml;
+
+        @Inject
+        @Named("application.yml")
+        JsonObject applicationYml;
+
+        public String getNameFromApplicationJson() {
+            return applicationJson.getString("name");
+        }
+
+        public String getNameFromApplicationYaml() {
+            return applicationYaml.getString("name");
+        }
+
+        public String getNameFromApplicationYml() {
+            return applicationYml.getString("name");
         }
 
     }
