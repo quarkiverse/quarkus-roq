@@ -16,7 +16,7 @@ env:
   # Repo specific setting #
   #########################
 
-  ECOSYSTEM_CI_REPO_PATH: quarkiverse-statiq
+  ECOSYSTEM_CI_REPO_PATH: quarkiverse-roq
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,7 +31,7 @@ jobs:
     name: "Build against latest Quarkus snapshot"
     runs-on: ubuntu-latest
     # Allow <ADMIN> to manually launch the ecosystem CI in addition to the bots
-    if: github.actor == 'quarkusbot' || github.actor == 'quarkiversebot' || github.actor == '<ADMIN>'
+    if: github.actor == 'quarkusbot' || github.actor == 'quarkiversebot' || github.actor == 'ia3andy'
 
     steps:
       - name: Install yq

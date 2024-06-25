@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.quarkiverse.statiq</groupId>
-        <artifactId>quarkus-statiq-parent</artifactId>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
-    <artifactId>quarkus-statiq</artifactId>
-    <name>Quarkus Statiq - Runtime</name>
+    <artifactId>quarkus-roq</artifactId>
+    <name>Quarkus Roq - Runtime</name>
 
     <dependencies>
         <dependency>

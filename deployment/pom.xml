@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.quarkiverse.statiq</groupId>
-        <artifactId>quarkus-statiq-parent</artifactId>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
-    <artifactId>quarkus-statiq-deployment</artifactId>
-    <name>Quarkus Statiq - Deployment</name>
+    <artifactId>quarkus-roq-deployment</artifactId>
+    <name>Quarkus Roq - Deployment</name>
 
     <dependencies>
         <dependency>
@@ -16,8 +16,8 @@
             <artifactId>quarkus-arc-deployment</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.statiq</groupId>
-            <artifactId>quarkus-statiq</artifactId>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

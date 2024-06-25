@@ -1,5 +1,5 @@
-name: quarkus-statiq
-title: Statiq
+name: quarkus-roq
+title: Roq
 version: dev
 nav:
   - modules/ROOT/nav.adoc

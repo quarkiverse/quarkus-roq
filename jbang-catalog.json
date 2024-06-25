@@ -1,9 +1,9 @@
 {
   "catalogs": {},
   "aliases": {
-    "statiq": {
+    "roq": {
       "description": "Serve the generated static website locally",
-      "script-ref": "statiq.java"
+      "script-ref": "roq.java"
     }
   },
   "templates": {}

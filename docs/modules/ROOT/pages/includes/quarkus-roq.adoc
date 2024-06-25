@@ -1,0 +1,80 @@
+
+:summaryTableId: quarkus-roq
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[[quarkus-roq_configuration]]link:#quarkus-roq_configuration[Configuration property]
+
+h|Type
+h|Default
+
+a| [[quarkus-roq_quarkus-roq-fixed]]`link:#quarkus-roq_quarkus-roq-fixed[quarkus.roq.fixed]`
+
+
+[.description]
+--
+The fixed paths to include in the static website Glob syntax is authorized to add static resources
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_FIXED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_FIXED+++`
+endif::add-copy-button-to-env-var[]
+--|list of string 
+|
+
+
+a| [[quarkus-roq_quarkus-roq-output-dir]]`link:#quarkus-roq_quarkus-roq-output-dir[quarkus.roq.output-dir]`
+
+
+[.description]
+--
+Output directory for the static website relative to the target directory
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_OUTPUT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_OUTPUT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`roq`
+
+
+a| [[quarkus-roq_quarkus-roq-batch]]`link:#quarkus-roq_quarkus-roq-batch[quarkus.roq.batch]`
+
+
+[.description]
+--
+Build as a CLI to export the static website
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_BATCH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_BATCH+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a| [[quarkus-roq_quarkus-roq-timeout]]`link:#quarkus-roq_quarkus-roq-timeout[quarkus.roq.timeout]`
+
+
+[.description]
+--
+Timeout for generation in seconds
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_TIMEOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_TIMEOUT+++`
+endif::add-copy-button-to-env-var[]
+--|long 
+|`30`
+
+|===

@@ -1,0 +1,12 @@
+name: Roq Data
+description: Allow to consume json and yaml data files as CDI beans
+metadata:
+  keywords:
+    - json
+    - yaml
+    - data
+    - static
+  #  guide: https://quarkiverse.github.io/quarkiverse-docs/roq/dev/ # To create and publish this guide, see https://github.com/quarkiverse/quarkiverse/wiki#documenting-your-extension
+  categories:
+    - "web"
+  status: "preview"

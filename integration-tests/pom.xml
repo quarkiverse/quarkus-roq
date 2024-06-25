@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.quarkiverse.statiq</groupId>
-        <artifactId>quarkus-statiq-parent</artifactId>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
-    <artifactId>quarkus-statiq-integration-tests</artifactId>
-    <name>Quarkus Statiq - Integration Tests</name>
+    <artifactId>quarkus-roq-integration-tests</artifactId>
+    <name>Quarkus Roq - Integration Tests</name>
 
     <properties>
         <skipITs>true</skipITs>
@@ -30,8 +30,8 @@
             <version>3.0.1</version>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.statiq</groupId>
-            <artifactId>quarkus-statiq</artifactId>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -1,4 +1,4 @@
-= Quarkus Statiq
+= Quarkus Roq
 
 include::./includes/attributes.adoc[]
 
@@ -6,15 +6,15 @@ TIP: Describe what the extension does here.
 
 == Installation
 
-If you want to use this extension, you need to add the `io.quarkiverse.statiq:quarkus-statiq` extension first to your build file.
+If you want to use this extension, you need to add the `io.quarkiverse.roq:quarkus-roq` extension first to your build file.
 
 For instance, with Maven, add the following dependency to your POM file:
 
 [source,xml,subs=attributes+]
 ----
 <dependency>
-    <groupId>io.quarkiverse.statiq</groupId>
-    <artifactId>quarkus-statiq</artifactId>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq</artifactId>
     <version>{project-version}</version>
 </dependency>
 ----
@@ -24,4 +24,4 @@ For instance, with Maven, add the following dependency to your POM file:
 
 TIP: Remove this section if you don't have Quarkus configuration properties in your extension.
 
-include::includes/quarkus-statiq.adoc[leveloffset=+1, opts=optional]
+include::includes/quarkus-roq.adoc[leveloffset=+1, opts=optional]

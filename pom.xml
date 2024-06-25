@@ -7,23 +7,23 @@
         <artifactId>quarkiverse-parent</artifactId>
         <version>16</version>
     </parent>
-    <groupId>io.quarkiverse.statiq</groupId>
-    <artifactId>quarkus-statiq-parent</artifactId>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-parent</artifactId>
     <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Quarkus Statiq - Parent</name>
+    <name>Quarkus Roq - Parent</name>
 
     <modules>
         <module>deployment</module>
         <module>runtime</module>
         <module>docs</module>
-        <module>statiq-data</module>
+        <module>roq-data</module>
     </modules>
 
     <scm>
-        <connection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</connection>
-        <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-statiq.git</developerConnection>
-        <url>https://github.com/quarkiverse/quarkus-statiq</url>
+        <connection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</connection>
+        <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</developerConnection>
+        <url>https://github.com/quarkiverse/quarkus-roq</url>
       <tag>HEAD</tag>
   </scm>
 
