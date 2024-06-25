@@ -91,7 +91,8 @@ public class RoqGenerator implements Handler<RoutingContext> {
         final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(outputDir()).toAbsolutePath();
         for (StaticPage page : this.staticPages) {
-            all.add(Uni.createFrom().completionStage(() -> fetchContent(page.path()))
+            all.add(Uni.createFrom().completionStage(() -> fetchContent(page.path())).onFailure()
+                    .retry().atMost(5)
                     .chain(r -> {
                         final Path targetPath = outputDir.resolve(page.outputPath());
                         return Uni.createFrom()
@@ -133,7 +134,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
                 .onSuccess(r -> {
                     LOGGER.debugf("Roq request completed %s", path);
                 })
-                .onFailure(t -> LOGGER.error("Roq request failed", t))
+                .onFailure(t -> LOGGER.errorf("Roq request failed %s", path, t))
                 .toCompletionStage();
     }
 
