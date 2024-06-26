@@ -1,0 +1,14 @@
+---
+layout: main
+link: /events
+---
+
+{#for event in cdi:events.list}
+<article class="event">
+  <div class="event-content">
+    <h2 class="event-title">{event.title}</h2>
+    <p>{event.description}</p>
+    <span class="post-date">{event.parsedDate.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+  </div>
+</article>
+{/for}

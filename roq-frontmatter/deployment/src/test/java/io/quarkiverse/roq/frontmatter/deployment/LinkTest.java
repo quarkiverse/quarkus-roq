@@ -17,7 +17,7 @@ class LinkTest {
                 .put("year", "2024")
                 .put("month", "08")
                 .put("day", "27")
-                .put("base-filename", "my-first-blog-post")
+                .put("baseFileName", "my-first-blog-post")
                 .put("link", "/:year/:month/:day/:title/");
 
         String generatedLink = link(frontMatter);
