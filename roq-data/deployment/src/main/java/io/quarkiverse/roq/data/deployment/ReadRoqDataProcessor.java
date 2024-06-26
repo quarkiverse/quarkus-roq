@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
+import io.quarkiverse.roq.data.runtime.RoqDataConfig;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.runtime.util.ClassPathUtils;
@@ -19,14 +20,14 @@ import io.vertx.core.json.JsonObject;
 public class ReadRoqDataProcessor {
 
     private static final String META_INF_RESOURCES = "META-INF/resources";
-    private static final Set<String> YAML_EXTENSIONS = Set.of(".yaml", ".yml");
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".yaml", ".yml");
 
+    RoqDataConfig roqDataConfig;
+
     @BuildStep
-    void scanDataFiles(BuildProducer<RoqDataJsonBuildItem> dataProducer,
-            RoqDataConfig roqDataConfig) {
+    void scanDataFiles(BuildProducer<RoqDataJsonBuildItem> dataProducer) {
         try {
-            Set<RoqDataJsonBuildItem> items = scanDataFiles(roqDataConfig.location);
+            Set<RoqDataJsonBuildItem> items = scanDataFiles(this.roqDataConfig.location());
 
             for (RoqDataJsonBuildItem item : items) {
                 dataProducer.produce(item);
