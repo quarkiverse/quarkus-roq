@@ -34,6 +34,15 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         }
     }
 
+    public void consumeSite(Consumer<Path> consumer) throws IOException {
+        if (resourceSiteDir != null) {
+            ClassPathUtils.consumeAsPaths(resourceSiteDir, consumer);
+        }
+        if (project != null) {
+            consumer.accept(project.siteDir());
+        }
+    }
+
     /**
      * Container to store resolved directory locations.
      */

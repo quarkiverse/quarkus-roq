@@ -42,12 +42,14 @@ class RoqDataRuntimeProcessor {
                         .scope(ApplicationScoped.class)
                         .named(roqData.getName())
                         .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                        .unremovable()
                         .done());
             } else if (roqData.getData() instanceof JsonArray) {
                 beansProducer.produce(SyntheticBeanBuildItem.configure(JsonArray.class)
                         .scope(ApplicationScoped.class)
                         .named(roqData.getName())
                         .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                        .unremovable()
                         .done());
             }
         }
@@ -62,6 +64,7 @@ class RoqDataRuntimeProcessor {
                     .scope(beanBuildItem.isRecord() ? Singleton.class : ApplicationScoped.class)
                     .named(beanBuildItem.getName())
                     .runtimeValue(roqDataRecorder.createRoqDataJson(beanBuildItem.getData()))
+                    .unremovable()
                     .done());
         }
     }

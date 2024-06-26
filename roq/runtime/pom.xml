@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-data</artifactId>
+            <artifactId>quarkus-roq-frontmatter</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

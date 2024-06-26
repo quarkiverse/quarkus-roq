@@ -29,4 +29,9 @@ public final class PathUtils {
     public static String removeTrailingSlash(String path) {
         return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
+
+    public static String removeExtension(String path) {
+        final int i = path.lastIndexOf(".");
+        return i > 0 ? path.substring(0, i) : path;
+    }
 }

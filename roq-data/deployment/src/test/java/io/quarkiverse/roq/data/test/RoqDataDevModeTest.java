@@ -21,7 +21,7 @@ public class RoqDataDevModeTest {
     static final QuarkusDevModeTest devModeTest = new QuarkusDevModeTest()
             .withApplicationRoot((jar) -> jar
                     .addClass(Hello.class)
-                    .addAsResource("foo.json", "site/data/foo.json"));
+                    .addAsResource("foo.json", "site/_data/foo.json"));
 
     @Test
     public void changeData() {
@@ -30,7 +30,7 @@ public class RoqDataDevModeTest {
                 .then()
                 .statusCode(200)
                 .body(Matchers.equalTo("Super Heroes from Json"));
-        devModeTest.modifyResourceFile("site/data/foo.json", (content) -> content.replace("Super", "Mega"));
+        devModeTest.modifyResourceFile("site/_data/foo.json", (content) -> content.replace("Super", "Mega"));
         RestAssured.given()
                 .get("/hello")
                 .then()
