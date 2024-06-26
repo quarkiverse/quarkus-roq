@@ -70,8 +70,8 @@ export class QwcRoqGenerator extends LitElement {
           <div class="menubar">
             <qui-alert level="warning">
               <div>
-                <p>Generating in dev-mode is not using the production application. <br/> Run <code>QUARKUS_ROQ_BATCH=true
-                  java -jar target/quarkus-app/quarkus-run.jar</code></p>
+                <p>Generating in dev-mode is not using the production application. <br/> Run <code>QUARKUS_ROQ_GENERATOR_BATCH=true
+                  ./mvnw package quarkus:run -DskipTests</code></p>
                 <br/>
                 <vaadin-button @click="${this._generate}" id="start-cnt-testing-btn" theme="tertiary" tabindex="0"
                                role="button">

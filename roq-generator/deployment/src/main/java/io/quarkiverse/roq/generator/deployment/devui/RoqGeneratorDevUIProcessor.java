@@ -13,7 +13,7 @@ public class RoqGeneratorDevUIProcessor {
     CardPageBuildItem create(CurateOutcomeBuildItem bi) {
         CardPageBuildItem pageBuildItem = new CardPageBuildItem();
         pageBuildItem.addPage(Page.webComponentPageBuilder()
-                .title("Roq Generator files")
+                .title("Roq Generator selection")
                 .componentLink("qwc-roq-generator.js")
                 .icon("font-awesome-solid:link")
                 .dynamicLabelJsonRPCMethodName("getRoqCount"));
