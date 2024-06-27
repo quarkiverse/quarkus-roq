@@ -14,10 +14,12 @@
     <name>Quarkus Roq - Parent</name>
 
     <modules>
+        <module>common</module>
         <module>common-deployment</module>
-        <module>deployment</module>
-        <module>runtime</module>
+        <module>roq/runtime</module>
+        <module>roq/deployment</module>
         <module>docs</module>
+        <module>roq-generator</module>
         <module>roq-data</module>
     </modules>
 
@@ -33,7 +35,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.11.2</quarkus.version>
+        <quarkus.version>3.12.0</quarkus.version>
     </properties>
 
     <dependencyManagement>
@@ -69,18 +71,4 @@
         </pluginManagement>
     </build>
 
-    <profiles>
-        <profile>
-            <id>it</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>!true</value>
-                </property>
-            </activation>
-            <modules>
-                <module>integration-tests</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>
