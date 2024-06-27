@@ -13,7 +13,7 @@ import jakarta.inject.Singleton;
 
 @Singleton
 public class FixedStaticPagesProvider {
-    private static String targetDir;
+    private static volatile String targetDir;
     @Inject
     RoqGeneratorConfig config;
 
@@ -42,13 +42,16 @@ public class FixedStaticPagesProvider {
                 StaticPages.add(StaticPage.builder().path(p).fixed().build());
                 continue;
             }
-            // Try to detect fixed paths from glob pattern
-            for (String staticPath : staticPaths) {
-                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
-                if (matcher.matches(Path.of(staticPath))) {
-                    StaticPages.add(StaticPage.builder().fixed().path(staticPath).build());
+            if (staticPaths != null) {
+                // Try to detect fixed paths from glob pattern
+                for (String staticPath : staticPaths) {
+                    PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
+                    if (matcher.matches(Path.of(staticPath))) {
+                        StaticPages.add(StaticPage.builder().fixed().path(staticPath).build());
+                    }
                 }
             }
+
         }
         return new StaticPages(StaticPages);
     }
