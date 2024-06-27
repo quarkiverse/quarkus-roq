@@ -38,7 +38,7 @@ class RoqGeneratorProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(ExecutionTime.STATIC_INIT)
     void initHandler(List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
             StaticResourcesBuildItem staticResourcesBuildItem,
             OutputTargetBuildItem outputTarget,
