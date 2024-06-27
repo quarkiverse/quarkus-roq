@@ -12,6 +12,9 @@ metadata:
     - generator
     - web
 #  guide: https://quarkiverse.github.io/quarkiverse-docs/roq/dev/ # To create and publish this guide, see https://github.com/quarkiverse/quarkiverse/wiki#documenting-your-extension
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"
+  config:
+    - "quarkus.roq."
   status: "preview"
