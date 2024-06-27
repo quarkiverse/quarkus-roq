@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-common-deployment</artifactId>
-    <name>Quarkus Roq - Common - Deployment</name>
+    <artifactId>quarkus-roq-deployment</artifactId>
+    <name>Quarkus Roq - Deployment</name>
+
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc-deployment</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-vertx-http-deployment</artifactId>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-generator-deployment</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-common</artifactId>
+            <artifactId>quarkus-roq-data-deployment</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-common-deployment</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -28,6 +38,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>

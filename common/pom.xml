@@ -6,14 +6,7 @@
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-data-parent</artifactId>
-    <packaging>pom</packaging>
-    <name>Quarkus Roq - Data</name>
-
-    <modules>
-        <module>deployment</module>
-        <module>runtime</module>
-    </modules>
+    <artifactId>quarkus-roq-common</artifactId>
+    <name>Quarkus Roq - Common</name>
 </project>
