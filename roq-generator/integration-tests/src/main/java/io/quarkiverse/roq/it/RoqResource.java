@@ -27,8 +27,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
-import io.quarkiverse.roq.generator.runtime.StaticPage;
-import io.quarkiverse.roq.generator.runtime.StaticPages;
+import io.quarkiverse.roq.generator.runtime.RoqSelection;
+import io.quarkiverse.roq.generator.runtime.SelectedPath;
 
 @Path("/roq")
 @ApplicationScoped
@@ -44,11 +44,11 @@ public class RoqResource {
     @Produces
     @Singleton
     @Transactional
-    StaticPages produce() {
-        return new StaticPages(List.of(
-                StaticPage.builder().html("/roq?name=foo-html").build(),
-                StaticPage.builder().path("/roq?name=foo").build(),
-                StaticPage.builder().path("/roq?name=bar").build()));
+    RoqSelection produce() {
+        return new RoqSelection(List.of(
+                SelectedPath.builder().html("/roq?name=foo-html").build(),
+                SelectedPath.builder().path("/roq?name=foo").build(),
+                SelectedPath.builder().path("/roq?name=bar").build()));
     }
 
 }

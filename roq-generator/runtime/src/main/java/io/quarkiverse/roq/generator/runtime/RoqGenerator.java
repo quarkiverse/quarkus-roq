@@ -41,18 +41,18 @@ public class RoqGenerator implements Handler<RoutingContext> {
 
     private final HttpBuildTimeConfig httpBuildTimeConfig;
     private WebClient client;
-    private final List<StaticPage> staticPages;
+    private final List<SelectedPath> selectedPaths;
 
     @Inject
     public RoqGenerator(final Instance<Vertx> vertx, final RoqGeneratorConfig config, HttpConfiguration httpConfiguration,
             HttpBuildTimeConfig httpBuildTimeConfig,
-            @All final List<StaticPages> staticPages) {
+            @All final List<RoqSelection> selection) {
         this.vertx = vertx;
         this.config = config;
         this.httpConfiguration = httpConfiguration;
         this.httpBuildTimeConfig = httpBuildTimeConfig;
-        this.staticPages = staticPages.stream().map(StaticPages::pages).flatMap(List::stream)
-                .sorted(Comparator.comparing(StaticPage::outputPath)).toList();
+        this.selectedPaths = selection.stream().map(RoqSelection::paths).flatMap(List::stream)
+                .sorted(Comparator.comparing(SelectedPath::outputPath)).toList();
     }
 
     void onStart(@Observes StartupEvent ev) {
@@ -68,7 +68,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     public String outputDir() {
-        return PathUtils.join(FixedStaticPagesProvider.targetDir(), config.outputDir());
+        return PathUtils.join(ConfiguredPathsProvider.targetDir(), config.outputDir());
     }
 
     private WebClient client() {
@@ -90,11 +90,11 @@ public class RoqGenerator implements Handler<RoutingContext> {
         final FileSystem fs = vertx.get().fileSystem();
         final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(outputDir()).toAbsolutePath();
-        for (StaticPage page : this.staticPages) {
-            all.add(Uni.createFrom().completionStage(() -> fetchContent(page.path())).onFailure()
+        for (SelectedPath path : this.selectedPaths) {
+            all.add(Uni.createFrom().completionStage(() -> fetchContent(path.path())).onFailure()
                     .retry().atMost(5)
                     .chain(r -> {
-                        final Path targetPath = outputDir.resolve(page.outputPath());
+                        final Path targetPath = outputDir.resolve(path.outputPath());
                         return Uni.createFrom()
                                 .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
                                 .chain(() -> {

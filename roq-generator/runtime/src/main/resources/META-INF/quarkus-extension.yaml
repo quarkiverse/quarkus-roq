@@ -16,5 +16,5 @@ metadata:
   categories:
     - "web"
   config:
-    - "quarkus.roq."
+    - "quarkus.roq.generator"
   status: "preview"

@@ -13,10 +13,24 @@ import io.smallrye.config.WithDefault;
 public interface RoqGeneratorConfig {
 
     /**
-     * The fixed paths to include in the static website
-     * Glob syntax is authorized to add static resources
+     * The selected paths to include in the static website
+     * Glob syntax is authorized to add resources
+     *
+     * For dynamic paths selection, produce a {@link RoqSelection} in you app.
+     *
+     * <code>
+     *     &#64;Produces
+     *     &#64;Singleton
+     *     @Transactional
+     *     RoqSelection produce() {
+     *         return new RoqSelection(List.of(
+     *                 SelectedPath.builder().html("/roq?name=foo-html").build(),
+     *                 SelectedPath.builder().path("/roq?name=foo").build(),
+     *                 SelectedPath.builder().path("/roq?name=bar").build()));
+     *     }
+     * </code>
      */
-    Optional<List<String>> fixed();
+    Optional<List<String>> paths();
 
     /**
      * Output directory for the static website

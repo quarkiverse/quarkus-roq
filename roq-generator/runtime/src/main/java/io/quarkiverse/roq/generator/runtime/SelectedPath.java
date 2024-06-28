@@ -4,16 +4,16 @@ import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
 
 import java.util.regex.Pattern;
 
-public final record StaticPage(String path, String outputPath, PageType type) {
+public record SelectedPath(String path, String outputPath, PageSource source) {
 
     private static final Pattern NON_FILE_CHARS = Pattern.compile("[^a-zA-Z0-9\\\\/.]");
 
-    private StaticPage(StaticPageBuilder builder) {
-        this(builder.path, builder.outputPath, builder.type);
+    private SelectedPath(SelectedPathBuilder builder) {
+        this(builder.path, builder.outputPath, builder.source);
     }
 
-    public static StaticPageBuilder builder() {
-        return new StaticPageBuilder();
+    public static SelectedPathBuilder builder() {
+        return new SelectedPathBuilder();
     }
 
     public static String defaultOutputPath(String path) {
@@ -30,52 +30,40 @@ public final record StaticPage(String path, String outputPath, PageType type) {
         return NON_FILE_CHARS.matcher(staticPath).replaceAll("-");
     }
 
-    public String path() {
-        return path;
-    }
-
-    public PageType type() {
-        return type;
-    }
-
-    public String outputPath() {
-        return outputPath;
-    }
-
-    public static class StaticPageBuilder {
+    public static class SelectedPathBuilder {
         String path;
-        PageType type = PageType.PROVIDED;
+        PageSource source = PageSource.PROVIDED;
         String outputPath = null;
 
-        public StaticPageBuilder path(String path) {
+        public SelectedPathBuilder path(String path) {
             this.path = path;
             return this;
         }
 
-        StaticPageBuilder fixed() {
-            this.type = PageType.FIXED;
+        SelectedPathBuilder sourceConfig() {
+            this.source = PageSource.CONFIG;
             return this;
         }
 
-        public StaticPageBuilder html(String path) {
+        public SelectedPathBuilder html(String path) {
             this.path = path;
             this.outputPath = defaultOutputPath(addTrailingSlash(path));
             return this;
         }
 
-        public StaticPageBuilder outputPath(String outputPath) {
+        public SelectedPathBuilder outputPath(String outputPath) {
             this.outputPath = outputPath;
             return this;
         }
 
-        public StaticPage build() {
+        public SelectedPath build() {
             if (outputPath == null) {
                 outputPath = defaultOutputPath(path);
             }
             if (outputPath.startsWith("/")) {
                 outputPath = outputPath.substring(1);
             }
-            return new StaticPage(this);
+            return new SelectedPath(this);
         }
     }
 }
