@@ -1,6 +1,8 @@
 package io.quarkiverse.roq.deployment.items;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import io.quarkus.builder.item.SimpleBuildItem;
 
@@ -15,7 +17,10 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         return project;
     }
 
-    // TODO: in the future we might want to include a Scanner like in web-bundler to see if dependencies contains roq stuff
+    public void consumePathFromSite(String resource, Consumer<Path> consumer) throws IOException {
+        // TODO: in the future we might want to scan dependencies when configured
+        consumer.accept(project.siteDir().resolve(resource));
+    }
 
     /**
      * Container to store resolved directory locations.

@@ -6,9 +6,10 @@ import java.nio.file.Paths;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.deployment.config.RoqBuildConfig;
+import io.quarkiverse.roq.deployment.config.RoqConfig;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 
 public class RoqProjectProcessor {
@@ -16,8 +17,13 @@ public class RoqProjectProcessor {
     private static final Logger LOG = Logger.getLogger(RoqProjectProcessor.class);
 
     @BuildStep
-    RoqProjectBuildItem findProject(RoqBuildConfig config, OutputTargetBuildItem outputTarget) {
-        return new RoqProjectBuildItem(resolveProjectDirs(config, outputTarget));
+    RoqProjectBuildItem findProject(RoqConfig config, OutputTargetBuildItem outputTarget,
+            CurateOutcomeBuildItem curateOutcome) {
+        final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, curateOutcome, outputTarget);
+        if (project == null) {
+            return null;
+        }
+        return new RoqProjectBuildItem(project);
     }
 
     /**
@@ -29,17 +35,20 @@ public class RoqProjectProcessor {
      *         directories, or {@code null} if the site root directory is not found
      * @throws IllegalStateException if the project root is not found and the site directory is not absolute
      */
-    private static RoqProjectBuildItem.RoqProject resolveProjectDirs(RoqBuildConfig config,
+    private static RoqProjectBuildItem.RoqProject resolveProjectDirs(RoqConfig config,
+            CurateOutcomeBuildItem curateOutcome,
             OutputTargetBuildItem outputTarget) {
         Path projectRoot = findProjectRoot(outputTarget.getOutputDirectory());
         Path configuredSiteDirPath = Paths.get(config.siteDir().trim());
 
         if (projectRoot == null || !Files.isDirectory(projectRoot)) {
+
             if (configuredSiteDirPath.isAbsolute() && Files.isDirectory(configuredSiteDirPath)) {
                 configuredSiteDirPath = configuredSiteDirPath.normalize();
             } else {
-                throw new IllegalStateException(
-                        "If not absolute, the Site directory is resolved relative to the project root, but Roq was not able to find the project root.");
+                LOG.warn(
+                        "If not absolute, the Site directory is resolved relative to the project root, but Roq was not able to find the project root..");
+                return null;
             }
         }
 

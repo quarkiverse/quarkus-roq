@@ -15,10 +15,6 @@
             <artifactId>quarkus-arc-deployment</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-vertx-http-deployment</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-common</artifactId>
             <version>${project.version}</version>

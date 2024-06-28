@@ -17,34 +17,32 @@ public class RoqDataInjectableBeanLookingDefaultLocationTest {
 
     @RegisterExtension
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
+
             .withApplicationRoot((jar) -> jar
                     .addClass(SimpleBean.class)
-                    .add(new StringAsset(""),
-                            "application.properties")
-                    .addAsResource("foo.json", "META-INF/resources/data/foo.json")
-                    .addAsResource("foo.yaml", "META-INF/resources/data/foo.yaml")
-                    .addAsResource("foo.yml", "META-INF/resources/data/foo.yml"));
+                    .add(new StringAsset("quarkus.roq.site-dir=src/test/site"),
+                            "application.properties"));
 
     @Inject
     Instance<SimpleBean> simpleBean;
 
     @Test
     public void whenUseFooJsonShouldGetSuperHeroesJson() {
-        String fromJson = simpleBean.get().getNameFromFooJson();
+        String fromJson = simpleBean.get().getNameFromFoo();
 
         Assertions.assertEquals("Super Heroes from Json", fromJson);
     }
 
     @Test
     public void whenUseFooYamlShouldGetSuperHeroesYaml() {
-        String fromYaml = simpleBean.get().getNameFromFooYaml();
+        String fromYaml = simpleBean.get().getNameFromBar();
 
         Assertions.assertEquals("Super Heroes from Yaml", fromYaml);
     }
 
     @Test
     public void whenUseFooYmlShouldGetSuperHeroesYml() {
-        String fromYml = simpleBean.get().getNameFromFooYml();
+        String fromYml = simpleBean.get().getNameFromBaz();
 
         Assertions.assertEquals("Super Heroes from Yml", fromYml);
     }
@@ -53,27 +51,27 @@ public class RoqDataInjectableBeanLookingDefaultLocationTest {
     static class SimpleBean {
 
         @Inject
-        @Named("foo.json")
-        JsonObject fooJson;
+        @Named("foo")
+        JsonObject foo;
 
         @Inject
-        @Named("foo.yaml")
-        JsonObject fooYaml;
+        @Named("bar")
+        JsonObject bar;
 
         @Inject
-        @Named("foo.yml")
-        JsonObject fooYml;
+        @Named("baz")
+        JsonObject baz;
 
-        public String getNameFromFooJson() {
-            return fooJson.getString("name");
+        public String getNameFromFoo() {
+            return foo.getString("name");
         }
 
-        public String getNameFromFooYaml() {
-            return fooYaml.getString("name");
+        public String getNameFromBar() {
+            return bar.getString("name");
         }
 
-        public String getNameFromFooYml() {
-            return fooYml.getString("name");
+        public String getNameFromBaz() {
+            return baz.getString("name");
         }
 
     }
