@@ -14,8 +14,8 @@
     <name>Quarkus Roq - Parent</name>
 
     <modules>
-        <module>common</module>
-        <module>common-deployment</module>
+        <module>common/runtime</module>
+        <module>common/deployment</module>
         <module>roq/runtime</module>
         <module>roq/deployment</module>
         <module>docs</module>

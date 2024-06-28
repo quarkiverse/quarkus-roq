@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.generator.deployment.items;
+package io.quarkiverse.roq.deployment.items;
 
 import java.nio.file.Path;
 

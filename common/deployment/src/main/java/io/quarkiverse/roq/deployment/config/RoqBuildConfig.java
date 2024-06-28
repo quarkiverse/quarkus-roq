@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.generator.deployment.config;
+package io.quarkiverse.roq.deployment.config;
 
 import java.util.Objects;
 

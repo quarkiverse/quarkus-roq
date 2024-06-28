@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.generator.deployment;
+package io.quarkiverse.roq.deployment;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,8 +6,8 @@ import java.nio.file.Paths;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.generator.deployment.config.RoqBuildConfig;
-import io.quarkiverse.roq.generator.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.deployment.config.RoqBuildConfig;
+import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 
