@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.generator.runtime.FixedStaticPagesProvider;
+import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
 import io.quarkiverse.roq.generator.runtime.RoqGenerator;
 import io.quarkiverse.roq.generator.runtime.RoqGeneratorRecorder;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -34,7 +34,7 @@ class RoqGeneratorProcessor {
     @BuildStep
     void produceBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeanProducer) {
         additionalBeanProducer.produce(AdditionalBeanBuildItem.unremovableOf(RoqGenerator.class));
-        additionalBeanProducer.produce(AdditionalBeanBuildItem.unremovableOf(FixedStaticPagesProvider.class));
+        additionalBeanProducer.produce(AdditionalBeanBuildItem.unremovableOf(ConfiguredPathsProvider.class));
     }
 
     @BuildStep

@@ -12,7 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class FixedStaticPagesProvider {
+public class ConfiguredPathsProvider {
     private static volatile String targetDir;
     @Inject
     RoqGeneratorConfig config;
@@ -20,11 +20,11 @@ public class FixedStaticPagesProvider {
     private static volatile Set<String> staticPaths;
 
     public static void setStaticPaths(Set<String> staticPaths) {
-        FixedStaticPagesProvider.staticPaths = staticPaths;
+        ConfiguredPathsProvider.staticPaths = staticPaths;
     }
 
     public static void setOutputTarget(String targetDir) {
-        FixedStaticPagesProvider.targetDir = targetDir;
+        ConfiguredPathsProvider.targetDir = targetDir;
     }
 
     public static String targetDir() {
@@ -33,27 +33,26 @@ public class FixedStaticPagesProvider {
 
     @Produces
     @Singleton
-    StaticPages produce() {
-        List<StaticPage> StaticPages = new ArrayList<>();
-        for (String p : config.fixed().orElse(List.of())) {
-
+    RoqSelection produce() {
+        List<SelectedPath> selectedPaths = new ArrayList<>();
+        for (String p : config.paths().orElse(List.of())) {
             if (!isGlobPattern(p) && p.startsWith("/")) {
                 // fixed paths are directly added
-                StaticPages.add(StaticPage.builder().path(p).fixed().build());
+                selectedPaths.add(SelectedPath.builder().path(p).sourceConfig().build());
                 continue;
             }
-            if (staticPaths != null) {
+            if (ConfiguredPathsProvider.staticPaths != null) {
                 // Try to detect fixed paths from glob pattern
-                for (String staticPath : staticPaths) {
+                for (String staticPath : ConfiguredPathsProvider.staticPaths) {
                     PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
                     if (matcher.matches(Path.of(staticPath))) {
-                        StaticPages.add(StaticPage.builder().fixed().path(staticPath).build());
+                        selectedPaths.add(SelectedPath.builder().sourceConfig().path(staticPath).build());
                     }
                 }
             }
 
         }
-        return new StaticPages(StaticPages);
+        return new RoqSelection(selectedPaths);
     }
 
     private static boolean isGlobPattern(String s) {

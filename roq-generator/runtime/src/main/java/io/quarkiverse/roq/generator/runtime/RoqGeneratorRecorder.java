@@ -8,10 +8,10 @@ import io.quarkus.runtime.annotations.Recorder;
 public class RoqGeneratorRecorder {
 
     public void setStaticPaths(Set<String> staticPaths) {
-        FixedStaticPagesProvider.setStaticPaths(staticPaths);
+        ConfiguredPathsProvider.setStaticPaths(staticPaths);
     }
 
     public void setOutputTarget(String outputDirectory) {
-        FixedStaticPagesProvider.setOutputTarget(outputDirectory);
+        ConfiguredPathsProvider.setOutputTarget(outputDirectory);
     }
 }
