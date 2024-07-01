@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>0.0.2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>quarkus-roq-common-deployment</artifactId>

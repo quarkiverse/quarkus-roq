@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
     <name>Quarkus Roq - Parent</name>
 
@@ -27,7 +27,7 @@
         <connection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</connection>
         <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</developerConnection>
         <url>https://github.com/quarkiverse/quarkus-roq</url>
-      <tag>HEAD</tag>
+      <tag>0.0.2</tag>
   </scm>
 
     <properties>
