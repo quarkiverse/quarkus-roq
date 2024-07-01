@@ -14,6 +14,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 class RoqDataProcessor {
@@ -34,12 +35,22 @@ class RoqDataProcessor {
 
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
             LOGGER.info("Creating synthetic bean with identifier " + roqData.getName());
-            beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
-                    .scope(ApplicationScoped.class)
-                    .setRuntimeInit()
-                    .addQualifier().annotation(Named.class).addValue("value", roqData.getName()).done()
-                    .runtimeValue(recorder.createRoqDataJson(roqData.getJsonObject()))
-                    .done());
+            if (roqData.getData() instanceof JsonObject) {
+                beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
+                        .scope(ApplicationScoped.class)
+                        .setRuntimeInit()
+                        .addQualifier().annotation(Named.class).addValue("value", roqData.getName()).done()
+                        .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                        .done());
+            } else if (roqData.getData() instanceof JsonArray) {
+                beansProducer.produce(SyntheticBeanBuildItem.configure(JsonArray.class)
+                        .scope(ApplicationScoped.class)
+                        .setRuntimeInit()
+                        .addQualifier().annotation(Named.class).addValue("value", roqData.getName()).done()
+                        .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                        .done());
+            }
+
         }
     }
 

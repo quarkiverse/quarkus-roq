@@ -1,9 +1,7 @@
 package io.quarkiverse.roq.data.test;
 
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Assertions;
@@ -18,53 +16,39 @@ public class RoqDataInjectableBeanLookingCustomLocationTest {
     @RegisterExtension
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
-                    .addClass(SimpleBean.class)
                     .add(new StringAsset("quarkus.roq.site-dir=./\nquarkus.roq.data.dir=test-data\n"),
                             "application.properties"));
 
     @Inject
-    Instance<SimpleBean> simpleBean;
+    @Named("foo")
+    JsonObject foo;
+
+    @Inject
+    @Named("bar")
+    JsonObject bar;
+
+    @Inject
+    @Named("baz")
+    JsonObject baz;
 
     @Test
-    public void whenUseFooYamlShouldGetSuperHeroesYaml() {
-        String fromYaml = simpleBean.get().getNameFromBar();
+    public void foo() {
+        String fromYaml = foo.getString("name");
 
-        Assertions.assertEquals("Super Heroes from Yaml custom", fromYaml);
+        Assertions.assertEquals("Super Heroes from Json custom", fromYaml);
     }
 
     @Test
-    public void whenUseFooYmlShouldGetSuperHeroesYml() {
-        String fromYml = simpleBean.get().getNameFromBaz();
+    public void bar() {
+        String fromYml = bar.getString("name");
 
+        Assertions.assertEquals("Super Heroes from Yaml custom", fromYml);
+    }
+
+    @Test
+    public void baz() {
+        String fromYml = baz.getString("name");
         Assertions.assertEquals("Super Heroes from Yml custom", fromYml);
     }
 
-    @Singleton
-    static class SimpleBean {
-
-        @Inject
-        @Named("foo")
-        JsonObject foo;
-
-        @Inject
-        @Named("bar")
-        JsonObject bar;
-
-        @Inject
-        @Named("baz")
-        JsonObject baz;
-
-        public String getNameFromFoo() {
-            return foo.getString("name");
-        }
-
-        public String getNameFromBar() {
-            return bar.getString("name");
-        }
-
-        public String getNameFromBaz() {
-            return baz.getString("name");
-        }
-
-    }
 }

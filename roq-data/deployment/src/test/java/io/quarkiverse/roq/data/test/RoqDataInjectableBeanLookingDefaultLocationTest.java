@@ -1,9 +1,7 @@
 package io.quarkiverse.roq.data.test;
 
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Assertions;
@@ -11,68 +9,64 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusUnitTest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class RoqDataInjectableBeanLookingDefaultLocationTest {
 
     @RegisterExtension
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
-
             .withApplicationRoot((jar) -> jar
-                    .addClass(SimpleBean.class)
+                    .addAsResource("fromResource.json", "site/data/fromResource.json")
                     .add(new StringAsset("quarkus.roq.site-dir=src/test/site"),
                             "application.properties"));
 
     @Inject
-    Instance<SimpleBean> simpleBean;
+    @Named("foo")
+    JsonObject foo;
+
+    @Inject
+    @Named("bar")
+    JsonObject bar;
+
+    @Inject
+    @Named("baz")
+    JsonObject baz;
+
+    @Inject
+    @Named("list")
+    JsonArray list;
+
+    @Inject
+    @Named("fromResource")
+    JsonObject fromResource;
 
     @Test
-    public void whenUseFooJsonShouldGetSuperHeroesJson() {
-        String fromJson = simpleBean.get().getNameFromFoo();
-
+    public void foo() {
+        String fromJson = foo.getString("name");
         Assertions.assertEquals("Super Heroes from Json", fromJson);
     }
 
     @Test
-    public void whenUseFooYamlShouldGetSuperHeroesYaml() {
-        String fromYaml = simpleBean.get().getNameFromBar();
-
+    public void bar() {
+        String fromYaml = bar.getString("name");
         Assertions.assertEquals("Super Heroes from Yaml", fromYaml);
     }
 
     @Test
-    public void whenUseFooYmlShouldGetSuperHeroesYml() {
-        String fromYml = simpleBean.get().getNameFromBaz();
-
+    public void baz() {
+        String fromYml = baz.getString("name");
         Assertions.assertEquals("Super Heroes from Yml", fromYml);
     }
 
-    @Singleton
-    static class SimpleBean {
-
-        @Inject
-        @Named("foo")
-        JsonObject foo;
-
-        @Inject
-        @Named("bar")
-        JsonObject bar;
-
-        @Inject
-        @Named("baz")
-        JsonObject baz;
-
-        public String getNameFromFoo() {
-            return foo.getString("name");
-        }
-
-        public String getNameFromBar() {
-            return bar.getString("name");
-        }
-
-        public String getNameFromBaz() {
-            return baz.getString("name");
-        }
-
+    @Test
+    public void list() {
+        Assertions.assertEquals(3, list.size());
     }
+
+    @Test
+    public void fromResource() {
+        Assertions.assertEquals("Hello from resource", fromResource.getString("name"));
+    }
+
 }

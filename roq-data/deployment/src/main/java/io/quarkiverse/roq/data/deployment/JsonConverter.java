@@ -1,12 +1,10 @@
 package io.quarkiverse.roq.data.deployment;
 
-import java.util.function.Function;
+import io.vertx.core.json.Json;
 
-import io.vertx.core.json.JsonObject;
-
-public class JsonConverter implements Function<String, JsonObject> {
+public class JsonConverter implements DataConverter {
     @Override
-    public JsonObject apply(String content) {
-        return new JsonObject(content);
+    public Object convert(String content) {
+        return Json.decodeValue(content);
     }
 }

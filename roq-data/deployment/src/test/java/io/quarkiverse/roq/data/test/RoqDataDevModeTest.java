@@ -1,23 +1,54 @@
 package io.quarkiverse.roq.data.test;
 
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.jupiter.api.Assertions;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusDevModeTest;
+import io.restassured.RestAssured;
+import io.vertx.core.json.JsonObject;
 
 public class RoqDataDevModeTest {
 
     // Start hot reload (DevMode) test with your extension loaded
     @RegisterExtension
     static final QuarkusDevModeTest devModeTest = new QuarkusDevModeTest()
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
+            .withApplicationRoot((jar) -> jar
+                    .addClass(Hello.class)
+                    .addAsResource("foo.json", "site/data/foo.json"));
 
     @Test
-    public void writeYourOwnDevModeTest() {
-        // Write your dev mode tests here - see the testing extension guide https://quarkus.io/guides/writing-extensions#testing-hot-reload for more information
-        Assertions.assertTrue(true, "Add dev mode assertions to " + getClass().getName());
+    public void changeData() {
+        RestAssured.given()
+                .get("/hello")
+                .then()
+                .statusCode(200)
+                .body(Matchers.equalTo("Super Heroes from Json"));
+        devModeTest.modifyResourceFile("site/data/foo.json", (content) -> content.replace("Super", "Mega"));
+        RestAssured.given()
+                .get("/hello")
+                .then()
+                .statusCode(200)
+                .body(Matchers.equalTo("Mega Heroes from Json"));
+    }
+
+    @ApplicationScoped
+    @Path("/hello")
+    public static class Hello {
+
+        @Inject
+        @Named("foo")
+        JsonObject foo;
+
+        @GET
+        public String foo() {
+            return foo.getString("name");
+        }
     }
 }

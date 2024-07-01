@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.deployment;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,10 +21,20 @@ public class RoqProjectProcessor {
     RoqProjectBuildItem findProject(RoqConfig config, OutputTargetBuildItem outputTarget,
             CurateOutcomeBuildItem curateOutcome) {
         final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, curateOutcome, outputTarget);
-        if (project == null) {
-            return null;
+
+        String resourceSiteDir;
+        try {
+            final boolean hasResourceSiteDir = Thread.currentThread().getContextClassLoader()
+                    .getResources(config.resourceSiteDir()).hasMoreElements();
+            resourceSiteDir = hasResourceSiteDir ? config.resourceSiteDir() : null;
+        } catch (IOException e) {
+            resourceSiteDir = null;
         }
-        return new RoqProjectBuildItem(project);
+        final RoqProjectBuildItem roqProject = new RoqProjectBuildItem(project, resourceSiteDir);
+        if (!roqProject.isActive()) {
+            LOG.warn("Not Roq site directory found. It is recommended to remove the quarkus-roq extension if not used.");
+        }
+        return roqProject;
     }
 
     /**
@@ -40,7 +51,6 @@ public class RoqProjectProcessor {
             OutputTargetBuildItem outputTarget) {
         Path projectRoot = findProjectRoot(outputTarget.getOutputDirectory());
         Path configuredSiteDirPath = Paths.get(config.siteDir().trim());
-
         if (projectRoot == null || !Files.isDirectory(projectRoot)) {
 
             if (configuredSiteDirPath.isAbsolute() && Files.isDirectory(configuredSiteDirPath)) {
@@ -55,9 +65,6 @@ public class RoqProjectProcessor {
         final Path siteRoot = projectRoot.resolve(configuredSiteDirPath).normalize();
 
         if (!Files.isDirectory(siteRoot)) {
-            LOG.warnf(
-                    "Roq directory not found 'quarkus.roq.site-dir=%s' resolved to '%s'. It is recommended to remove the quarkus-roq extension if not used.",
-                    config.siteDir(), siteRoot.toAbsolutePath());
             return null;
         }
 
