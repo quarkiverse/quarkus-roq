@@ -1,9 +1,5 @@
 package io.quarkiverse.roq.data.deployment;
 
-import java.util.function.Function;
-
-import io.vertx.core.json.JsonObject;
-
 public class JsonObjectConverter {
 
     private static final YamlConverter YAML_CONVERTER = new YamlConverter();
@@ -15,9 +11,9 @@ public class JsonObjectConverter {
         YML(".yml", YAML_CONVERTER);
 
         private final String extension;
-        private final Function<String, JsonObject> converter;
+        private final DataConverter converter;
 
-        Extensions(String extension, Function<String, JsonObject> converter) {
+        Extensions(String extension, DataConverter converter) {
             this.extension = extension;
             this.converter = converter;
         }
@@ -26,8 +22,8 @@ public class JsonObjectConverter {
             return extension;
         }
 
-        public JsonObject convert(String content) {
-            return this.converter.apply(content);
+        public Object convert(String content) {
+            return this.converter.convert(content);
         }
     }
 
