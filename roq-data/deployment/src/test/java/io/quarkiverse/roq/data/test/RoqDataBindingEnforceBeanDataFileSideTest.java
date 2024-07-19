@@ -20,7 +20,7 @@ public class RoqDataBindingEnforceBeanDataFileSideTest {
                 assertThat(e).isInstanceOf(IllegalStateException.class)
                         .hasMessageContaining(
                                 "The Roq data configuration is not valid. The data mapping and data files are not matching:")
-                        .hasMessageContaining("The data file 'bar' does not match with any data mapping");
+                        .hasMessageContaining("The data file 'bar' does not match with any @DataMapping class");
             });
 
     @Test

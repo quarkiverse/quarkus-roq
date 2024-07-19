@@ -69,8 +69,6 @@ class RoqDataProcessor {
             RoqDataRecorder recorder) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
             InstantiationException, IllegalAccessException {
 
-        LOGGER.infof("Handling parent mapping items! %d", mappings.size());
-
         for (ParentMappingBuildItem mapping : mappings) {
 
             final Class<?> aClass = Thread.currentThread().getContextClassLoader()
@@ -89,7 +87,8 @@ class RoqDataProcessor {
                     final Object o = jsonObject.mapTo(Class.forName(mapping.getListType().toString()));
                     list.add(o);
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+                    LOGGER.errorf("Was not possible to convert an array item to %s", mapping.getListType());
+                    throw e;
                 }
             }
 
@@ -127,7 +126,7 @@ class RoqDataProcessor {
                 if (roqDataMapping.isRecord()) {
                     LOGGER.infof("Error with roqDataMapping: %s", roqDataMapping);
                     throw new IllegalStateException(
-                            "You are trying to map the file %s(.json|.yaml|.yml) to the class %s, but you cannot map an array to multiple beans of a record type. You need to use an old POJO class instead."
+                            "You are trying to map the file %s(.json|.yaml|.yml) to the class %s, but you cannot map an array to multiple beans of a record type. You need to use an old POJO class or a parent mapping instead."
                                     .formatted(
                                             roqDataMapping.getName(), roqDataMapping.getClassName()));
                 }

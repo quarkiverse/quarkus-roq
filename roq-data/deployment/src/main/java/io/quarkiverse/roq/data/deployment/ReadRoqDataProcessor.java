@@ -90,42 +90,18 @@ public class ReadRoqDataProcessor {
             AnnotationTarget target = annotation.target();
             String name = annotation.value().asString();
 
-            LOG.infof("Reading annotation with value equal to %s", name);
-
             if (!dataJsonMap.containsKey(name)) {
-                LOG.infof("Does not contain on data json map %s", dataJsonMap);
                 continue;
             }
 
-            LOG.infof("Does contain data json map %s", dataJsonMap.keySet());
-
             final Optional<FieldInfo> listField = target.asClass().fields().stream()
-                    .filter(fieldInfo -> {
-
-                        if (fieldInfo.type().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
-                            LOG.infof("fieldInfo.type().kind().equals(Type.Kind.PARAMETERIZED_TYPE) is true");
-
-                            fieldInfo.type().asParameterizedType().arguments().forEach(arg -> {
-                                LOG.info("Argument: " + arg.name());
-                            });
-
-                            final boolean followingConvention = fieldInfo.name().equals(PARENT_TYPE_PARAMETER_NAME) &&
-                                    fieldInfo.type().asParameterizedType().name()
-                                            .equals(ClassType.create(List.class).name());
-
-                            LOG.info("Following convention? Response: " + followingConvention);
-                            return followingConvention;
-                        }
-                        LOG.infof("fieldInfo.type().kind().equals(Type.Kind.PARAMETERIZED_TYPE) is true");
-                        return false;
-                    })
+                    .filter(this::isComplianceWithParentMapping)
                     .findAny();
 
             Object json = dataJsonMap.get(name);
             DotName className = target.asClass().name();
 
             if (listField.isPresent()) {
-                LOG.infof("List field is present");
                 final FieldInfo fieldInfo = listField.get();
                 parentMappings.produce(new ParentMappingBuildItem(
                         className,
@@ -141,6 +117,15 @@ public class ReadRoqDataProcessor {
         }
     }
 
+    private boolean isComplianceWithParentMapping(FieldInfo fieldInfo) {
+        if (fieldInfo.type().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            return fieldInfo.name().equals(PARENT_TYPE_PARAMETER_NAME) &&
+                    fieldInfo.type().asParameterizedType().name()
+                            .equals(ClassType.create(List.class).name());
+        }
+        return false;
+    }
+
     private List<String> collectConfigErrors(Map<String, String> annotationMap, Map<String, Object> dataJsonMap) {
         List<String> messages = new ArrayList<>();
         for (String name : annotationMap.keySet()) {
@@ -150,7 +135,7 @@ public class ReadRoqDataProcessor {
         }
         for (String name : dataJsonMap.keySet()) {
             if (!annotationMap.containsKey(name)) {
-                messages.add("The data file '%s' does not match with any data mapping".formatted(name));
+                messages.add("The data file '%s' does not match with any @DataMapping class".formatted(name));
             }
         }
         return messages;
