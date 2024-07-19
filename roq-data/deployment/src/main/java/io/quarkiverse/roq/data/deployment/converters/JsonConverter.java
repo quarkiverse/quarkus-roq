@@ -1,5 +1,6 @@
-package io.quarkiverse.roq.data.deployment;
+package io.quarkiverse.roq.data.deployment.converters;
 
+import io.quarkiverse.roq.data.deployment.DataConverter;
 import io.vertx.core.json.Json;
 
 public class JsonConverter implements DataConverter {

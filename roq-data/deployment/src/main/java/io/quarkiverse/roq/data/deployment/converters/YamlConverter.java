@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.data.deployment;
+package io.quarkiverse.roq.data.deployment.converters;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import io.quarkiverse.roq.data.deployment.DataConverter;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
