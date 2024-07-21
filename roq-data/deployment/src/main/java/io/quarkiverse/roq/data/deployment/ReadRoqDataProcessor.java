@@ -21,14 +21,13 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassType;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.Index;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.data.deployment.converters.JsonObjectConverter;
-import io.quarkiverse.roq.data.deployment.items.ParentMappingBuildItem;
+import io.quarkiverse.roq.data.deployment.items.NormalDataMappingBuildItem;
+import io.quarkiverse.roq.data.deployment.items.ParentDataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
-import io.quarkiverse.roq.data.deployment.items.RoqDataMappingBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -63,11 +62,10 @@ public class ReadRoqDataProcessor {
 
     @BuildStep
     void scanDataMappings(ApplicationIndexBuildItem indexBuildItem,
-            BuildProducer<RoqDataMappingBuildItem> roqMappings, BuildProducer<ParentMappingBuildItem> parentMappings,
+            BuildProducer<NormalDataMappingBuildItem> roqMappings, BuildProducer<ParentDataMappingBuildItem> parentMappings,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             RoqDataConfig config) {
-        Index jandex = indexBuildItem.getIndex();
-        Collection<AnnotationInstance> annotations = jandex.getAnnotations(DataMapping.class);
+        Collection<AnnotationInstance> annotations = indexBuildItem.getIndex().getAnnotations(DataMapping.class);
 
         Map<String, Object> dataJsonMap = roqDataJsonBuildItems.stream()
                 .collect(Collectors.toMap(RoqDataJsonBuildItem::getName, RoqDataJsonBuildItem::getData));
@@ -94,23 +92,23 @@ public class ReadRoqDataProcessor {
                 continue;
             }
 
-            final Optional<FieldInfo> listField = target.asClass().fields().stream()
-                    .filter(this::isComplianceWithParentMapping)
-                    .findAny();
-
             Object json = dataJsonMap.get(name);
             DotName className = target.asClass().name();
 
-            if (listField.isPresent()) {
-                final FieldInfo fieldInfo = listField.get();
-                parentMappings.produce(new ParentMappingBuildItem(
+            // parent mapping
+            final Optional<FieldInfo> parentMapping = target.asClass().fields().stream()
+                    .filter(this::isComplianceWithParentMapping)
+                    .findAny();
+            if (parentMapping.isPresent()) {
+                final FieldInfo fieldInfo = parentMapping.get();
+                parentMappings.produce(new ParentDataMappingBuildItem(
                         className,
-                        fieldInfo.type().asParameterizedType().arguments().get(0).name(),
+                        fieldInfo.type().asParameterizedType().arguments().get(0).name(), // need to get dynamically
                         json));
                 continue;
             }
 
-            final RoqDataMappingBuildItem roqMapping = new RoqDataMappingBuildItem(name, className, json,
+            final NormalDataMappingBuildItem roqMapping = new NormalDataMappingBuildItem(name, className, json,
                     target.asClass().isRecord());
 
             roqMappings.produce(roqMapping);

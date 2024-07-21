@@ -4,14 +4,29 @@ import org.jboss.jandex.DotName;
 
 import io.quarkus.builder.item.MultiBuildItem;
 
-public final class RoqDataMappingBuildItem extends MultiBuildItem {
+public final class NormalDataMappingBuildItem extends MultiBuildItem {
 
+    /**
+     * Represents the data file name without extension.
+     */
     private final String name;
+
+    /**
+     * Represents the {@link DotName} as fully qualified name.
+     */
     private final DotName className;
+
+    /**
+     * The data file content as {@link Object}.
+     */
     private final Object data;
+
+    /**
+     * Whether is a Java record or not.
+     */
     private final boolean isRecord;
 
-    public RoqDataMappingBuildItem(String name, DotName className, Object data, boolean isRecord) {
+    public NormalDataMappingBuildItem(String name, DotName className, Object data, boolean isRecord) {
         this.name = name;
         this.className = className;
         this.data = data;
