@@ -40,6 +40,7 @@ public class ReadRoqDataProcessor {
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".yaml", ".yml");
     private static final String PARENT_TYPE_PARAMETER_NAME = "list";
     private static final Logger LOG = Logger.getLogger(ReadRoqDataProcessor.class);
+    static DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
     RoqDataConfig roqDataConfig;
 
     @BuildStep
@@ -65,7 +66,7 @@ public class ReadRoqDataProcessor {
             BuildProducer<NormalDataMappingBuildItem> roqMappings, BuildProducer<ParentDataMappingBuildItem> parentMappings,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             RoqDataConfig config) {
-        Collection<AnnotationInstance> annotations = indexBuildItem.getIndex().getAnnotations(DataMapping.class);
+        Collection<AnnotationInstance> annotations = indexBuildItem.getIndex().getAnnotations(DATA_MAPPING_ANNOTATION);
 
         Map<String, Object> dataJsonMap = roqDataJsonBuildItems.stream()
                 .collect(Collectors.toMap(RoqDataJsonBuildItem::getName, RoqDataJsonBuildItem::getData));

@@ -64,15 +64,21 @@ class RoqDataProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     void generateSyntheticBeanFromParentTypeMapping(List<ParentDataMappingBuildItem> mappings,
             BuildProducer<SyntheticBeanBuildItem> beans,
-            RoqDataRecorder recorder) throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
+            RoqDataRecorder recorder) throws NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         for (ParentDataMappingBuildItem mapping : mappings) {
 
-            final Class<?> aClass = Thread.currentThread().getContextClassLoader()
-                    .loadClass(mapping.getParentType().toString());
+            Class<?> parentClass;
+            try {
+                parentClass = Class.forName(mapping.getParentType().toString(), false,
+                        Thread.currentThread().getContextClassLoader());
+            } catch (ClassNotFoundException e) {
+                LOGGER.error("Was not possible to found the class %s".formatted(mapping.getParentType().toString()), e);
+                throw e;
+            }
 
-            final Constructor<?> constructor = aClass.getConstructor(List.class);
+            final Constructor<?> constructor = parentClass.getConstructor(List.class);
 
             if (!(mapping.getJson() instanceof final JsonArray jsonArray)) {
                 continue;
@@ -82,7 +88,9 @@ class RoqDataProcessor {
             for (Object item : jsonArray) {
                 final JsonObject jsonObject = (JsonObject) item;
                 try {
-                    final Object o = jsonObject.mapTo(Class.forName(mapping.getListType().toString()));
+                    final Class<?> itemClass = Class.forName(mapping.getListType().toString(), false,
+                            Thread.currentThread().getContextClassLoader());
+                    final Object o = jsonObject.mapTo(itemClass);
                     list.add(o);
                 } catch (Exception e) {
                     LOGGER.error("Unable to convert an item in the array to %s.".formatted(mapping.getListType()), e);
@@ -105,12 +113,13 @@ class RoqDataProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(ExecutionTime.STATIC_INIT)
     void generateDataMappings(RoqDataRecorder roqDataRecorder, List<NormalDataMappingBuildItem> normalDataMappingBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeansProducer) throws ClassNotFoundException {
         for (NormalDataMappingBuildItem normalDataMapping : normalDataMappingBuildItems) {
 
-            Class<?> clazz = Class.forName(normalDataMapping.getClassName().toString());
+            Class<?> clazz = Class.forName(normalDataMapping.getClassName().toString(), false,
+                    Thread.currentThread().getContextClassLoader());
             if (normalDataMapping.getData() instanceof JsonObject jsonObject) {
                 Object object = jsonObject.mapTo(clazz);
                 syntheticBeansProducer.produce(SyntheticBeanBuildItem.configure(clazz)
