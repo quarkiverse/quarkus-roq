@@ -19,6 +19,7 @@ import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkus.arc.deployment.BeanArchiveIndexBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.ApplicationIndexBuildItem;
@@ -51,12 +52,14 @@ public class RoqDataReaderProcessor {
     }
 
     @BuildStep
-    void scanDataMappings(ApplicationIndexBuildItem indexBuildItem,
+    void scanDataMappings(
+            BeanArchiveIndexBuildItem beanArchiveIndex,
+            ApplicationIndexBuildItem applicationIndex,
             List<RoqDataBuildItem> roqDataBuildItems,
             BuildProducer<DataMappingBuildItem> dataMappingProducer,
             BuildProducer<RoqDataJsonBuildItem> dataJsonProducer,
             RoqDataConfig config) {
-        Collection<AnnotationInstance> annotations = indexBuildItem.getIndex().getAnnotations(DATA_MAPPING_ANNOTATION);
+        Collection<AnnotationInstance> annotations = applicationIndex.getIndex().getAnnotations(DATA_MAPPING_ANNOTATION);
 
         Map<String, RoqDataBuildItem> dataJsonMap = roqDataBuildItems.stream()
                 .collect(Collectors.toMap(RoqDataBuildItem::getName, Function.identity()));
@@ -86,9 +89,9 @@ public class RoqDataReaderProcessor {
                 RoqDataBuildItem item = dataJsonMap.get(name);
                 DotName className = target.asClass().name();
                 // parent mapping
-                // FIXME: I can't manage to use the default value from the annotation
-                final AnnotationValue isParentMapping = annotationMap.get(name).value("parentArray");
-                if (isParentMapping != null && isParentMapping.asBoolean()) {
+                final boolean isParentMapping = annotationMap.get(name)
+                        .valueWithDefault(beanArchiveIndex.getIndex(), "parentArray").asBoolean();
+                if (isParentMapping) {
                     final Optional<MethodInfo> parentMapping = target.asClass().constructors().stream()
                             .filter(this::isComplianceWithParentMapping)
                             .findAny();
