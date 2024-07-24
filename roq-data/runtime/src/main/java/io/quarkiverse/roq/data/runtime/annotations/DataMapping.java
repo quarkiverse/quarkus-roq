@@ -15,9 +15,5 @@ import java.lang.annotation.Target;
 public @interface DataMapping {
     String value();
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.PARAMETER })
-    @Documented
-    @interface ParentArray {
-    }
+    boolean parentArray() default false;
 }

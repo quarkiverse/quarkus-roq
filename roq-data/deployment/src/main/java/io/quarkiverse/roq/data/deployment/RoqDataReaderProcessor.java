@@ -85,13 +85,15 @@ public class RoqDataReaderProcessor {
 
                 RoqDataBuildItem item = dataJsonMap.get(name);
                 DotName className = target.asClass().name();
-
                 // parent mapping
-                final Optional<MethodInfo> parentMapping = target.asClass().constructors().stream()
-                        .filter(this::isComplianceWithParentMapping)
-                        .findAny();
-                if (parentMapping.isPresent()) {
-                    final MethodInfo methodInfo = parentMapping.get();
+                // FIXME: I can't manage to use the default value from the annotation
+                final AnnotationValue isParentMapping = annotationMap.get(name).value("parentArray");
+                if (isParentMapping != null && isParentMapping.asBoolean()) {
+                    final Optional<MethodInfo> parentMapping = target.asClass().constructors().stream()
+                            .filter(this::isComplianceWithParentMapping)
+                            .findAny();
+                    final MethodInfo methodInfo = parentMapping.orElseThrow(() -> new RuntimeException(
+                            "@DataMapping with @ParentArray should declare a single parameter constructor with type List<T>"));
                     final DotName type = methodInfo.parameterType(0).asParameterizedType().arguments().get(0).name();
                     dataMappingProducer.produce(new DataMappingBuildItem(
                             name,
@@ -125,7 +127,7 @@ public class RoqDataReaderProcessor {
     }
 
     private boolean isComplianceWithParentMapping(MethodInfo methodInfo) {
-        if (methodInfo.parametersCount() == 1 && methodInfo.parameters().get(0).hasAnnotation(DataMapping.ParentArray.class)) {
+        if (methodInfo.parametersCount() == 1) {
             return methodInfo.parameterType(0).asParameterizedType().name()
                     .equals(ClassType.create(List.class).name());
         }
