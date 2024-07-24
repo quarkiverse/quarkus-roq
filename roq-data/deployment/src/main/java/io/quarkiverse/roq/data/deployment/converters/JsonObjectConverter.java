@@ -1,4 +1,8 @@
-package io.quarkiverse.roq.data.deployment;
+package io.quarkiverse.roq.data.deployment.converters;
+
+import java.io.IOException;
+
+import io.quarkiverse.roq.data.deployment.DataConverter;
 
 public class JsonObjectConverter {
 
@@ -22,7 +26,11 @@ public class JsonObjectConverter {
             return extension;
         }
 
-        public Object convert(String content) {
+        public DataConverter converter() {
+            return converter;
+        }
+
+        public Object convert(byte[] content) throws IOException {
             return this.converter.convert(content);
         }
     }
