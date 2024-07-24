@@ -14,4 +14,10 @@ import java.lang.annotation.Target;
 @Documented
 public @interface DataMapping {
     String value();
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ ElementType.PARAMETER })
+    @Documented
+    @interface ParentArray {
+    }
 }

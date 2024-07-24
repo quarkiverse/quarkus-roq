@@ -5,5 +5,5 @@ import java.util.List;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 
 @DataMapping(value = "foos")
-public record Foos(List<Foo> list) {
+public record Foos(@DataMapping.ParentArray List<Foo> list) {
 }
