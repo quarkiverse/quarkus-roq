@@ -96,7 +96,7 @@ public class RoqDataReaderProcessor {
                             .filter(this::isComplianceWithParentMapping)
                             .findAny();
                     final MethodInfo methodInfo = parentMapping.orElseThrow(() -> new RuntimeException(
-                            "@DataMapping with @ParentArray should declare a single parameter constructor with type List<T>"));
+                            "@DataMapping(parentArray=true) should declare a single parameter constructor with type List<T>"));
                     final DotName type = methodInfo.parameterType(0).asParameterizedType().arguments().get(0).name();
                     dataMappingProducer.produce(new DataMappingBuildItem(
                             name,
