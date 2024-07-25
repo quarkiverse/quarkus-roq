@@ -7,7 +7,14 @@ import java.nio.file.Paths;
 
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import io.quarkiverse.roq.deployment.config.RoqConfig;
+import io.quarkiverse.roq.deployment.config.RoqJacksonConfig;
+import io.quarkiverse.roq.deployment.items.RoqObjectMapperBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
@@ -35,6 +42,23 @@ public class RoqProjectProcessor {
             LOG.warn("Not Roq site directory found. It is recommended to remove the quarkus-roq extension if not used.");
         }
         return roqProject;
+    }
+
+    @BuildStep
+    RoqObjectMapperBuildItem findProject(RoqJacksonConfig jacksonConfig) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        if (!jacksonConfig.failOnUnknownProperties()) {
+            // this feature is enabled by default, so we disable it
+            objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        }
+        if (!jacksonConfig.failOnEmptyBeans()) {
+            // this feature is enabled by default, so we disable it
+            objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        }
+        if (jacksonConfig.acceptCaseInsensitiveEnums()) {
+            objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+        }
+        return new RoqObjectMapperBuildItem(objectMapper);
     }
 
     /**

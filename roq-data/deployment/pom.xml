@@ -20,6 +20,10 @@
             <artifactId>quarkus-arc-deployment</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jackson-deployment</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-common-deployment</artifactId>
             <version>${project.version}</version>
