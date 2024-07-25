@@ -9,9 +9,11 @@
 
 [![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
 
+All the tools to generate static websites out of your Quarkus web application:
+- Roq Data: Use json/yaml files content from your templates and articles with type safety.
+- Roq Generator: Command to extract any Quarkus web application in a directory as purely static files (html and assets).
+- Roq FrontMatter: Directly serve your Markdown/Asciidoc/Html pages using FrontMatter header (url, layout) and make the global pages header data available in other templates.
 
-
-Generate static websites out of your Quarkus web application.
 
 **THIS IS NOT READY - CONSTRUCTION IN PROGRESS - CONTRIBUTION OPEN https://github.com/quarkusio/quarkus/discussions/41309**
 
