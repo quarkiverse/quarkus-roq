@@ -11,7 +11,7 @@
 
 All the tools to generate static websites out of your Quarkus web application:
 - Roq Data: Use json/yaml files content from your templates and articles with type safety.
-- Roq FrontMatter: Directly serve your Markdown/Asciidoc/Html pages using FrontMatter header (url, layout) and make the global pages header data available in other templates.
+- Roq FrontMatter: Directly serve your Markdown/Asciidoc/Html pages using FrontMatter header (url, layout, seo, data) and make the global pages header data available in other templates.
 - Roq Generator: Command to extract any Quarkus web application in a directory as purely static files (html and assets).
 
 
