@@ -20,10 +20,6 @@
             <artifactId>quarkus-arc-deployment</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jackson-deployment</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-common-deployment</artifactId>
             <version>${project.version}</version>
@@ -32,14 +28,6 @@
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-data</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
