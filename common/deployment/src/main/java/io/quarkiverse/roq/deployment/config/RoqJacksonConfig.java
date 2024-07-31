@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.deployment.config;
 
+import java.util.Optional;
+
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -14,7 +16,7 @@ public interface RoqJacksonConfig {
      * <p>
      * You can still override it locally with {@code @JsonIgnoreProperties(ignoreUnknown = false)}.
      */
-    @WithDefault("false")
+    @WithDefault("true")
     boolean failOnUnknownProperties();
 
     /**
@@ -29,5 +31,16 @@ public interface RoqJacksonConfig {
      */
     @WithDefault("false")
     boolean acceptCaseInsensitiveEnums();
+
+    /**
+     * Defines how names of JSON properties ("external names") are derived
+     * from names of POJO methods and fields ("internal names").
+     * The value can be one of the one of the constants in {@link com.fasterxml.jackson.databind.PropertyNamingStrategies},
+     * so for example, {@code LOWER_CAMEL_CASE} or {@code UPPER_CAMEL_CASE}.
+     *
+     * The value can also be a fully qualified class name of a {@link com.fasterxml.jackson.databind.PropertyNamingStrategy}
+     * subclass.
+     */
+    Optional<String> propertyNamingStrategy();
 
 }

@@ -13,11 +13,12 @@ import java.util.stream.Stream;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.data.deployment.converters.JsonObjectConverter;
+import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
+import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.arc.deployment.BeanArchiveIndexBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -34,11 +35,15 @@ public class RoqDataReaderProcessor {
     RoqDataConfig roqDataConfig;
 
     @BuildStep
-    void scanDataFiles(RoqProjectBuildItem roqProject, RoqDataConfig config, BuildProducer<RoqDataBuildItem> dataProducer,
+    void scanDataFiles(RoqProjectBuildItem roqProject,
+            RoqDataConfig config,
+            RoqJacksonBuildItem jackson,
+            BuildProducer<RoqDataBuildItem> dataProducer,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer) {
         if (roqProject.isActive()) {
+            DataConverterFinder converter = new DataConverterFinder(jackson.getJsonMapper(), jackson.getYamlMapper());
             try {
-                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, watchedFilesProducer, config);
+                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, converter, watchedFilesProducer, config);
 
                 for (RoqDataBuildItem item : items) {
                     dataProducer.produce(item);
@@ -153,7 +158,9 @@ public class RoqDataReaderProcessor {
     }
 
     public Collection<RoqDataBuildItem> scanDataFiles(RoqProjectBuildItem roqProject,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer, RoqDataConfig config)
+            DataConverterFinder converter,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
+            RoqDataConfig config)
             throws IOException {
 
         Map<String, RoqDataBuildItem> items = new HashMap<>();
@@ -162,7 +169,7 @@ public class RoqDataReaderProcessor {
             if (Files.isDirectory(path)) {
                 try (Stream<Path> pathStream = Files.find(path, Integer.MAX_VALUE,
                         (p, a) -> Files.isRegularFile(p) && isExtensionSupported(p))) {
-                    pathStream.forEach(addRoqDataBuildItem(watchedFilesProducer, path, items));
+                    pathStream.forEach(addRoqDataBuildItem(converter, watchedFilesProducer, path, items));
                 } catch (IOException e) {
                     throw new RuntimeException("Error while scanning data files on location %s".formatted(path.toString()), e);
                 }
@@ -172,8 +179,11 @@ public class RoqDataReaderProcessor {
         return items.values();
     }
 
-    private static Consumer<Path> addRoqDataBuildItem(BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
-            Path rootDir, Map<String, RoqDataBuildItem> items) {
+    private static Consumer<Path> addRoqDataBuildItem(
+            DataConverterFinder converter,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
+            Path rootDir,
+            Map<String, RoqDataBuildItem> items) {
         return file -> {
             var name = rootDir.relativize(file).toString().replaceAll("\\..*", "").replaceAll("/", "_");
             if (items.containsKey(name)) {
@@ -184,14 +194,14 @@ public class RoqDataReaderProcessor {
                 // We don't need to watch file out of the local filesystem
                 watchedFilesProducer.produce(new HotDeploymentWatchedFileBuildItem(file.toAbsolutePath().toString(), true));
             }
-            JsonObjectConverter.Extensions converter = JsonObjectConverter.findExtensionConverter(filename);
+            DataConverter dataConverter = converter.fromFileName(filename);
 
-            if (converter != null) {
+            if (dataConverter != null) {
                 try {
-                    items.put(name, new RoqDataBuildItem(name, Files.readAllBytes(file), converter.converter()));
+                    items.put(name, new RoqDataBuildItem(name, Files.readAllBytes(file), dataConverter));
                 } catch (IOException e) {
                     throw new UncheckedIOException("Error while decoding using %s converter: %s "
-                            .formatted(filename, converter.getExtension()), e);
+                            .formatted(filename, converter.getClass()), e);
                 }
             }
         };
