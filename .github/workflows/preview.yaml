@@ -14,7 +14,7 @@ jobs:
       - name: Download PR Artifact
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: ${{ github.event.workflow_run.workflow_id }}
+          workflow: ${{ github.event.workflow_run.id }}
           workflow_conclusion: success
           name: site
       - name: Store PR id as variable
@@ -30,7 +30,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            🎊 PR Preview ${{ github.sha }} has been successfully built and deployed. See the documentation preview: https://quarkus-roqpreview-pr-${{ steps.pr.outputs.id }}.surge.sh
+            🎊 PR Preview ${{ github.sha }} has been successfully built and deployed. See the documentation preview: https://quarkus-roq-preview-pr-${{ steps.pr.outputs.id }}.surge.sh
             <!-- Sticky Pull Request Comment -->
           body-include: "<!-- Sticky Pull Request Comment -->"
           number: ${{ steps.pr.outputs.id }}
