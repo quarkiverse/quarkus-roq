@@ -1,36 +1,49 @@
-name: Surge.sh Preview
+name: Deploy Preview Docs
 
 on:
-  workflow_run:
-    workflows: ["Build Website"]
-    types:
-      - completed
-
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - ".gitignore"
+      - "CODEOWNERS"
+      - "LICENSE"
+      - "*.md"
+      - "*.adoc"
+      - "*.txt"
+      - ".all-contributorsrc"
+  pull_request:
+    paths-ignore:
+      - ".gitignore"
+      - "CODEOWNERS"
+      - "LICENSE"
+      - "*.md"
+      - "*.txt"
+      - ".all-contributorsrc"
 jobs:
-  preview:
+  build-website:
+    name: Build Website
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'pull_request'
     steps:
-      - name: Download PR Artifact
-        uses: dawidd6/action-download-artifact@v6
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          workflow: ${{ github.event.workflow_run.workflow_id }}
-          workflow_conclusion: ""
-          name: site
-      - name: Store PR id as variable
-        id: pr
-        run: |
-          echo "id=$(<pr-id.txt)" >> $GITHUB_OUTPUT 
-          rm -f pr-id.txt
+          distribution: temurin
+          java-version: 17
+          cache: "maven"
+
+      - name: Build with Maven
+        run: mvn -B formatter:validate impsort:check verify --file pom.xml -DskipTests
       - name: Publishing to surge for preview
         id: deploy
-        run: npx surge ./ --domain https://quarkus-roq-preview-pr-${{  steps.pr.outputs.id }}.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: npx surge ./docs/target/generated-docs/ --domain https://quarkus-roq-preview-pr-${{  github.event.number }}.surge.sh --token ${{ secrets.SURGE_TOKEN }}
       - name: Update PR status comment on success
         uses: actions-cool/maintain-one-comment@v3.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            🎊 PR Preview ${{ github.sha }} has been successfully built and deployed. See the documentation preview: https://quarkus-roq-preview-pr-${{ steps.pr.outputs.id }}.surge.sh
+            🎊 PR Preview ${{ github.sha }} has been successfully built and deployed. See the documentation preview: https://quarkus-roq-preview-pr-${{ github.event.number }}.surge.sh
             <!-- Sticky Pull Request Comment -->
           body-include: "<!-- Sticky Pull Request Comment -->"
           number: ${{ steps.pr.outputs.id }}
