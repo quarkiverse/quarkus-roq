@@ -1,4 +1,4 @@
-name: Surge.sh Preview Teardown
+name: Teardown Docs Preview
 
 on:
   pull_request_target:
