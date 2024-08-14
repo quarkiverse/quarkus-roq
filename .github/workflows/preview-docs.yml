@@ -39,7 +39,7 @@ jobs:
 
       - name: Publishing to surge for preview
         id: deploy
-        run: npx surge ./docs/target/generated-docs/ --domain https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: npx surge ./ --domain https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
 
       - name: Update PR status comment on success
         uses: quarkusio/action-helpers@main
