@@ -1,24 +1,25 @@
-name: Teardown Docs Preview
+name: Surge.sh Teardown
 
 on:
   pull_request_target:
-    paths:
-      - "*.adoc"
+    # when using teardown: 'true', add default event types + closed event type
     types: [closed]
 
 jobs:
-  preview-teardown:
+  preview:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to update PR status comment
     steps:
       - name: Teardown surge preview
         id: deploy
-        run: npx surge teardown https://quarkus-roq-preview-pr-${{ github.event.number }}.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: npx surge teardown https://quarkiverse-roq-pr-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
       - name: Update PR status comment
-        uses: actions-cool/maintain-one-comment@v3.2.0
+        uses: quarkusio/action-helpers@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.number }}
           body: |
             🙈 The PR is closed and the preview is expired.
-            <!-- Sticky Pull Request Comment -->
-          body-include: "<!-- Sticky Pull Request Comment -->"
-          number: ${{ github.event.number }}
+          body-marker: <!-- Preview status comment marker -->

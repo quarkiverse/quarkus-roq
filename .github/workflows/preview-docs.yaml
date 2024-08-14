@@ -1,62 +1,65 @@
-name: Deploy Preview Docs
+name: Surge.sh Preview
 
 on:
-  push:
-    branches:
-      - "main"
-    paths-ignore:
-      - ".gitignore"
-      - "CODEOWNERS"
-      - "LICENSE"
-      - "*.md"
-      - "*.adoc"
-      - "*.txt"
-      - ".all-contributorsrc"
-  pull_request:
-    paths-ignore:
-      - ".gitignore"
-      - "CODEOWNERS"
-      - "LICENSE"
-      - "*.md"
-      - "*.txt"
-      - ".all-contributorsrc"
-jobs:
-  build-website:
-    name: Build Website
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: "maven"
+  workflow_run:
+    workflows: [ "Publish website" ]
+    types:
+      - completed
 
-      - name: Build with Maven
-        run: mvn -B formatter:validate impsort:check verify --file pom.xml -DskipTests
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    permissions:
+      pull-requests: write # Required to update PR status comment
+    steps:
+      - name: Download PR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download PR ID Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-id
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Store PR id as variable
+        id: pr
+        run: |
+          echo "id=$(<pr-id.txt)" >> $GITHUB_OUTPUT
+          rm -f pr-id.txt
+
       - name: Publishing to surge for preview
         id: deploy
-        run: npx surge ./docs/target/generated-docs/ --domain https://quarkus-roq-preview-pr-${{  github.event.number }}.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: npx surge ./docs/target/generated-docs/ --domain https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+
       - name: Update PR status comment on success
-        uses: actions-cool/maintain-one-comment@v3.2.0
+        uses: quarkusio/action-helpers@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.id }}
           body: |
-            🎊 PR Preview ${{ github.sha }} has been successfully built and deployed. See the documentation preview: https://quarkus-roq-preview-pr-${{ github.event.number }}.surge.sh
-            <!-- Sticky Pull Request Comment -->
-          body-include: "<!-- Sticky Pull Request Comment -->"
-          number: ${{ steps.pr.outputs.id }}
-          emojis: "heart"
+            🚀 PR Preview ${{ github.sha }} has been successfully built and deployed to https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh
+
+            <img width="300" src="https://user-images.githubusercontent.com/507615/90250366-88233900-de6e-11ea-95a5-84f0762ffd39.png">
+          body-marker: <!-- Preview status comment marker -->
       - name: Update PR status comment on failure
+        uses: quarkusio/action-helpers@main
         if: ${{ failure() }}
-        uses: actions-cool/maintain-one-comment@v3.2.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.id }}
           body: |
             😭 Deploy PR Preview failed.
             <img width="300" src="https://user-images.githubusercontent.com/507615/90250824-4e066700-de6f-11ea-8230-600ecc3d6a6b.png">
-            <!-- Sticky Pull Request Comment -->
-          body-include: "<!-- Sticky Pull Request Comment -->"
-          number: ${{ steps.pr.outputs.id }}
-          emojis: "confused"
+          body-marker: <!-- Preview status comment marker -->
