@@ -2,7 +2,9 @@
 
 include::./includes/attributes.adoc[]
 
-TIP: Describe what the extension does here.
+Quarkus Roq includes robust tooling for generating a static website from your Quarkus application.
+
+* xref:quarkus-roq-data.adoc[*Roq Data*] - Use json/yaml files content from your templates and articles with type safety.
 
 == Installation
 
@@ -22,6 +24,5 @@ For instance, with Maven, add the following dependency to your POM file:
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 
-TIP: Remove this section if you don't have Quarkus configuration properties in your extension.
 
 include::includes/quarkus-roq.adoc[leveloffset=+1, opts=optional]
