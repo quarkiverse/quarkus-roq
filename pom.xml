@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse</groupId>
         <artifactId>quarkiverse-parent</artifactId>
-        <version>16</version>
+        <version>17</version>
     </parent>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-parent</artifactId>
