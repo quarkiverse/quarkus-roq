@@ -9,28 +9,19 @@ import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.runtime.util.ClassPathUtils;
 
 public final class RoqProjectBuildItem extends SimpleBuildItem {
-    private final RoqProject project;
     private final String resourceSiteDir;
 
-    public RoqProjectBuildItem(RoqProject project, String resourceSiteDir) {
-        this.project = project;
+    public RoqProjectBuildItem(String resourceSiteDir) {
         this.resourceSiteDir = resourceSiteDir;
     }
 
-    public RoqProject project() {
-        return project;
-    }
-
     public boolean isActive() {
-        return project != null || resourceSiteDir != null;
+        return resourceSiteDir != null;
     }
 
     public void consumePathFromSite(String resource, Consumer<Path> consumer) throws IOException {
         if (resourceSiteDir != null) {
             ClassPathUtils.consumeAsPaths(PathUtils.join(resourceSiteDir, resource), consumer);
-        }
-        if (project != null) {
-            consumer.accept(project.siteDir().resolve(resource));
         }
     }
 
@@ -38,23 +29,6 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         if (resourceSiteDir != null) {
             ClassPathUtils.consumeAsPaths(resourceSiteDir, consumer);
         }
-        if (project != null) {
-            consumer.accept(project.siteDir());
-        }
     }
 
-    /**
-     * Container to store resolved directory locations.
-     */
-    public record RoqProject(
-            /**
-             * The root directory of the project
-             */
-            Path rootDir,
-            /**
-             * The site directory of the project defaults to /src/main/site
-             */
-            Path siteDir) {
-
-    }
 }
