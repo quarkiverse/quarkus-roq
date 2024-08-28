@@ -20,10 +20,10 @@ import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
-import io.quarkus.arc.deployment.BeanArchiveIndexBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.ApplicationIndexBuildItem;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 
 public class RoqDataReaderProcessor {
@@ -31,7 +31,7 @@ public class RoqDataReaderProcessor {
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".yaml", ".yml");
     private static final String PARENT_TYPE_PARAMETER_NAME = "list";
     private static final Logger LOG = Logger.getLogger(RoqDataReaderProcessor.class);
-    static DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
+    private static DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
     RoqDataConfig roqDataConfig;
 
     @BuildStep
@@ -57,14 +57,18 @@ public class RoqDataReaderProcessor {
     }
 
     @BuildStep
+    AdditionalIndexedClassesBuildItem addAnnotation() {
+        return new AdditionalIndexedClassesBuildItem(DATA_MAPPING_ANNOTATION.toString());
+    }
+
+    @BuildStep
     void scanDataMappings(
-            BeanArchiveIndexBuildItem beanArchiveIndex,
-            ApplicationIndexBuildItem applicationIndex,
+            CombinedIndexBuildItem index,
             List<RoqDataBuildItem> roqDataBuildItems,
             BuildProducer<DataMappingBuildItem> dataMappingProducer,
             BuildProducer<RoqDataJsonBuildItem> dataJsonProducer,
             RoqDataConfig config) {
-        Collection<AnnotationInstance> annotations = applicationIndex.getIndex().getAnnotations(DATA_MAPPING_ANNOTATION);
+        Collection<AnnotationInstance> annotations = index.getIndex().getAnnotations(DATA_MAPPING_ANNOTATION);
 
         Map<String, RoqDataBuildItem> dataJsonMap = roqDataBuildItems.stream()
                 .collect(Collectors.toMap(RoqDataBuildItem::getName, Function.identity()));
@@ -95,7 +99,7 @@ public class RoqDataReaderProcessor {
                 DotName className = target.asClass().name();
                 // parent mapping
                 final boolean isParentMapping = annotationMap.get(name)
-                        .valueWithDefault(beanArchiveIndex.getIndex(), "parentArray").asBoolean();
+                        .valueWithDefault(index.getIndex(), "parentArray").asBoolean();
                 if (isParentMapping) {
                     final Optional<MethodInfo> parentMapping = target.asClass().constructors().stream()
                             .filter(this::isComplianceWithParentMapping)

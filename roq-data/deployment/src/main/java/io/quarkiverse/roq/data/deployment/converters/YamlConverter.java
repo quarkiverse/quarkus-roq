@@ -7,7 +7,6 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
@@ -16,7 +15,6 @@ import io.vertx.core.json.JsonObject;
 
 public class YamlConverter implements DataConverter {
 
-    private static final YAMLFactory YAML_FACTORY = new YAMLFactory();
     private final YAMLMapper mapper;
 
     public YamlConverter(YAMLMapper mapper) {

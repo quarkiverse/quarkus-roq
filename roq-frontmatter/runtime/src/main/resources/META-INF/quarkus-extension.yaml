@@ -1,0 +1,14 @@
+name: Roq FrontMatter
+description: Allow to provide site content
+metadata:
+  keywords:
+    - markdown
+    - frontmatter
+    - asciidoc
+    - site
+    - content
+    - qute
+  #  guide: https://quarkiverse.github.io/quarkiverse-docs/roq/dev/ # To create and publish this guide, see https://github.com/quarkiverse/quarkiverse/wiki#documenting-your-extension
+  categories:
+    - "web"
+  status: "preview"

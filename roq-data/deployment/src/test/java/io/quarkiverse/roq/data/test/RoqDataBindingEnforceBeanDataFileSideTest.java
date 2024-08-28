@@ -14,8 +14,10 @@ public class RoqDataBindingEnforceBeanDataFileSideTest {
     @RegisterExtension
     static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
-                    .add(new StringAsset("quarkus.roq.site-dir=src/test/site\nquarkus.roq.data.enforce-bean=true"),
-                            "application.properties"))
+                    .add(new StringAsset("quarkus.roq.data.enforce-bean=true"),
+                            "application.properties")
+                    .addAsResource("site/"))
+
             .assertException(e -> {
                 assertThat(e).isInstanceOf(IllegalStateException.class)
                         .hasMessageContaining(

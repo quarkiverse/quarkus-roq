@@ -6,7 +6,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import org.hamcrest.Matchers;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -21,8 +20,7 @@ public class RoqDataBindingTest {
     static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addClasses(Foo.class, Foos.class)
-                    .add(new StringAsset("quarkus.roq.site-dir=src/test/site"),
-                            "application.properties"));
+                    .addAsResource("site/"));
 
     @Test
     public void foo() {
