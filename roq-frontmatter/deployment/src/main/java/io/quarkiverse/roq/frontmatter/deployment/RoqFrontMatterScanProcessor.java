@@ -137,7 +137,8 @@ public class RoqFrontMatterScanProcessor {
             boolean isLayout) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
-            var relative = collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString();
+            var relative = toUnixPath(
+                    collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString());
             String sourcePath = relative;
             String templatePath = removeExtension(relative) + ".html";
 

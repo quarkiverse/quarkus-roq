@@ -29,6 +29,11 @@ public class RoqTemplateExtension {
         return page.data(key);
     }
 
+    @TemplateExtension(matchName = "*")
+    public static RoqCollection data(RoqCollections collections, String key) {
+        return collections.collections().get(key);
+    }
+
     @TemplateExtension
     public static Object readTime(Page page) {
         final long count = numberOfWords(page.rawContent());

@@ -63,9 +63,9 @@ class RoqFrontMatterProcessor {
         }
         validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
             if (templates.contains(c.getTemplateId())) {
-                //c.addParameter("page", Page.class.getName());
-                //c.addParameter("site", Site.class.getName());
-                //c.addParameter("collections", RoqCollections.class.getName());
+                c.addParameter("page", Page.class.getName());
+                c.addParameter("site", Site.class.getName());
+                c.addParameter("collections", RoqCollections.class.getName());
             }
         }));
 
@@ -83,7 +83,7 @@ class RoqFrontMatterProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(ExecutionTime.STATIC_INIT)
     RoqFrontMatterOutputBuildItem bindFrontMatterData(BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
             RoqFrontMatterRecorder recorder) {
@@ -108,7 +108,6 @@ class RoqFrontMatterProcessor {
 
             beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
                     .scope(Singleton.class)
-                    .setRuntimeInit()
                     .unremovable()
                     .addQualifier().annotation(Named.class).addValue("value", name).done()
                     .runtimeValue(recordedPage)
@@ -117,7 +116,6 @@ class RoqFrontMatterProcessor {
         }
         beansProducer.produce(SyntheticBeanBuildItem.configure(RoqCollections.class)
                 .scope(Singleton.class)
-                .setRuntimeInit()
                 .unremovable()
                 .supplier(recorder.createRoqCollections(collections))
                 .done());

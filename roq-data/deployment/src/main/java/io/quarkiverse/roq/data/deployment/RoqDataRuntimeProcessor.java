@@ -16,6 +16,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -34,8 +35,10 @@ class RoqDataRuntimeProcessor {
     @Record(ExecutionTime.STATIC_INIT)
     void generateSyntheticBeans(BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             RoqDataRecorder recorder) {
-
+        reflectiveClassProducer.produce(
+                ReflectiveClassBuildItem.builder(JsonObject.class).serialization().constructors().fields().methods().build());
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
             if (roqData.getData() instanceof JsonObject) {
                 beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
@@ -58,8 +61,11 @@ class RoqDataRuntimeProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void generateDataMappings(RoqDataRecorder roqDataRecorder, List<RoqDataBeanBuildItem> dataBeanBuildItems,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeansProducer) {
         for (RoqDataBeanBuildItem beanBuildItem : dataBeanBuildItems) {
+            reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(beanBuildItem.getBeanClass()).serialization()
+                    .constructors().fields().methods().build());
             syntheticBeansProducer.produce(SyntheticBeanBuildItem.configure(beanBuildItem.getBeanClass())
                     .scope(beanBuildItem.isRecord() ? Singleton.class : ApplicationScoped.class)
                     .named(beanBuildItem.getName())

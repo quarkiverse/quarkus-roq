@@ -57,3 +57,4 @@ jobs:
 
       - name: Build with Maven (Native)
         run: mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip
+        if: ${{ !startsWith(matrix.os, 'windows') }}
