@@ -24,6 +24,23 @@ ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++QUARKUS_ROQ_SITE_DIR+++`
 endif::add-copy-button-to-env-var[]
 --|string 
+|`src/main/site`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-site-dir]]`link:#quarkus-roq_quarkus-roq-resource-site-dir[quarkus.roq.resource-site-dir]`
+
+
+[.description]
+--
+Path to the Roq site directory in the resources.
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_RESOURCE_SITE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_RESOURCE_SITE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--|string 
 |`site`
 
 |===
