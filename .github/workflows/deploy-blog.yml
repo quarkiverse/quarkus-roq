@@ -22,7 +22,6 @@ jobs:
         with:
           path: roq-blog/target/roq
   deploy:
-    if: github.repository_owner == 'ia3andy'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

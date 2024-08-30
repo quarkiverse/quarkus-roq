@@ -5,7 +5,6 @@
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-generator-parent</artifactId>
         <version>999-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>quarkus-roq-generator-spi</artifactId>
     <name>Quarkus Roq - Generator - SPI</name>
