@@ -5,7 +5,7 @@ layout: main
 {#for post in collections.posts}
 <article class="post">
   {#if post.img}
-  <a class="post-thumbnail" style="background-image: url({config.rootPath}/static/images/{post.img})" href="{config.rootPath}{post.link}"></a>
+  <a class="post-thumbnail" style="background-image: url({config.rootPath}static/images/{post.img})" href="{config.rootPath}{post.link}"></a>
   {/if}
   <div class="post-content">
     <h2 class="post-title"><a href="{config.rootPath}{post.link}">{post.title}</a></h2>
