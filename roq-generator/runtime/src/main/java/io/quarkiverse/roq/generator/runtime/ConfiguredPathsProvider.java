@@ -13,11 +13,13 @@ import jakarta.inject.Singleton;
 
 @Singleton
 public class ConfiguredPathsProvider {
+
     private static volatile String targetDir;
     @Inject
     RoqGeneratorConfig config;
 
     private static volatile Set<String> staticPaths;
+    private static volatile List<String> selectedPaths;
 
     public static void setStaticPaths(Set<String> staticPaths) {
         ConfiguredPathsProvider.staticPaths = staticPaths;
@@ -25,6 +27,10 @@ public class ConfiguredPathsProvider {
 
     public static void setOutputTarget(String targetDir) {
         ConfiguredPathsProvider.targetDir = targetDir;
+    }
+
+    public static void setSelectedPaths(List<String> selectedPaths) {
+        ConfiguredPathsProvider.selectedPaths = selectedPaths;
     }
 
     public static String targetDir() {
@@ -51,6 +57,9 @@ public class ConfiguredPathsProvider {
                 }
             }
 
+        }
+        for (String selectedPath : ConfiguredPathsProvider.selectedPaths) {
+            selectedPaths.add(SelectedPath.builder().sourceBuildItem().path(selectedPath).build());
         }
         return new RoqSelection(selectedPaths);
     }

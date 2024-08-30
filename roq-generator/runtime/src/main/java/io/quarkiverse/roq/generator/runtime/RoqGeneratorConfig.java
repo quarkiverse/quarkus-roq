@@ -30,6 +30,7 @@ public interface RoqGeneratorConfig {
      *     }
      * </code>
      */
+    @WithDefault("/,/static/**")
     Optional<List<String>> paths();
 
     /**

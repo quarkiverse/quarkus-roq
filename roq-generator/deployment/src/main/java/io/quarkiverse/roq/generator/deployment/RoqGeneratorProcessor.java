@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
 import io.quarkiverse.roq.generator.runtime.RoqGenerator;
 import io.quarkiverse.roq.generator.runtime.RoqGeneratorRecorder;
@@ -40,6 +41,7 @@ class RoqGeneratorProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void initHandler(List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
+            List<SelectedPathBuildItem> selectedPaths,
             StaticResourcesBuildItem staticResourcesBuildItem,
             OutputTargetBuildItem outputTarget,
             RoqGeneratorRecorder recorder) {
@@ -53,6 +55,7 @@ class RoqGeneratorProcessor {
                     .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
                     .toList());
         }
+        recorder.setSelectedPaths(selectedPaths.stream().map(SelectedPathBuildItem::path).toList());
         recorder.setStaticPaths(staticPaths);
         recorder.setOutputTarget(outputTarget.getOutputDirectory().toAbsolutePath().toString());
     }

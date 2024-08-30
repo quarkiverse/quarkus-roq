@@ -13,8 +13,9 @@
     <name>Quarkus Roq - Generator</name>
 
     <modules>
-        <module>deployment</module>
+        <module>spi</module>
         <module>runtime</module>
+        <module>deployment</module>
     </modules>
 
     <profiles>

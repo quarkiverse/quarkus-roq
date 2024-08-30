@@ -3,6 +3,7 @@ package io.quarkiverse.roq.data.test;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -17,7 +18,8 @@ public class RoqDataInjectableBeanLookingDefaultLocationTest {
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addAsResource("fromResource.json", "site/_data/fromResource.json")
-                    .addAsResource("site/"));
+                    .add(new StringAsset("quarkus.roq.site-dir=src/test/site"),
+                            "application.properties"));
 
     @Inject
     @Named("foo")

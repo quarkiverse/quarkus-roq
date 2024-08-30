@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.generator.runtime;
 
+import java.util.List;
 import java.util.Set;
 
 import io.quarkus.runtime.annotations.Recorder;
@@ -13,5 +14,9 @@ public class RoqGeneratorRecorder {
 
     public void setOutputTarget(String outputDirectory) {
         ConfiguredPathsProvider.setOutputTarget(outputDirectory);
+    }
+
+    public void setSelectedPaths(List<String> selectedPaths) {
+        ConfiguredPathsProvider.setSelectedPaths(selectedPaths);
     }
 }

@@ -1,0 +1,55 @@
+<head>
+  <meta charset="utf-8">
+  <title>
+    {#if page.title}{page.title} - {site.title}{#else}{site.title}{/if}
+  </title>
+
+  <!-- Edit site and author settings in `_config.yml` to make the social details your own -->
+
+  <meta content="{site.title}" property="og:site_name">
+
+
+  <meta name="twitter:card" content="summary">
+  {#if page.title}
+  <meta name="twitter:title" content="{page.title}">
+  {#else}
+  <meta name="twitter:title" content="{site.title}">
+  {/if}
+  {#if page.url}
+  <meta name="twitter:url" content="{site.url}{page.url}">
+  {/if}
+  {#if page.description}
+  <meta name="twitter:description" content="{page.description}">
+  {#else}
+  <meta name="twitter:description" content="{site.description}">
+  {/if}
+  {#if page.img}
+  <meta name="twitter:image:src" content="{site.url}{site.baseurl}/assets/img/{page.img}">
+  {/if}
+
+  {#if page.description}
+  <meta name="description" content="{page.description}">
+  {#else}
+  <meta name="description" content="{site.description}">
+  {/if}
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:image" content="">
+  <link rel="shortcut icon" href="{site.baseurl}/assets/img/favicon/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="{site.baseurl}/assets/img/favicon/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="{site.baseurl}/assets/img/favicon/apple-touch-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="{site.baseurl}/assets/img/favicon/apple-touch-icon-144x144.png">
+  <!-- Chrome, Firefox OS and Opera -->
+  <meta name="theme-color" content="#263959">
+  <!-- Windows Phone -->
+  <meta name="msapplication-navbutton-color" content="#263959">
+  <!-- iOS Safari -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="#263959">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=PT+Serif:400,700|Lato:300,400,700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="{site.baseurl}/static/assets/fonts/font-awesome/css/font-awesome.min.css">
+
+
+  {#bundle /}
+</head>

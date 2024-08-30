@@ -1,0 +1,45 @@
+---
+layout: default
+link: ":name.html"
+---
+<aside class="sidebar">
+  <header>
+    <div class="about">
+      {#if cdi:info.img??}
+      <div class="cover-author-image">
+        <a href="{site.baseurl}/"><img src="{site.baseurl}/static/assets/img/{cdi:info.img}" alt="{cdi:info.name}"></a>
+      </div>
+      {/if}
+      <div class="author-name">{cdi:info.name}</div>
+      <p>{cdi:info.about}</p>
+    </div>
+  </header> <!-- End Header -->
+  <footer>
+    <section class="contact">
+      <h3 class="contact-title">Contact me</h3>
+      <ul>
+        {#if cdi:info.social-twitter??}
+        <li><a href="https://twitter.com/{cdi:info.social-twitter}" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+        {/if}
+        {#if cdi:info.social-facebook??}
+        <li><a href="https://facebook.com/{cdi:info.social-facebook}" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+        {/if}
+        {#if cdi:info.social-github??}
+        <li class="github"><a href="http://github.com/{cdi:info.social-github}" target="_blank"><i class="fa fa-github"></i></a></li>
+        {/if}
+        {#if cdi:info.social-linkedin??}
+        <li class="linkedin"><a href="https://in.linkedin.com/in/{cdi:info.social-linkedin}" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        {/if}
+        {#if cdi:info.social-email??}
+        <li class="email"><a href="mailto:{cdi:info.social-email?}"><i class="fa fa-envelope-o"></i></a></li>
+        {/if}
+      </ul>
+    </section> <!-- End Section Contact -->
+    <div class="copyright">
+      <p>{site.time.format('Y')} &copy; {cdi:info.name}</p>
+    </div>
+  </footer> <!-- End Footer -->
+</aside> <!-- End Sidebar -->
+<div class="content-box clearfix">
+  {#insert /}
+</div>

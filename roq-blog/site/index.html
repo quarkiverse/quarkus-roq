@@ -1,0 +1,19 @@
+---
+layout: main
+---
+
+{#for post in collections.posts}
+<article class="post">
+  {#if post.img}
+  <a class="post-thumbnail" style="background-image: url({site.baseurl}/static/images/{post.img})" href="{site.baseurl}{post.link}"></a>
+  {/if}
+  <div class="post-content">
+    <h2 class="post-title"><a href="{site.baseurl}{post.link}">{post.title}</a></h2>
+    <p>{post.description}</p>
+    <span class="post-date">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+    <span class="post-words">
+      {post.readTime} minute read
+    </span>
+  </div>
+</article>
+{/for}

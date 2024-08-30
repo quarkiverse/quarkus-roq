@@ -23,6 +23,12 @@ public interface RoqFrontMatterConfig {
     List<String> includesDirs();
 
     /**
+     * When enabled it will select all FrontMatter pages in Roq Generator
+     */
+    @WithDefault("true")
+    boolean generator();
+
+    /**
      * The directory names containing collections as key and the corresponding collection name as value (in the Roq site
      * directory)
      */
