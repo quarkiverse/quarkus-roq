@@ -84,7 +84,7 @@
                 </property>
             </activation>
             <modules>
-                <module>roq-blog</module>
+                <module>blog</module>
             </modules>
         </profile>
     </profiles>
