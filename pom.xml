@@ -84,7 +84,7 @@
                 </property>
             </activation>
             <modules>
-                <module>integration-tests</module>
+                <module>roq-blog</module>
             </modules>
         </profile>
     </profiles>

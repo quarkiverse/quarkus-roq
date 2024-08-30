@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.Page.LINK_KEY;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
 import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 
 import java.util.*;
@@ -17,6 +18,7 @@ import io.quarkiverse.qute.web.deployment.QuteWebTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.*;
+import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -42,9 +44,11 @@ class RoqFrontMatterProcessor {
 
     @BuildStep
     void generateTemplate(
+            RoqFrontMatterConfig config,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<QuteWebTemplateBuildItem> quteWebTemplateProducer,
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
+            BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
             RoqFrontMatterOutputBuildItem roqOutput) {
         final Set<String> templates = new HashSet<>();
@@ -54,6 +58,9 @@ class RoqFrontMatterProcessor {
                     .content(item.generatedContent()).build());
             final Page page = roqOutput.pages().get(name);
             if (page != null) {
+                if (config.generator()) {
+                    selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(page.link()))); // We add a trailing slash to make it detected as a html page
+                }
                 templates.add(item.templatePath());
                 quteWebTemplateProducer
                         .produce(new QuteWebTemplateBuildItem(name,

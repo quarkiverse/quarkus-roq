@@ -27,8 +27,11 @@
   <meta name="twitter:image:src" content="{site.url}{site.baseurl}/assets/img/{page.img}">
   {/if}
 
-
+  {#if page.description}
   <meta name="description" content="{page.description}">
+  {#else}
+  <meta name="description" content="{site.description}">
+  {/if}
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:image" content="">

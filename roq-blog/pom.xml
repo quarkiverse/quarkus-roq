@@ -7,8 +7,8 @@
         <artifactId>quarkus-roq-parent</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
-    <artifactId>quarkus-roq-integration-tests</artifactId>
-    <name>Quarkus Roq - Integration Tests</name>
+    <artifactId>roq-blog</artifactId>
+    <name>Quarkus Roq - Blog</name>
 
     <properties>
         <skipITs>true</skipITs>
@@ -46,15 +46,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>${basedir}/site</directory>
-                <targetPath>site</targetPath>
-            </resource>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>

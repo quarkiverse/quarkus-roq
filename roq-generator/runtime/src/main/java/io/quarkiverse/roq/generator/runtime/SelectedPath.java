@@ -45,6 +45,11 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
             return this;
         }
 
+        SelectedPathBuilder sourceBuildItem() {
+            this.source = PageSource.BUILD_ITEM;
+            return this;
+        }
+
         public SelectedPathBuilder html(String path) {
             this.path = path;
             this.outputPath = defaultOutputPath(addTrailingSlash(path));

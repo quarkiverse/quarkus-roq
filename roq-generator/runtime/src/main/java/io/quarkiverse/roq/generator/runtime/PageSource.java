@@ -7,6 +7,11 @@ public enum PageSource {
     CONFIG,
 
     /**
+     * This page is configured through a build item
+     */
+    BUILD_ITEM,
+
+    /**
      * This page has been provided at runtime through a
      */
     PROVIDED
