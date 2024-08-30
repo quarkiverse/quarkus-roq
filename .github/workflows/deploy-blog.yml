@@ -17,12 +17,12 @@ jobs:
       - name: Build Roq
         run: mvn -B clean install -DskipTests
       - name: Build & Generate Blog
-        working-directory: roq-blog
+        working-directory: blog
         run: QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B package quarkus:run -Dquarkus.profile=gh-pages -DskipTests
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: roq-blog/target/roq
+          path: blog/target/roq
   deploy:
     environment:
       name: github-pages
