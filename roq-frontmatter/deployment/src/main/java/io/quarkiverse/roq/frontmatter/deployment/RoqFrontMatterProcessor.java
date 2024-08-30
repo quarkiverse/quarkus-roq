@@ -73,6 +73,7 @@ class RoqFrontMatterProcessor {
                 c.addParameter("page", Page.class.getName());
                 c.addParameter("site", Site.class.getName());
                 c.addParameter("collections", RoqCollections.class.getName());
+                c.addParameter("config", RoqSiteConfig.class.getName());
             }
         }));
 
