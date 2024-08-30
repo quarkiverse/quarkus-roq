@@ -17,22 +17,21 @@ public class RoqTest {
                 .then()
                 .statusCode(200)
                 .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
-                .body(containsString("10 Tips To Improve Your Workflow"))
-                .body(containsString("Conference on Java"))
-                .body(containsString("4 minute read"))
-                .body(containsString("2024, Jun 12"))
+                .body(containsString("Welcome to Roq!"))
+                .body(containsString("2 minute read"))
+                .body(containsString("2024, Aug 29"))
                 .body(containsString("2024 &copy; ROQ"));
     }
 
     @Test
     public void testPosts() {
         given()
-                .when().get("/posts/2024-08-10-tips-to-improve-your-workflow")
+                .when().get("/posts/2024-08-29-welcome-to-roq")
                 .then()
                 .statusCode(200)
                 .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
-                .body(containsString("10 Tips To Improve Your Workflow"))
-                .body(containsString("<h3>Literally pickled twee man braid</h3>"))
+                .body(containsString("<p>Hello folks,</p>"))
+                .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
                 .body(containsString("2024 &copy; ROQ"));
     }
 
@@ -43,8 +42,7 @@ public class RoqTest {
                 .then()
                 .statusCode(200)
                 .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
-                .body(containsString("<h2 class=\"event-title\">Tech Conference 2024</h2>"))
-                .body(containsString("<h2 class=\"event-title\">Culinary Arts Festival</h2>"))
+                .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
                 .body(containsString("2024 &copy; ROQ"));
     }
 }
