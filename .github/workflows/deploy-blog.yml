@@ -16,7 +16,7 @@ jobs:
           java-version: 17
       - name: Build & Generate
         working-directory: roq-blog
-        run: QUARKUS_ROQ_GENERATOR_BATCH=true ./mvnw -B package quarkus:run -Dquarkus.profile=gh-pages -DskipTests
+        run: QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B package quarkus:run -Dquarkus.profile=gh-pages -DskipTests
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
