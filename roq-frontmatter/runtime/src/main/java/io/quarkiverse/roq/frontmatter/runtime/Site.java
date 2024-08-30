@@ -7,10 +7,7 @@ import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 @DataMapping("site")
 public record Site(
         String title,
-        String description,
-        String link,
-        String baseurl,
-        String url) {
+        String description) {
 
     public LocalDateTime time() {
         return LocalDateTime.now();

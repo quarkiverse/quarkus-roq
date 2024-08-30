@@ -4,6 +4,7 @@ import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.literal.NamedLiteral;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import io.quarkus.arc.Arc;
@@ -14,7 +15,11 @@ import io.quarkus.qute.TemplateInstance;
 @Singleton
 public class RoqFrontmatterDataQuteEngineObserver {
 
-    public RoqFrontmatterDataQuteEngineObserver() {
+    private final RoqSiteConfig config;
+
+    @Inject
+    public RoqFrontmatterDataQuteEngineObserver(RoqSiteConfig config) {
+        this.config = config;
     }
 
     void observeEngineBuilder(@Observes EngineBuilder builder) {
@@ -32,6 +37,7 @@ public class RoqFrontmatterDataQuteEngineObserver {
                 try (InstanceHandle<RoqCollections> instanceHandle = Arc.container().instance(RoqCollections.class)) {
                     templateInstance.data("collections", instanceHandle.get());
                 }
+                templateInstance.data("config", config);
             }
         });
     }
