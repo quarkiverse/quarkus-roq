@@ -57,7 +57,7 @@ public class RoqProjectProcessor {
                 configuredSiteDirPath = configuredSiteDirPath.normalize();
             } else {
                 LOG.warn(
-                        "If not absolute, the Site directory is resolved relative to the project root, but Roq was not able to find the project root..");
+                        "If not absolute, the Site directory is resolved relative to the project root, but Roq was not able to find the project root.");
                 return null;
             }
         }
