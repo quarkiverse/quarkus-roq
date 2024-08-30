@@ -3,9 +3,9 @@
     <ul>
       {#if paginator.previousPage}
       {#if paginator.previousPage == 1}
-      <p><a class="newer-posts" href="{config.rootPath}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      <p><a class="newer-posts" href="{config.rootPath}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       {#else}
-      <p><a class="newer-posts" href="{config.rootPath}/page/{paginator.previousPage}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      <p><a class="newer-posts" href="{config.rootPath}page/{paginator.previousPage}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       {/if}
       {/if}
 
@@ -14,7 +14,7 @@
       {/if}
 
       {#if paginator.nextPage}
-      <p><a class="older-posts" href="{config.rootPath}/page/{paginator.nexPpage}/"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
+      <p><a class="older-posts" href="{config.rootPath}page/{paginator.nexPpage}/"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
       {/if}
     </ul>
   </nav>
