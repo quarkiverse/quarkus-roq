@@ -3,5 +3,5 @@ img: iamroq.png # add your photo
 about: All the tools to generate static websites out of your Quarkus web application. # add description
 social-twitter: quarkusio # add your Twitter handle
 social-facebook: # add your Facebook handle
-social-github: quarkusio # add your Github handle
+social-github: quarkiverse/quarkus-roq # add your Github handle
 social-linkedin: quarkusio # add your Linkedin handle
