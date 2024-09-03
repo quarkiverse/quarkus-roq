@@ -16,6 +16,6 @@ All the tools to generate static websites out of your Quarkus web application:
 
 
 
-**THIS IS NOT READY - CONSTRUCTION IN PROGRESS - CONTRIBUTION OPEN https://github.com/quarkusio/quarkus/discussions/41309**
+**THIS IS NOT READY - CONSTRUCTION IN PROGRESS - OPEN FOR CONTRIBUTIONS https://github.com/quarkusio/quarkus/discussions/41309**
 
 ![image](https://media.tenor.com/q9s_XmoedE8AAAAi/piske-usagi.gif)
