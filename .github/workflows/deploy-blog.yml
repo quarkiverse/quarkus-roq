@@ -4,6 +4,7 @@ name: Quarkus Roq Deploy Blog CI
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,20 +26,36 @@ jobs:
       - name: Build & Generate Blog
         working-directory: blog
         run: QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B package quarkus:run -Dquarkus.profile=gh-pages -DskipTests
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload site as artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: site
           path: blog/target/roq
+          retention-days: 1          
   deploy:
-    environment:
-      name: github-pages
-      url: https://pages.quarkiverse.io/quarkus-roq/
+    # Only try and deploy on merged code
+    if: "github.repository == 'quarkiverse/quarkus-roq' && github.ref_name == 'main' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')"  
     runs-on: ubuntu-latest
     needs: build
     permissions:
       pages: write      # to deploy to Pages
-      id-token: write
+      id-token: write   # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Download Built site
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: _site
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
