@@ -20,6 +20,7 @@ public class RoqFrontMatterTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addClass(MyResource.class)
+                    .addAsResource("application.properties")
                     .addAsResource("site/_data/site.yml")
                     .addAsResource("site/_includes/foo/bar.html")
                     .addAsResource("site/_includes/view.html")
@@ -36,6 +37,8 @@ public class RoqFrontMatterTest {
     public void testHtmlPost() {
         RestAssured.when().get("/posts/awesome-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Post"))
+                .body("html.head.base.@href", equalTo("/foo"))
+                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content", equalTo("https://mywebsite.com/foo"))
                 .body("html.body.article.h1", equalTo("A cool blog post"))
                 .body("html.body.article.p", equalTo("bar"))
                 .body("html.body.div.h1", equalTo("My Cool Post"))

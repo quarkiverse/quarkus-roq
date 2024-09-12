@@ -6,6 +6,7 @@ import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Named;
@@ -29,7 +30,6 @@ import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
-import io.quarkus.runtime.RuntimeValue;
 import io.vertx.core.json.JsonObject;
 
 class RoqFrontMatterProcessor {
@@ -56,15 +56,15 @@ class RoqFrontMatterProcessor {
             final String name = removeExtension(item.templatePath());
             templatePathProducer.produce(TemplatePathBuildItem.builder().path(item.templatePath()).extensionInfo(FEATURE)
                     .content(item.generatedContent()).build());
-            final Page page = roqOutput.pages().get(name);
-            if (page != null) {
+            final String path = roqOutput.paths().get(name);
+            if (path != null) {
                 if (config.generator()) {
-                    selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(page.link()))); // We add a trailing slash to make it detected as a html page
+                    selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path))); // We add a trailing slash to make it detected as a html page
                 }
                 templates.add(item.templatePath());
                 quteWebTemplateProducer
                         .produce(new QuteWebTemplateBuildItem(name,
-                                page.link()));
+                                path));
             }
 
         }
@@ -97,8 +97,8 @@ class RoqFrontMatterProcessor {
             RoqFrontMatterRecorder recorder) {
         final var byKey = roqFrontMatterBuildItems.stream()
                 .collect(Collectors.toMap(RoqFrontMatterBuildItem::key, Function.identity()));
-        final var collections = new HashMap<String, List<RuntimeValue<Page>>>();
-        final Map<String, Page> pages = new HashMap<>();
+        final var collections = new HashMap<String, List<Supplier<Page>>>();
+        final Map<String, String> paths = new HashMap<>();
         for (RoqFrontMatterBuildItem item : roqFrontMatterBuildItems) {
             if (!item.visible()) {
                 continue;
@@ -107,27 +107,27 @@ class RoqFrontMatterProcessor {
             LOGGER.info("Creating synthetic bean for page with name " + name);
             final JsonObject merged = mergeParents(item, byKey);
 
-            merged.put(LINK_KEY, Link.link(merged));
-            final Page page = new Page(name, merged);
-            final RuntimeValue<Page> recordedPage = recorder.createPage(page);
+            final String link = Link.link(merged);
+            merged.put(LINK_KEY, link);
+            final Supplier<Page> pageSupplier = recorder.createPage(name, merged);
             if (item.collection() != null) {
-                collections.computeIfAbsent(item.collection(), k -> new ArrayList<>()).add(recordedPage);
+                collections.computeIfAbsent(item.collection(), k -> new ArrayList<>()).add(pageSupplier);
             }
 
             beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
                     .scope(Singleton.class)
                     .unremovable()
                     .addQualifier().annotation(Named.class).addValue("value", name).done()
-                    .runtimeValue(recordedPage)
+                    .supplier(pageSupplier)
                     .done());
-            pages.put(name, page);
+            paths.put(name, link);
         }
         beansProducer.produce(SyntheticBeanBuildItem.configure(RoqCollections.class)
                 .scope(Singleton.class)
                 .unremovable()
                 .supplier(recorder.createRoqCollections(collections))
                 .done());
-        return new RoqFrontMatterOutputBuildItem(pages);
+        return new RoqFrontMatterOutputBuildItem(paths);
     }
 
     private static JsonObject mergeParents(RoqFrontMatterBuildItem item, Map<String, RoqFrontMatterBuildItem> byPath) {

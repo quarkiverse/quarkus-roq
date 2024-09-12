@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.util;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public final class PathUtils {
 
     public static String toUnixPath(String path) {
@@ -18,8 +21,15 @@ public final class PathUtils {
         return path.endsWith("/") ? path : path + "/";
     }
 
-    public static String join(String path1, String path2) {
-        return addTrailingSlash(path1) + removeLeadingSlash(path2);
+    public static String join(String path1, String... other) {
+        if (other == null || other.length == 0) {
+            return path1;
+        }
+        if (other.length == 1) {
+            return addTrailingSlash(path1) + removeLeadingSlash(other[0]);
+        }
+        final String otherJoined = Arrays.stream(other).map(PathUtils::removeTrailingSlash).collect(Collectors.joining("/"));
+        return addTrailingSlash(path1) + removeLeadingSlash(otherJoined);
     }
 
     public static String removeLeadingSlash(String path) {

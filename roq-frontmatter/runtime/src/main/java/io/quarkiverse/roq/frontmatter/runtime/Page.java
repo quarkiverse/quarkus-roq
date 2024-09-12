@@ -5,7 +5,8 @@ import java.time.format.DateTimeFormatter;
 
 import io.vertx.core.json.JsonObject;
 
-public record Page(String id, JsonObject data) {
+public record Page(RoqSiteConfig config, String id, JsonObject data) {
+
     public static final String DATE_KEY = "date";
     public static final String RAW_CONTENT_KEY = "rawContent";
     public static final String BASE_FILE_NAME_KEY = "baseFileName";
@@ -17,8 +18,8 @@ public record Page(String id, JsonObject data) {
         return data.getString(RAW_CONTENT_KEY);
     }
 
-    public String link() {
-        return data.getString(LINK_KEY);
+    public PageUrl url() {
+        return new PageUrl(config.url(), data.getString(LINK_KEY));
     }
 
     public LocalDateTime date() {

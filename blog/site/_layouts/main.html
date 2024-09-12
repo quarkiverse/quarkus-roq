@@ -7,7 +7,7 @@ link: ":name.html"
     <div class="about">
       {#if cdi:info.img??}
       <div class="cover-author-image">
-        <a href="{config.rootPath}"><img src="{config.rootPath}static/assets/img/{cdi:info.img}" alt="{cdi:info.name}"></a>
+        <a href="{config.url.relative}"><img src="{config.url.relative.resolve('static/assets/img/').resolve(cdi:info.img)}" alt="{cdi:info.name}"></a>
       </div>
       {/if}
       <div class="author-name">{cdi:info.name}</div>
