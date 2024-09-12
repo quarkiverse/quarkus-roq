@@ -9,7 +9,7 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "roq")
-@ConfigRoot(phase = ConfigPhase.RUN_TIME)
+@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface RoqSiteConfig {
     /**
      * the root path of your site, e.g. /blog
@@ -24,8 +24,8 @@ public interface RoqSiteConfig {
     @WithName("url")
     Optional<String> urlOptional();
 
-    default String url() {
-        return urlOptional().orElse("");
+    default RootUrl url() {
+        return new RootUrl(this.urlOptional().orElse(""), this.rootPath());
     }
 
 }

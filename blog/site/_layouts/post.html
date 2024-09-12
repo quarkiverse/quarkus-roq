@@ -7,7 +7,7 @@ link: posts/:title
     {#if page.img}
     <div class="page-cover-image">
       <figure>
-        <img class="page-image" src="{config.rootPath}static/images/{page.img}" alt="{page.title}">
+        <img class="page-image" src="{config.url.relative.resolve('static/images/').resolve(page.img)}" alt="{page.title}">
         {#if page.figCaption}
         <figcaption>{page.figCaption}</figcaption>
         {/if}
@@ -22,14 +22,14 @@ link: posts/:title
       {#insert /}
       <div class="page-footer">
         <div class="page-share">
-          <a href="https://twitter.com/intent/tweet?text={page.title}&url={config.url}{page.link}" title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
-          <a href="https://facebook.com/sharer.php?u={config.url}{page.link}" title="Share on Facebook" rel="nofollow" target="_blank">Facebook</a>
-          <a href="https://plus.google.com/share?url={config.url}{page.link}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
+          <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.absolute}" title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
+          <a href="https://facebook.com/sharer.php?u={page.url.absolute}" title="Share on Facebook" rel="nofollow" target="_blank">Facebook</a>
+          <a href="https://plus.google.com/share?url={page.url.absolute}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
         </div>
         <div class="page-tag">
           {#if page.tags}
           {#for tag in page.tags}
-          <a href="{config.rootPath}tags#{tag}" class="tag">&#35; {tag}</a>
+          <a href="{config.url.relative.resolve('tags#').resolve(tag)}" class="tag">&#35; {tag}</a>
           {/for}
           {/if}
         </div>
