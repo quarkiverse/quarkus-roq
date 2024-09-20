@@ -161,7 +161,7 @@ public class RoqFrontMatterScanProcessor {
                         if (!config.future() && date.isAfter(ZonedDateTime.now())) {
                             return;
                         }
-                        fm.put(DATE_KEY, date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                        fm.put(DATE_KEY, date.format(DateTimeFormatter.ISO_DATE_TIME));
                     }
 
                     fm.put(RAW_CONTENT_KEY, content);
