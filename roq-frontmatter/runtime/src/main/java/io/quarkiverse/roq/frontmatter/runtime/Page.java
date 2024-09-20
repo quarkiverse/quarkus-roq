@@ -47,7 +47,8 @@ public record Page(RootUrl rootUrl, String id, JsonObject data, Paginator pagina
     public ZonedDateTime date() {
         final String d = data.getString(DATE_KEY);
         if (d == null) {
-            return ZonedDateTime.now();
+            // must be NULL if no date found to distinguish website (null) from blog posts (date)
+            return null;
         }
         return ZonedDateTime.parse(d, DateTimeFormatter.ISO_DATE_TIME);
     }

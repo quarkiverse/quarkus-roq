@@ -1,40 +1,12 @@
 <head>
   <meta charset="utf-8">
-  <title>
-    {#if page.title ne site.title}{page.title} - {site.title}{#else}{site.title}{/if}
-  </title>
+
+  {#seo page site /}
 
   <!-- Edit site and author settings in `_config.yml` to make the social details your own -->
   <base href="{site.rootUrl.relative}">
-  <meta content="{site.title}" property="og:site_name">
-
-
-  <meta name="twitter:card" content="summary">
-  {#if page.title}
-  <meta name="twitter:title" content="{page.title}">
-  {#else}
-  <meta name="twitter:title" content="{site.title}">
-  {/if}
-  {#if page.url}
-  <meta name="twitter:url" content="{site.url.absolute}">
-  {/if}
-  {#if page.description}
-  <meta name="twitter:description" content="{page.description}">
-  {#else}
-  <meta name="twitter:description" content="{site.description}">
-  {/if}
-  {#if page.img}
-  <meta name="twitter:image:src" content="{site.rootUrl.absolute.resolve('assets/img/').resolve(page.img)}">
-  {/if}
-
-  {#if page.description}
-  <meta name="description" content="{page.description}">
-  {#else}
-  <meta name="description" content="{site.description}">
-  {/if}
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:image" content="">
   <link rel="shortcut icon" href="{site.rootUrl.absolute.resolve('/static/assets/img/favicon/favicon.ico')}" type="image/x-icon">
   <link rel="apple-touch-icon" href="{site.rootUrl.absolute.resolve('assets/img/favicon/apple-touch-icon.png')}">
   <link rel="apple-touch-icon" sizes="72x72" href="{site.rootUrl.absolute.resolve('assets/img/favicon/apple-touch-icon-72x72.png')}">

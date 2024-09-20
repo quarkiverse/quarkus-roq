@@ -1,0 +1,6 @@
+{#if pageDescription || siteDescription}
+  <!-- SEO DESCRIPTION -->
+  <meta name="description" content="{pageDescription ?: siteDescription}">
+  <meta property="og:description" content="{pageDescription ?: siteDescription}" />
+  <meta name="twitter:description" content="{pageDescription ?: siteDescription}">
+{/if}

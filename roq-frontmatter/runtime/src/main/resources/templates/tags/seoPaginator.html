@@ -1,0 +1,9 @@
+{#if previousPage || nextPage}
+    <!-- SEO PAGINATOR -->
+    {#if previousPage}
+        <link rel="prev" href="{previousPage}" />
+    {/if}
+    {#if nextPage}
+        <link rel="next" href="{nextPage}" />
+    {/if}
+{/if}
