@@ -79,15 +79,15 @@ public class RoqFrontMatterTest {
     public static class MyResource {
 
         @Inject
-        @Named("/posts/awesome-post")
+        @Named("/bar/posts/awesome-post")
         Page awesomePostFm;
 
         @Inject
-        @Named("/posts/markdown-post")
+        @Named("/bar/posts/markdown-post")
         Page markdownPostFm;
 
         @Inject
-        @Named("/my-cool-page")
+        @Named("/bar/my-cool-page")
         Page coolPageFm;
 
     }

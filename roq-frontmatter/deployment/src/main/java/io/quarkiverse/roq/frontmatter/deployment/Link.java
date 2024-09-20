@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import io.quarkiverse.roq.frontmatter.runtime.Page;
+import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
 public class Link {
@@ -35,7 +36,7 @@ public class Link {
                 (data) -> data.getString("slug", slugify(data.getString(Page.BASE_FILE_NAME_KEY))));
     }
 
-    public static String link(String template, JsonObject data) {
+    public static String link(String rootPath, String template, JsonObject data) {
         String link = template;
         // Replace each placeholder in the template if it exists
         for (Map.Entry<String, Function<JsonObject, String>> entry : PLACEHOLDER_HANDLERS.entrySet()) {
@@ -48,7 +49,7 @@ public class Link {
         if (link.endsWith("index") || link.endsWith("index.html")) {
             link = link.replaceAll("index(\\.html)?", "");
         }
-        return removeTrailingSlash(removeLeadingSlash(link));
+        return removeTrailingSlash(removeLeadingSlash(PathUtils.join(rootPath, link)));
     }
 
     // Slugify logic to make the title URL-friendly
