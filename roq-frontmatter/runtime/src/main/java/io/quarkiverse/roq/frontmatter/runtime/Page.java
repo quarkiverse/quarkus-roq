@@ -1,10 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
 import io.vertx.core.json.JsonObject;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public record Page(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
 
@@ -44,12 +44,12 @@ public record Page(RootUrl rootUrl, String id, JsonObject data, Paginator pagina
         return new PageUrl(rootUrl, data.getString(LINK_KEY));
     }
 
-    public LocalDateTime date() {
+    public ZonedDateTime date() {
         final String d = data.getString(DATE_KEY);
         if (d == null) {
-            return LocalDateTime.now();
+            return ZonedDateTime.now();
         }
-        return LocalDateTime.parse(d, DateTimeFormatter.ISO_DATE_TIME);
+        return ZonedDateTime.parse(d, DateTimeFormatter.ISO_DATE_TIME);
     }
 
     public Object data(String name) {

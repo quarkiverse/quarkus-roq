@@ -1,27 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
-import static io.quarkiverse.roq.util.PathUtils.removeExtension;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
-import static java.util.function.Predicate.not;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import org.jboss.logging.Logger;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
@@ -29,6 +9,26 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.vertx.core.json.JsonObject;
+import org.jboss.logging.Logger;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
+import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static java.util.function.Predicate.not;
 
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
@@ -156,9 +156,9 @@ public class RoqFrontMatterScanProcessor {
                     final String layout = normalizedLayout(fm.getString("layout"));
                     final String content = stripFrontMatter(fullContent);
                     if (fm.containsKey(DATE_KEY)) {
-                        final LocalDateTime date = LocalDateTime.parse(fm.getString(DATE_KEY),
+                        final ZonedDateTime date = ZonedDateTime.parse(fm.getString(DATE_KEY),
                                 DateTimeFormatter.ofPattern(config.dateFormat()));
-                        if (!config.future() && date.isAfter(LocalDateTime.now())) {
+                        if (!config.future() && date.isAfter(ZonedDateTime.now())) {
                             return;
                         }
                         fm.put(DATE_KEY, date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
