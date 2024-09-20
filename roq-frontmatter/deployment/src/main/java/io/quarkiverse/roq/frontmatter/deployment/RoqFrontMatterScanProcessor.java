@@ -1,15 +1,9 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
-import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
-import io.quarkus.deployment.annotations.BuildProducer;
-import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
-import io.vertx.core.json.JsonObject;
-import org.jboss.logging.Logger;
+import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
+import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static java.util.function.Predicate.not;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,10 +19,18 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
-import static io.quarkiverse.roq.util.PathUtils.removeExtension;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
-import static java.util.function.Predicate.not;
+import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
+import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
+import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
+import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);

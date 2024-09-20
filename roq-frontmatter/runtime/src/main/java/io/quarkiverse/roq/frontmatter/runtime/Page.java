@@ -1,10 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
-import io.vertx.core.json.JsonObject;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
+import io.vertx.core.json.JsonObject;
 
 public record Page(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
 
