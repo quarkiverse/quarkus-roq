@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
+import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.vertx.core.Handler;
@@ -24,6 +25,10 @@ public class RoqFrontMatterRecorder {
         this.config = config;
     }
 
+    public RuntimeValue<PageUrl> createSiteUrl() {
+        return new RuntimeValue<>();
+    }
+
     public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<Page>>> collectionSuppliers) {
         return new Supplier<RoqCollections>() {
             @Override
@@ -41,11 +46,11 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<Page> createPage(String id, JsonObject data, Paginator paginator) {
+    public Supplier<Page> createPage(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
         return new Supplier<Page>() {
             @Override
             public Page get() {
-                return new Page(config, id, data, paginator);
+                return new Page(rootUrl, id, data, paginator);
             }
         };
     }
@@ -64,5 +69,9 @@ public class RoqFrontMatterRecorder {
     public Handler<RoutingContext> handler(String rootPath, Supplier<RoqCollections> roqCollectionsSupplier,
             Map<String, Supplier<Page>> pageSuppliers) {
         return new RoqRouteHandler(rootPath, httpConfig, roqCollectionsSupplier, pageSuppliers, config);
+    }
+
+    public RuntimeValue<RootUrl> createRootUrl(RootUrl rootUrl) {
+        return new RuntimeValue<>(rootUrl);
     }
 }

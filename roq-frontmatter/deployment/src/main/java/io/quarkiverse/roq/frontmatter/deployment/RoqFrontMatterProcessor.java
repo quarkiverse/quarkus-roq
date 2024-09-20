@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
@@ -25,7 +24,6 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
@@ -34,6 +32,7 @@ import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
+import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.vertx.core.json.JsonObject;
 
 class RoqFrontMatterProcessor {
@@ -74,9 +73,8 @@ class RoqFrontMatterProcessor {
         validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
             if (templates.contains(c.getTemplateId())) {
                 c.addParameter("page", Page.class.getName());
-                c.addParameter("site", Site.class.getName());
+                c.addParameter("site", Page.class.getName());
                 c.addParameter("collections", RoqCollections.class.getName());
-                c.addParameter("config", RoqSiteConfig.class.getName());
             }
         }));
 
@@ -85,11 +83,7 @@ class RoqFrontMatterProcessor {
     @BuildStep
     void registerAdditionalBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqTemplateExtension.class));
-    }
-
-    @BuildStep
-    AdditionalIndexedClassesBuildItem addSite() {
-        return new AdditionalIndexedClassesBuildItem(DotName.createSimple(Site.class).toString());
+        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqTemplateGlobal.class));
     }
 
     @BuildStep
@@ -112,7 +106,8 @@ class RoqFrontMatterProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    RoqFrontMatterOutputBuildItem bindFrontMatterData(RoqSiteConfig config, BuildProducer<SyntheticBeanBuildItem> beansProducer,
+    RoqFrontMatterOutputBuildItem bindFrontMatterData(HttpBuildTimeConfig httpConfig, RoqSiteConfig config,
+            BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
             RoqFrontMatterRecorder recorder) {
         final var byKey = roqFrontMatterBuildItems.stream()
@@ -120,6 +115,7 @@ class RoqFrontMatterProcessor {
         final var collections = new HashMap<String, List<CollectionPage>>();
         final Map<String, Supplier<Page>> pages = new HashMap<>();
         final Map<String, JsonObject> paginationItems = new HashMap<>();
+        final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
 
         // First we prepare data and links to:
         // - bind static pages
@@ -141,7 +137,7 @@ class RoqFrontMatterProcessor {
                     collections.computeIfAbsent(item.collection(), k -> new ArrayList<>())
                             .add(new CollectionPage(item.collection(), link, name, data));
                 } else {
-                    bindPage(beansProducer, recorder, pages, name, link, data, null);
+                    bindPage(config, beansProducer, recorder, pages, rootUrl, name, link, data, null);
                 }
             }
         }
@@ -157,7 +153,7 @@ class RoqFrontMatterProcessor {
                 p.data.put(PREVIOUS_INDEX_KEY, prev);
                 p.data.put(NEXT_INDEX_KEY, next);
                 collectionSuppliers.computeIfAbsent(p.collection, k -> new ArrayList<>())
-                        .add(bindPage(beansProducer, recorder, pages, p.name, p.link, p.data, null));
+                        .add(bindPage(config, beansProducer, recorder, pages, rootUrl, p.name, p.link, p.data, null));
             }
         }
 
@@ -189,14 +185,14 @@ class RoqFrontMatterProcessor {
                 final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
                 final JsonObject d = data.copy().put(COLLECTION_KEY, paginate.collection());
                 PageUrl previousUrl = prev == null ? null
-                        : new PageUrl(config.url(), Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
+                        : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
                 PageUrl nextUrl = next == null ? null
-                        : new PageUrl(config.url(), Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
+                        : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
                 Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
                         previousUrl, next, nextUrl);
                 final String link = i == 1 ? data.getString(LINK_KEY)
                         : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
-                bindPage(beansProducer, recorder, pages, name, link, data, paginator);
+                bindPage(config, beansProducer, recorder, pages, rootUrl, name, link, data, paginator);
             }
 
         }
@@ -224,15 +220,16 @@ class RoqFrontMatterProcessor {
     private record CollectionPage(String collection, String link, String name, JsonObject data) {
     }
 
-    private static Supplier<Page> bindPage(BuildProducer<SyntheticBeanBuildItem> beansProducer,
+    private static Supplier<Page> bindPage(RoqSiteConfig config, BuildProducer<SyntheticBeanBuildItem> beansProducer,
             RoqFrontMatterRecorder recorder,
             Map<String, Supplier<Page>> pages,
+            RootUrl rootUrl,
             String id,
             String link,
             JsonObject data,
             Paginator paginator) {
 
-        final Supplier<Page> pageSupplier = recorder.createPage(id, data, paginator);
+        final Supplier<Page> pageSupplier = recorder.createPage(rootUrl, id, data, paginator);
         final String name = prefixWithSlash(link);
         LOGGER.info("Creating synthetic bean for page with name " + name);
         beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
@@ -241,6 +238,14 @@ class RoqFrontMatterProcessor {
                 .named(name)
                 .supplier(pageSupplier)
                 .done());
+        if (id.equals("index")) {
+            beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
+                    .scope(Singleton.class)
+                    .unremovable()
+                    .named("site")
+                    .supplier(pageSupplier)
+                    .done());
+        }
         pages.put(link, pageSupplier);
         return pageSupplier;
     }

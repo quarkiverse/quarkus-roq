@@ -15,7 +15,7 @@ Managing URLs is now very easy! With our updated Qute-powered feature, you can n
 ```html
 <a 
     class="post-thumbnail" 
-    style="background-image: url(\{config.url.relative('static/images/').resolve(post.img)})" 
+    style="background-image: url(\{site.rootUrl.relative('static/images/').resolve(post.img)})" 
     href="\{post.url.relative}">
 </a>
 ```
@@ -23,7 +23,7 @@ Managing URLs is now very easy! With our updated Qute-powered feature, you can n
 
 - **Absolute URL Example (great for social media previews):**
 ```html
-<meta name="twitter:image:src" content="\{config.url.absolute.resolve('assets/img/').resolve(page.img)}">
+<meta name="twitter:image:src" content="\{site.rootUrl.absolute.resolve('/static/assets/img/').resolve(page.img)}">
 ```
 
 ## Under the Hood: The Power of RoqUrl
@@ -101,7 +101,7 @@ With this structure, joining paths is as simple as calling resolve() or from(). 
 
 We also provide a Qute extension to convert a String to a RoqUrl:
 ```html
-\{page.img.toUrl.absoluteOrElseFrom(config.url.relative.resolve('static/images/'))}
+\{page.img.toUrl.absoluteOrElseFrom(site.rootUrl.relative.resolve('static/images/'))}
 ```
 
 
