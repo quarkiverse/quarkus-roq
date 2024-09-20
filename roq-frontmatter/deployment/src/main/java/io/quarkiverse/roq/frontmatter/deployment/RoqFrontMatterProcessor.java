@@ -116,7 +116,6 @@ class RoqFrontMatterProcessor {
         final Map<String, Supplier<Page>> pages = new HashMap<>();
         final Map<String, JsonObject> paginationItems = new HashMap<>();
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
-
         // First we prepare data and links to:
         // - bind static pages
         // - detect paginated pages (to be added later)
@@ -137,7 +136,7 @@ class RoqFrontMatterProcessor {
                     collections.computeIfAbsent(item.collection(), k -> new ArrayList<>())
                             .add(new CollectionPage(item.collection(), link, name, data));
                 } else {
-                    bindPage(config, beansProducer, recorder, pages, rootUrl, name, link, data, null);
+                    bindPage(config, beansProducer, recorder, pages, rootUrl, name.equals("index"), name, link, data, null);
                 }
             }
         }
@@ -153,7 +152,7 @@ class RoqFrontMatterProcessor {
                 p.data.put(PREVIOUS_INDEX_KEY, prev);
                 p.data.put(NEXT_INDEX_KEY, next);
                 collectionSuppliers.computeIfAbsent(p.collection, k -> new ArrayList<>())
-                        .add(bindPage(config, beansProducer, recorder, pages, rootUrl, p.name, p.link, p.data, null));
+                        .add(bindPage(config, beansProducer, recorder, pages, rootUrl, false, p.name, p.link, p.data, null));
             }
         }
 
@@ -192,7 +191,8 @@ class RoqFrontMatterProcessor {
                         previousUrl, next, nextUrl);
                 final String link = i == 1 ? data.getString(LINK_KEY)
                         : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
-                bindPage(config, beansProducer, recorder, pages, rootUrl, name, link, data, paginator);
+                final boolean isIndex = name.equals("index") && i == 1;
+                bindPage(config, beansProducer, recorder, pages, rootUrl, isIndex, name, link, data, paginator);
             }
 
         }
@@ -224,6 +224,7 @@ class RoqFrontMatterProcessor {
             RoqFrontMatterRecorder recorder,
             Map<String, Supplier<Page>> pages,
             RootUrl rootUrl,
+            boolean isSiteIndex,
             String id,
             String link,
             JsonObject data,
@@ -238,7 +239,8 @@ class RoqFrontMatterProcessor {
                 .named(name)
                 .supplier(pageSupplier)
                 .done());
-        if (id.equals("index")) {
+        if (isSiteIndex) {
+            LOGGER.info("Creating synthetic bean for site index");
             beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
                     .scope(Singleton.class)
                     .unremovable()
