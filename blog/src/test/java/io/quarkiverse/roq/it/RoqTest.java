@@ -17,9 +17,9 @@ public class RoqTest {
                 .then()
                 .statusCode(200)
                 .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
-                .body(containsString("Welcome to Roq!"))
-                .body(containsString("2 minute read"))
-                .body(containsString("2024, Aug 29"))
+                .body(containsString("Hello, world! I&#39;m Roq"))
+                .body(containsString("minute read"))
+                .body(containsString("Page 1 of"))
                 .body(containsString("2024 &copy; ROQ"));
     }
 
