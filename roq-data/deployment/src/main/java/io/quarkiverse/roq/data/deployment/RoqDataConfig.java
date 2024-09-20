@@ -15,7 +15,7 @@ public interface RoqDataConfig {
     String DEFAULT_DIR = "_data";
 
     /**
-     * The location of the Roq data files relative to the quarkus.roq.site-dir.
+     * The location of the Roq data files relative to the quarkus.roq.dir.
      */
     @WithDefault(DEFAULT_DIR)
     String dir();

@@ -7,7 +7,7 @@ link: posts/:title
     {#if page.img}
     <div class="page-cover-image">
       <figure>
-        <img class="page-image" src="{config.url.relative.resolve('static/images/').resolve(page.img)}" alt="{page.title}">
+        <img class="page-image" src="{page.img.toUrl.absoluteOrElseFrom(config.url.relative.resolve('static/images/'))}" alt="{page.title}">
         {#if page.figCaption}
         <figcaption>{page.figCaption}</figcaption>
         {/if}
@@ -27,11 +27,7 @@ link: posts/:title
           <a href="https://plus.google.com/share?url={page.url.absolute}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
         </div>
         <div class="page-tag">
-          {#if page.tags}
-          {#for tag in page.tags}
-          <a href="{config.url.relative.resolve('tags#').resolve(tag)}" class="tag">&#35; {tag}</a>
-          {/for}
-          {/if}
+
         </div>
       </div>
     </div> <!-- End Wrap Content -->

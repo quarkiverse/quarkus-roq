@@ -10,7 +10,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
-@ConfigMapping(prefix = "quarkus.roq.frontmatter")
+@ConfigMapping(prefix = "roq.site")
 public interface RoqFrontMatterConfig {
 
     String INCLUDES_DIR = "_layouts,_includes";
@@ -27,6 +27,24 @@ public interface RoqFrontMatterConfig {
      */
     @WithDefault("true")
     boolean generator();
+
+    /**
+     * Show future pages
+     */
+    @WithDefault("false")
+    boolean future();
+
+    /**
+     * Show draft pages
+     */
+    @WithDefault("false")
+    boolean draft();
+
+    /**
+     * Format for dates
+     */
+    @WithDefault("yyyy-MM-dd HH:mm:ss Z")
+    String dateFormat();
 
     /**
      * The directory names containing collections as key and the corresponding collection name as value (in the Roq site

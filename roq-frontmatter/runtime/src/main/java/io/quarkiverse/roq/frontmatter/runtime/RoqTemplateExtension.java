@@ -34,10 +34,12 @@ public class RoqTemplateExtension {
         return collections.collections().get(key);
     }
 
-    @TemplateExtension
     public static Object readTime(Page page) {
         final long count = numberOfWords(page.rawContent());
         return Math.round((float) count / 200);
     }
 
+    public static RoqUrl toUrl(Object url) {
+        return new RoqUrl(url.toString());
+    }
 }

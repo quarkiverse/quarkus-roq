@@ -2,16 +2,16 @@ package io.quarkiverse.roq.frontmatter.runtime;
 
 import static io.quarkiverse.roq.util.PathUtils.join;
 
-public record RootUrl(String url, String rootPath) implements RoqUrl {
+public record RootUrl(String url, String rootPath) implements SiteUrl {
 
     @Override
-    public Resolvable relative() {
-        return new Resolvable(rootPath);
+    public RoqUrl relative() {
+        return new RoqUrl(rootPath);
     }
 
     @Override
-    public Resolvable absolute() {
-        return new Resolvable(join(url, rootPath));
+    public RoqUrl absolute() {
+        return new RoqUrl(join(url, rootPath));
     }
 
     @Override

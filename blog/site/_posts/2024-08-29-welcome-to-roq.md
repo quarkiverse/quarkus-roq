@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Welcome to Roq!"
-date: 2024-08-29 13:32:20 +0300
+date: 2024-08-29 13:32:20 +0200
 description: This is the first article ever made with Quarkus Roq
 img: 2024/08/blogging.jpg # Add image post (optional)
 author: ia3andy

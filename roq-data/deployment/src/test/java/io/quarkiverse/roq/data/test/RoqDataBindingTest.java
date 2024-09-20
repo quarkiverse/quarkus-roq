@@ -21,7 +21,7 @@ public class RoqDataBindingTest {
     static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addClasses(Foo.class, Foos.class)
-                    .add(new StringAsset("quarkus.roq.site-dir=src/test/site"),
+                    .add(new StringAsset("quarkus.roq.dir=src/test/site"),
                             "application.properties"));
 
     @Test

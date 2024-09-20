@@ -16,7 +16,7 @@ public class RoqDataInjectableBeanLookingCustomLocationTest {
     @RegisterExtension
     final static QuarkusUnitTest devMode = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
-                    .add(new StringAsset("quarkus.roq.site-dir=./\nquarkus.roq.data.dir=test-data\n"),
+                    .add(new StringAsset("quarkus.roq.dir=./\nquarkus.roq.data.dir=test-data\n"),
                             "application.properties"));
 
     @Inject

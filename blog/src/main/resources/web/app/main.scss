@@ -1,6 +1,6 @@
-@import 'normalize';
-@import 'syntax';
-@import 'variables';
+@import 'scss/normalize';
+@import 'scss/syntax';
+@import 'scss/variables';
 
 *, *::after, *::before {
   box-sizing: border-box;
@@ -137,13 +137,13 @@ table tfoot td {
 }
 
 /* - - - - - - - - - - Home Page Styles - - - - - - - - - - */
-@import 'parts/home-page';
+@import 'scss/parts/home-page';
 
 /* - - - - - - - - - - Post Page Styles - - - - - - - - - - */
-@import 'parts/post-page';
+@import 'scss/parts/post-page';
 
 /* - - - - - - - - - - Tag Styles - - - - - - - - - - */
-@import 'parts/tag';
+@import 'scss/parts/tag';
 
 /* - - - - - - - - - - Media Styles - - - - - - - - - - */
-@import 'media';
+@import 'scss/media';

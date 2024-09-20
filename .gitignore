@@ -64,3 +64,5 @@ pom.xml.versionsBackup
 release.properties
 
 .quarkus
+
+node_modules/

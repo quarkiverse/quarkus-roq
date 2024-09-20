@@ -22,15 +22,15 @@ public class RoqProjectProcessor {
             CurateOutcomeBuildItem curateOutcome) {
         final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, curateOutcome, outputTarget);
 
-        String resourceSiteDir;
+        String resourceDir;
         try {
-            final boolean hasResourceSiteDir = Thread.currentThread().getContextClassLoader()
-                    .getResources(config.resourceSiteDir()).hasMoreElements();
-            resourceSiteDir = hasResourceSiteDir ? config.resourceSiteDir() : null;
+            final boolean hasResourceDir = Thread.currentThread().getContextClassLoader()
+                    .getResources(config.resourceDir()).hasMoreElements();
+            resourceDir = hasResourceDir ? config.resourceDir() : null;
         } catch (IOException e) {
-            resourceSiteDir = null;
+            resourceDir = null;
         }
-        final RoqProjectBuildItem roqProject = new RoqProjectBuildItem(project, resourceSiteDir);
+        final RoqProjectBuildItem roqProject = new RoqProjectBuildItem(project, resourceDir);
         if (!roqProject.isActive()) {
             LOG.warn("Not Roq site directory found. It is recommended to remove the quarkus-roq extension if not used.");
         }
@@ -50,7 +50,7 @@ public class RoqProjectProcessor {
             CurateOutcomeBuildItem curateOutcome,
             OutputTargetBuildItem outputTarget) {
         Path projectRoot = findProjectRoot(outputTarget.getOutputDirectory());
-        Path configuredSiteDirPath = Paths.get(config.siteDir().trim());
+        Path configuredSiteDirPath = Paths.get(config.dir().trim());
         if (projectRoot == null || !Files.isDirectory(projectRoot)) {
 
             if (configuredSiteDirPath.isAbsolute() && Files.isDirectory(configuredSiteDirPath)) {

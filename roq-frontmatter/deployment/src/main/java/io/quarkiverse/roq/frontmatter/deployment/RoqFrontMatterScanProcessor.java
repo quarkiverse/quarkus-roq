@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -81,7 +83,7 @@ public class RoqFrontMatterScanProcessor {
             RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
 
         HashSet<RoqFrontMatterBuildItem> items = new HashSet<>();
-        roqProject.consumeSite(site -> {
+        roqProject.consumeRoqDir(site -> {
             if (Files.isDirectory(site)) {
                 for (String includesDir : roqDataConfig.includesDirs()) {
                     // scan layouts
@@ -133,7 +135,7 @@ public class RoqFrontMatterScanProcessor {
 
     @SuppressWarnings("unchecked")
     private static Consumer<Path> addBuildItem(Path root, HashSet<RoqFrontMatterBuildItem> items, YAMLMapper mapper,
-            RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch, String collection,
+            RoqFrontMatterConfig config, BuildProducer<HotDeploymentWatchedFileBuildItem> watch, String collection,
             boolean isLayout) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
@@ -148,8 +150,20 @@ public class RoqFrontMatterScanProcessor {
                     JsonNode rootNode = mapper.readTree(getFrontMatter(fullContent));
                     final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
                     final JsonObject fm = new JsonObject(map);
+                    if (!config.draft() && fm.getBoolean(DRAFT_KEY, false)) {
+                        return;
+                    }
                     final String layout = normalizedLayout(fm.getString("layout"));
                     final String content = stripFrontMatter(fullContent);
+                    if (fm.containsKey(DATE_KEY)) {
+                        final LocalDateTime date = LocalDateTime.parse(fm.getString(DATE_KEY),
+                                DateTimeFormatter.ofPattern(config.dateFormat()));
+                        if (!config.future() && date.isAfter(LocalDateTime.now())) {
+                            return;
+                        }
+                        fm.put(DATE_KEY, date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    }
+
                     fm.put(RAW_CONTENT_KEY, content);
                     fm.put(BASE_FILE_NAME_KEY, removeExtension(file.getFileName().toString()));
                     fm.put(FILE_NAME_KEY, file.getFileName().toString());

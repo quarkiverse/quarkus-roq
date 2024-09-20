@@ -11,26 +11,26 @@ import io.smallrye.config.WithDefault;
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
 public interface RoqConfig {
 
-    String DEFAULT_SITE_DIR = "src/main/site";
-    String DEFAULT_RESOURCE_SITE_DIR = "site";
+    String DEFAULT_DIR = "site"; // {project-dir}/site
+    String DEFAULT_RESOURCE_DIR = "site"; // src/main/resources/site
 
     /**
-     * Path to the Roq site directory (relative to the project root).
+     * Path to the Roq directory (relative to the project root).
      */
-    @WithDefault(DEFAULT_SITE_DIR)
-    String siteDir();
+    @WithDefault(DEFAULT_DIR)
+    String dir();
 
     /**
-     * Path to the Roq site directory in the resources.
+     * Path to the Roq directory in the resources.
      */
-    @WithDefault(DEFAULT_RESOURCE_SITE_DIR)
-    String resourceSiteDir();
+    @WithDefault(DEFAULT_RESOURCE_DIR)
+    String resourceDir();
 
     static boolean isEqual(RoqConfig q1, RoqConfig q2) {
-        if (!Objects.equals(q1.siteDir(), q2.siteDir())) {
+        if (!Objects.equals(q1.dir(), q2.dir())) {
             return false;
         }
-        if (!Objects.equals(q1.resourceSiteDir(), q2.resourceSiteDir())) {
+        if (!Objects.equals(q1.resourceDir(), q2.resourceDir())) {
             return false;
         }
         return true;

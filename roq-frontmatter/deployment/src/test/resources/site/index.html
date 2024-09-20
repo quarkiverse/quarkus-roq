@@ -1,9 +1,12 @@
 ---
 layout:  default
+paginate: posts
 ---
 
 <div>
-  {#for post in collections.posts}
-    {post.id}
+  {#for post in collections.posts.paginated(page.paginator)}
+    <h1>{post.id}</h1>
   {/for}
 </div>
+
+<a>previous: {page.paginator.previousIndex}, current: {page.paginator.currentIndex}, next: {page.paginator.nextIndex}</a>

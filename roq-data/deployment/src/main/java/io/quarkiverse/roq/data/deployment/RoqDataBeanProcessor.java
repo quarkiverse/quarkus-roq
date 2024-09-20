@@ -20,9 +20,9 @@ import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-class RoqDataRuntimeProcessor {
+class RoqDataBeanProcessor {
 
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqDataRuntimeProcessor.class);
+    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqDataBeanProcessor.class);
     private static final String FEATURE = "roq-data";
     private static final String ANNOTATION_VALUE = "value";
 
@@ -35,6 +35,7 @@ class RoqDataRuntimeProcessor {
     @Record(ExecutionTime.STATIC_INIT)
     void generateSyntheticBeans(BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
+            List<RoqDataBeanBuildItem> dataBeanBuildItems,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             RoqDataRecorder recorder) {
         reflectiveClassProducer.produce(
@@ -56,20 +57,13 @@ class RoqDataRuntimeProcessor {
                         .done());
             }
         }
-    }
-
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void generateDataMappings(RoqDataRecorder roqDataRecorder, List<RoqDataBeanBuildItem> dataBeanBuildItems,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeansProducer) {
         for (RoqDataBeanBuildItem beanBuildItem : dataBeanBuildItems) {
             reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(beanBuildItem.getBeanClass()).serialization()
                     .constructors().fields().methods().build());
-            syntheticBeansProducer.produce(SyntheticBeanBuildItem.configure(beanBuildItem.getBeanClass())
+            beansProducer.produce(SyntheticBeanBuildItem.configure(beanBuildItem.getBeanClass())
                     .scope(beanBuildItem.isRecord() ? Singleton.class : ApplicationScoped.class)
                     .named(beanBuildItem.getName())
-                    .runtimeValue(roqDataRecorder.createRoqDataJson(beanBuildItem.getData()))
+                    .runtimeValue(recorder.createRoqDataJson(beanBuildItem.getData()))
                     .unremovable()
                     .done());
         }

@@ -35,47 +35,43 @@ public class RoqFrontMatterTest {
 
     @Test
     public void testHtmlPost() {
-        RestAssured.when().get("/posts/awesome-post").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/posts/awesome-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Post"))
-                .body("html.head.base.@href", equalTo("/foo"))
-                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content", equalTo("https://mywebsite.com/foo"))
+                .body("html.head.base.@href", equalTo("/foo/bar"))
+                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content", equalTo("https://mywebsite.com/foo/bar"))
                 .body("html.body.article.h1", equalTo("A cool blog post"))
                 .body("html.body.article.p", equalTo("bar"))
-                .body("html.body.div.h1", equalTo("My Cool Post"))
+                .body("html.body.div.h2", equalTo("My Cool Post"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }
 
     @Test
     public void testMdPost() {
-        RestAssured.when().get("/posts/markdown-post").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/posts/markdown-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Markdown Post"))
                 .body("html.body.article.h1", equalTo("A post made with markdown"))
                 .body("html.body.article.blockquote.p", equalTo("bar"))
-                .body("html.body.div.h1", equalTo("Markdown Post"))
-                .body("html.body.div.p", equalTo("bar bar bar"))
-        // language=html
-        ;
+                .body("html.body.div.h2", equalTo("Markdown Post"))
+                .body("html.body.div.p", equalTo("bar bar bar"));
     }
 
     @Test
     public void testPage() {
-        RestAssured.when().get("/my-cool-page").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/my-cool-page").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Page"))
                 .body("html.body.article.h1", equalTo("Hello World"))
                 .body("html.body.article.p", equalTo("bar"))
-                .body("html.body.div.h1", equalTo("My Cool Page"))
-                .body("html.body.div.p", equalTo("bar bar bar"))
-        // language=html
-        ;
+                .body("html.body.div.h2", equalTo("My Cool Page"))
+                .body("html.body.div.p", equalTo("bar bar bar"));
     }
 
     @Test
     public void testIndex() {
-        RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Website"))
-                .body("html.body.div[0]", containsString("posts/awesome-post"))
-                .body("html.body.div[0]", containsString("posts/markdown-post"))
-                .body("html.body.div.h1", equalTo("My Website"))
+                .body("html.body.div.h1[0]", containsString("posts/awesome-post"))
+                .body("html.body.div.h1[1]", containsString("posts/markdown-post"))
+                .body("html.body.div.h2", equalTo("My Website"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }
 
@@ -83,15 +79,15 @@ public class RoqFrontMatterTest {
     public static class MyResource {
 
         @Inject
-        @Named("posts/awesome-post")
+        @Named("/posts/awesome-post")
         Page awesomePostFm;
 
         @Inject
-        @Named("posts/markdown-post")
+        @Named("/posts/markdown-post")
         Page markdownPostFm;
 
         @Inject
-        @Named("pages/cool-page")
+        @Named("/my-cool-page")
         Page coolPageFm;
 
     }
