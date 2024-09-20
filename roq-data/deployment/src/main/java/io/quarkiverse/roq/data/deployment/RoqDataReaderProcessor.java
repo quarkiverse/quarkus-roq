@@ -169,7 +169,7 @@ public class RoqDataReaderProcessor {
 
         Map<String, RoqDataBuildItem> items = new HashMap<>();
 
-        roqProject.consumePathFromSite(config.dir(), (path) -> {
+        roqProject.consumePathFromRoqDir(config.dir(), (path) -> {
             if (Files.isDirectory(path)) {
                 try (Stream<Path> pathStream = Files.find(path, Integer.MAX_VALUE,
                         (p, a) -> Files.isRegularFile(p) && isExtensionSupported(p))) {

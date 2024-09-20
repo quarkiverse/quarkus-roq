@@ -1,19 +1,19 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-public record PageUrl(RootUrl root, String path) implements RoqUrl {
+public record PageUrl(RootUrl root, String path) implements SiteUrl {
 
     @Override
-    public Resolvable relative() {
+    public RoqUrl relative() {
         return root.relative().resolve(path);
     }
 
     @Override
-    public Resolvable absolute() {
+    public RoqUrl absolute() {
         return root.absolute().resolve(path);
     }
 
     @Override
     public String toString() {
-        return path;
+        return relative().toString();
     }
 }

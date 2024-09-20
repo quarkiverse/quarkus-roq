@@ -1,20 +1,20 @@
 <div class="container">
   <nav class="pagination" role="pagination">
     <ul>
-      {#if paginator.previousPage}
-      {#if paginator.previousPage == 1}
-      <p><a class="newer-posts" href="{config.rootPath}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      {#if page.paginator.previous}
+      {#if page.paginator.isSecond}
+      <p><a class="newer-posts" href="{config.url}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       {#else}
-      <p><a class="newer-posts" href="{config.rootPath}page/{paginator.previousPage}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      <p><a class="newer-posts" href="{page.paginator.previous.relative}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       {/if}
       {/if}
 
-      {#if paginator.totalPages > 1}
-      <p><span class="page-number">Page {paginator.page} of {paginator.totalPages}</span></p>
+      {#if page.paginator.total > 1}
+      <p><span class="page-number">Page {page.paginator.currentIndex} of {page.paginator.total}</span></p>
       {/if}
 
-      {#if paginator.nextPage}
-      <p><a class="older-posts" href="{config.rootPath}page/{paginator.nexPpage}/"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
+      {#if page.paginator.next}
+      <p><a class="older-posts" href="{page.paginator.next.relative}"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
       {/if}
     </ul>
   </nav>

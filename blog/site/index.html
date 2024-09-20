@@ -1,11 +1,14 @@
 ---
 layout: main
+paginate:
+  collection: posts
+  size: 4
 ---
 
-{#for post in collections.posts}
+{#for post in collections.posts.paginated(page.paginator)}
 <article class="post">
   {#if post.img}
-  <a class="post-thumbnail" style="background-image: url({config.url.relative.resolve('static/images/').resolve(post.img)}" href="{post.url.relative}"></a>
+  <a class="post-thumbnail" style="background-image: url({post.img.toUrl.absoluteOrElseFrom(config.url.relative.resolve('static/images/'))}" href="{post.url.relative}"></a>
   {/if}
   <div class="post-content">
     <h2 class="post-title"><a href="{post.url.relative}">{post.title}</a></h2>
@@ -17,3 +20,5 @@ layout: main
   </div>
 </article>
 {/for}
+
+{#include pagination.html/}

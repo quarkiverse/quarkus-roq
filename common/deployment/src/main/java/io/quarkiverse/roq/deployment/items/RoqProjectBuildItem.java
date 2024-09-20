@@ -10,11 +10,11 @@ import io.quarkus.runtime.util.ClassPathUtils;
 
 public final class RoqProjectBuildItem extends SimpleBuildItem {
     private final RoqProject project;
-    private final String resourceSiteDir;
+    private final String roqResourceDir;
 
-    public RoqProjectBuildItem(RoqProject project, String resourceSiteDir) {
+    public RoqProjectBuildItem(RoqProject project, String roqResourceDir) {
         this.project = project;
-        this.resourceSiteDir = resourceSiteDir;
+        this.roqResourceDir = roqResourceDir;
     }
 
     public RoqProject project() {
@@ -22,24 +22,24 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
     }
 
     public boolean isActive() {
-        return project != null || resourceSiteDir != null;
+        return project != null || roqResourceDir != null;
     }
 
-    public void consumePathFromSite(String resource, Consumer<Path> consumer) throws IOException {
-        if (resourceSiteDir != null) {
-            ClassPathUtils.consumeAsPaths(PathUtils.join(resourceSiteDir, resource), consumer);
+    public void consumePathFromRoqDir(String resource, Consumer<Path> consumer) throws IOException {
+        if (roqResourceDir != null) {
+            ClassPathUtils.consumeAsPaths(PathUtils.join(roqResourceDir, resource), consumer);
         }
         if (project != null) {
-            consumer.accept(project.siteDir().resolve(resource));
+            consumer.accept(project.roqDir().resolve(resource));
         }
     }
 
-    public void consumeSite(Consumer<Path> consumer) throws IOException {
-        if (resourceSiteDir != null) {
-            ClassPathUtils.consumeAsPaths(resourceSiteDir, consumer);
+    public void consumeRoqDir(Consumer<Path> consumer) throws IOException {
+        if (roqResourceDir != null) {
+            ClassPathUtils.consumeAsPaths(roqResourceDir, consumer);
         }
         if (project != null) {
-            consumer.accept(project.siteDir());
+            consumer.accept(project.roqDir());
         }
     }
 
@@ -52,9 +52,9 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
              */
             Path rootDir,
             /**
-             * The site directory of the project defaults to /src/main/site
+             * The roq directory of the project defaults to {project-dir}/site
              */
-            Path siteDir) {
+            Path roqDir) {
 
     }
 }
