@@ -35,7 +35,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".md", "markdown", ".html", ".asciidoc", ".adoc");
-    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\n.*\\n---\\n", Pattern.DOTALL);
+    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*\\v---\\v", Pattern.DOTALL);
 
     private record QuteMarkupSection(String open, String close) {
         public static final QuteMarkupSection MARKDOWN = new QuteMarkupSection("{#markdown}", "{/markdown}");

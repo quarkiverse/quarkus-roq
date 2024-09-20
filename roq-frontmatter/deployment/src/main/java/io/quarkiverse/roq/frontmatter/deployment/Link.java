@@ -54,6 +54,9 @@ public class Link {
 
     // Slugify logic to make the title URL-friendly
     private static String slugify(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException("Link input cannot be null");
+        }
         return input.toLowerCase()
                 .replaceAll("[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
                 .replaceAll("-+", "-") // Replace multiple hyphens with a single one
