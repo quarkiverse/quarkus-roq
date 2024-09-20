@@ -4,7 +4,7 @@
 
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>roq-blog</artifactId>
-    <version>0.0.6</version>
+    <version>999-SNAPSHOT</version>
     <name>Quarkus Roq - Blog</name>
 
     <properties>
@@ -17,7 +17,7 @@
         <quarkus.platform.version>3.14.4</quarkus.platform.version>
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
         <skipITs>true</skipITs>
-        <quarkus-roq.version>0.0.6</quarkus-roq.version>
+        <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
     </properties>
 
     <dependencyManagement>
