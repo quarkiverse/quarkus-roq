@@ -19,7 +19,7 @@ class LinkTest {
                 .put("day", "27")
                 .put("baseFileName", "my-first-blog-post");
 
-        String generatedLink = link(":year/:month/:day/:title", frontMatter);
+        String generatedLink = link("/", ":year/:month/:day/:title", frontMatter);
         assertEquals("2024/08/27/my-first-blog-post", generatedLink);
     }
 
@@ -34,7 +34,7 @@ class LinkTest {
                 .put("day", "27")
                 .put("baseFileName", "my-first-blog-post");
 
-        String generatedLink = link(DEFAULT_PAGINATE_LINK_TEMPLATE, frontMatter);
+        String generatedLink = link("/", DEFAULT_PAGINATE_LINK_TEMPLATE, frontMatter);
         assertEquals("posts/page3", generatedLink);
     }
 }

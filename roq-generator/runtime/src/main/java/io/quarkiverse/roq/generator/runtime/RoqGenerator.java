@@ -26,6 +26,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -131,6 +132,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
         }
         return client().get(port, host, PathUtils.join(httpBuildTimeConfig.rootPath, path))
                 .send()
+                .expecting(HttpResponseExpectation.status(200))
                 .onSuccess(r -> {
                     LOGGER.debugf("Roq request completed %s", path);
                 })

@@ -105,7 +105,7 @@ class RoqFrontMatterProcessor {
                 .routeFunction(httpRootPath.relativePath(removeTrailingSlash(config.rootPath()) + "/*"),
                         recorder.initializeRoute())
                 .handlerType(HandlerType.BLOCKING)
-                .handler(recorder.handler(httpRootPath.relativePath(config.rootPath()),
+                .handler(recorder.handler(httpRootPath.getRootPath(),
                         roqFrontMatterOutput.roqCollectionsSupplier(), roqFrontMatterOutput.pages()))
                 .build();
     }
@@ -131,7 +131,7 @@ class RoqFrontMatterProcessor {
             }
             final String name = item.key();
             final JsonObject data = mergeParents(item, byKey);
-            final String link = Link.link(data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE), data);
+            final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE), data);
             data.put(LINK_KEY, link);
             if (data.containsKey(PAGINATE_KEY)) {
                 paginationItems.put(name, data);
@@ -189,11 +189,13 @@ class RoqFrontMatterProcessor {
                 final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
                 final JsonObject d = data.copy().put(COLLECTION_KEY, paginate.collection());
                 PageUrl previousUrl = prev == null ? null
-                        : new PageUrl(config.url(), Link.link(linkTemplate, d.put("page", prev)));
-                PageUrl nextUrl = next == null ? null : new PageUrl(config.url(), Link.link(linkTemplate, d.put("page", next)));
+                        : new PageUrl(config.url(), Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
+                PageUrl nextUrl = next == null ? null
+                        : new PageUrl(config.url(), Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
                 Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
                         previousUrl, next, nextUrl);
-                final String link = i == 1 ? data.getString(LINK_KEY) : Link.link(linkTemplate, d.put("page", i));
+                final String link = i == 1 ? data.getString(LINK_KEY)
+                        : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
                 bindPage(beansProducer, recorder, pages, name, link, data, paginator);
             }
 
