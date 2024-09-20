@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.inject.literal.NamedLiteral;
 
 import org.jboss.logging.Logger;
 
@@ -50,7 +51,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final CurrentVertxRequest currentVertxRequest;
     private final ManagedContext requestContext;
     private final LazyValue<TemplateProducer> templateProducer;
-    private final LazyValue<Site> site;
+    private final LazyValue<Page> site;
 
     public RoqRouteHandler(String rootPath, HttpBuildTimeConfig httpBuildTimeConfig,
             Supplier<RoqCollections> roqCollectionsSupplier, Map<String, Supplier<Page>> pages, RoqSiteConfig siteConfig) {
@@ -70,7 +71,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // TemplateProducer is singleton and we want to initialize lazily
         this.templateProducer = new LazyValue<>(
                 () -> Arc.container().instance(TemplateProducer.class).get());
-        this.site = new LazyValue<>(() -> Arc.container().instance(Site.class).get());
+        this.site = new LazyValue<>(() -> Arc.container().instance(Page.class, NamedLiteral.of("site")).get());
     }
 
     @Override
@@ -153,7 +154,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 rc.response().setStatusCode(406).end();
             } else {
                 instance.data("page", page);
-                instance.data("config", siteConfig);
                 instance.data("collections", roqCollectionsSupplier.get());
                 instance.data("site", site.get());
                 instance.renderAsync().whenComplete((r, t) -> {

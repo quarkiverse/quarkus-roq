@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
 import io.vertx.core.json.JsonObject;
 
-public record Page(RoqSiteConfig config, String id, JsonObject data, Paginator paginator) {
+public record Page(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
 
     public static final String PAGINATE_KEY = "paginate";
     public static final String DRAFT_KEY = "draft";
@@ -41,7 +41,7 @@ public record Page(RoqSiteConfig config, String id, JsonObject data, Paginator p
     }
 
     public PageUrl url() {
-        return new PageUrl(config.url(), data.getString(LINK_KEY));
+        return new PageUrl(rootUrl, data.getString(LINK_KEY));
     }
 
     public LocalDateTime date() {

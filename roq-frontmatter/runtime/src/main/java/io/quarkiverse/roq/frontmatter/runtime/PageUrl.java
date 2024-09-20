@@ -1,15 +1,22 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-public record PageUrl(RootUrl root, String path) implements SiteUrl {
+import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+
+public record PageUrl(SiteUrl parent, String path) implements SiteUrl {
+
+    public PageUrl(SiteUrl parent, String path) {
+        this.path = removeTrailingSlash(path);
+        this.parent = parent;
+    }
 
     @Override
     public RoqUrl relative() {
-        return root.relative().resolve(path);
+        return parent.relative(path);
     }
 
     @Override
     public RoqUrl absolute() {
-        return root.absolute().resolve(path);
+        return parent.absolute(path);
     }
 
     @Override
