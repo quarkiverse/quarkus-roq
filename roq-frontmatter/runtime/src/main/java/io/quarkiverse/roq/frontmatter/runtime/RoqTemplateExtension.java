@@ -30,8 +30,8 @@ public class RoqTemplateExtension {
     }
 
     @TemplateExtension(matchName = "*")
-    public static RoqCollection data(RoqCollections collections, String key) {
-        return collections.collections().get(key);
+    public static RoqCollection collection(RoqCollections collections, String key) {
+        return collections.get(key);
     }
 
     public static Object readTime(Page page) {
