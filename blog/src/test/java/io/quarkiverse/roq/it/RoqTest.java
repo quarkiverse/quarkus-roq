@@ -16,7 +16,7 @@ public class RoqTest {
                 .when().get("/")
                 .then()
                 .statusCode(200)
-                .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
+                .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."))
                 .body(containsString("Hello, world! I&#39;m Roq"))
                 .body(containsString("minute read"))
                 .body(containsString("Page 1 of"))
@@ -29,7 +29,7 @@ public class RoqTest {
                 .when().get("/posts/2024-08-29-welcome-to-roq")
                 .then()
                 .statusCode(200)
-                .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
+                .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."))
                 .body(containsString("<p>Hello folks,</p>"))
                 .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
                 .body(containsString("2024 &copy; ROQ"));
@@ -41,7 +41,7 @@ public class RoqTest {
                 .when().get("/events")
                 .then()
                 .statusCode(200)
-                .body(containsString("All the tools to generate static websites out of your Quarkus web application."))
+                .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."))
                 .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
                 .body(containsString("2024 &copy; ROQ"));
     }
