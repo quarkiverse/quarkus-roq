@@ -1,6 +1,6 @@
-{#if pageUrl || siteUrl}
+{#if url}
   <!-- SEO URL -->
-  <link rel="canonical" href="{pageUrl ?: siteUrl.absolute}" />
-  <meta property="og:url" content="{pageUrl ?: siteUrl.absolute}" />
-  <meta name="twitter:url" content="{pageUrl ?: siteUrl.absolute}">
+  <link rel="canonical" href="{url.absolute}" />
+  <meta property="og:url" content="{url.absolute}" />
+  <meta name="twitter:url" content="{url.absolute}">
 {/if}
