@@ -12,16 +12,22 @@ public class RoqCollection extends ArrayList<Page> {
                 .toList());
     }
 
-    public Page findNext(Page page) {
+    public Page resolveNextPage(Page page) {
+        if (page.next() == null) {
+            return null;
+        }
         return this.get(page.next());
     }
 
-    public Page findPrevious(Page page) {
+    public Page resolvePreviousPage(Page page) {
+        if (page.previous() == null) {
+            return null;
+        }
         return this.get(page.previous());
     }
 
-    public Page findPrev(Page page) {
-        return this.findPrevious(page);
+    public Page resolvePrevPage(Page page) {
+        return this.resolvePreviousPage(page);
     }
 
     public List<Page> paginated(Paginator paginator) {

@@ -1,9 +1,21 @@
-{#if paginator}
+{#if page.paginator}
     <!-- SEO PAGINATOR -->
-    {#if paginator.previous}
-    <link rel="prev" href="{paginator.previous.relative}" />
+    {#if page.paginator.previous}
+    <link rel="prev" href="{page.paginator.previous.absolute}" />
     {/if}
-    {#if paginator.next}
-    <link rel="next" href="{paginator.next.relative}" />
+    {#if page.paginator.next}
+    <link rel="next" href="{page.paginator.next.absolute}" />
     {/if}
+{#else}
+  <!-- SEO COLLECTION PAGES -->
+  {#let prevPage = collections.resolvePreviousPage(page)}
+  {#if prevPage}
+  <link rel="prev" href="{prevPage.url.absolute}" />
+  {/if}
+  {/let}
+  {#let nextPage = collections.resolveNextPage(page) }
+  {#if nextPage}
+  <link rel="next" href="{nextPage.url.absolute}" />
+  {/if}
+  {/let}
 {/if}
