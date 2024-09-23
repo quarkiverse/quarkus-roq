@@ -1,0 +1,9 @@
+{#if page.img and site.rootUrl}
+  <!-- SEO IMAGE -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image:src" content="{page.img.toUrl.absoluteOrElseFrom(site.rootUrl.relative.resolve('static/images/'))}" />
+  <meta property="og:image" content="{page.img.toUrl.absoluteOrElseFrom(site.rootUrl.relative.resolve('static/images/'))}" />
+{#else}
+  <!-- SEO IMAGE -->
+  <meta name="twitter:card" content="summary">
+{/if}

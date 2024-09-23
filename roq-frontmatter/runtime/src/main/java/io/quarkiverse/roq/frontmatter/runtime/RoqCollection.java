@@ -7,7 +7,9 @@ import java.util.List;
 public class RoqCollection extends ArrayList<Page> {
 
     public RoqCollection(List<Page> pages) {
-        super(pages.stream().sorted(Comparator.comparing(Page::date).reversed()).toList());
+        super(pages.stream()
+                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .toList());
     }
 
     public Page findNext(Page page) {

@@ -1,0 +1,14 @@
+{#if facebook}
+  <!-- SEO FACEBOOK -->
+  {#if facebook.admins}
+    <meta property="fb:admins" content="{facebook.admins}" />
+  {/if}
+
+  {#if facebook.publisher}
+    <meta property="article:publisher" content="{facebook.publisher}" />
+  {/if}
+
+  {#if facebook.app_id}
+    <meta property="fb:app_id" content="{facebook.app_id}" />
+  {/if}
+{/if}

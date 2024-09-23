@@ -1,0 +1,7 @@
+{#if pageLocale || siteLocale}
+  <!-- SEO LOCALE -->
+  <meta property="og:locale" content="{pageLocale ?: siteLocale}" />
+{#else}
+  <!-- SEO LOCALE -->
+  <meta property="og:locale" content="{defaultLocale}" />
+{/if}

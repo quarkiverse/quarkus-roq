@@ -1,0 +1,10 @@
+{#if pageTitle || siteTitle}
+  <!-- SEO TITLE -->
+  <title>
+    {#if pageTitle ne siteTitle}{pageTitle} - {siteTitle}{#else}{siteTitle}{/if}
+  </title>
+  <meta name="twitter:title" content="{#if pageTitle ne siteTitle}{pageTitle} - {siteTitle}{#else}{siteTitle}{/if}">
+{/if}
+{#if siteTitle}
+  <meta property="og:site_name" content="{siteTitle}">
+{/if}

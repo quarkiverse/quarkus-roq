@@ -1,0 +1,21 @@
+{#if webmasterVerifications}
+  <!-- SEO VERIFICATION -->
+  {#if webmasterVerifications.google}
+    <meta name="google-site-verification" content="{webmasterVerifications.google}">
+  {/if}
+  {#if webmasterVerifications.bing}
+    <meta name="msvalidate.01" content="{webmasterVerifications.bing}">
+  {/if}
+  {#if webmasterVerifications.alexa}
+    <meta name="alexaVerifyID" content="{webmasterVerifications.alexa}">
+  {/if}
+  {#if webmasterVerifications.yandex}
+    <meta name="yandex-verification" content="{webmasterVerifications.yandex}">
+  {/if}
+  {#if webmasterVerifications.baidu}
+    <meta name="baidu-site-verification" content="{webmasterVerifications.baidu}">
+  {/if}
+  {#if webmasterVerifications.facebook}
+    <meta name="facebook-domain-verification" content="{webmasterVerifications.facebook}">
+  {/if}
+{/if}
