@@ -15,7 +15,3 @@ All the tools to generate static websites out of your Quarkus web application:
 - Roq Generator: Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
 
 
-
-**THIS IS NOT READY - CONSTRUCTION IN PROGRESS - OPEN FOR CONTRIBUTIONS https://github.com/quarkusio/quarkus/discussions/41309**
-
-![image](https://media.tenor.com/q9s_XmoedE8AAAAi/piske-usagi.gif)
