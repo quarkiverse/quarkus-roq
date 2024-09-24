@@ -12,6 +12,7 @@
     <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus Roq - Parent</name>
+    <description>Generate static websites out of your Quarkus web application.</description>
 
     <modules>
         <module>common/runtime</module>
