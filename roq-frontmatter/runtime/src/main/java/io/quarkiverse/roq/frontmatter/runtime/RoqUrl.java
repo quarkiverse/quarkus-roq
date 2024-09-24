@@ -15,7 +15,7 @@ public record RoqUrl(String path) {
     }
 
     /**
-     * {@See Resolvable#resolve}
+     * {@see Resolvable#resolve}
      *
      * @param other the other path to join
      * @return the new joined url
@@ -45,7 +45,7 @@ public record RoqUrl(String path) {
     }
 
     /**
-     * Check if this is a absolute Url starting with http:// or https://
+     * Check if this is an absolute Url starting with http:// or https://
      *
      * @return true is it's an absolute url
      */

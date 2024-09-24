@@ -29,9 +29,8 @@ import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 public class RoqDataReaderProcessor {
 
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".yaml", ".yml");
-    private static final String PARENT_TYPE_PARAMETER_NAME = "list";
     private static final Logger LOG = Logger.getLogger(RoqDataReaderProcessor.class);
-    private static DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
+    private static final DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
     RoqDataConfig roqDataConfig;
 
     @BuildStep

@@ -25,11 +25,7 @@ public record RoqCollections(Map<String, RoqCollection> collections) {
         if (page.collection() == null) {
             return null;
         }
-        final RoqCollection collection = this.get(page.collection());
-        if (collection == null) {
-            return null;
-        }
-        return collection;
+        return this.get(page.collection());
     }
 
     public Page resolvePrevPage(Page page) {

@@ -30,45 +30,33 @@ public class RoqFrontMatterRecorder {
     }
 
     public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<Page>>> collectionSuppliers) {
-        return new Supplier<RoqCollections>() {
-            @Override
-            public RoqCollections get() {
-                final var c = new HashMap<String, RoqCollection>();
-                for (Map.Entry<String, List<Supplier<Page>>> e : collectionSuppliers.entrySet()) {
-                    List<Page> pages = new ArrayList<>();
-                    for (Supplier<Page> v : e.getValue()) {
-                        pages.add(v.get());
-                    }
-                    c.put(e.getKey(), new RoqCollection(pages));
+        return () -> {
+            final var c = new HashMap<String, RoqCollection>();
+            for (Map.Entry<String, List<Supplier<Page>>> e : collectionSuppliers.entrySet()) {
+                List<Page> pages = new ArrayList<>();
+                for (Supplier<Page> v : e.getValue()) {
+                    pages.add(v.get());
                 }
-                return new RoqCollections(Map.copyOf(c));
+                c.put(e.getKey(), new RoqCollection(pages));
             }
+            return new RoqCollections(Map.copyOf(c));
         };
     }
 
     public Supplier<Page> createPage(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
-        return new Supplier<Page>() {
-            @Override
-            public Page get() {
-                return new Page(rootUrl, id, data, paginator);
-            }
-        };
+        return () -> new Page(rootUrl, id, data, paginator);
     }
 
     public Consumer<Route> initializeRoute() {
-        return new Consumer<Route>() {
-
-            @Override
-            public void accept(Route r) {
-                r.method(HttpMethod.GET);
-                r.order(config.routeOrder());
-            }
+        return r -> {
+            r.method(HttpMethod.GET);
+            r.order(config.routeOrder());
         };
     }
 
     public Handler<RoutingContext> handler(String rootPath, Supplier<RoqCollections> roqCollectionsSupplier,
             Map<String, Supplier<Page>> pageSuppliers) {
-        return new RoqRouteHandler(rootPath, httpConfig, roqCollectionsSupplier, pageSuppliers, config);
+        return new RoqRouteHandler(rootPath, httpConfig, roqCollectionsSupplier, pageSuppliers);
     }
 
     public RuntimeValue<RootUrl> createRootUrl(RootUrl rootUrl) {

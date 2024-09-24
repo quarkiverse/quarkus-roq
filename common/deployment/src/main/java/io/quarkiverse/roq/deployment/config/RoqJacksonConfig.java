@@ -37,7 +37,7 @@ public interface RoqJacksonConfig {
      * from names of POJO methods and fields ("internal names").
      * The value can be one of the one of the constants in {@link com.fasterxml.jackson.databind.PropertyNamingStrategies},
      * so for example, {@code LOWER_CAMEL_CASE} or {@code UPPER_CAMEL_CASE}.
-     *
+     * <p>
      * The value can also be a fully qualified class name of a {@link com.fasterxml.jackson.databind.PropertyNamingStrategy}
      * subclass.
      */

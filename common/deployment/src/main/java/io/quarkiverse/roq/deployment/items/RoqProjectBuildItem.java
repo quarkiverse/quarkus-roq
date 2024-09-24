@@ -47,11 +47,11 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
      * Container to store resolved directory locations.
      */
     public record RoqProject(
-            /**
+            /*
              * The root directory of the project
              */
             Path rootDir,
-            /**
+            /*
              * The roq directory of the project defaults to {project-dir}/site
              */
             Path roqDir) {

@@ -15,13 +15,13 @@ public interface RoqGeneratorConfig {
     /**
      * The selected paths to include in the static website
      * Glob syntax is authorized to add resources
-     *
+     * <p>
      * For dynamic paths selection, produce a {@link RoqSelection} in you app.
-     *
+     * <p>
      * <code>
      *     &#64;Produces
      *     &#64;Singleton
-     *     @Transactional
+     *     &#64;Transactional
      *     RoqSelection produce() {
      *         return new RoqSelection(List.of(
      *                 SelectedPath.builder().html("/roq?name=foo-html").build(),

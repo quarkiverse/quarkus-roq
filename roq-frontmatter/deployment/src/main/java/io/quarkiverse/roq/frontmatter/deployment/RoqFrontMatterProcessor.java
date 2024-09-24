@@ -57,6 +57,7 @@ class RoqFrontMatterProcessor {
         final Set<String> templates = new HashSet<>();
         for (RoqFrontMatterBuildItem item : roqFrontMatterBuildItems) {
             final String name = removeExtension(item.templatePath());
+            LOGGER.tracef("Name without extension %s", name);
             templatePathProducer.produce(TemplatePathBuildItem.builder().path(item.templatePath()).extensionInfo(FEATURE)
                     .content(item.generatedContent()).build());
             templates.add(item.templatePath());
@@ -202,8 +203,7 @@ class RoqFrontMatterProcessor {
 
     private static Paginate readPaginate(String name, JsonObject data) {
         final Object value = data.getValue(PAGINATE_KEY);
-        if (value instanceof JsonObject) {
-            final JsonObject paginate = (JsonObject) value;
+        if (value instanceof JsonObject paginate) {
             final String collection = paginate.getString("collection");
             if (collection == null) {
                 throw new ConfigurationException("Invalid pagination configuration in " + name);
