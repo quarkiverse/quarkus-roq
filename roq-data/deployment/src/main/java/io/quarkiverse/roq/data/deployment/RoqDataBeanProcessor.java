@@ -5,8 +5,6 @@ import java.util.List;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Singleton;
 
-import org.jboss.logging.Logger;
-
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.RoqDataRecorder;
@@ -22,9 +20,7 @@ import io.vertx.core.json.JsonObject;
 
 class RoqDataBeanProcessor {
 
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqDataBeanProcessor.class);
     private static final String FEATURE = "roq-data";
-    private static final String ANNOTATION_VALUE = "value";
 
     @BuildStep
     FeatureBuildItem feature() {

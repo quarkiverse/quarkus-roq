@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.deployment.config.RoqConfig;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 
 public class RoqProjectProcessor {
@@ -18,9 +18,8 @@ public class RoqProjectProcessor {
     private static final Logger LOG = Logger.getLogger(RoqProjectProcessor.class);
 
     @BuildStep
-    RoqProjectBuildItem findProject(RoqConfig config, OutputTargetBuildItem outputTarget,
-            CurateOutcomeBuildItem curateOutcome) {
-        final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, curateOutcome, outputTarget);
+    RoqProjectBuildItem findProject(RoqConfig config, OutputTargetBuildItem outputTarget) {
+        final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, outputTarget);
 
         String resourceDir;
         try {
@@ -47,7 +46,6 @@ public class RoqProjectProcessor {
      * @throws IllegalStateException if the project root is not found and the site directory is not absolute
      */
     private static RoqProjectBuildItem.RoqProject resolveProjectDirs(RoqConfig config,
-            CurateOutcomeBuildItem curateOutcome,
             OutputTargetBuildItem outputTarget) {
         Path projectRoot = findProjectRoot(outputTarget.getOutputDirectory());
         Path configuredSiteDirPath = Paths.get(config.dir().trim());
@@ -62,7 +60,7 @@ public class RoqProjectProcessor {
             }
         }
 
-        final Path siteRoot = projectRoot.resolve(configuredSiteDirPath).normalize();
+        final Path siteRoot = Objects.requireNonNull(projectRoot).resolve(configuredSiteDirPath).normalize();
 
         if (!Files.isDirectory(siteRoot)) {
             return null;

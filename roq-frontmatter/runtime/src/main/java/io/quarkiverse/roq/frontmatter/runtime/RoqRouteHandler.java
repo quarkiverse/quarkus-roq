@@ -28,7 +28,6 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.MIMEHeader;
@@ -39,7 +38,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private static final Logger LOG = Logger.getLogger(RoqRouteHandler.class);
 
     private final String rootPath;
-    private final RoqSiteConfig siteConfig;
     private final Supplier<RoqCollections> roqCollectionsSupplier;
     private final List<String> compressMediaTypes;
     // request path to template path
@@ -54,9 +52,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final LazyValue<Page> site;
 
     public RoqRouteHandler(String rootPath, HttpBuildTimeConfig httpBuildTimeConfig,
-            Supplier<RoqCollections> roqCollectionsSupplier, Map<String, Supplier<Page>> pages, RoqSiteConfig siteConfig) {
+            Supplier<RoqCollections> roqCollectionsSupplier, Map<String, Supplier<Page>> pages) {
         this.rootPath = rootPath;
-        this.siteConfig = siteConfig;
         this.roqCollectionsSupplier = roqCollectionsSupplier;
         this.pages = pages;
         this.compressMediaTypes = httpBuildTimeConfig.enableCompression
@@ -89,12 +86,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 processCurrentIdentity(rc, user);
                 // Terminate the context correctly when the response is disposed or an exception is thrown
                 final ContextState endState = requestContext.getState();
-                rc.addEndHandler(new Handler<AsyncResult<Void>>() {
-                    @Override
-                    public void handle(AsyncResult<Void> result) {
-                        requestContext.destroy(endState);
-                    }
-                });
+                rc.addEndHandler(result -> requestContext.destroy(endState));
                 handlePage(rc);
             } finally {
                 // Deactivate the context
@@ -147,7 +139,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             }
 
             if (selected == null && !acceptableTypes.isEmpty()) {
-                // The Accept header is set but we are not able to select the appropriate variant
+                // The Accept header is set, but we are not able to select the appropriate variant
                 LOG.errorf("Appropriate template variant not found %s: %s",
                         acceptableTypes.stream().map(MIMEHeader::rawValue).collect(Collectors.toList()),
                         rc.request().path());
@@ -159,7 +151,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 instance.renderAsync().whenComplete((r, t) -> {
                     if (t != null) {
                         Throwable rootCause = rootCause(t);
-                        LOG.errorf("Error occured while rendering the template [%s]: %s", page.id(), rootCause.toString());
+                        LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
                         rc.fail(rootCause);
                     } else {
                         rc.response().setStatusCode(200).end(r);

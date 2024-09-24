@@ -4,8 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-import org.jboss.logging.Logger;
-
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -16,8 +14,6 @@ import io.quarkus.arc.impl.Reflections;
 import io.quarkus.deployment.annotations.BuildStep;
 
 public class RoqJacksonProcessor {
-
-    private static final Logger LOG = Logger.getLogger(RoqJacksonProcessor.class);
 
     @BuildStep
     RoqJacksonBuildItem findProject(RoqJacksonConfig jacksonConfig) {

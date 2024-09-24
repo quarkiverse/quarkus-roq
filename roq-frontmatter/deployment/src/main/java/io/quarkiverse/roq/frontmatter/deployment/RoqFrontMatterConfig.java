@@ -59,6 +59,6 @@ public interface RoqFrontMatterConfig {
             return DEFAULT_COLLECTIONS;
         }
         return collections();
-    };
+    }
 
 }

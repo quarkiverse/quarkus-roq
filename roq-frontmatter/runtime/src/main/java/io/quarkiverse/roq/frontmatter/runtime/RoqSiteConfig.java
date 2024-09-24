@@ -28,7 +28,7 @@ public interface RoqSiteConfig {
 
     /**
      * The order of the route which handles the templates.
-     *
+     * <p>
      * By default, the route is executed before the default routes (static resources, etc.).
      *
      * @asciidoclet

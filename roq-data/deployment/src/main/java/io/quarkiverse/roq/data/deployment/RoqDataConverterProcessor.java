@@ -42,7 +42,7 @@ public class RoqDataConverterProcessor {
                     throw new RuntimeException("Unable to convert data to a List<%s>.".formatted(mapping.getClassName()), e);
                 }
             } else {
-                Class<?> beanClass = null;
+                Class<?> beanClass;
                 try {
                     beanClass = Class.forName(mapping.getClassName().toString(), false,
                             Thread.currentThread().getContextClassLoader());

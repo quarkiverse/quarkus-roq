@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.logging.Logger;
-
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
 import io.quarkiverse.roq.generator.runtime.RoqGenerator;
@@ -24,7 +22,6 @@ import io.quarkus.vertx.http.deployment.spi.StaticResourcesBuildItem;
 
 class RoqGeneratorProcessor {
 
-    private static final Logger LOG = Logger.getLogger(RoqGeneratorProcessor.class);
     private static final String FEATURE = "roq-generator";
 
     @BuildStep
