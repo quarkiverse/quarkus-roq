@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.event.Event;
-import jakarta.enterprise.inject.literal.NamedLiteral;
 
 import org.jboss.logging.Logger;
 
@@ -38,10 +37,9 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private static final Logger LOG = Logger.getLogger(RoqRouteHandler.class);
 
     private final String rootPath;
-    private final Supplier<RoqCollections> roqCollectionsSupplier;
     private final List<String> compressMediaTypes;
     // request path to template path
-    private final Map<String, Supplier<Page>> pages;
+    private final Map<String, Supplier<? extends Page>> pages;
     private final Map<String, Page> extractedPaths;
 
     private final Event<SecurityIdentity> securityIdentityEvent;
@@ -49,12 +47,11 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final CurrentVertxRequest currentVertxRequest;
     private final ManagedContext requestContext;
     private final LazyValue<TemplateProducer> templateProducer;
-    private final LazyValue<Page> site;
+    private final LazyValue<Site> site;
 
     public RoqRouteHandler(String rootPath, HttpBuildTimeConfig httpBuildTimeConfig,
-            Supplier<RoqCollections> roqCollectionsSupplier, Map<String, Supplier<Page>> pages) {
+            Map<String, Supplier<? extends Page>> pages) {
         this.rootPath = rootPath;
-        this.roqCollectionsSupplier = roqCollectionsSupplier;
         this.pages = pages;
         this.compressMediaTypes = httpBuildTimeConfig.enableCompression
                 ? httpBuildTimeConfig.compressMediaTypes.orElse(List.of())
@@ -68,7 +65,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // TemplateProducer is singleton and we want to initialize lazily
         this.templateProducer = new LazyValue<>(
                 () -> Arc.container().instance(TemplateProducer.class).get());
-        this.site = new LazyValue<>(() -> Arc.container().instance(Page.class, NamedLiteral.of("site")).get());
+        this.site = new LazyValue<>(() -> Arc.container().instance(Site.class).get());
     }
 
     @Override
@@ -146,7 +143,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 rc.response().setStatusCode(406).end();
             } else {
                 instance.data("page", page);
-                instance.data("collections", roqCollectionsSupplier.get());
                 instance.data("site", site.get());
                 instance.renderAsync().whenComplete((r, t) -> {
                     if (t != null) {

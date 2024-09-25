@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import io.quarkiverse.roq.frontmatter.runtime.Page;
+import io.quarkiverse.roq.frontmatter.runtime.NormalPage;
 import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
@@ -27,13 +27,13 @@ public class Link {
         LocalDateTime now = LocalDateTime.now();
         PLACEHOLDER_HANDLERS.put(":page", (data) -> data.getString("page"));
         PLACEHOLDER_HANDLERS.put(":collection",
-                (data) -> data.getString(Page.COLLECTION_KEY));
+                (data) -> data.getString(NormalPage.COLLECTION_KEY));
         PLACEHOLDER_HANDLERS.put(":year", (data) -> data.getString("year", YEAR_FORMAT.format(now)));
         PLACEHOLDER_HANDLERS.put(":month", (data) -> data.getString("month", MONTH_FORMAT.format(now)));
         PLACEHOLDER_HANDLERS.put(":day", (data) -> data.getString("day", DAY_FORMAT.format(now)));
-        PLACEHOLDER_HANDLERS.put(":name", (data) -> slugify(data.getString(Page.BASE_FILE_NAME_KEY)));
+        PLACEHOLDER_HANDLERS.put(":name", (data) -> slugify(data.getString(NormalPage.BASE_FILE_NAME_KEY)));
         PLACEHOLDER_HANDLERS.put(":title",
-                (data) -> data.getString("slug", slugify(data.getString(Page.BASE_FILE_NAME_KEY))));
+                (data) -> data.getString("slug", slugify(data.getString(NormalPage.BASE_FILE_NAME_KEY))));
     }
 
     public static String link(String rootPath, String template, JsonObject data) {

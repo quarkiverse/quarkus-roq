@@ -2,10 +2,11 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGINATE_LINK_TEMPLATE;
-import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
+import static io.quarkiverse.roq.frontmatter.runtime.NormalPage.*;
 import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -22,9 +23,11 @@ import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
+import io.quarkus.builder.BuildException;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -54,17 +57,25 @@ class RoqFrontMatterProcessor {
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
             RoqFrontMatterOutputBuildItem roqOutput) {
-        final Set<String> templates = new HashSet<>();
+        if (roqOutput == null) {
+            return;
+        }
+        final Set<String> docTemplates = new HashSet<>();
+        final Set<String> pageTemplates = new HashSet<>();
         for (RoqFrontMatterBuildItem item : roqFrontMatterBuildItems) {
             final String name = removeExtension(item.templatePath());
             LOGGER.tracef("Name without extension %s", name);
             templatePathProducer.produce(TemplatePathBuildItem.builder().path(item.templatePath()).extensionInfo(FEATURE)
                     .content(item.generatedContent()).build());
-            templates.add(item.templatePath());
+            if (item.collection() != null) {
+                docTemplates.add(item.templatePath());
+            } else {
+                pageTemplates.add(item.templatePath());
+            }
         }
 
         if (config.generator()) {
-            for (String path : roqOutput.pages().keySet()) {
+            for (String path : roqOutput.all().keySet()) {
                 selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path))); // We add a trailing slash to make it detected as a html page
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
@@ -72,11 +83,14 @@ class RoqFrontMatterProcessor {
         }
 
         validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
-            if (templates.contains(c.getTemplateId())) {
-                c.addParameter("page", Page.class.getName());
-                c.addParameter("site", Page.class.getName());
-                c.addParameter("collections", RoqCollections.class.getName());
+            if (docTemplates.contains(c.getTemplateId())) {
+                c.addParameter("page", DocumentPage.class.getName());
+                c.addParameter("site", Site.class.getName());
+            } else if (pageTemplates.contains(c.getTemplateId())) {
+                c.addParameter("page", NormalPage.class.getName());
+                c.addParameter("site", Site.class.getName());
             }
+
         }));
 
     }
@@ -88,11 +102,17 @@ class RoqFrontMatterProcessor {
     }
 
     @BuildStep
+    void registerForReflexion(BuildProducer<ReflectiveClassBuildItem> reflectiveClassBuildItemBuildProducer) {
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(Page.class).methods().fields().queryMethods().build());
+    }
+
+    @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     public RouteBuildItem produceRoute(RoqSiteConfig config, RoqFrontMatterRecorder recorder,
             HttpRootPathBuildItem httpRootPath, RoqFrontMatterOutputBuildItem roqFrontMatterOutput) {
-        if (roqFrontMatterOutput.pages().isEmpty()) {
+        if (roqFrontMatterOutput == null || roqFrontMatterOutput.all().isEmpty()) {
             // There are no templates to serve
             return null;
         }
@@ -100,8 +120,7 @@ class RoqFrontMatterProcessor {
                 .routeFunction(httpRootPath.relativePath(removeTrailingSlash(config.rootPath()) + "/*"),
                         recorder.initializeRoute())
                 .handlerType(HandlerType.BLOCKING)
-                .handler(recorder.handler(httpRootPath.getRootPath(),
-                        roqFrontMatterOutput.roqCollectionsSupplier(), roqFrontMatterOutput.pages()))
+                .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.all()))
                 .build();
     }
 
@@ -110,14 +129,18 @@ class RoqFrontMatterProcessor {
     RoqFrontMatterOutputBuildItem bindFrontMatterData(HttpBuildTimeConfig httpConfig, RoqSiteConfig config,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
-            RoqFrontMatterRecorder recorder) {
+            RoqFrontMatterRecorder recorder) throws BuildException {
+        if (roqFrontMatterBuildItems.isEmpty()) {
+            return null;
+        }
         final var byKey = roqFrontMatterBuildItems.stream()
                 .collect(Collectors.toMap(RoqFrontMatterBuildItem::key, Function.identity()));
-        final var collections = new HashMap<String, List<CollectionPage>>();
-        final Map<String, Supplier<Page>> pages = new HashMap<>();
-        final Map<String, JsonObject> paginationItems = new HashMap<>();
+        final var collectionsInfo = new HashMap<String, List<PageInfo>>();
+        final Map<String, JsonObject> pagesInfo = new HashMap<>();
+        final Map<String, Supplier<? extends Page>> all = new HashMap<>();
+        final List<Supplier<NormalPage>> pages = new ArrayList<>();
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
-        // First we prepare data and links to:
+        // First we prepare info to:
         // - bind static pages
         // - detect paginated pages (to be added later)
         // - detect collections (to be added later)
@@ -129,76 +152,106 @@ class RoqFrontMatterProcessor {
             final JsonObject data = mergeParents(item, byKey);
             final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE), data);
             data.put(LINK_KEY, link);
-            if (data.containsKey(PAGINATE_KEY)) {
-                paginationItems.put(name, data);
+            if (item.collection() != null) {
+                data.put(COLLECTION_KEY, item.collection());
+                collectionsInfo.computeIfAbsent(item.collection(), k -> new ArrayList<>())
+                        .add(new PageInfo(name, data));
             } else {
-                if (item.collection() != null) {
-                    data.put(COLLECTION_KEY, item.collection());
-                    collections.computeIfAbsent(item.collection(), k -> new ArrayList<>())
-                            .add(new CollectionPage(item.collection(), link, name, data));
-                } else {
-                    bindPage(config, beansProducer, recorder, pages, rootUrl, name.equals("index"), name, link, data, null);
-                }
+                pagesInfo.put(name, data);
             }
+
         }
 
         // Then we bind collections
-        final Map<String, List<Supplier<Page>>> collectionSuppliers = new HashMap<>();
-        for (Map.Entry<String, List<CollectionPage>> c : collections.entrySet()) {
+        final Map<String, List<Supplier<DocumentPage>>> collectionSuppliers = new HashMap<>();
+        for (Map.Entry<String, List<PageInfo>> c : collectionsInfo.entrySet()) {
             final int collectionSize = c.getValue().size();
             for (int i = 0; i < collectionSize; i++) {
-                CollectionPage p = c.getValue().get(i);
+                PageInfo p = c.getValue().get(i);
                 Integer prev = i > 0 ? i - 1 : null;
                 Integer next = i < collectionSize - 1 ? i + 1 : null;
                 p.data.put(PREVIOUS_INDEX_KEY, prev);
                 p.data.put(NEXT_INDEX_KEY, next);
-                collectionSuppliers.computeIfAbsent(p.collection, k -> new ArrayList<>())
-                        .add(bindPage(config, beansProducer, recorder, pages, rootUrl, false, p.name, p.link, p.data, null));
+                final String link = p.data().getString(LINK_KEY);
+                final Supplier<DocumentPage> s = recorder.createDocument(rootUrl, p.name(), p.data());
+                all.put(link, s);
+                collectionSuppliers.computeIfAbsent(p.data().getString(COLLECTION_KEY), k -> new ArrayList<>())
+                        .add(s);
             }
+        }
+
+        AtomicReference<Supplier<NormalPage>> index = new AtomicReference<>();
+
+        // Then we bind pages
+        for (Map.Entry<String, JsonObject> item : pagesInfo.entrySet()) {
+            final String name = item.getKey();
+            final JsonObject data = item.getValue();
+            if (item.getValue().containsKey(PAGINATE_KEY)) {
+                Paginate paginate = readPaginate(name, data);
+                List<PageInfo> collection = collectionsInfo.get(paginate.collection());
+                if (collection == null) {
+                    throw new ConfigurationException(
+                            "Paginate collection not found '" + paginate.collection() + "' in " + name);
+                }
+                final int total = collection.size();
+                if (paginate.size() <= 0) {
+                    throw new ConfigurationException("Page size must be greater than zero.");
+                }
+                int countPages = (total + paginate.size() - 1) / paginate.size();
+                for (int i = 1; i <= countPages; i++) {
+                    Integer prev = i > 1 ? i - 1 : null;
+                    Integer next = i <= countPages - 1 ? i + 1 : null;
+
+                    final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
+                    final JsonObject d = data.copy().put(COLLECTION_KEY, paginate.collection());
+                    PageUrl previousUrl = prev == null ? null
+                            : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
+                    PageUrl nextUrl = next == null ? null
+                            : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
+                    Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
+                            previousUrl, next, nextUrl);
+                    final String link = i == 1 ? data.getString(LINK_KEY)
+                            : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
+                    bindPage(recorder, name, pages, all, index, rootUrl, link, data, paginator);
+                }
+            } else {
+                final String link = data.getString(LINK_KEY);
+                bindPage(recorder, name, pages, all, index, rootUrl, link, data, null);
+            }
+
+        }
+
+        // Create Site bean
+        if (index.get() == null) {
+            throw new BuildException("Roq site must declare an index.html page");
         }
 
         final Supplier<RoqCollections> collectionsSupplier = recorder.createRoqCollections(collectionSuppliers);
-        beansProducer.produce(SyntheticBeanBuildItem.configure(RoqCollections.class)
+        final Supplier<Site> siteSupplier = recorder.createSite(index.get(), pages, collectionsSupplier);
+        beansProducer.produce(SyntheticBeanBuildItem.configure(Site.class)
                 .scope(Singleton.class)
                 .unremovable()
-                .supplier(collectionsSupplier)
+                .supplier(siteSupplier)
                 .done());
 
-        // Then we bind paginations
-        for (Map.Entry<String, JsonObject> item : paginationItems.entrySet()) {
-            final String name = item.getKey();
-            final JsonObject data = item.getValue();
-            Paginate paginate = readPaginate(name, data);
-            List<CollectionPage> collection = collections.get(paginate.collection());
-            if (collection == null) {
-                throw new ConfigurationException("Paginate collection not found '" + paginate.collection() + "' in " + name);
-            }
-            final int total = collection.size();
-            if (paginate.size() <= 0) {
-                throw new ConfigurationException("Page size must be greater than zero.");
-            }
-            int countPages = (total + paginate.size() - 1) / paginate.size();
-            for (int i = 1; i <= countPages; i++) {
-                Integer prev = i > 1 ? i - 1 : null;
-                Integer next = i <= countPages - 1 ? i + 1 : null;
+        return new RoqFrontMatterOutputBuildItem(all, collectionsSupplier);
+    }
 
-                final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
-                final JsonObject d = data.copy().put(COLLECTION_KEY, paginate.collection());
-                PageUrl previousUrl = prev == null ? null
-                        : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
-                PageUrl nextUrl = next == null ? null
-                        : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
-                Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
-                        previousUrl, next, nextUrl);
-                final String link = i == 1 ? data.getString(LINK_KEY)
-                        : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
-                final boolean isIndex = name.equals("index") && i == 1;
-                bindPage(config, beansProducer, recorder, pages, rootUrl, isIndex, name, link, data, paginator);
-            }
-
+    private static void bindPage(RoqFrontMatterRecorder recorder,
+            String name,
+            List<Supplier<NormalPage>> pages,
+            Map<String, Supplier<? extends Page>> all,
+            AtomicReference<Supplier<NormalPage>> index,
+            RootUrl rootUrl,
+            String link,
+            JsonObject data,
+            Paginator paginator) {
+        var p = recorder.createPage(rootUrl, name, data, paginator);
+        all.put(link, p);
+        pages.add(p);
+        if (name.equals("index")) {
+            index.set(p);
         }
-
-        return new RoqFrontMatterOutputBuildItem(pages, collectionsSupplier);
     }
 
     private static Paginate readPaginate(String name, JsonObject data) {
@@ -217,39 +270,7 @@ class RoqFrontMatterProcessor {
         throw new ConfigurationException("Invalid pagination configuration in " + name);
     }
 
-    private record CollectionPage(String collection, String link, String name, JsonObject data) {
-    }
-
-    private static Supplier<Page> bindPage(RoqSiteConfig config, BuildProducer<SyntheticBeanBuildItem> beansProducer,
-            RoqFrontMatterRecorder recorder,
-            Map<String, Supplier<Page>> pages,
-            RootUrl rootUrl,
-            boolean isSiteIndex,
-            String id,
-            String link,
-            JsonObject data,
-            Paginator paginator) {
-
-        final Supplier<Page> pageSupplier = recorder.createPage(rootUrl, id, data, paginator);
-        final String name = prefixWithSlash(link);
-        LOGGER.info("Creating synthetic bean for page with name " + name);
-        beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
-                .scope(Singleton.class)
-                .unremovable()
-                .named(name)
-                .supplier(pageSupplier)
-                .done());
-        if (isSiteIndex) {
-            LOGGER.info("Creating synthetic bean for site index");
-            beansProducer.produce(SyntheticBeanBuildItem.configure(Page.class)
-                    .scope(Singleton.class)
-                    .unremovable()
-                    .named("site")
-                    .supplier(pageSupplier)
-                    .done());
-        }
-        pages.put(link, pageSupplier);
-        return pageSupplier;
+    private record PageInfo(String name, JsonObject data) {
     }
 
     private static JsonObject mergeParents(RoqFrontMatterBuildItem item, Map<String, RoqFrontMatterBuildItem> byPath) {

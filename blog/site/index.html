@@ -14,7 +14,7 @@ paginate:
   size: 4
 ---
 
-{#for post in collections.posts.paginated(page.paginator)}
+{#for post in site.collections.posts.paginated(page.paginator)}
 <article class="post">
   {#if post.img}
   <a class="post-thumbnail" style="background-image: url({post.img.toUrl.absoluteOrElseFrom(site.rootUrl.relative.resolve('static/images/'))}" href="{post.url.relative}"></a>

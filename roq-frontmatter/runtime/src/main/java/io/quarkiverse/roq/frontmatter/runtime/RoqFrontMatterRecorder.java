@@ -29,22 +29,50 @@ public class RoqFrontMatterRecorder {
         return new RuntimeValue<>();
     }
 
-    public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<Page>>> collectionSuppliers) {
+    public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<DocumentPage>>> collectionSuppliers) {
         return () -> {
             final var c = new HashMap<String, RoqCollection>();
-            for (Map.Entry<String, List<Supplier<Page>>> e : collectionSuppliers.entrySet()) {
-                List<Page> pages = new ArrayList<>();
-                for (Supplier<Page> v : e.getValue()) {
-                    pages.add(v.get());
+            for (Map.Entry<String, List<Supplier<DocumentPage>>> e : collectionSuppliers.entrySet()) {
+                List<DocumentPage> docs = new ArrayList<>();
+                for (Supplier<DocumentPage> v : e.getValue()) {
+                    docs.add(v.get());
                 }
-                c.put(e.getKey(), new RoqCollection(pages));
+                c.put(e.getKey(), new RoqCollection(docs));
             }
             return new RoqCollections(Map.copyOf(c));
         };
     }
 
-    public Supplier<Page> createPage(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
-        return () -> new Page(rootUrl, id, data, paginator);
+    public Supplier<NormalPage> createPage(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
+        return new Supplier<NormalPage>() {
+            @Override
+            public NormalPage get() {
+                return new NormalPage(rootUrl, id, data, paginator);
+            }
+        };
+    }
+
+    public Supplier<DocumentPage> createDocument(RootUrl rootUrl, String id, JsonObject data) {
+        return new Supplier<DocumentPage>() {
+            @Override
+            public DocumentPage get() {
+                return new DocumentPage(rootUrl, id, data);
+            }
+        };
+    }
+
+    public Supplier<Site> createSite(Supplier<NormalPage> site, List<Supplier<NormalPage>> pagesSuppliers,
+            Supplier<RoqCollections> roqCollectionsSupplier) {
+        return new Supplier<Site>() {
+            @Override
+            public Site get() {
+                final List<NormalPage> pages = new ArrayList<>();
+                for (Supplier<NormalPage> pagesSupplier : pagesSuppliers) {
+                    pages.add(pagesSupplier.get());
+                }
+                return new Site(site.get(), pages, roqCollectionsSupplier.get());
+            }
+        };
     }
 
     public Consumer<Route> initializeRoute() {
@@ -54,12 +82,9 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Handler<RoutingContext> handler(String rootPath, Supplier<RoqCollections> roqCollectionsSupplier,
-            Map<String, Supplier<Page>> pageSuppliers) {
-        return new RoqRouteHandler(rootPath, httpConfig, roqCollectionsSupplier, pageSuppliers);
+    public Handler<RoutingContext> handler(String rootPath,
+            Map<String, Supplier<? extends Page>> pageSuppliers) {
+        return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers);
     }
 
-    public RuntimeValue<RootUrl> createRootUrl(RootUrl rootUrl) {
-        return new RuntimeValue<>(rootUrl);
-    }
 }

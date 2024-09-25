@@ -7,28 +7,28 @@ public record RoqCollections(Map<String, RoqCollection> collections) {
         return collections.get(name);
     }
 
-    public Page resolveNextPage(Page page) {
+    public DocumentPage resolveNextPage(DocumentPage page) {
         final RoqCollection collection = resolveCollection(page);
         if (collection == null)
             return null;
         return collection.resolveNextPage(page);
     }
 
-    public Page resolvePreviousPage(Page page) {
+    public DocumentPage resolvePreviousPage(DocumentPage page) {
         final RoqCollection collection = resolveCollection(page);
         if (collection == null)
             return null;
         return collection.resolvePreviousPage(page);
     }
 
-    public RoqCollection resolveCollection(Page page) {
+    public RoqCollection resolveCollection(DocumentPage page) {
         if (page.collection() == null) {
             return null;
         }
         return this.get(page.collection());
     }
 
-    public Page resolvePrevPage(Page page) {
+    public DocumentPage resolvePrevPage(DocumentPage page) {
         return this.resolvePreviousPage(page);
     }
 
