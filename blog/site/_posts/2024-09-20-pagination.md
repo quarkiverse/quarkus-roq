@@ -21,7 +21,7 @@ paginate: posts
 Next, in your template, loop through the paginated posts using:
 
 ```html
-\{#for post in collections.posts.paginated(page.paginator)}
+\{#for post in site.collections.posts.paginated(page.paginator)}
 <article class="post">
   ...
 </article>

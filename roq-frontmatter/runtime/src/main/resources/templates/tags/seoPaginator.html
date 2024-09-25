@@ -6,14 +6,14 @@
     {#if page.paginator.next}
     <link rel="next" href="{page.paginator.next.absolute}" />
     {/if}
-{#else}
+{#else if page.collection}
   <!-- SEO COLLECTION PAGES -->
-  {#let prevPage = collections.resolvePreviousPage(page)}
+  {#let prevPage = site.collections.resolvePreviousPage(page)}
   {#if prevPage}
   <link rel="prev" href="{prevPage.url.absolute}" />
   {/if}
   {/let}
-  {#let nextPage = collections.resolveNextPage(page) }
+  {#let nextPage = site.collections.resolveNextPage(page) }
   {#if nextPage}
   <link rel="next" href="{nextPage.url.absolute}" />
   {/if}

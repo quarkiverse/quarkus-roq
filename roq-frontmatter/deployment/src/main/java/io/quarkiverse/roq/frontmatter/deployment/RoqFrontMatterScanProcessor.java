@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.runtime.Page.*;
+import static io.quarkiverse.roq.frontmatter.runtime.NormalPage.*;
 import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 import static java.util.function.Predicate.not;

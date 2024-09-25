@@ -2,14 +2,9 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static org.hamcrest.Matchers.*;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.roq.frontmatter.runtime.Page;
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.RestAssured;
 
@@ -19,7 +14,6 @@ public class RoqFrontMatterTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
-                    .addClass(MyResource.class)
                     .addAsResource("application.properties")
                     .addAsResource("site/_data/foo.yml")
                     .addAsResource("site/_includes/foo/bar.html")
@@ -75,20 +69,4 @@ public class RoqFrontMatterTest {
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }
 
-    @ApplicationScoped
-    public static class MyResource {
-
-        @Inject
-        @Named("/bar/posts/awesome-post")
-        Page awesomePostFm;
-
-        @Inject
-        @Named("/bar/posts/markdown-post")
-        Page markdownPostFm;
-
-        @Inject
-        @Named("/bar/my-cool-page")
-        Page coolPageFm;
-
-    }
 }

@@ -9,16 +9,17 @@ import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RoqFrontMatterOutputBuildItem extends SimpleBuildItem {
 
-    private final Map<String, Supplier<Page>> pages;
+    private final Map<String, Supplier<? extends Page>> all;
     private final Supplier<RoqCollections> roqCollectionsSupplier;
 
-    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<Page>> pages, Supplier<RoqCollections> roqCollectionsSupplier) {
-        this.pages = pages;
+    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<? extends Page>> all,
+            Supplier<RoqCollections> roqCollectionsSupplier) {
+        this.all = all;
         this.roqCollectionsSupplier = roqCollectionsSupplier;
     }
 
-    public Map<String, Supplier<Page>> pages() {
-        return pages;
+    public Map<String, Supplier<? extends Page>> all() {
+        return all;
     }
 
     public Supplier<RoqCollections> roqCollectionsSupplier() {
