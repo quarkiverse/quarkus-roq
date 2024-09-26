@@ -1,6 +1,5 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.runtime.NormalPage.*;
 import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 import static java.util.function.Predicate.not;
@@ -27,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
@@ -36,6 +36,8 @@ public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".md", "markdown", ".html", ".asciidoc", ".adoc");
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*\\v---\\v", Pattern.DOTALL);
+    private static final String DRAFT_KEY = "draft";
+    private static final String DATE_KEY = "date";
 
     private record QuteMarkupSection(String open, String close) {
         public static final QuteMarkupSection MARKDOWN = new QuteMarkupSection("{#markdown}", "{/markdown}");
@@ -145,39 +147,38 @@ public class RoqFrontMatterScanProcessor {
                     collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString());
             String sourcePath = relative;
             String templatePath = removeExtension(relative) + ".html";
-
+            final String id = removeExtension(templatePath);
             try {
                 final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
                 if (hasFrontMatter(fullContent)) {
                     JsonNode rootNode = mapper.readTree(getFrontMatter(fullContent));
                     final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
                     final JsonObject fm = new JsonObject(map);
-                    if (!config.draft() && fm.getBoolean(DRAFT_KEY, false)) {
+                    final boolean draft = fm.getBoolean(DRAFT_KEY, false);
+                    if (!config.draft() && draft) {
                         return;
                     }
                     final String layout = normalizedLayout(fm.getString("layout"));
                     final String content = stripFrontMatter(fullContent);
+                    String dateString = null;
                     if (fm.containsKey(DATE_KEY)) {
-                        final ZonedDateTime date = ZonedDateTime.parse(fm.getString(DATE_KEY),
+                        ZonedDateTime date = ZonedDateTime.parse(fm.getString(DATE_KEY),
                                 DateTimeFormatter.ofPattern(config.dateFormat()));
                         if (!config.future() && date.isAfter(ZonedDateTime.now())) {
                             return;
                         }
-                        fm.put(DATE_KEY, date.format(DateTimeFormatter.ISO_DATE_TIME));
+                        dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
                     }
 
-                    fm.put(RAW_CONTENT_KEY, content);
-                    fm.put(BASE_FILE_NAME_KEY, removeExtension(file.getFileName().toString()));
-                    fm.put(FILE_NAME_KEY, file.getFileName().toString());
-                    fm.put(FILE_PATH_KEY, relative);
+                    PageInfo info = new PageInfo(id, draft, config.imagesPath(), dateString, content,
+                            sourcePath, templatePath);
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
                     final String generatedTemplate = generateTemplate(relative, layout, content);
-                    items.add(new RoqFrontMatterBuildItem(collection, sourcePath, templatePath, !isLayout, layout, fm,
-                            generatedTemplate));
+                    items.add(new RoqFrontMatterBuildItem(info, layout, fm, collection, generatedTemplate, !isLayout));
                 } else {
+                    PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, sourcePath, templatePath);
                     items.add(
-                            new RoqFrontMatterBuildItem(collection, sourcePath, templatePath, !isLayout, null, new JsonObject(),
-                                    fullContent));
+                            new RoqFrontMatterBuildItem(info, null, new JsonObject(), collection, fullContent, !isLayout));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error while reading the FrontMatter file %s"

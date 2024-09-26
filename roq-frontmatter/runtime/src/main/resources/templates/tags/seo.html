@@ -1,12 +1,15 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+
 {#seoTitle pageTitle=page.title siteTitle=site.title /}
 {#seoDescription pageDescription=page.description siteDescription=site.description /}
-{#seoAuthor pageAuthor=page.author siteAuthor=site.author /}
+{#seoAuthor pageAuthor=page.data.author?? siteAuthor=site.data.author?? /}
 {#seoUrl url=page.url /}
 {#seoType page /}
 {#seoImage page site /}
-{#seoVerifications webmasterVerifications=site.webmasterVerifications /}
+{#seoVerifications webmasterVerifications=site.data.webmasterVerifications?? /}
 {#seoPaginator page site /}
-{#seoFacebook facebook=site.facebook /}
-{#seoTwitter twitter=site.twitter /}
-{#seoLocale pageLocale=page.lang siteLocale=site.lang defaultLocale=global:locale /}
+{#seoFacebook facebook=site.data.facebook?? /}
+{#seoTwitter twitter=site.data.twitter?? /}
+{#seoLocale pageLocale=page.data.lang?? siteLocale=site.data.lang?? defaultLocale=global:locale /}
 {#seoGenerator name="Quarkus Roq" version=global:roqVersion /}

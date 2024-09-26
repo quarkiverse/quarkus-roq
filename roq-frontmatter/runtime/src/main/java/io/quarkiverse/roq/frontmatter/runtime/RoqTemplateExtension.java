@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.runtime;
 
 import java.util.regex.Pattern;
 
+import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.qute.TemplateExtension;
 
 @TemplateExtension
@@ -16,21 +17,12 @@ public class RoqTemplateExtension {
     }
 
     @TemplateExtension(matchName = "*", priority = QUTE_FALLBACK_PRIORITY)
-    public static Object data(Page page, String key) {
-        return page.data(key);
-    }
-
-    @TemplateExtension(matchName = "*", priority = QUTE_FALLBACK_PRIORITY)
     public static RoqCollection collection(RoqCollections collections, String key) {
         return collections.get(key);
     }
 
-    public static Object readTime(NormalPage page) {
+    public static Object readTime(Page page) {
         final long count = numberOfWords(page.rawContent());
         return Math.round((float) count / 200);
-    }
-
-    public static RoqUrl toUrl(Object url) {
-        return new RoqUrl(url.toString());
     }
 }

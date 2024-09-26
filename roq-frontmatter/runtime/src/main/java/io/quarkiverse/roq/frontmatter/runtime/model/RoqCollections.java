@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.runtime;
+package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.util.Map;
 

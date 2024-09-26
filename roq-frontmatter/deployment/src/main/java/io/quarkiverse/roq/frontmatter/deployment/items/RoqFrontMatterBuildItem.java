@@ -1,8 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.items;
 
-import java.util.Objects;
-
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
@@ -11,86 +9,65 @@ import io.vertx.core.json.JsonObject;
  */
 public final class RoqFrontMatterBuildItem extends MultiBuildItem {
 
-    private final String collection;
+    private final PageInfo info;
 
     /**
-     * The name of the Roq FrontMatter source file.
+     * The layout used for this template
      */
-    private final String sourcePath;
-
-    private final String templatePath;
-    private final String key;
-
     private final String layout;
 
     /**
      * The FrontMatter data
      */
-    private final JsonObject fm;
+    private final JsonObject data;
 
-    private final String generatedContent;
-    private final boolean visible;
+    private final String collection;
 
-    public RoqFrontMatterBuildItem(String collection, String sourcePath, String templatePath, boolean visible, String layout,
-            JsonObject fm,
-            String generatedContent) {
-        this.collection = collection;
-        this.sourcePath = sourcePath;
-        this.templatePath = templatePath;
-        this.key = PathUtils.removeExtension(templatePath);
-        this.visible = visible;
+    /**
+     * The generated template content to be passed to be passed to Qute
+     */
+    private final String generatedTemplate;
+
+    /**
+     * Should this template be published
+     */
+    private final boolean published;
+
+    public RoqFrontMatterBuildItem(PageInfo info, String layout, JsonObject data, String collection, String generatedTemplate,
+            boolean published) {
+        this.info = info;
         this.layout = layout;
-        this.fm = fm;
-        this.generatedContent = generatedContent;
+        this.data = data;
+        this.collection = collection;
+        this.generatedTemplate = generatedTemplate;
+        this.published = published;
     }
 
-    public String collection() {
-        return collection;
+    public String id() {
+        return info.id();
     }
 
-    public String sourcePath() {
-        return sourcePath;
-    }
-
-    public String templatePath() {
-        return templatePath;
-    }
-
-    public String key() {
-        return key;
-    }
-
-    public boolean visible() {
-        return visible;
-    }
-
-    public JsonObject fm() {
-        return fm;
+    public PageInfo info() {
+        return info;
     }
 
     public String layout() {
         return layout;
     }
 
+    public JsonObject data() {
+        return data;
+    }
+
+    public String collection() {
+        return collection;
+    }
+
     public String generatedContent() {
-        return generatedContent;
+        return generatedTemplate;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        RoqFrontMatterBuildItem that = (RoqFrontMatterBuildItem) o;
-        return Objects.equals(collection, that.collection) && Objects.equals(sourcePath, that.sourcePath)
-                && Objects.equals(templatePath, that.templatePath) && Objects.equals(key, that.key)
-                && Objects.equals(layout, that.layout) && Objects.equals(fm, that.fm)
-                && Objects.equals(generatedContent, that.generatedContent);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(collection, sourcePath, templatePath, key, layout, fm, generatedContent);
+    public boolean published() {
+        return published;
     }
 }

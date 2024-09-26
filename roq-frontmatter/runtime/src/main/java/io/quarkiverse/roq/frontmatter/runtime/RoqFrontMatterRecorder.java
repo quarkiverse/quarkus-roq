@@ -1,11 +1,14 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
-import io.quarkus.runtime.RuntimeValue;
+import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.Paginator;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.vertx.core.Handler;
@@ -25,10 +28,6 @@ public class RoqFrontMatterRecorder {
         this.config = config;
     }
 
-    public RuntimeValue<PageUrl> createSiteUrl() {
-        return new RuntimeValue<>();
-    }
-
     public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<DocumentPage>>> collectionSuppliers) {
         return () -> {
             final var c = new HashMap<String, RoqCollection>();
@@ -43,35 +42,23 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<NormalPage> createPage(RootUrl rootUrl, String id, JsonObject data, Paginator paginator) {
-        return new Supplier<NormalPage>() {
-            @Override
-            public NormalPage get() {
-                return new NormalPage(rootUrl, id, data, paginator);
-            }
-        };
+    public Supplier<NormalPage> createPage(RoqUrl url, PageInfo info, JsonObject data, Paginator paginator) {
+        return () -> new NormalPage(url, info, data, paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(RootUrl rootUrl, String id, JsonObject data) {
-        return new Supplier<DocumentPage>() {
-            @Override
-            public DocumentPage get() {
-                return new DocumentPage(rootUrl, id, data);
-            }
-        };
+    public Supplier<DocumentPage> createDocument(RoqUrl url, PageInfo info, DocumentInfo doc, JsonObject data) {
+        return () -> new DocumentPage(url, info, doc, data);
     }
 
-    public Supplier<Site> createSite(Supplier<NormalPage> site, List<Supplier<NormalPage>> pagesSuppliers,
+    public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage, List<Supplier<NormalPage>> pagesSuppliers,
             Supplier<RoqCollections> roqCollectionsSupplier) {
-        return new Supplier<Site>() {
-            @Override
-            public Site get() {
-                final List<NormalPage> pages = new ArrayList<>();
-                for (Supplier<NormalPage> pagesSupplier : pagesSuppliers) {
-                    pages.add(pagesSupplier.get());
-                }
-                return new Site(site.get(), pages, roqCollectionsSupplier.get());
+        return () -> {
+            final List<NormalPage> pages = new ArrayList<>();
+            for (Supplier<NormalPage> pagesSupplier : pagesSuppliers) {
+                pages.add(pagesSupplier.get());
             }
+            return new Site(rootUrl, indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesPath()),
+                    indexPage.get().data(), pages, roqCollectionsSupplier.get());
         };
     }
 

@@ -35,6 +35,12 @@ public interface RoqFrontMatterConfig {
     boolean future();
 
     /**
+     * The public path containing pages and posts images
+     */
+    @WithDefault("/static/assets/images")
+    String imagesPath();
+
+    /**
      * Show draft pages
      */
     @WithDefault("false")

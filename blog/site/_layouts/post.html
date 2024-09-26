@@ -2,14 +2,17 @@
 layout: main
 link: posts/:title
 ---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
 <article class="article-page">
   <div class="page-content">
     {#if page.img}
     <div class="page-cover-image">
       <figure>
-        <img class="page-image" src="{page.img.toUrl.absoluteOrElseFrom(site.rootUrl.relative.resolve('static/images/'))}" alt="{page.title}">
-        {#if page.figCaption}
-        <figcaption>{page.figCaption}</figcaption>
+        <img class="page-image" src="{page.img}" alt="{page.title}">
+        {#if page.data.figCaption??}
+        <figcaption>{page.data.figCaption}</figcaption>
         {/if}
       </figure>
     </div> <!-- End Page Cover Image -->
@@ -22,9 +25,9 @@ link: posts/:title
       {#insert /}
       <div class="page-footer">
         <div class="page-share">
-          <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.absolute}" title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
-          <a href="https://facebook.com/sharer.php?u={page.url.absolute}" title="Share on Facebook" rel="nofollow" target="_blank">Facebook</a>
-          <a href="https://plus.google.com/share?url={page.url.absolute}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
+          <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.encoded}" title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
+          <a href="https://facebook.com/sharer.php?u={page.url.encoded}" title="Share on Facebook" rel="nofollow" target="_blank">Facebook</a>
+          <a href="https://plus.google.com/share?url={page.url.encoded}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
         </div>
         <div class="page-tag">
 

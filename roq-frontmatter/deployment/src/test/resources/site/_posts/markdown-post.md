@@ -8,4 +8,4 @@ date: 2024-09-09 10:45:00 +0200
 
 # A post made with markdown
 
-> {page.foo}
+> {page.data.foo}
