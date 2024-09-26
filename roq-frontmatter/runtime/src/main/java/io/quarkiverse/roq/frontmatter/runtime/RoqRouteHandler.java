@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
-import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,8 @@ import jakarta.enterprise.event.Event;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InjectableContext.ContextState;
@@ -113,7 +114,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // Extract the real template path, e.g. /item.html -> web/item
         Page page = extractedPaths.computeIfAbsent(requestPath, this::extractTemplatePath);
         if (page != null) {
-            Template template = templateProducer.get().getInjectableTemplate(page.id());
+            final String templateId = removeExtension(page.info().generatedTemplatePath());
+            Template template = templateProducer.get().getInjectableTemplate(templateId);
             TemplateInstance originalInstance = template.instance();
             TemplateInstance instance = originalInstance;
 

@@ -44,4 +44,12 @@ public final class PathUtils {
         final int i = path.lastIndexOf(".");
         return i > 0 ? path.substring(0, i) : path;
     }
+
+    public static String fileName(String path) {
+        final int i = path.lastIndexOf("/");
+        if (i == -1) {
+            return path;
+        }
+        return path.substring(i + 1);
+    }
 }

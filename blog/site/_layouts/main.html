@@ -2,15 +2,18 @@
 layout: default
 link: ":name.html"
 ---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
 <aside class="sidebar">
   <header>
     <div class="about">
-      {#if site.img??}
+      {#if site.img}
       <div class="cover-author-image">
-        <a href="{site.url.relative}"><img src="{site.rootUrl.relative.resolve('static/assets/img/').resolve(site.img)}" alt="{site.name}"></a>
+        <a href="{site.url}"><img src="{site.img}" alt="{site.data.name}"></a>
       </div>
       {/if}
-      <div class="author-name">{site.name}</div>
+      <div class="author-name">{site.data.name}</div>
       <p>{site.description}</p>
       <p>I crafted this blog myself and <a href="https://github.com/quarkiverse/quarkus-roq/actions/workflows/deploy-blog.yml" target="_blank">published it</a> on GitHub Pages. The sources of this example website are located <a href="https://github.com/quarkiverse/quarkus-roq/tree/main/blog" target="_blank">there</a>.</p>
 
@@ -20,25 +23,25 @@ link: ":name.html"
     <section class="contact">
       <h3 class="contact-title">Contact me</h3>
       <ul>
-        {#if site..social-twitter??}
-        <li><a href="https://twitter.com/{site..social-twitter}" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+        {#if site.data.social-twitter??}
+        <li><a href="https://twitter.com/{site.data.social-twitter}" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
         {/if}
-        {#if site..social-facebook??}
-        <li><a href="https://facebook.com/{site..social-facebook}" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+        {#if site.data.social-facebook??}
+        <li><a href="https://facebook.com/{site.data.social-facebook}" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
         {/if}
-        {#if site..social-github??}
-        <li class="github"><a href="http://github.com/{site..social-github}" target="_blank"><i class="fa fa-github"></i></a></li>
+        {#if site.data.social-github??}
+        <li class="github"><a href="http://github.com/{site.data.social-github}" target="_blank"><i class="fa fa-github"></i></a></li>
         {/if}
-        {#if site..social-linkedin??}
-        <li class="linkedin"><a href="https://in.linkedin.com/in/{site..social-linkedin}" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        {#if site.data.social-linkedin??}
+        <li class="linkedin"><a href="https://in.linkedin.com/in/{site.data.social-linkedin}" target="_blank"><i class="fa fa-linkedin"></i></a></li>
         {/if}
-        {#if site..social-email??}
-        <li class="email"><a href="mailto:{site..social-email?}"><i class="fa fa-envelope-o"></i></a></li>
+        {#if site.data.social-email??}
+        <li class="email"><a href="mailto:{site.data.social-email?}"><i class="fa fa-envelope-o"></i></a></li>
         {/if}
       </ul>
     </section> <!-- End Section Contact -->
     <div class="copyright">
-      <p>{global:now.format('Y')} &copy; {site.simple-name}</p>
+      <p>{global:now.format('Y')} &copy; {site.data.simple-name}</p>
     </div>
   </footer> <!-- End Footer -->
 </aside> <!-- End Sidebar -->

@@ -1,4 +1,5 @@
-{#if page.paginator}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{#if page.paginator??}
     <!-- SEO PAGINATOR -->
     {#if page.paginator.previous}
     <link rel="prev" href="{page.paginator.previous.absolute}" />
@@ -6,7 +7,7 @@
     {#if page.paginator.next}
     <link rel="next" href="{page.paginator.next.absolute}" />
     {/if}
-{#else if page.collection}
+{#else if page.collection??}
   <!-- SEO COLLECTION PAGES -->
   {#let prevPage = site.collections.resolvePreviousPage(page)}
   {#if prevPage}

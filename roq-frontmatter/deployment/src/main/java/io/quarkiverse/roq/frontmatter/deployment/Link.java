@@ -4,12 +4,14 @@ import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
-import io.quarkiverse.roq.frontmatter.runtime.NormalPage;
 import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
@@ -21,25 +23,29 @@ public class Link {
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
 
     // Static map of placeholder handlers
-    private static final Map<String, Function<JsonObject, String>> PLACEHOLDER_HANDLERS = new HashMap<>();
+    private static final Map<String, Function<LinkData, String>> PLACEHOLDER_HANDLERS = new HashMap<>();
 
     static {
         LocalDateTime now = LocalDateTime.now();
-        PLACEHOLDER_HANDLERS.put(":page", (data) -> data.getString("page"));
+        PLACEHOLDER_HANDLERS.put(":page",
+                (data) -> Objects.requireNonNull(data.page(), "page index is required to build the link"));
         PLACEHOLDER_HANDLERS.put(":collection",
-                (data) -> data.getString(NormalPage.COLLECTION_KEY));
-        PLACEHOLDER_HANDLERS.put(":year", (data) -> data.getString("year", YEAR_FORMAT.format(now)));
-        PLACEHOLDER_HANDLERS.put(":month", (data) -> data.getString("month", MONTH_FORMAT.format(now)));
-        PLACEHOLDER_HANDLERS.put(":day", (data) -> data.getString("day", DAY_FORMAT.format(now)));
-        PLACEHOLDER_HANDLERS.put(":name", (data) -> slugify(data.getString(NormalPage.BASE_FILE_NAME_KEY)));
+                (data) -> data.collection());
+        PLACEHOLDER_HANDLERS.put(":year",
+                (data) -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT));
+        PLACEHOLDER_HANDLERS.put(":month",
+                (data) -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT));
+        PLACEHOLDER_HANDLERS.put(":day",
+                (data) -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT));
+        PLACEHOLDER_HANDLERS.put(":name", (data) -> slugify(data.baseFileName()));
         PLACEHOLDER_HANDLERS.put(":title",
-                (data) -> data.getString("slug", slugify(data.getString(NormalPage.BASE_FILE_NAME_KEY))));
+                (data) -> data.data.getString("slug", slugify(data.baseFileName())));
     }
 
-    public static String link(String rootPath, String template, JsonObject data) {
+    public static String link(String rootPath, String template, LinkData data) {
         String link = template;
         // Replace each placeholder in the template if it exists
-        for (Map.Entry<String, Function<JsonObject, String>> entry : PLACEHOLDER_HANDLERS.entrySet()) {
+        for (Map.Entry<String, Function<LinkData, String>> entry : PLACEHOLDER_HANDLERS.entrySet()) {
             if (link.contains(entry.getKey())) {
                 String replacement = entry.getValue().apply(data);
                 link = link.replace(entry.getKey(), replacement);
@@ -61,6 +67,9 @@ public class Link {
                 .replaceAll("[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
                 .replaceAll("-+", "-") // Replace multiple hyphens with a single one
                 .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
+    }
+
+    public record LinkData(String baseFileName, ZonedDateTime date, String collection, String page, JsonObject data) {
     }
 
 }

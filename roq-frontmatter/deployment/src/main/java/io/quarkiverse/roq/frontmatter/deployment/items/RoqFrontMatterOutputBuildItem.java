@@ -3,8 +3,8 @@ package io.quarkiverse.roq.frontmatter.deployment.items;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import io.quarkiverse.roq.frontmatter.runtime.Page;
-import io.quarkiverse.roq.frontmatter.runtime.RoqCollections;
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
 import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RoqFrontMatterOutputBuildItem extends SimpleBuildItem {

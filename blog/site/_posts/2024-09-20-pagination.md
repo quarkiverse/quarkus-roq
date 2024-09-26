@@ -40,7 +40,7 @@ To add pagination controls, add something like this to `_includes/pagination.htm
       \{#if page.paginator.isSecond}
       <p><a class="newer-posts" href="\{site.url}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       \{#else}
-      <p><a class="newer-posts" href="\{page.paginator.previous.relative)}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      <p><a class="newer-posts" href="\{page.paginator.previous)}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
       \{/if}
       \{/if}
 
@@ -49,7 +49,7 @@ To add pagination controls, add something like this to `_includes/pagination.htm
       \{/if}
 
       \{#if page.paginator.next}
-      <p><a class="older-posts" href="\{page.paginator.next.relative)}"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
+      <p><a class="older-posts" href="\{page.paginator.next)}"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
       \{/if}
     </ul>
   </nav>

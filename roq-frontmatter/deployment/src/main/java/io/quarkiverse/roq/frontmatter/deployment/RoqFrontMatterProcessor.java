@@ -2,7 +2,6 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGINATE_LINK_TEMPLATE;
-import static io.quarkiverse.roq.frontmatter.runtime.NormalPage.*;
 import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.util.*;
@@ -15,10 +14,12 @@ import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.deployment.Link.LinkData;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.*;
-import io.quarkiverse.roq.frontmatter.runtime.RoqCollection.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.Paginator;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -43,6 +44,10 @@ class RoqFrontMatterProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterProcessor.class);
     private static final String FEATURE = "roq-frontmatter";
 
+    private static final String LINK_KEY = "link";
+    private static final String PAGINATE_KEY = "paginate";
+    private static final String COLLECTION_KEY = "collection";
+
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
@@ -63,15 +68,17 @@ class RoqFrontMatterProcessor {
         final Set<String> docTemplates = new HashSet<>();
         final Set<String> pageTemplates = new HashSet<>();
         for (RoqFrontMatterBuildItem item : roqFrontMatterBuildItems) {
-            final String name = removeExtension(item.templatePath());
-            LOGGER.tracef("Name without extension %s", name);
-            templatePathProducer.produce(TemplatePathBuildItem.builder().path(item.templatePath()).extensionInfo(FEATURE)
-                    .content(item.generatedContent()).build());
-            if (item.collection() != null) {
-                docTemplates.add(item.templatePath());
-            } else {
-                pageTemplates.add(item.templatePath());
+            templatePathProducer
+                    .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplatePath()).extensionInfo(FEATURE)
+                            .content(item.generatedContent()).build());
+            if (item.published()) {
+                if (item.collection() != null) {
+                    docTemplates.add(item.info().generatedTemplatePath());
+                } else {
+                    pageTemplates.add(item.info().generatedTemplatePath());
+                }
             }
+
         }
 
         if (config.generator()) {
@@ -104,7 +111,21 @@ class RoqFrontMatterProcessor {
     @BuildStep
     void registerForReflexion(BuildProducer<ReflectiveClassBuildItem> reflectiveClassBuildItemBuildProducer) {
         reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(Page.class).methods().fields().queryMethods().build());
+                .produce(ReflectiveClassBuildItem.builder(Page.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(RoqUrl.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(RootUrl.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(DocumentPage.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(NormalPage.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(RoqCollection.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(RoqCollections.class).methods().fields().build());
+        reflectiveClassBuildItemBuildProducer
+                .produce(ReflectiveClassBuildItem.builder(RoqCollection.Paginator.class).methods().fields().build());
     }
 
     @BuildStep
@@ -134,9 +155,9 @@ class RoqFrontMatterProcessor {
             return null;
         }
         final var byKey = roqFrontMatterBuildItems.stream()
-                .collect(Collectors.toMap(RoqFrontMatterBuildItem::key, Function.identity()));
-        final var collectionsInfo = new HashMap<String, List<PageInfo>>();
-        final Map<String, JsonObject> pagesInfo = new HashMap<>();
+                .collect(Collectors.toMap(RoqFrontMatterBuildItem::id, Function.identity()));
+        final var collectionsToPublish = new HashMap<String, List<PageToPublish>>();
+        final List<PageToPublish> pagesToPublish = new ArrayList<>();
         final Map<String, Supplier<? extends Page>> all = new HashMap<>();
         final List<Supplier<NormalPage>> pages = new ArrayList<>();
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
@@ -145,36 +166,36 @@ class RoqFrontMatterProcessor {
         // - detect paginated pages (to be added later)
         // - detect collections (to be added later)
         for (RoqFrontMatterBuildItem item : roqFrontMatterBuildItems) {
-            if (!item.visible()) {
+            if (!item.published()) {
                 continue;
             }
-            final String name = item.key();
+            final String name = item.info().id();
             final JsonObject data = mergeParents(item, byKey);
-            final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE), data);
-            data.put(LINK_KEY, link);
+            final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
+                    new LinkData(item.info().baseFileName(), item.info().date(), item.collection(), null, data));
             if (item.collection() != null) {
                 data.put(COLLECTION_KEY, item.collection());
-                collectionsInfo.computeIfAbsent(item.collection(), k -> new ArrayList<>())
-                        .add(new PageInfo(name, data));
+                collectionsToPublish.computeIfAbsent(item.collection(), k -> new ArrayList<>())
+                        .add(new PageToPublish(link, item.info(), data));
             } else {
-                pagesInfo.put(name, data);
+                pagesToPublish.add(new PageToPublish(link, item.info(), data));
             }
 
         }
 
         // Then we bind collections
         final Map<String, List<Supplier<DocumentPage>>> collectionSuppliers = new HashMap<>();
-        for (Map.Entry<String, List<PageInfo>> c : collectionsInfo.entrySet()) {
+        for (Map.Entry<String, List<PageToPublish>> c : collectionsToPublish.entrySet()) {
             final int collectionSize = c.getValue().size();
             for (int i = 0; i < collectionSize; i++) {
-                PageInfo p = c.getValue().get(i);
+                final PageToPublish p = c.getValue().get(i);
+                PageInfo info = p.info();
                 Integer prev = i > 0 ? i - 1 : null;
                 Integer next = i < collectionSize - 1 ? i + 1 : null;
-                p.data.put(PREVIOUS_INDEX_KEY, prev);
-                p.data.put(NEXT_INDEX_KEY, next);
-                final String link = p.data().getString(LINK_KEY);
-                final Supplier<DocumentPage> s = recorder.createDocument(rootUrl, p.name(), p.data());
-                all.put(link, s);
+                DocumentInfo doc = new DocumentInfo(c.getKey(), prev, next);
+                final Supplier<DocumentPage> s = recorder.createDocument(rootUrl.resolve(p.link()), info, doc,
+                        p.data());
+                all.put(p.link, s);
                 collectionSuppliers.computeIfAbsent(p.data().getString(COLLECTION_KEY), k -> new ArrayList<>())
                         .add(s);
             }
@@ -183,40 +204,59 @@ class RoqFrontMatterProcessor {
         AtomicReference<Supplier<NormalPage>> index = new AtomicReference<>();
 
         // Then we bind pages
-        for (Map.Entry<String, JsonObject> item : pagesInfo.entrySet()) {
-            final String name = item.getKey();
-            final JsonObject data = item.getValue();
-            if (item.getValue().containsKey(PAGINATE_KEY)) {
-                Paginate paginate = readPaginate(name, data);
-                List<PageInfo> collection = collectionsInfo.get(paginate.collection());
+        for (PageToPublish p : pagesToPublish) {
+            if (p.data().containsKey(PAGINATE_KEY)) {
+
+                Paginate paginate = readPaginate(p.info.id(), p.data);
+                List<PageToPublish> collection = collectionsToPublish.get(paginate.collection());
                 if (collection == null) {
                     throw new ConfigurationException(
-                            "Paginate collection not found '" + paginate.collection() + "' in " + name);
+                            "Paginate collection not found '" + paginate.collection() + "' in " + p.info.id());
                 }
                 final int total = collection.size();
                 if (paginate.size() <= 0) {
                     throw new ConfigurationException("Page size must be greater than zero.");
                 }
                 int countPages = (total + paginate.size() - 1) / paginate.size();
+
+                List<PageToPublish> paginatedPages = new ArrayList<>();
+                final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
+                for (int i = 1; i <= countPages; i++) {
+                    final String link = i == 1 ? p.link()
+                            : Link.link(config.rootPath(), linkTemplate, new LinkData(p.info().baseFileName(), p.info().date(),
+                                    paginate.collection(), Integer.toString(i), p.data()));
+                    PageInfo info = p.info();
+                    if (i > 1) {
+                        info = info.changeId(Link.link(config.rootPath(), linkTemplate,
+                                new LinkData(p.info().baseFileName(), p.info().date(),
+                                        paginate.collection(), Integer.toString(i), p.data())));
+                    }
+                    paginatedPages.add(new PageToPublish(link, info, p.data()));
+                }
+
                 for (int i = 1; i <= countPages; i++) {
                     Integer prev = i > 1 ? i - 1 : null;
                     Integer next = i <= countPages - 1 ? i + 1 : null;
-
-                    final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
-                    final JsonObject d = data.copy().put(COLLECTION_KEY, paginate.collection());
-                    PageUrl previousUrl = prev == null ? null
-                            : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", prev)));
-                    PageUrl nextUrl = next == null ? null
-                            : new PageUrl(rootUrl, Link.link(config.rootPath(), linkTemplate, d.put("page", next)));
+                    PageToPublish currentPage = paginatedPages.get(i - 1);
+                    PageToPublish previousPage = null;
+                    PageToPublish nextPage = null;
+                    RoqUrl previousUrl = null;
+                    RoqUrl nextUrl = null;
+                    if (prev != null) {
+                        previousPage = paginatedPages.get(prev - 1);
+                        previousUrl = rootUrl.resolve(previousPage.link());
+                    }
+                    if (next != null) {
+                        nextPage = paginatedPages.get(next - 1);
+                        nextUrl = rootUrl.resolve(nextPage.link());
+                    }
                     Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
                             previousUrl, next, nextUrl);
-                    final String link = i == 1 ? data.getString(LINK_KEY)
-                            : Link.link(config.rootPath(), linkTemplate, d.put("page", i));
-                    bindPage(recorder, name, pages, all, index, rootUrl, link, data, paginator);
+
+                    bindPage(recorder, pages, all, index, rootUrl, currentPage, currentPage.link(), paginator);
                 }
             } else {
-                final String link = data.getString(LINK_KEY);
-                bindPage(recorder, name, pages, all, index, rootUrl, link, data, null);
+                bindPage(recorder, pages, all, index, rootUrl, p, p.link, null);
             }
 
         }
@@ -227,7 +267,7 @@ class RoqFrontMatterProcessor {
         }
 
         final Supplier<RoqCollections> collectionsSupplier = recorder.createRoqCollections(collectionSuppliers);
-        final Supplier<Site> siteSupplier = recorder.createSite(index.get(), pages, collectionsSupplier);
+        final Supplier<Site> siteSupplier = recorder.createSite(rootUrl, index.get(), pages, collectionsSupplier);
         beansProducer.produce(SyntheticBeanBuildItem.configure(Site.class)
                 .scope(Singleton.class)
                 .unremovable()
@@ -238,18 +278,17 @@ class RoqFrontMatterProcessor {
     }
 
     private static void bindPage(RoqFrontMatterRecorder recorder,
-            String name,
             List<Supplier<NormalPage>> pages,
             Map<String, Supplier<? extends Page>> all,
             AtomicReference<Supplier<NormalPage>> index,
             RootUrl rootUrl,
+            PageToPublish page,
             String link,
-            JsonObject data,
             Paginator paginator) {
-        var p = recorder.createPage(rootUrl, name, data, paginator);
+        var p = recorder.createPage(rootUrl.resolve(link), page.info, page.data, paginator);
         all.put(link, p);
         pages.add(p);
-        if (name.equals("index")) {
+        if (page.info.id().equals("index")) {
             index.set(p);
         }
     }
@@ -270,18 +309,18 @@ class RoqFrontMatterProcessor {
         throw new ConfigurationException("Invalid pagination configuration in " + name);
     }
 
-    private record PageInfo(String name, JsonObject data) {
+    private record PageToPublish(String link, PageInfo info, JsonObject data) {
     }
 
     private static JsonObject mergeParents(RoqFrontMatterBuildItem item, Map<String, RoqFrontMatterBuildItem> byPath) {
         Stack<JsonObject> fms = new Stack<>();
         String parent = item.layout();
-        fms.add(item.fm());
+        fms.add(item.data());
         while (parent != null) {
             if (byPath.containsKey(parent)) {
                 final RoqFrontMatterBuildItem parentItem = byPath.get(parent);
                 parent = parentItem.layout();
-                fms.push(parentItem.fm());
+                fms.push(parentItem.data());
             } else {
                 parent = null;
             }
