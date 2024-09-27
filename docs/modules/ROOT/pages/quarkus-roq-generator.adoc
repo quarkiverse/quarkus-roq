@@ -1,3 +1,5 @@
+include::./includes/attributes.adoc[]
+
 = Quarkus Roq Generator
 
 It provides a command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).

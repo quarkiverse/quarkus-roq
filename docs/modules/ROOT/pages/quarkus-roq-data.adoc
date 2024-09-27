@@ -1,3 +1,5 @@
+include::./includes/attributes.adoc[]
+
 = Quarkus Roq Data
 
 Quarkus Roq Data is a Quarkus extension that register JSON/YAML files as CDI beans, and available from Qute templates, in a type-safe way in your project.

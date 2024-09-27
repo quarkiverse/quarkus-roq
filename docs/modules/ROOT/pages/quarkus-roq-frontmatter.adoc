@@ -1,3 +1,5 @@
+include::./includes/attributes.adoc[]
+
 = Quarkus Roq FrontMatter
 
 Quarkus Roq FrontMatter is a Quarkus extension that create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
