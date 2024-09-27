@@ -1,0 +1,118 @@
+= Quarkus Roq FrontMatter
+
+Quarkus Roq FrontMatter is a Quarkus extension that create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
+
+CAUTION: Roq FrontMatter is already included as part of the Roq Static Site Generator extension `io.quarkiverse.roq:quarkus-roq`, Follow <<standalone-installation>> section to use it standalone.
+
+include::includes/getting-started-frontmatter.adoc[]
+
+== Pagination
+
+Adding pagination to your Roq site is an easy way to improve content
+navigation. Let’s walk through how to implement pagination and customize
+its behavior in your site.
+
+=== Step 1: Iterate on the paginated collection
+
+First, include the following in your FrontMatter header on the page which will
+iterate on the paginated collection:
+
+[source,yaml]
+----
+paginate: posts
+----
+
+Next, in your template, loop through the paginated posts using:
+
+[source,html]
+----
+{#for post in site.collections.posts.paginated(page.paginator)}
+<article class="post">
+  ...
+</article>
+{/for}
+
+{#include pagination.html/}
+----
+
+=== Step 2: Including Pagination Controls
+
+To add pagination controls, create something like this in `_includes/pagination.html`:
+
+[source,html]
+----
+<div class="container">
+  <nav class="pagination" role="pagination">
+    <ul>
+      {#if page.paginator.previous}
+      {#if page.paginator.isSecond}
+      <p><a class="newer-posts" href="{site.url}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      {#else}
+      <p><a class="newer-posts" href="{page.paginator.previous)}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
+      {/if}
+      {/if}
+
+      {#if page.paginator.total > 1}
+      <p><span class="page-number">Page {page.paginator.currentIndex} of {page.paginator.total}</span></p>
+      {/if}
+
+      {#if page.paginator.next}
+      <p><a class="older-posts" href="{page.paginator.next)}"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
+      {/if}
+    </ul>
+  </nav>
+</div>
+----
+
+Just by doing so, Roq will generate a bunch of pages based on the pagination setting. For example with a pagination size of 4 and with 9 posts, you would get:
+
+* `index.html` (posts 1 to 4)
+* `posts/page-2` (posts 5 to 8)
+* `posts/page-3` (post 9)
+
+NOTE: the first page uses the declaring page link.
+
+
+You can further customize your pagination by setting the page size and link format:
+
+[source,yaml]
+----
+paginate:
+  size: 4
+  collection: posts
+  link: posts/page-:page
+----
+
+With these steps, you can create a flexible pagination system to improve your site’s navigation.
+
+
+== SEO
+
+TODO
+
+== Links
+
+TODO
+
+[[standalone-installation]]
+== Standalone installation
+
+NOTE: It is included as part of the Roq Static Site Generator extension `io.quarkiverse.roq:quarkus-roq`. You can also use it standalone.
+
+If you want to use this extension standalone, you need to add the `io.quarkiverse.roq:quarkus-roq-frontmatter` extension first to your build file.
+
+For instance, with Maven, add the following dependency to your POM file:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-frontmatter</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[[extension-configuration-reference]]
+== Extension Configuration Reference
+
+include::includes/quarkus-roq-frontmatter.adoc[leveloffset=+1, opts=optional]

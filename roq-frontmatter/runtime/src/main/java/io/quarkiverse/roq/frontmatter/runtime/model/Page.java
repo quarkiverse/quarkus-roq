@@ -2,8 +2,13 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
 
+import jakarta.enterprise.inject.Vetoed;
+
+import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
+@TemplateData
+@Vetoed
 public interface Page {
 
     PageInfo info();

@@ -21,6 +21,8 @@ public class RoqResourceTest {
         assertTrue(exists(Path.of("target/roq/roq-name-foo-html/index.html")));
         assertTrue(exists(Path.of("target/roq/roq-name-bar")));
         assertTrue(exists(Path.of("target/roq/roq-name-foo")));
+        assertTrue(exists(Path.of("target/roq/roq-name-foo2")));
+        assertTrue(exists(Path.of("target/roq/foo.json")));
         assertTrue(exists(Path.of("target/roq/assets/vector.svg")));
         assertTrue(exists(Path.of("target/roq/static/logo.svg")));
     }

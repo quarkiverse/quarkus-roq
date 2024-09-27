@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
-import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.vertx.core.Handler;

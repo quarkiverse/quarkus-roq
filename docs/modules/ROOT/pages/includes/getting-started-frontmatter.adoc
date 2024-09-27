@@ -1,0 +1,96 @@
+[[getting-started]]
+== Getting started
+
+By default, your site should be located in the `site` directory of your project root, or in the resources (i.e. `src/main/resources/site`).
+
+The site directory structure is:
+
+
+image::roq-dirs.png[Roq directory structure]
+
+// https://excalidraw.com/#json=r097DRsiEfB1ivnrhz5ky,X5N6SEHHofuhh7vII-81OQ
+
+
+NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
+
+
+=== Site index
+
+Your site index is required and should be located in `site/index.html`, it should include a FrontMatter header containing yaml data:
+[source,html]
+.index.html
+----
+---
+title: Hello, world! I'm Roq <1>
+description: I provide you with all the tools to generate static websites out of your Quarkus web application.
+layout: main //<2>
+---
+
+<h1>Hello World</h1>
+
+----
+
+<1> The index.html also describe your `site` information through a FrontMatter header
+<2> The layout to use (in this case `main` which refers to `site/_layout/main.html`)
+
+=== Variables
+
+You can use Qute to access site and pages data. For this use the `site` and `page` variables:
+
+* The `site` variable allow to access site global data from any page or document.
+* The `page` variable allow to access page data for the current page. It is available in layouts and includes and will contain the data for the page it is used from.
+
+=== Pages
+
+Any directory without the `_` prefix in the site directory will be scanned for pages content.
+
+For example:
+[source,html]
+.pages/events.html
+----
+---
+layout: main
+link: /events
+---
+
+{#for event in cdi:events.list}
+<article class="event">
+  <div class="event-content">
+    <h2 class="event-title">{event.title}</h2>
+    <p>{event.description}</p>
+    <span class="post-date">{event.parsedDate.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+  </div>
+</article>
+{/for}
+
+----
+
+=== Collections
+
+TODO
+
+=== Static files, Styles and Javascript
+
+NOTE: The Quarkus Web Bundler is included by default with the Roq extension.
+
+Put your static files in `src/main/resources/web/static`.
+
+You can add css and scripts in your static directory or bundle them.
+To use bundling scripts (js, ts) and styles (css, scss) should be located in `src/main/web/app/`. To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
+
+[source,html]
+._layouts/head.html
+----
+<head>
+  ...
+  {#bundle /}
+</head>
+----
+
+It will be rendered with the relevant `<script>` and `<style>` tags to include your bundle.
+
+You may also consume and bundle npm dependencies among other cool things.
+For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
+
+
+

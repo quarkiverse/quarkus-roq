@@ -2,7 +2,7 @@ package io.quarkiverse.roq.generator.runtime;
 
 public enum PageSource {
     /**
-     * This page is configured through {@link RoqGeneratorConfig#paths()}
+     * This page is configured through {@link RoqGeneratorConfig}
      */
     CONFIG,
 

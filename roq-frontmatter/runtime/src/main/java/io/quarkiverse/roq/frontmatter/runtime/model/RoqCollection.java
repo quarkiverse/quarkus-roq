@@ -9,6 +9,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import jakarta.enterprise.inject.Vetoed;
+
+import io.quarkus.qute.TemplateData;
+
+@TemplateData
+@Vetoed
 public class RoqCollection extends ArrayList<DocumentPage> {
 
     public RoqCollection(List<DocumentPage> documents) {
@@ -36,9 +42,9 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     }
 
     public List<DocumentPage> paginated(Paginator paginator) {
-        var zeroBasedCurrent = paginator.currentIndex - 1;
-        return this.subList(zeroBasedCurrent * paginator.limit,
-                Math.min(this.size(), (zeroBasedCurrent * paginator.limit) + paginator.limit));
+        var zeroBasedCurrent = paginator.currentIndex() - 1;
+        return this.subList(zeroBasedCurrent * paginator.limit(),
+                Math.min(this.size(), (zeroBasedCurrent * paginator.limit()) + paginator.limit()));
     }
 
     /**
@@ -82,34 +88,6 @@ public class RoqCollection extends ArrayList<DocumentPage> {
         }
 
         return resultMap;
-    }
-
-    public record Paginator(
-            String collection,
-            int collectionSize,
-            int limit,
-            int total,
-            int currentIndex,
-            Integer previousIndex,
-            RoqUrl previous,
-            Integer nextIndex,
-            RoqUrl next) {
-
-        public Integer prevIndex() {
-            return previousIndex();
-        }
-
-        public RoqUrl prev() {
-            return previous();
-        }
-
-        public boolean isFirst() {
-            return currentIndex == 1;
-        }
-
-        public boolean isSecond() {
-            return currentIndex == 2;
-        }
     }
 
 }
