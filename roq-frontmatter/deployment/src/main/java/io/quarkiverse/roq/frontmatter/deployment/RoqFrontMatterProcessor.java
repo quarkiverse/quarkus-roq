@@ -19,7 +19,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.*;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
-import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -28,7 +28,6 @@ import io.quarkus.builder.BuildException;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -83,7 +82,7 @@ class RoqFrontMatterProcessor {
 
         if (config.generator()) {
             for (String path : roqOutput.all().keySet()) {
-                selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path))); // We add a trailing slash to make it detected as a html page
+                selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path), null)); // We add a trailing slash to make it detected as a html page
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }
@@ -104,28 +103,19 @@ class RoqFrontMatterProcessor {
 
     @BuildStep
     void registerAdditionalBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqTemplateExtension.class));
-        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqTemplateGlobal.class));
-    }
-
-    @BuildStep
-    void registerForReflexion(BuildProducer<ReflectiveClassBuildItem> reflectiveClassBuildItemBuildProducer) {
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(Page.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(RoqUrl.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(RootUrl.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(DocumentPage.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(NormalPage.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(RoqCollection.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(RoqCollections.class).methods().fields().build());
-        reflectiveClassBuildItemBuildProducer
-                .produce(ReflectiveClassBuildItem.builder(RoqCollection.Paginator.class).methods().fields().build());
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClasses(
+                        RoqTemplateExtension.class,
+                        RoqTemplateGlobal.class,
+                        Page.class,
+                        RoqUrl.class,
+                        RootUrl.class,
+                        DocumentPage.class,
+                        NormalPage.class,
+                        RoqCollections.class,
+                        RoqCollection.class,
+                        Paginator.class)
+                .setUnremovable().build());
     }
 
     @BuildStep
@@ -147,7 +137,7 @@ class RoqFrontMatterProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    RoqFrontMatterOutputBuildItem bindFrontMatterData(HttpBuildTimeConfig httpConfig, RoqSiteConfig config,
+    RoqFrontMatterOutputBuildItem bindFrontMatterSite(HttpBuildTimeConfig httpConfig, RoqSiteConfig config,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqFrontMatterBuildItem> roqFrontMatterBuildItems,
             RoqFrontMatterRecorder recorder) throws BuildException {
@@ -169,7 +159,6 @@ class RoqFrontMatterProcessor {
             if (!item.published()) {
                 continue;
             }
-            final String name = item.info().id();
             final JsonObject data = mergeParents(item, byKey);
             final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
                     new LinkData(item.info().baseFileName(), item.info().date(), item.collection(), null, data));

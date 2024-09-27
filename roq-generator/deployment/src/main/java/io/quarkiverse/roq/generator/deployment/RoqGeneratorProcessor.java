@@ -5,6 +5,7 @@ import static java.util.function.Predicate.not;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
@@ -52,7 +53,8 @@ class RoqGeneratorProcessor {
                     .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
                     .toList());
         }
-        recorder.setSelectedPaths(selectedPaths.stream().map(SelectedPathBuildItem::path).toList());
+        recorder.setSelectedPathsFromBuildItem(selectedPaths.stream()
+                .collect(Collectors.toMap(SelectedPathBuildItem::path, SelectedPathBuildItem::outputPath)));
         recorder.setStaticPaths(staticPaths);
         recorder.setOutputTarget(outputTarget.getOutputDirectory().toAbsolutePath().toString());
     }

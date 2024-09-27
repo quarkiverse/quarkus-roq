@@ -1,7 +1,12 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import io.quarkiverse.roq.util.PathUtils;
+import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.util.PathUtils;
+import io.quarkus.qute.TemplateData;
+
+@TemplateData
+@Vetoed
 public record RootUrl(String url, String rootPath) {
     public RootUrl(String url, String rootPath) {
         this.url = url;

@@ -2,6 +2,12 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.util.Map;
 
+import jakarta.enterprise.inject.Vetoed;
+
+import io.quarkus.qute.TemplateData;
+
+@TemplateData
+@Vetoed
 public record RoqCollections(Map<String, RoqCollection> collections) {
     public RoqCollection get(String name) {
         return collections.get(name);

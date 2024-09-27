@@ -1,7 +1,12 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import jakarta.enterprise.inject.Vetoed;
+
+import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
+@TemplateData
+@Vetoed
 public record DocumentPage(
         RoqUrl url,
         PageInfo info,

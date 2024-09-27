@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jakarta.enterprise.inject.Produces;
@@ -19,7 +20,7 @@ public class ConfiguredPathsProvider {
     RoqGeneratorConfig config;
 
     private static volatile Set<String> staticPaths;
-    private static volatile List<String> selectedPaths;
+    private static volatile Map<String, String> selectedPathsFromBuildItem;
 
     public static void setStaticPaths(Set<String> staticPaths) {
         ConfiguredPathsProvider.staticPaths = staticPaths;
@@ -29,8 +30,8 @@ public class ConfiguredPathsProvider {
         ConfiguredPathsProvider.targetDir = targetDir;
     }
 
-    public static void setSelectedPaths(List<String> selectedPaths) {
-        ConfiguredPathsProvider.selectedPaths = selectedPaths;
+    public static void setSelectedPathsFromBuildItem(Map<String, String> selectedPaths) {
+        ConfiguredPathsProvider.selectedPathsFromBuildItem = selectedPaths;
     }
 
     public static String targetDir() {
@@ -41,6 +42,9 @@ public class ConfiguredPathsProvider {
     @Singleton
     RoqSelection produce() {
         List<SelectedPath> selectedPaths = new ArrayList<>();
+        for (var e : config.customPaths().entrySet()) {
+            selectedPaths.add(SelectedPath.builder().path(e.getKey()).outputPath(e.getValue()).sourceConfig().build());
+        }
         for (String p : config.paths().orElse(List.of())) {
             if (!isGlobPattern(p) && p.startsWith("/")) {
                 // fixed paths are directly added
@@ -58,15 +62,14 @@ public class ConfiguredPathsProvider {
             }
 
         }
-        for (String selectedPath : ConfiguredPathsProvider.selectedPaths) {
-            selectedPaths.add(SelectedPath.builder().sourceBuildItem().path(selectedPath).build());
+        for (var e : ConfiguredPathsProvider.selectedPathsFromBuildItem.entrySet()) {
+            selectedPaths.add(SelectedPath.builder().sourceBuildItem().path(e.getKey()).outputPath(e.getValue()).build());
         }
         return new RoqSelection(selectedPaths);
     }
 
     private static boolean isGlobPattern(String s) {
         // Check if the string contains any glob pattern special characters
-        return s.contains("*") || s.contains("?") || s.contains("{") || s.contains("}") || s.contains("[") || s.contains("]")
-                || s.contains("**");
+        return s.contains("*") || s.contains("{") || s.contains("}") || s.contains("[") || s.contains("]");
     }
 }

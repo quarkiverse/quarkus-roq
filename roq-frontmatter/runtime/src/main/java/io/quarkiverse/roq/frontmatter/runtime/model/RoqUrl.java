@@ -5,8 +5,13 @@ import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import io.quarkiverse.roq.util.PathUtils;
+import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.util.PathUtils;
+import io.quarkus.qute.TemplateData;
+
+@TemplateData
+@Vetoed
 public record RoqUrl(RootUrl rootUrl, String path) {
 
     public RoqUrl(RootUrl rootUrl, String path) {

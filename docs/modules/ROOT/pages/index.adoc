@@ -2,9 +2,13 @@
 
 include::./includes/attributes.adoc[]
 
-Quarkus Roq includes robust tooling for generating a static website from your Quarkus application.
+The Roq Static Site Generator extension allows to easily create a static website or blog using Quarkus super-powers.
 
-* xref:quarkus-roq-data.adoc[*Roq Data*] - Use json/yaml files content from your templates and articles with type safety.
+Roq already includes a set of extensions which can also be used standalone:
+
+* xref:quarkus-roq-data.adoc[*Roq Data*]: Use json/yaml files content from your templates and articles with type safety.
+* xref:quarkus-roq-frontmatter.adoc[*Roq FrontMatter*]:  Create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
+* xref:quarkus-roq-generator.adoc[*Roq Generator*]: Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
 
 == Installation
 
@@ -20,6 +24,31 @@ For instance, with Maven, add the following dependency to your POM file:
     <version>{project-version}</version>
 </dependency>
 ----
+
+include::includes/getting-started-frontmatter.adoc[]
+
+[[custom-site-dir]]
+== Configure a custom Roq site directory
+
+It can be located in a resource directory such as `src/main/resources/my-site`:
+[source,properties]
+.application.properties
+----
+quarkus.roq.resource-dir=my-site
+----
+
+or in your project directory such as `my-site`:
+[source,properties]
+.application.properties
+----
+quarkus.roq.dir=my-site
+----
+
+
+
+
+
+
 
 [[extension-configuration-reference]]
 == Extension Configuration Reference

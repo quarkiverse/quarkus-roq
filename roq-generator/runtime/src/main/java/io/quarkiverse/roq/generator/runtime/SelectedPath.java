@@ -62,7 +62,7 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
         }
 
         public SelectedPath build() {
-            if (outputPath == null) {
+            if (outputPath == null || outputPath.isEmpty()) {
                 outputPath = defaultOutputPath(path);
             }
             if (outputPath.startsWith("/")) {
