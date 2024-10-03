@@ -46,15 +46,16 @@ public class RoqFrontMatterRecorder {
         return () -> new NormalPage(url, info, data, paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(RoqUrl url, PageInfo info, DocumentInfo doc, JsonObject data) {
-        return () -> new DocumentPage(url, info, doc, data);
+    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageInfo info, JsonObject data) {
+        return () -> new DocumentPage(collection, url, info, data);
     }
 
-    public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage, List<Supplier<NormalPage>> pagesSuppliers,
+    public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage,
+            List<Supplier<NormalPage>> normalPagesSuppliers,
             Supplier<RoqCollections> roqCollectionsSupplier) {
         return () -> {
             final List<NormalPage> pages = new ArrayList<>();
-            for (Supplier<NormalPage> pagesSupplier : pagesSuppliers) {
+            for (Supplier<NormalPage> pagesSupplier : normalPagesSuppliers) {
                 pages.add(pagesSupplier.get());
             }
             return new Site(rootUrl, indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesPath()),

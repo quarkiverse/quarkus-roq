@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.deployment;
+package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -68,13 +68,14 @@ public class RoqFrontMatterScanProcessor {
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
             RoqJacksonBuildItem jackson,
-            BuildProducer<RoqFrontMatterBuildItem> dataProducer,
+            BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             RoqFrontMatterConfig roqDataConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
         try {
-            Set<RoqFrontMatterBuildItem> items = resolveItems(roqProject, jackson.getYamlMapper(), roqDataConfig, watch);
+            Set<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject, jackson.getYamlMapper(), roqDataConfig,
+                    watch);
 
-            for (RoqFrontMatterBuildItem item : items) {
+            for (RoqFrontMatterRawTemplateBuildItem item : items) {
                 dataProducer.produce(item);
             }
 
@@ -83,10 +84,10 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
-    public Set<RoqFrontMatterBuildItem> resolveItems(RoqProjectBuildItem roqProject, YAMLMapper mapper,
+    public Set<RoqFrontMatterRawTemplateBuildItem> resolveItems(RoqProjectBuildItem roqProject, YAMLMapper mapper,
             RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
 
-        HashSet<RoqFrontMatterBuildItem> items = new HashSet<>();
+        HashSet<RoqFrontMatterRawTemplateBuildItem> items = new HashSet<>();
         roqProject.consumeRoqDir(site -> {
             if (Files.isDirectory(site)) {
                 for (String includesDir : roqDataConfig.includesDirs()) {
@@ -138,7 +139,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private static Consumer<Path> addBuildItem(Path root, HashSet<RoqFrontMatterBuildItem> items, YAMLMapper mapper,
+    private static Consumer<Path> addBuildItem(Path root, HashSet<RoqFrontMatterRawTemplateBuildItem> items, YAMLMapper mapper,
             RoqFrontMatterConfig config, BuildProducer<HotDeploymentWatchedFileBuildItem> watch, String collection,
             boolean isLayout) {
         return file -> {
@@ -174,11 +175,13 @@ public class RoqFrontMatterScanProcessor {
                             sourcePath, templatePath);
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
                     final String generatedTemplate = generateTemplate(relative, layout, content);
-                    items.add(new RoqFrontMatterBuildItem(info, layout, fm, collection, generatedTemplate, !isLayout));
+                    items.add(
+                            new RoqFrontMatterRawTemplateBuildItem(info, layout, fm, collection, generatedTemplate, !isLayout));
                 } else {
                     PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, sourcePath, templatePath);
                     items.add(
-                            new RoqFrontMatterBuildItem(info, null, new JsonObject(), collection, fullContent, !isLayout));
+                            new RoqFrontMatterRawTemplateBuildItem(info, null, new JsonObject(), collection, fullContent,
+                                    !isLayout));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error while reading the FrontMatter file %s"
