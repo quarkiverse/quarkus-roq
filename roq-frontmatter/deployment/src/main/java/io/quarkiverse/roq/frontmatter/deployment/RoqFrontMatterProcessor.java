@@ -2,9 +2,17 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGINATE_LINK_TEMPLATE;
-import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -12,20 +20,33 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import org.jboss.logging.Logger;
-
 import io.quarkiverse.roq.frontmatter.deployment.Link.LinkData;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.*;
-import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
+import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.builder.BuildException;
-import io.quarkus.deployment.annotations.*;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Consume;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
@@ -40,7 +61,6 @@ import io.vertx.core.json.JsonObject;
 
 class RoqFrontMatterProcessor {
 
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterProcessor.class);
     private static final String FEATURE = "roq-frontmatter";
 
     private static final String LINK_KEY = "link";
@@ -92,9 +112,11 @@ class RoqFrontMatterProcessor {
             if (docTemplates.contains(c.getTemplateId())) {
                 c.addParameter("page", DocumentPage.class.getName());
                 c.addParameter("site", Site.class.getName());
+                c.addParameter("tag", String.class.getName());
             } else if (pageTemplates.contains(c.getTemplateId())) {
                 c.addParameter("page", NormalPage.class.getName());
                 c.addParameter("site", Site.class.getName());
+                c.addParameter("tag", String.class.getName());
             }
 
         }));
