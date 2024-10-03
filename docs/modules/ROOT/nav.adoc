@@ -1,3 +1,4 @@
-* xref:index.adoc[Getting started]
-* xref:quarkus-roq-data.adoc[Quarkus Roq Data]
-* xref:quarkus-roq-generator.adoc[Quarkus Roq Generator]
+* xref:index.adoc[Static Site Generator]
+* xref:quarkus-roq-data.adoc[Data]
+* xref:quarkus-roq-frontmatter.adoc[FrontMatter]
+* xref:quarkus-roq-generator.adoc[Generator]
