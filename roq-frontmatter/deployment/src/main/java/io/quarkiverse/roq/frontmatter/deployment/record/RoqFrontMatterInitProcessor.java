@@ -49,7 +49,7 @@ class RoqFrontMatterInitProcessor {
 
             List<Supplier<DocumentPage>> docs = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
-                final RoqUrl url = rootUrlItem.rootUrl().resolve(item.link());
+                final RoqUrl url = item.url();
                 final Supplier<DocumentPage> document = recorder.createDocument(item.collection(),
                         url,
                         item.info(), item.data());

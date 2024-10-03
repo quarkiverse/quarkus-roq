@@ -23,7 +23,8 @@ public class RoqFrontMatterDataProcessor {
     private static final String PAGINATE_KEY = "paginate";
 
     @BuildStep
-    void prepareData(HttpBuildTimeConfig httpConfig, RoqSiteConfig config,
+    void prepareData(HttpBuildTimeConfig httpConfig,
+            RoqSiteConfig config,
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
             BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
             BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
@@ -46,7 +47,8 @@ public class RoqFrontMatterDataProcessor {
                     new Link.LinkData(item.info().baseFileName(), item.info().date(), item.collection(), null, data));
             if (item.collection() != null) {
                 documentTemplatesProducer
-                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item, link, item.collection(), data));
+                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item, rootUrl.resolve(link), item.collection(),
+                                data));
             } else {
                 if (data.containsKey(PAGINATE_KEY)) {
                     // Pagination is created needs collections size so it's produced after

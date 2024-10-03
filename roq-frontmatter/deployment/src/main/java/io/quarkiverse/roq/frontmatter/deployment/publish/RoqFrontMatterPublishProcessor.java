@@ -32,7 +32,7 @@ class RoqFrontMatterPublishProcessor {
             List<RoqFrontMatterDocumentTemplateBuildItem> documentTemplates,
             BuildProducer<RoqFrontMatterPublishDocumentPageBuildItem> publishDocuments) {
         for (RoqFrontMatterDocumentTemplateBuildItem documentTemplate : documentTemplates) {
-            publishDocuments.produce(new RoqFrontMatterPublishDocumentPageBuildItem(documentTemplate.link(),
+            publishDocuments.produce(new RoqFrontMatterPublishDocumentPageBuildItem(documentTemplate.url(),
                     documentTemplate.item().info(), documentTemplate.collection(), documentTemplate.data()));
         }
     }
