@@ -1,12 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.inject.Vetoed;
@@ -24,17 +18,19 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     }
 
     public DocumentPage resolveNextPage(DocumentPage page) {
-        if (page.nextIndex() == null) {
+        final int i = this.indexOf(page);
+        if (i == -1 || i >= this.size() - 1) {
             return null;
         }
-        return this.get(page.nextIndex());
+        return this.get(i + 1);
     }
 
     public DocumentPage resolvePreviousPage(DocumentPage page) {
-        if (page.previousIndex() == null) {
+        final int i = this.indexOf(page);
+        if (i <= 0) {
             return null;
         }
-        return this.get(page.previousIndex());
+        return this.get(i - 1);
     }
 
     public DocumentPage resolvePrevPage(DocumentPage page) {

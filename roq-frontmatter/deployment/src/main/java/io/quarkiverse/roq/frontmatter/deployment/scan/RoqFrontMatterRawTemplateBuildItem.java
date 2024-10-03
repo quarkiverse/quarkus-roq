@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.deployment.items;
+package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * A build item representing a Roq fm file.
  */
-public final class RoqFrontMatterBuildItem extends MultiBuildItem {
+public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     private final PageInfo info;
 
@@ -17,7 +17,7 @@ public final class RoqFrontMatterBuildItem extends MultiBuildItem {
     private final String layout;
 
     /**
-     * The FrontMatter data
+     * The FrontMatter data (it is not merged with parents at this stage)
      */
     private final JsonObject data;
 
@@ -33,7 +33,8 @@ public final class RoqFrontMatterBuildItem extends MultiBuildItem {
      */
     private final boolean published;
 
-    public RoqFrontMatterBuildItem(PageInfo info, String layout, JsonObject data, String collection, String generatedTemplate,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, JsonObject data, String collection,
+            String generatedTemplate,
             boolean published) {
         this.info = info;
         this.layout = layout;

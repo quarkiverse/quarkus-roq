@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.deployment.items;
+package io.quarkiverse.roq.frontmatter.deployment;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -9,17 +9,17 @@ import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RoqFrontMatterOutputBuildItem extends SimpleBuildItem {
 
-    private final Map<String, Supplier<? extends Page>> all;
+    private final Map<String, Supplier<? extends Page>> allPagesByPath;
     private final Supplier<RoqCollections> roqCollectionsSupplier;
 
-    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<? extends Page>> all,
+    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<? extends Page>> allPagesByPath,
             Supplier<RoqCollections> roqCollectionsSupplier) {
-        this.all = all;
+        this.allPagesByPath = allPagesByPath;
         this.roqCollectionsSupplier = roqCollectionsSupplier;
     }
 
-    public Map<String, Supplier<? extends Page>> all() {
-        return all;
+    public Map<String, Supplier<? extends Page>> allPagesByPath() {
+        return allPagesByPath;
     }
 
     public Supplier<RoqCollections> roqCollectionsSupplier() {
