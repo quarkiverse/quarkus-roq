@@ -1,21 +1,27 @@
 package io.quarkiverse.roq.frontmatter.deployment.publish;
 
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGINATE_LINK_TEMPLATE;
+import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.PAGINATE_KEY;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.Link;
-import io.quarkiverse.roq.frontmatter.deployment.Link.LinkData;
 import io.quarkiverse.roq.frontmatter.deployment.Paginate;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginateTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -24,8 +30,6 @@ import io.vertx.core.json.JsonObject;
 class RoqFrontMatterPublishProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterPublishProcessor.class);
-
-    private static final String PAGINATE_KEY = "paginate";
 
     @BuildStep
     public void publishCollections(
@@ -42,25 +46,34 @@ class RoqFrontMatterPublishProcessor {
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
             List<RoqFrontMatterPaginateTemplateBuildItem> paginationList,
-            List<RoqFrontMatterPublishDocumentPageBuildItem> documents) {
+            List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
+            List<RoqFrontMatterPublishDerivedCollectionBuildItem> derivedCollections) {
         if (paginationList.isEmpty() || rootUrlItem == null) {
             return;
         }
         final RootUrl rootUrl = rootUrlItem.rootUrl();
-        final Map<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
-                .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
+        final Map<String, AtomicInteger> sizeByCollection = new HashMap<>();
+
+        for (RoqFrontMatterPublishDocumentPageBuildItem document : documents) {
+            sizeByCollection.computeIfAbsent(document.collection(), k -> new AtomicInteger()).incrementAndGet();
+        }
+
+        for (RoqFrontMatterPublishDerivedCollectionBuildItem derivedCollection : derivedCollections) {
+            sizeByCollection.computeIfAbsent(derivedCollection.collection(), k -> new AtomicInteger())
+                    .addAndGet(derivedCollection.documentIds().size());
+        }
 
         for (RoqFrontMatterPaginateTemplateBuildItem pagination : paginationList) {
             final RoqFrontMatterRawTemplateBuildItem item = pagination.item();
             final JsonObject data = pagination.data();
             final String link = pagination.link();
-            Paginate paginate = readPaginate(item.id(), data);
-            List<RoqFrontMatterPublishDocumentPageBuildItem> collection = byCollection.get(paginate.collection());
-            if (collection == null) {
+            Paginate paginate = readPaginate(item.id(), data, pagination.defaultPaginatedCollection());
+            AtomicInteger collectionSize = sizeByCollection.get(paginate.collection());
+            if (collectionSize == null) {
                 throw new ConfigurationException(
                         "Paginate collection not found '" + paginate.collection() + "' in " + item.id());
             }
-            final int total = collection.size();
+            final int total = collectionSize.get();
             if (paginate.size() <= 0) {
                 throw new ConfigurationException("Page size must be greater than zero.");
             }
@@ -70,14 +83,12 @@ class RoqFrontMatterPublishProcessor {
             final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
             for (int i = 1; i <= countPages; i++) {
                 final String paginatedLink = i == 1 ? link
-                        : Link.link(config.rootPath(), linkTemplate,
-                                new LinkData(item.info().baseFileName(), item.info().date(),
+                        : Link.paginateLink(config.rootPath(), linkTemplate,
+                                new Link.PaginateLinkData(item.info().baseFileName(), item.info().date(),
                                         paginate.collection(), Integer.toString(i), data));
                 PageInfo info = item.info();
                 if (i > 1) {
-                    info = info.changeId(Link.link(config.rootPath(), linkTemplate,
-                            new LinkData(item.info().baseFileName(), item.info().date(),
-                                    paginate.collection(), Integer.toString(i), data)));
+                    info = info.changeId(paginatedLink);
                 }
                 paginatedPages.add(new PageToPublish(paginatedLink, info, data));
             }
@@ -107,18 +118,24 @@ class RoqFrontMatterPublishProcessor {
 
     }
 
-    private static Paginate readPaginate(String name, JsonObject data) {
+    private static Paginate readPaginate(String name, JsonObject data, String defaultCollection) {
         final Object value = data.getValue(PAGINATE_KEY);
         if (value instanceof JsonObject paginate) {
-            final String collection = paginate.getString("collection");
+            final String collection = paginate.getString("collection", defaultCollection);
             if (collection == null) {
                 throw new ConfigurationException("Invalid pagination configuration in " + name);
             }
             return new Paginate(paginate.getInteger("size", 5), paginate.getString("link", DEFAULT_PAGINATE_LINK_TEMPLATE),
                     collection);
         }
-        if (value instanceof String) {
-            return new Paginate(5, DEFAULT_PAGINATE_LINK_TEMPLATE, (String) value);
+        if (value instanceof String collection) {
+            return new Paginate(5, DEFAULT_PAGINATE_LINK_TEMPLATE, collection);
+        }
+        if (value instanceof Boolean paginate && paginate) {
+            if (defaultCollection == null) {
+                throw new ConfigurationException("Invalid pagination configuration in " + name);
+            }
+            return new Paginate(5, DEFAULT_PAGINATE_LINK_TEMPLATE, defaultCollection);
         }
         throw new ConfigurationException("Invalid pagination configuration in " + name);
     }

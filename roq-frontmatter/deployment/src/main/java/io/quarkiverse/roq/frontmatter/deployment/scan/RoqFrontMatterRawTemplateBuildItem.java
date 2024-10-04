@@ -17,6 +17,14 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final String layout;
 
     /**
+     * true if it's a page template.
+     * or false if it's an include template.
+     *
+     * Include template should not be published.
+     */
+    private final boolean isPage;
+
+    /**
      * The FrontMatter data (it is not merged with parents at this stage)
      */
     private final JsonObject data;
@@ -33,15 +41,20 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final boolean published;
 
-    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, JsonObject data, String collection,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data, String collection,
             String generatedTemplate,
             boolean published) {
         this.info = info;
         this.layout = layout;
+        this.isPage = isPage;
         this.data = data;
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
         this.published = published;
+    }
+
+    public boolean isPage() {
+        return isPage;
     }
 
     public String id() {

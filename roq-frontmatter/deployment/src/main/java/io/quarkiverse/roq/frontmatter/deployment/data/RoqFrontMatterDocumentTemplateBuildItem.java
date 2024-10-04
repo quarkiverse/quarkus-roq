@@ -10,7 +10,8 @@ import io.vertx.core.json.JsonObject;
 /**
  * This is NOT meant to be produced by Roq extensions.
  * This is meant to process the data and then publish
- * {@link RoqFrontMatterPublishDocumentPageBuildItem} and {@link RoqFrontMatterPublishPageBuildItem}
+ * {@link RoqFrontMatterPublishDocumentPageBuildItem}, {@link RoqFrontMatterPublishPageBuildItem} and
+ * {@link io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem}
  */
 public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildItem {
     private final RoqFrontMatterRawTemplateBuildItem item;
