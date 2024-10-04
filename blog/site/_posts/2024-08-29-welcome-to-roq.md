@@ -4,6 +4,7 @@ title: "Welcome to Roq!"
 date: 2024-08-29 13:32:20 +0200
 description: This is the first article ever made with Quarkus Roq
 img: posts/2024/08/blogging.jpg
+tags: blogging
 author: ia3andy
 ---
 

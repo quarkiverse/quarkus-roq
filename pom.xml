@@ -22,6 +22,7 @@
         <module>roq-frontmatter</module>
         <module>roq/runtime</module>
         <module>roq/deployment</module>
+        <module>plugin</module>
     </modules>
 
     <scm>
