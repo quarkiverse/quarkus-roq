@@ -1,8 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+import static org.aesh.readline.terminal.Key.e;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -14,6 +16,7 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
@@ -37,26 +40,43 @@ class RoqFrontMatterInitProcessor {
     void bindCollections(
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
+            List<RoqFrontMatterPublishDerivedCollectionBuildItem> generatedCollections,
             BuildProducer<RoqFrontMatterCollectionBuildItem> collectionsProducer,
             BuildProducer<RoqFrontMatterPageBuildItem> pagesProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
             return;
         }
+
+        // Published collections
         final Map<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
                 .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
+        final Map<String, Supplier<DocumentPage>> documentsById = new HashMap<>();
         for (Map.Entry<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
-
             List<Supplier<DocumentPage>> docs = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
                 final RoqUrl url = item.url();
                 final Supplier<DocumentPage> document = recorder.createDocument(item.collection(),
                         url,
                         item.info(), item.data());
+                documentsById.put(item.info().id(), document);
                 pagesProducer.produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, document));
                 docs.add(document);
             }
             collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(e.getKey(), docs));
+        }
+
+        // Derived collections (referencing existing documents)
+        for (RoqFrontMatterPublishDerivedCollectionBuildItem i : generatedCollections) {
+            List<Supplier<DocumentPage>> docs = new ArrayList<>();
+            for (String id : i.documentIds()) {
+                final Supplier<DocumentPage> doc = documentsById.get(id);
+                if (doc == null) {
+                    throw new IllegalStateException("No document found for id " + id);
+                }
+                docs.add(doc);
+            }
+            collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(i.collection(), docs));
         }
     }
 

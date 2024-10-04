@@ -19,8 +19,8 @@ import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterDataProcessor {
 
-    private static final String LINK_KEY = "link";
-    private static final String PAGINATE_KEY = "paginate";
+    public static final String LINK_KEY = "link";
+    public static final String PAGINATE_KEY = "paginate";
 
     @BuildStep
     void prepareData(HttpBuildTimeConfig httpConfig,
@@ -43,8 +43,8 @@ public class RoqFrontMatterDataProcessor {
                 continue;
             }
             final JsonObject data = mergeParents(item, byKey);
-            final String link = Link.link(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
-                    new Link.LinkData(item.info().baseFileName(), item.info().date(), item.collection(), null, data));
+            final String link = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
+                    new Link.PageLinkData(item.info().baseFileName(), item.info().date(), item.collection(), data));
             if (item.collection() != null) {
                 documentTemplatesProducer
                         .produce(new RoqFrontMatterDocumentTemplateBuildItem(item, rootUrl.resolve(link), item.collection(),
@@ -52,7 +52,7 @@ public class RoqFrontMatterDataProcessor {
             } else {
                 if (data.containsKey(PAGINATE_KEY)) {
                     // Pagination is created needs collections size so it's produced after
-                    paginatedPagesProducer.produce(new RoqFrontMatterPaginateTemplateBuildItem(item, link, data));
+                    paginatedPagesProducer.produce(new RoqFrontMatterPaginateTemplateBuildItem(item, null, link, data));
                 } else {
                     pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(link, item.info(), data, null));
                 }

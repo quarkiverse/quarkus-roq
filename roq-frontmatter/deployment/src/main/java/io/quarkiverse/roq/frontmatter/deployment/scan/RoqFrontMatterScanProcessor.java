@@ -98,7 +98,7 @@ public class RoqFrontMatterScanProcessor {
                             stream
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
-                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, watch, null, true));
+                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, watch, null, false));
                         } catch (IOException e) {
                             throw new RuntimeException("Was not possible to scan includes dir %s".formatted(dir), e);
                         }
@@ -115,7 +115,7 @@ public class RoqFrontMatterScanProcessor {
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
                                     .forEach(addBuildItem(dir, items, mapper, roqDataConfig, watch, collectionsDir.getValue(),
-                                            false));
+                                            true));
                         } catch (IOException e) {
                             throw new RuntimeException("Was not possible to scan includes dir %s".formatted(dir), e);
                         }
@@ -128,7 +128,7 @@ public class RoqFrontMatterScanProcessor {
                             .filter(Files::isRegularFile)
                             .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
                             .filter(not(RoqFrontMatterScanProcessor::isFileExcluded))
-                            .forEach(addBuildItem(site, items, mapper, roqDataConfig, watch, null, false));
+                            .forEach(addBuildItem(site, items, mapper, roqDataConfig, watch, null, true));
                 } catch (IOException e) {
                     throw new RuntimeException("Was not possible to scan data files on location %s".formatted(site), e);
                 }
@@ -141,7 +141,7 @@ public class RoqFrontMatterScanProcessor {
     @SuppressWarnings("unchecked")
     private static Consumer<Path> addBuildItem(Path root, HashSet<RoqFrontMatterRawTemplateBuildItem> items, YAMLMapper mapper,
             RoqFrontMatterConfig config, BuildProducer<HotDeploymentWatchedFileBuildItem> watch, String collection,
-            boolean isLayout) {
+            boolean isPage) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
             var relative = toUnixPath(
@@ -176,12 +176,14 @@ public class RoqFrontMatterScanProcessor {
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
                     final String generatedTemplate = generateTemplate(relative, layout, content);
                     items.add(
-                            new RoqFrontMatterRawTemplateBuildItem(info, layout, fm, collection, generatedTemplate, !isLayout));
+                            new RoqFrontMatterRawTemplateBuildItem(info, layout, isPage, fm, collection, generatedTemplate,
+                                    isPage));
                 } else {
                     PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, sourcePath, templatePath);
                     items.add(
-                            new RoqFrontMatterRawTemplateBuildItem(info, null, new JsonObject(), collection, fullContent,
-                                    !isLayout));
+                            new RoqFrontMatterRawTemplateBuildItem(info, null, isPage, new JsonObject(), collection,
+                                    fullContent,
+                                    isPage));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error while reading the FrontMatter file %s"

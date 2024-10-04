@@ -7,13 +7,20 @@ import io.vertx.core.json.JsonObject;
 public final class RoqFrontMatterPaginateTemplateBuildItem extends MultiBuildItem {
 
     private final RoqFrontMatterRawTemplateBuildItem item;
+    private final String paginatedCollection;
     private final String link;
     private final JsonObject data;
 
-    public RoqFrontMatterPaginateTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem item, String link, JsonObject data) {
+    public RoqFrontMatterPaginateTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem item, String paginatedCollection,
+            String link, JsonObject data) {
         this.item = item;
+        this.paginatedCollection = paginatedCollection;
         this.link = link;
         this.data = data;
+    }
+
+    public String defaultPaginatedCollection() {
+        return paginatedCollection;
     }
 
     public RoqFrontMatterRawTemplateBuildItem item() {
