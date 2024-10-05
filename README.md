@@ -1,16 +1,20 @@
 <div align="center">
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-  <img src="https://github.com/quarkiverse/quarkus-roq/assets/2223984/0eb6642e-8dd3-4def-abb7-f63062ae755b" width="400" >
+  
+<img src="https://github.com/quarkiverse/quarkus-roq/assets/2223984/0eb6642e-8dd3-4def-abb7-f63062ae755b" width="400" >
 
 
 
 # Quarkus Roq
 
+
+  
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-31-orange.svg?style=flat-square)](#contributors-)[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
+
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 </div>
 
-[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
 
 The Roq Static Site Generator extension allows to easily create a static website or blog using Quarkus super-powers.
 
