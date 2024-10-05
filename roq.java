@@ -1,4 +1,5 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
 //DEPS io.vertx:vertx-core:4.5.7
 //DEPS io.vertx:vertx-web:4.5.7
 //DEPS io.netty:netty-all:4.1.109.Final
