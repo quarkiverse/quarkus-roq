@@ -18,6 +18,35 @@
       ]
     },
     {
+      "login": "mcruzdev",
+      "name": "Matheus Cruz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56329339?v=4",
+      "profile": "https://matheuscruz.dev",
+      "contributions": [
+        "code",
+        "ideas"
+    ]
+    },
+    {
+      "login": "melloware",
+      "name": "Melloware",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4399574?v=4",
+      "profile": "https://melloware.com",
+      "contributions": [
+        "code"
+      ]
+    }
+    {
+      "login": "maxandersen",
+      "name": "Max Rydahl Andersen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54129?v=4",
+      "profile": "https://xam.dk",
+      "contributions": [
+        "ideas",
+        "bug"
+    ]
+    },
+    {
       "login": "holly-cummins",
       "name": "Holly Cummins",
       "avatar_url": "https://avatars.githubusercontent.com/u/11509290?v=4",
