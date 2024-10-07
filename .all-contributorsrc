@@ -25,7 +25,7 @@
       "contributions": [
         "code",
         "ideas"
-    ]
+      ]
     },
     {
       "login": "melloware",
@@ -44,7 +44,7 @@
       "contributions": [
         "ideas",
         "bug"
-    ]
+      ]
     },
     {
       "login": "holly-cummins",
@@ -53,6 +53,15 @@
       "profile": "https://hollycummins.com",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "edewit",
+      "name": "Erik Jan de Wit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51133?v=4",
+      "profile": "http://blog.nerdin.ch",
+      "contributions": [
+        "code"
       ]
     }
   ],
