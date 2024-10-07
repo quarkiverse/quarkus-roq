@@ -24,6 +24,7 @@ public class RoqFrontMatterTest {
                     .addAsResource("site/_layouts/post.html")
                     .addAsResource("site/index.html")
                     .addAsResource("site/_posts/awesome-post.html")
+                    .addAsResource("site/_posts/2020-10-24-old-post.md")
                     .addAsResource("site/_posts/markdown-post.md")
                     .addAsResource("site/pages/cool-page.html"));
 
@@ -67,6 +68,12 @@ public class RoqFrontMatterTest {
                 .body("html.body.div.h1[1]", containsString("posts/markdown-post"))
                 .body("html.body.div.h2", equalTo("Hello, world! I'm Roq"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
+    }
+
+    @Test
+    public void testDateFileName() {
+        RestAssured.when().get("/bar/posts/old-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span", equalTo("2020-10-24T12:00Z[UTC]"));
     }
 
 }

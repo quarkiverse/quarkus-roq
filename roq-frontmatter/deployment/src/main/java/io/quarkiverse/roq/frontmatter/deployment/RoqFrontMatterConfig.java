@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.quarkus.runtime.annotations.ConfigDocDefault;
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -49,8 +50,14 @@ public interface RoqFrontMatterConfig {
     /**
      * Format for dates
      */
-    @WithDefault("yyyy-MM-dd HH:mm:ss Z")
+    @WithDefault("yyyy-MM-dd[ HH:mm][:ss][ Z]")
     String dateFormat();
+
+    /**
+     * The default timezone
+     */
+    @ConfigDocDefault("document timezone if provided or system timezone")
+    Optional<String> timeZone();
 
     /**
      * The directory names containing collections as key and the corresponding collection name as value (in the Roq site
