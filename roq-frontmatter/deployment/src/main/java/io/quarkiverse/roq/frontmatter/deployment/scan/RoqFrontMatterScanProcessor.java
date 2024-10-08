@@ -8,13 +8,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -38,6 +42,7 @@ public class RoqFrontMatterScanProcessor {
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*\\v---\\v", Pattern.DOTALL);
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
+    private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
 
     private record QuteMarkupSection(String open, String close) {
         public static final QuteMarkupSection MARKDOWN = new QuteMarkupSection("{#markdown}", "{/markdown}");
@@ -161,15 +166,7 @@ public class RoqFrontMatterScanProcessor {
                     }
                     final String layout = normalizedLayout(fm.getString("layout"));
                     final String content = stripFrontMatter(fullContent);
-                    String dateString = null;
-                    if (fm.containsKey(DATE_KEY)) {
-                        ZonedDateTime date = ZonedDateTime.parse(fm.getString(DATE_KEY),
-                                DateTimeFormatter.ofPattern(config.dateFormat()));
-                        if (!config.future() && date.isAfter(ZonedDateTime.now())) {
-                            return;
-                        }
-                        dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-                    }
+                    String dateString = parsePublishDate(file, fm, config);
 
                     PageInfo info = new PageInfo(id, draft, config.imagesPath(), dateString, content,
                             sourcePath, templatePath);
@@ -190,6 +187,31 @@ public class RoqFrontMatterScanProcessor {
                         .formatted(sourcePath), e);
             }
         };
+    }
+
+    protected static String parsePublishDate(Path file, JsonObject frontMatter, RoqFrontMatterConfig config) {
+        String dateString;
+        if (frontMatter.containsKey(DATE_KEY)) {
+            dateString = frontMatter.getString(DATE_KEY);
+        } else {
+            Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.getFileName().toString());
+            if (!matcher.find())
+                return null;
+            dateString = matcher.group(1);
+        }
+
+        ZonedDateTime date = new DateTimeFormatterBuilder().appendPattern(config.dateFormat())
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 12)
+                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+                .toFormatter()
+                .withZone(config.timeZone().isPresent() ? ZoneId.of(config.timeZone().get()) : ZoneId.systemDefault())
+                .parse(dateString, ZonedDateTime::from);
+        if (!config.future() && date.isAfter(ZonedDateTime.now())) {
+            return null;
+        }
+
+        return date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
     }
 
     private static String generateTemplate(String fileName, String layout, String content) {
