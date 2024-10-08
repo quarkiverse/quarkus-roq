@@ -4,7 +4,7 @@ title: "How to add syntax highlighting to your Roq site"
 date: 2024-09-20 11:00:00 +0200
 description: Learn how to integrate syntax highlighting into your Roq site using Highlight.js and the Quarkus web-bundler extension. This guide walks you through the simple steps to add it via the pom.xml, JavaScript, and SCSS files.
 img: https://images.unsplash.com/photo-1563206767-5b18f218e8de?q=80&w=3538&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-tags: js, styling, frontmatter, guide, cool-stuff
+tags: styling, frontmatter, guide, cool-stuff
 author: ia3andy
 ---
 

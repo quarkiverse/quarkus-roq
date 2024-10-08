@@ -117,4 +117,6 @@ For instance, with Maven, add the following dependency to your POM file:
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 
-include::includes/quarkus-roq-frontmatter.adoc[leveloffset=+1, opts=optional]
+include::includes/quarkus-roq-frontmatter_quarkus.roq.adoc[leveloffset=+1, opts=optional]
+
+include::includes/quarkus-roq-frontmatter_roq.site.adoc[leveloffset=+1, opts=optional]

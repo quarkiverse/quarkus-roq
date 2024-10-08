@@ -24,6 +24,15 @@ public class RoqTest {
     }
 
     @Test
+    public void testTag() {
+        given()
+                .when().get("/posts/tag/cool-stuff")
+                .then()
+                .statusCode(200)
+                .body(containsString("cool-stuff"));
+    }
+
+    @Test
     public void testPosts() {
         given()
                 .when().get("/posts/2024-08-29-welcome-to-roq")

@@ -17,10 +17,10 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDe
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class RoqPluginTaggingProcessor {
@@ -94,7 +94,7 @@ public class RoqPluginTaggingProcessor {
     }
 
     private static List<String> resolveTags(RoqFrontMatterDocumentTemplateBuildItem document) {
-        return getRawTags(document).stream().map(Link::slugify).toList();
+        return getRawTags(document).stream().map(RoqTemplateExtension::slugify).toList();
     }
 
     @SuppressWarnings("unchecked")
@@ -103,13 +103,7 @@ public class RoqPluginTaggingProcessor {
             return List.of();
         }
         final Object tags = document.data().getValue("tags");
-        if (tags instanceof String) {
-            return List.of(((String) tags).split("\\h*,\\h*|\\h{2,}"));
-        }
-        if (tags instanceof JsonArray) {
-            return ((JsonArray) tags).getList();
-        }
-        return List.of();
+        return RoqTemplateExtension.asStrings(tags);
     }
 
 }

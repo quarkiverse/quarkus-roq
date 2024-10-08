@@ -30,7 +30,10 @@ link: posts/:title
           <a href="https://plus.google.com/share?url={page.url.encoded}" title="Share on Google+" rel="nofollow" target="_blank">Google+</a>
         </div>
         <div class="page-tag">
-
+          {#for tag in page.data.tags.asStrings}
+          {#let tagSlug = tag.slugify}
+            <a href="{site.rootUrl.resolve('/posts/tag').resolve(tagSlug)}" class="tag">&#35; {tagSlug}</a>
+          {/for}
         </div>
       </div>
     </div> <!-- End Wrap Content -->
