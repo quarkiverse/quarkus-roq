@@ -1,11 +1,10 @@
 package io.quarkiverse.roq.it;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.junit.QuarkusTest;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 
 @QuarkusTest
 public class RoqTest {
@@ -52,6 +51,18 @@ public class RoqTest {
                 .statusCode(200)
                 .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."))
                 .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
+                .body(containsString("2024 &copy; ROQ"));
+    }
+
+    @Test
+    public void testAlias() {
+        given()
+                .when().get("/first-roq-article-ever")
+                .then()
+                .statusCode(200)
+                .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."))
+                .body(containsString("<p>Hello folks,</p>"))
+                .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
                 .body(containsString("2024 &copy; ROQ"));
     }
 }

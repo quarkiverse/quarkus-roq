@@ -2,7 +2,9 @@ package io.quarkiverse.roq.frontmatter.deployment.data;
 
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

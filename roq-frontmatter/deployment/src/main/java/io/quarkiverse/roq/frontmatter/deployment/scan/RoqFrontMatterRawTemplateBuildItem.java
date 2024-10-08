@@ -1,5 +1,9 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
@@ -13,41 +17,50 @@ import io.vertx.core.json.JsonObject;
  */
 public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
+    /**
+     * The page details.
+     */
     private final PageInfo info;
 
     /**
-     * The layout used for this template
+     * The layout used for this template.
      */
     private final String layout;
 
     /**
      * true if it's a page template.
      * or false if it's an include template.
-     *
+     * <p>
      * Include template should not be published.
      */
     private final boolean isPage;
 
     /**
-     * The FrontMatter data (it is not merged with parents at this stage)
+     * The FrontMatter data (it is not merged with parents at this stage).
      */
     private final JsonObject data;
 
     private final String collection;
 
     /**
-     * The generated template content to be passed to be passed to Qute
+     * The generated template content to be passed to be passed to Qute.
      */
     private final String generatedTemplate;
 
     /**
-     * Should this template be published
+     * Should this template be published.
      */
     private final boolean published;
 
+    /**
+     * List of aliases to be used for redirecting to an url.
+     */
+    private final List<String> aliases;
+
     public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data, String collection,
             String generatedTemplate,
-            boolean published) {
+            boolean published,
+            List<String> aliases) {
         this.info = info;
         this.layout = layout;
         this.isPage = isPage;
@@ -55,6 +68,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
         this.published = published;
+        this.aliases = Objects.requireNonNullElseGet(aliases, Collections::emptyList);
     }
 
     public boolean isPage() {
@@ -87,5 +101,9 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public boolean published() {
         return published;
+    }
+
+    public List<String> aliases() {
+        return Collections.unmodifiableList(aliases);
     }
 }

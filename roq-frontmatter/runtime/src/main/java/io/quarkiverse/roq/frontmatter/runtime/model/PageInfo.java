@@ -11,7 +11,7 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public record PageInfo(
         /**
-         * The page id (e.g posts/my-favorite-beer)
+         * The page id (e.g. posts/my-favorite-beer)
          */
         String id,
 
