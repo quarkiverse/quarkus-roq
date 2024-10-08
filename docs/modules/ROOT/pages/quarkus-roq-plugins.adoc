@@ -1,0 +1,56 @@
+include::./includes/attributes.adoc[]
+
+= Quarkus Roq Plugins
+
+== Roq Plugin Tagging
+
+This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
+
+To install it add:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-tagging</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+
+For example, let's consider the posts collection, if multiple posts have `tags: guide`, then we would generate a `/posts/tag/guide` page for all the posts containing the `guide` tag. This works for any collection.
+
+
+To enable tagging, create a layout template, add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`. It is available through `site.collections.get(page.data.tagCollection)`:
+
+
+[source,yaml]
+._layouts/tag.html
+----
+---
+layout: main
+tagging: posts
+---
+
+{#for post in site.collections.get(page.data.tagCollection)}
+  {post.title}
+{/for}
+
+----
+
+
+This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
+
+[source,yaml]
+._layouts/tag.html
+----
+---
+layout: main
+tagging: posts
+paginate: true
+---
+
+{#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
+  {post.title}
+{/for}
+
+----

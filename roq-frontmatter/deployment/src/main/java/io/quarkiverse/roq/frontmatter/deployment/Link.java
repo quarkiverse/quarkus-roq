@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
 
@@ -82,17 +83,6 @@ public class Link {
             link = link.replaceAll("index(\\.html)?", "");
         }
         return removeTrailingSlash(removeLeadingSlash(PathUtils.join(rootPath, link)));
-    }
-
-    // Slugify logic to make the title URL-friendly
-    public static String slugify(String input) {
-        if (input == null) {
-            throw new IllegalArgumentException("Link input cannot be null");
-        }
-        return input.toLowerCase()
-                .replaceAll("[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
-                .replaceAll("-+", "-") // Replace multiple hyphens with a single one
-                .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
     }
 
 }

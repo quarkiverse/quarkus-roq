@@ -1,0 +1,150 @@
+:summaryTableId: quarkus-roq-frontmatter_roq-site
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-includes-dirs]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-includes-dirs[`roq.site.includes-dirs`]##
+
+[.description]
+--
+The directory names containing includes and layouts (in the Roq site directory)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_INCLUDES_DIRS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_INCLUDES_DIRS+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|`_layouts,_includes`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-generator[`roq.site.generator`]##
+
+[.description]
+--
+When enabled it will select all FrontMatter pages in Roq Generator
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_GENERATOR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_GENERATOR+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`true`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-future]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-future[`roq.site.future`]##
+
+[.description]
+--
+Show future pages
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_FUTURE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_FUTURE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-images-path[`roq.site.images-path`]##
+
+[.description]
+--
+The public path containing pages and posts images
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_IMAGES_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_IMAGES_PATH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`/static/assets/images`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-draft]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-draft[`roq.site.draft`]##
+
+[.description]
+--
+Show draft pages
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_DRAFT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_DRAFT+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-date-format]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-date-format[`roq.site.date-format`]##
+
+[.description]
+--
+Format for dates
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_DATE_FORMAT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_DATE_FORMAT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`yyyy-MM-dd[ HH:mm][:ss][ Z]`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-time-zone[`roq.site.time-zone`]##
+
+[.description]
+--
+The default timezone
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_TIME_ZONE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_TIME_ZONE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`document timezone if provided or system timezone`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections[`roq.site.collections."collections"`]##
+
+[.description]
+--
+The directory names containing collections as key and the corresponding collection name as value (in the Roq site directory)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS_+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS_+++`
+endif::add-copy-button-to-env-var[]
+--
+|Map<String,String>
+|`_posts=post`
+
+|===
+
+
+:!summaryTableId:

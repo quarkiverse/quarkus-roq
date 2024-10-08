@@ -4,6 +4,7 @@ title: "Effortless URL Handling in Roq with Qute super-power"
 date: 2024-09-16 13:32:20 +0200
 description: Effortlessly manage both relative and absolute URLs with our enhanced Qute-powered feature. Utilizing the RoqUrl class, you can easily join and resolve paths, ensuring clean and predictable URLs. This update simplifies URL handling, making your code more efficient and your content easier to navigate and share.
 img: https://images.unsplash.com/photo-1671530467085-40043a792439?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+tags: cool-stuff, frontmatter, guide
 author: ia3andy
 ---
 
