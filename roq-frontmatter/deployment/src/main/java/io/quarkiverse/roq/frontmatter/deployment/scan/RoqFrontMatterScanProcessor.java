@@ -154,9 +154,9 @@ public class RoqFrontMatterScanProcessor {
             boolean isPage) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
-            String relative = toUnixPath(
+            String sourcePath = toUnixPath(
                     collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString());
-            String templatePath = removeExtension(relative) + ".html";
+            String templatePath = removeExtension(sourcePath) + ".html";
             final String id = removeExtension(templatePath);
             try {
                 final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
@@ -176,14 +176,14 @@ public class RoqFrontMatterScanProcessor {
                     List<String> aliases = getAliases(aliasesArr);
 
                     PageInfo info = new PageInfo(id, draft, config.imagesPath(), dateString, content,
-                            relative, templatePath);
+                            sourcePath, templatePath);
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
-                    final String generatedTemplate = generateTemplate(relative, layout, content);
+                    final String generatedTemplate = generateTemplate(sourcePath, layout, content);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, layout, isPage, fm, collection, generatedTemplate,
                                     isPage, aliases));
                 } else {
-                    PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, relative, templatePath);
+                    PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, sourcePath, templatePath);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, null, isPage, new JsonObject(), collection,
                                     fullContent,
@@ -191,7 +191,7 @@ public class RoqFrontMatterScanProcessor {
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error while reading the FrontMatter file %s"
-                        .formatted(relative), e);
+                        .formatted(sourcePath), e);
             }
         };
     }
