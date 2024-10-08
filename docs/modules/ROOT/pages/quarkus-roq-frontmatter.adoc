@@ -90,7 +90,28 @@ With these steps, you can create a flexible pagination system to improve your si
 
 == SEO
 
-TODO
+Incorporating search engine optimization (SEO) is as simple as inserting this tag into your `<head>` section:
+
+[source,html]
+----
+<head>
+{#seo page site /}
+</head>
+----
+
+It will automatically use the FrontMatter data to fill the tags.
+
+[source,html]
+----
+<title>My Blog Post</title>
+<meta name="author" content="ia3andy" />
+<meta name="generator" content="Quarkus Roq v1.0.0" />
+<meta property="article:author" content="ia3andy" />
+<meta property="article:published_time" content="2024-09-23T12:00Z[Etc/UTC]" />
+<meta property="og:image" content="https://images.unsplash.com/photo.webp" />
+<meta property="og:locale" content="en-US" />
+<meta property="og:type" content="article" />
+----
 
 == Links
 
