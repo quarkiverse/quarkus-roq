@@ -54,3 +54,40 @@ paginate: true
 {/for}
 
 ----
+
+
+== Roq Plugin Aliases
+
+This plugin allows referencing a page using an alias.
+
+To install it, add the following code to your dependencies file:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-aliases</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+For example, consider that you want to create a shortened link for your post.
+
+To create an alias, create a page and add `aliases: [your-alias-here, another-alias-here]` in the Front Matter (FM). As a result, you will have the possibility to access the page using a customized URL as alias.
+
+[source,yaml]
+._posts_/2024-08-29-welcome-to-roq.md
+----
+---
+layout: post
+title: "Welcome to Roq!"
+date: 2024-08-29 13:32:20 +0200
+description: This is the first article ever made with Quarkus Roq
+img: posts/2024/08/blogging.jpg
+tags: blogging
+author: ia3andy
+aliases: [first-roq-article-ever]
+---
+----
+
+Now, when you access the URL `http://localhost:8081/first-roq-article-ever`, you will be redirected to the `2024-08-29-welcome-to-roq` blog post.
