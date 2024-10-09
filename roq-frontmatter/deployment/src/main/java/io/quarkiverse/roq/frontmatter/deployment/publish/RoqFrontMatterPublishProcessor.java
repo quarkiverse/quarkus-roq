@@ -37,7 +37,7 @@ class RoqFrontMatterPublishProcessor {
             BuildProducer<RoqFrontMatterPublishDocumentPageBuildItem> publishDocuments) {
         for (RoqFrontMatterDocumentTemplateBuildItem documentTemplate : documentTemplates) {
             publishDocuments.produce(new RoqFrontMatterPublishDocumentPageBuildItem(documentTemplate.url(),
-                    documentTemplate.item().info(), documentTemplate.collection(), documentTemplate.data()));
+                    documentTemplate.raw().info(), documentTemplate.collection(), documentTemplate.data()));
         }
     }
 
@@ -64,9 +64,8 @@ class RoqFrontMatterPublishProcessor {
         }
 
         for (RoqFrontMatterPaginateTemplateBuildItem pagination : paginationList) {
-            final RoqFrontMatterRawTemplateBuildItem item = pagination.item();
+            final RoqFrontMatterRawTemplateBuildItem item = pagination.raw();
             final JsonObject data = pagination.data();
-            final String link = pagination.link();
             Paginate paginate = readPaginate(item.id(), data, pagination.defaultPaginatedCollection());
             AtomicInteger collectionSize = sizeByCollection.get(paginate.collection());
             if (collectionSize == null) {
@@ -82,15 +81,20 @@ class RoqFrontMatterPublishProcessor {
             List<PageToPublish> paginatedPages = new ArrayList<>();
             final String linkTemplate = paginate.link() != null ? paginate.link() : DEFAULT_PAGINATE_LINK_TEMPLATE;
             for (int i = 1; i <= countPages; i++) {
-                final String paginatedLink = i == 1 ? link
-                        : Link.paginateLink(config.rootPath(), linkTemplate,
-                                new Link.PaginateLinkData(item.info().baseFileName(), item.info().date(),
-                                        paginate.collection(), Integer.toString(i), data));
+                final RoqUrl paginatedUrl;
+                if (i == 1) {
+                    paginatedUrl = pagination.url();
+                } else {
+                    final String link = Link.paginateLink(config.rootPath(), linkTemplate,
+                            new Link.PaginateLinkData(item.info().baseFileName(), item.info().date(),
+                                    paginate.collection(), Integer.toString(i), data));
+                    paginatedUrl = rootUrl.resolve(link);
+                }
                 PageInfo info = item.info();
                 if (i > 1) {
-                    info = info.changeId(paginatedLink);
+                    info = info.changeId(paginatedUrl.path());
                 }
-                paginatedPages.add(new PageToPublish(paginatedLink, info, data));
+                paginatedPages.add(new PageToPublish(paginatedUrl, info, data));
             }
 
             for (int i = 1; i <= countPages; i++) {
@@ -103,15 +107,15 @@ class RoqFrontMatterPublishProcessor {
                 RoqUrl nextUrl = null;
                 if (prev != null) {
                     previousPage = paginatedPages.get(prev - 1);
-                    previousUrl = rootUrl.resolve(previousPage.link());
+                    previousUrl = previousPage.url();
                 }
                 if (next != null) {
                     nextPage = paginatedPages.get(next - 1);
-                    nextUrl = rootUrl.resolve(nextPage.link());
+                    nextUrl = nextPage.url();
                 }
                 Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
                         previousUrl, next, nextUrl);
-                pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(currentPage.link(), currentPage.info(),
+                pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(currentPage.url(), currentPage.info(),
                         currentPage.data(), paginator));
             }
         }
@@ -140,7 +144,7 @@ class RoqFrontMatterPublishProcessor {
         throw new ConfigurationException("Invalid pagination configuration in " + name);
     }
 
-    private record PageToPublish(String link, PageInfo info, JsonObject data) {
+    private record PageToPublish(RoqUrl url, PageInfo info, JsonObject data) {
     }
 
 }

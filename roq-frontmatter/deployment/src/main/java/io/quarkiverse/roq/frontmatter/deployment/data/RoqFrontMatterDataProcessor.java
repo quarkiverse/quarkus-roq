@@ -26,9 +26,7 @@ public class RoqFrontMatterDataProcessor {
     void prepareData(HttpBuildTimeConfig httpConfig,
             RoqSiteConfig config,
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
-            BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
-            BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
-            BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
+            BuildProducer<RoqFrontMatterTemplateBuildItem> templatesProducer,
             List<RoqFrontMatterRawTemplateBuildItem> roqFrontMatterTemplates) {
         if (roqFrontMatterTemplates.isEmpty()) {
             return;
@@ -39,22 +37,38 @@ public class RoqFrontMatterDataProcessor {
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
-            if (!item.published()) {
-                continue;
-            }
             final JsonObject data = mergeParents(item, byKey);
             final String link = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
                     new Link.PageLinkData(item.info().baseFileName(), item.info().date(), item.collection(), data));
-            if (item.collection() != null) {
+            templatesProducer.produce(new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link), data));
+        }
+    }
+
+    @BuildStep
+    void dispatchByType(BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
+            BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
+            BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
+            List<RoqFrontMatterTemplateBuildItem> templates) {
+        if (templates.isEmpty()) {
+            return;
+        }
+
+        for (RoqFrontMatterTemplateBuildItem item : templates) {
+            if (!item.published()) {
+                continue;
+            }
+            if (item.raw().collection() != null) {
                 documentTemplatesProducer
-                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item, rootUrl.resolve(link), item.collection(),
-                                data));
+                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item.raw(), item.url(), item.raw().collection(),
+                                item.data()));
             } else {
-                if (data.containsKey(PAGINATE_KEY)) {
+                if (item.data().containsKey(PAGINATE_KEY)) {
                     // Pagination is created needs collections size so it's produced after
-                    paginatedPagesProducer.produce(new RoqFrontMatterPaginateTemplateBuildItem(item, null, link, data));
+                    paginatedPagesProducer
+                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(item.raw(), null, item.url(), item.data()));
                 } else {
-                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(link, item.info(), data, null));
+                    pagesProducer
+                            .produce(new RoqFrontMatterPublishPageBuildItem(item.url(), item.raw().info(), item.data(), null));
                 }
             }
 

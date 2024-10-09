@@ -93,11 +93,10 @@ class RoqFrontMatterInitProcessor {
             return;
         }
         for (RoqFrontMatterPublishPageBuildItem page : pages) {
-            final RoqUrl url = rootUrlItem.rootUrl().resolve(page.link());
-            final Supplier<NormalPage> recordedPage = recorder.createPage(url,
+            final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.info(), page.data(), page.paginator());
-            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), url, recordedPage));
-            normalPagesProducer.produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), url, recordedPage));
+            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), recordedPage));
+            normalPagesProducer.produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
             if (page.info().id().equals("index")) {
                 indexPageProducer.produce(new RoqFrontMatterIndexPageBuildItem(recordedPage));
             }

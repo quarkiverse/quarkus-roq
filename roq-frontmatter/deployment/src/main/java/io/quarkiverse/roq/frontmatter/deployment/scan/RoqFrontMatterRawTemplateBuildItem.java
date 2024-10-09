@@ -5,7 +5,11 @@ import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
 /**
- * A build item representing a Roq fm file.
+ * A build item representing a Roq FM file.
+ * This template is just extracted from the disk, data is not yet merged with layouts.
+ *
+ * Use {@link io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem} to read all FM templates with
+ * merged data.
  */
 public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
