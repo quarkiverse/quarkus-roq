@@ -14,7 +14,7 @@ public interface Page {
     PageInfo info();
 
     default String id() {
-        return info().id();
+        return info().resolvedPath();
     }
 
     default String rawContent() {
@@ -50,7 +50,7 @@ public interface Page {
         if (img == null) {
             return null;
         }
-        return url().rootUrl().resolve(info().imagesPath()).resolve(img);
+        return url().rootUrl().resolve(info().imagesRootPath()).resolve(img);
     }
 
     RoqUrl url();

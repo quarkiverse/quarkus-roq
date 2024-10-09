@@ -57,8 +57,8 @@ class RoqFrontMatterInitProcessor {
                 final Supplier<DocumentPage> document = recorder.createDocument(item.collection(),
                         url,
                         item.info(), item.data());
-                documentsById.put(item.info().id(), document);
-                pagesProducer.produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, document));
+                documentsById.put(item.info().resolvedPath(), document);
+                pagesProducer.produce(new RoqFrontMatterPageBuildItem(item.info().resolvedPath(), url, document));
                 docs.add(document);
             }
             collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(e.getKey(), docs));
@@ -70,7 +70,7 @@ class RoqFrontMatterInitProcessor {
             for (String id : i.documentIds()) {
                 final Supplier<DocumentPage> doc = documentsById.get(id);
                 if (doc == null) {
-                    throw new IllegalStateException("No document found for id " + id);
+                    throw new IllegalStateException("No document found for resolvedPath " + id);
                 }
                 docs.add(doc);
             }
@@ -93,9 +93,10 @@ class RoqFrontMatterInitProcessor {
         for (RoqFrontMatterPublishPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.info(), page.data(), page.paginator());
-            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), recordedPage));
-            normalPagesProducer.produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
-            if (page.info().id().equals("index")) {
+            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().resolvedPath(), page.url(), recordedPage));
+            normalPagesProducer
+                    .produce(new RoqFrontMatterNormalPageBuildItem(page.info().resolvedPath(), page.url(), recordedPage));
+            if (page.info().resolvedPath().equals("index.html")) {
                 indexPageProducer.produce(new RoqFrontMatterIndexPageBuildItem(recordedPage));
             }
         }

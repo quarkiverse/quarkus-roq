@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
+import static io.quarkiverse.roq.frontmatter.deployment.TemplateLink.DEFAULT_PAGE_LINK_TEMPLATE;
 
 import java.util.List;
 import java.util.Map;
@@ -8,8 +8,8 @@ import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
@@ -35,14 +35,14 @@ public class RoqFrontMatterDataProcessor {
         }
 
         final var byKey = roqFrontMatterTemplates.stream()
-                .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
+                .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::resolvedPath, Function.identity()));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             JsonObject data = mergeParents(item, byKey);
-            final String link = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
-                    new Link.PageLinkData(item.info().baseFileName(), item.info().date(), item.collection(), data));
+            final String link = TemplateLink.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
+                    new TemplateLink.PageLinkData(item.info(), item.collection(), data));
             RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
                     data);
             templatesProducer.produce(templateItem);
@@ -86,7 +86,11 @@ public class RoqFrontMatterDataProcessor {
         String parent = item.layout();
         fms.add(item.data());
         while (parent != null) {
-            if (byPath.containsKey(parent)) {
+            if (byPath.containsKey(parent + ".html")) {
+                final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent + ".html");
+                parent = parentItem.layout();
+                fms.push(parentItem.data());
+            } else if (byPath.containsKey(parent)) {
                 final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent);
                 parent = parentItem.layout();
                 fms.push(parentItem.data());

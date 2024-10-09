@@ -34,6 +34,6 @@ public final class RoqFrontMatterDataModificationBuildItem extends MultiBuildIte
 
     public interface DataModifier {
 
-        JsonObject modify(String id, String templatePath, JsonObject fm);
+        JsonObject modify(String resolvedPath, String sourcePath, JsonObject fm);
     }
 }

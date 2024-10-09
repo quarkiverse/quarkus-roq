@@ -11,16 +11,19 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public record PageInfo(
         /**
-         * The page id (e.g. posts/my-favorite-beer)
+         * The page resolve path (e.g. posts/my-favorite-beer.html)
          */
-        String id,
+        String resolvedPath,
 
         /**
          * If this page is a draft or not
          */
         boolean draft,
 
-        String imagesPath,
+        /**
+         * Where the images for this page are based (e.g. /static/images)
+         */
+        String imagesRootPath,
 
         /**
          * This page zoned date
@@ -42,8 +45,14 @@ public record PageInfo(
          */
         String generatedTemplatePath) {
 
-    public PageInfo changeId(String id) {
-        return new PageInfo(id, draft(), imagesPath(), dateString(), rawContent(), sourcePath(),
+    public static PageInfo create(String resolvedPath, boolean draft, String imagesRootPath, String dateString,
+            String rawContent,
+            String sourcePath) {
+        return new PageInfo(resolvedPath, draft, imagesRootPath, dateString, rawContent, sourcePath, resolvedPath);
+    }
+
+    public PageInfo changeResolvedPath(String resolvedPath) {
+        return new PageInfo(resolvedPath, draft(), imagesRootPath(), dateString(), rawContent(), sourcePath(),
                 generatedTemplatePath());
     }
 
@@ -63,6 +72,14 @@ public record PageInfo(
      */
     public String baseFileName() {
         return PathUtils.removeExtension(sourceFileName());
+    }
+
+    public String getExtension() {
+        return PathUtils.getExtension(sourceFileName());
+    }
+
+    public boolean isHtml() {
+        return "html".equalsIgnoreCase(getExtension());
     }
 
 }
