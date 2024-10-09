@@ -97,6 +97,7 @@ class RoqFrontMatterProcessor {
         if (roqOutput == null) {
             return;
         }
+
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
             for (String path : roqOutput.allPagesByPath().keySet()) {

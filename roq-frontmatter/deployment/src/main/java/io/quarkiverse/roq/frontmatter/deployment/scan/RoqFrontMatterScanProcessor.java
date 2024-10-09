@@ -42,6 +42,7 @@ public class RoqFrontMatterScanProcessor {
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*\\v---\\v", Pattern.DOTALL);
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
+    private static final String LAYOUT_KEY = "layout";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
 
     private record QuteMarkupSection(String open, String close) {
@@ -149,10 +150,9 @@ public class RoqFrontMatterScanProcessor {
             boolean isPage) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
-            var relative = toUnixPath(
+            String sourcePath = toUnixPath(
                     collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString());
-            String sourcePath = relative;
-            String templatePath = removeExtension(relative) + ".html";
+            String templatePath = removeExtension(sourcePath) + ".html";
             final String id = removeExtension(templatePath);
             try {
                 final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
@@ -164,14 +164,14 @@ public class RoqFrontMatterScanProcessor {
                     if (!config.draft() && draft) {
                         return;
                     }
-                    final String layout = normalizedLayout(fm.getString("layout"));
+                    final String layout = normalizedLayout(fm.getString(LAYOUT_KEY));
                     final String content = stripFrontMatter(fullContent);
                     String dateString = parsePublishDate(file, fm, config);
 
                     PageInfo info = new PageInfo(id, draft, config.imagesPath(), dateString, content,
                             sourcePath, templatePath);
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
-                    final String generatedTemplate = generateTemplate(relative, layout, content);
+                    final String generatedTemplate = generateTemplate(sourcePath, layout, content);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, layout, isPage, fm, collection, generatedTemplate,
                                     isPage));

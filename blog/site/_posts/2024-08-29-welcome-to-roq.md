@@ -6,6 +6,7 @@ description: This is the first article ever made with Quarkus Roq
 img: posts/2024/08/blogging.jpg
 tags: blogging
 author: ia3andy
+aliases: [first-roq-article-ever]
 ---
 
 Hello folks,

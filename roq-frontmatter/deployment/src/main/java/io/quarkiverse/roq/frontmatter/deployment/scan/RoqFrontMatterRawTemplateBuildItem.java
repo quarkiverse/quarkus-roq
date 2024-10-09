@@ -13,35 +13,38 @@ import io.vertx.core.json.JsonObject;
  */
 public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
+    /**
+     * The page details.
+     */
     private final PageInfo info;
 
     /**
-     * The layout used for this template
+     * The layout used for this template.
      */
     private final String layout;
 
     /**
      * true if it's a page template.
      * or false if it's an include template.
-     *
+     * <p>
      * Include template should not be published.
      */
     private final boolean isPage;
 
     /**
-     * The FrontMatter data (it is not merged with parents at this stage)
+     * The FrontMatter data (it is not merged with parents at this stage).
      */
     private final JsonObject data;
 
     private final String collection;
 
     /**
-     * The generated template content to be passed to be passed to Qute
+     * The generated template content to be passed to be passed to Qute.
      */
     private final String generatedTemplate;
 
     /**
-     * Should this template be published
+     * Should this template be published.
      */
     private final boolean published;
 

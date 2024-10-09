@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
-import static org.aesh.readline.terminal.Key.e;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +10,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
-
-import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
@@ -25,15 +22,16 @@ import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.builder.BuildException;
-import io.quarkus.deployment.annotations.*;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Consume;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
 
 class RoqFrontMatterInitProcessor {
-
-    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterInitProcessor.class);
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
@@ -153,5 +151,4 @@ class RoqFrontMatterInitProcessor {
                 .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))
                 .build();
     }
-
 }

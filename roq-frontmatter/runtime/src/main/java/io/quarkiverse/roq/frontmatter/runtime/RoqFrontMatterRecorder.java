@@ -75,4 +75,7 @@ public class RoqFrontMatterRecorder {
         return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers);
     }
 
+    public Handler<RoutingContext> aliasRoute(String target) {
+        return ctx -> ctx.redirect(target);
+    }
 }
