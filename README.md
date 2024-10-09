@@ -7,11 +7,15 @@
 # Quarkus Roq
 
 
+<div class="flex-container"><!-- .element: style="display: flex; flex-direction: row;" -->
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
+[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
+
+</div>
 </div>
 
 
