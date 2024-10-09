@@ -1,0 +1,52 @@
+{
+  "beers": [
+    {
+      "name": "Lagunitas IPA",
+      "brewery": "Lagunitas Brewing Company",
+      "style": "IPA",
+      "abv": 6.2,
+      "description": "A well-rounded, highly drinkable IPA with hints of citrus and floral notes.",
+      "origin": "California, USA"
+    },
+    {
+      "name": "Sierra Nevada Pale Ale",
+      "brewery": "Sierra Nevada Brewing Co.",
+      "style": "Pale Ale",
+      "abv": 5.6,
+      "description": "A classic pale ale known for its piney and citrusy hop character.",
+      "origin": "California, USA"
+    },
+    {
+      "name": "Guinness Draught",
+      "brewery": "Guinness",
+      "style": "Stout",
+      "abv": 4.2,
+      "description": "A rich, creamy stout with hints of coffee and chocolate.",
+      "origin": "Dublin, Ireland"
+    },
+    {
+      "name": "Heineken",
+      "brewery": "Heineken",
+      "style": "Lager",
+      "abv": 5.0,
+      "description": "A crisp, refreshing lager with mild bitterness and a slightly sweet finish.",
+      "origin": "Amsterdam, Netherlands"
+    },
+    {
+      "name": "Hoegaarden",
+      "brewery": "Hoegaarden Brewery",
+      "style": "Wheat Beer",
+      "abv": 4.9,
+      "description": "A light and refreshing Belgian wheat beer with notes of orange peel and coriander.",
+      "origin": "Hoegaarden, Belgium"
+    },
+    {
+      "name": "Duvel",
+      "brewery": "Duvel Moortgat Brewery",
+      "style": "Belgian Strong Ale",
+      "abv": 8.5,
+      "description": "A strong, golden ale with a complex blend of fruity, spicy, and hoppy flavors.",
+      "origin": "Puurs, Belgium"
+    }
+  ]
+}

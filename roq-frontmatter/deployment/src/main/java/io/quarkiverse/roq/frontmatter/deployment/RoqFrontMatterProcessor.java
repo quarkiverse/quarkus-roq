@@ -41,6 +41,7 @@ class RoqFrontMatterProcessor {
         }
         final Set<String> docTemplates = new HashSet<>();
         final Set<String> pageTemplates = new HashSet<>();
+        final Set<String> layoutTemplates = new HashSet<>();
         // Produce generated Qute templates
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             templatePathProducer
@@ -52,6 +53,8 @@ class RoqFrontMatterProcessor {
                 } else {
                     pageTemplates.add(item.info().generatedTemplatePath());
                 }
+            } else {
+                layoutTemplates.add(item.info().generatedTemplatePath());
             }
         }
 
@@ -63,8 +66,10 @@ class RoqFrontMatterProcessor {
             } else if (pageTemplates.contains(c.getTemplateId())) {
                 c.addParameter("page", NormalPage.class.getName());
                 c.addParameter("site", Site.class.getName());
+            } else if (layoutTemplates.contains(c.getTemplateId())) {
+                c.addParameter("page", Page.class.getName());
+                c.addParameter("site", Site.class.getName());
             }
-
         }));
     }
 

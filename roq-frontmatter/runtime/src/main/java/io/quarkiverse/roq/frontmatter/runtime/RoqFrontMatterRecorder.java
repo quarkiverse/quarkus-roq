@@ -58,7 +58,7 @@ public class RoqFrontMatterRecorder {
             for (Supplier<NormalPage> pagesSupplier : normalPagesSuppliers) {
                 pages.add(pagesSupplier.get());
             }
-            return new Site(rootUrl, indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesPath()),
+            return new Site(rootUrl, indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesRootPath()),
                     indexPage.get().data(), pages, roqCollectionsSupplier.get());
         };
     }

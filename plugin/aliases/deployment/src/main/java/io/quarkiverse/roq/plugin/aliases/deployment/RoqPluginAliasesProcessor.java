@@ -1,12 +1,8 @@
 package io.quarkiverse.roq.plugin.aliases.deployment;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -59,8 +55,8 @@ public class RoqPluginAliasesProcessor {
             }
             RoqUrl url = item.url();
             for (String alias : aliasesName) {
-                String aliasLink = Link.pageLink(config.rootPath(), alias, new Link.PageLinkData(
-                        item.raw().info().baseFileName(), item.raw().info().date(), item.raw().collection(), item.data()));
+                String aliasLink = TemplateLink.pageLink(config.rootPath(), alias, new TemplateLink.PageLinkData(
+                        item.raw().info(), item.raw().collection(), item.data()));
                 aliasMap.put(aliasLink, url.path());
             }
         }

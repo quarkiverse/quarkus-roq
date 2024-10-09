@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
-import io.quarkiverse.roq.frontmatter.deployment.Link.PageLinkData;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginateTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
@@ -67,7 +67,7 @@ public class RoqPluginTaggingProcessor {
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
                     derived.computeIfAbsent(tag, k -> new ArrayList<>())
-                            .add(document.raw().id());
+                            .add(document.raw().resolvedPath());
                 }
             }
 
@@ -81,9 +81,9 @@ public class RoqPluginTaggingProcessor {
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(tagCollection, e.getValue(), data));
 
-                final String link = Link.pageLink(config.rootPath(),
+                final String link = TemplateLink.pageLink(config.rootPath(),
                         data.getString(LINK_KEY, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE),
-                        new PageLinkData(item.info().baseFileName(), item.info().date(), tagCollection, data));
+                        new PageLinkData(item.info(), tagCollection, data));
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {

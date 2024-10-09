@@ -64,8 +64,8 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return isPage;
     }
 
-    public String id() {
-        return info.id();
+    public String resolvedPath() {
+        return info.resolvedPath();
     }
 
     public PageInfo info() {
