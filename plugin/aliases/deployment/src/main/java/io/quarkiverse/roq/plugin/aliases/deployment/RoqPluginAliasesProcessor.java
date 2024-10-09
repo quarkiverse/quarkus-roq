@@ -6,17 +6,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.quarkiverse.roq.frontmatter.deployment.Link;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.plugin.aliases.deployment.items.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.plugin.aliases.runtime.RoqFrontMatterAliasesRecorder;
-import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.vertx.core.json.JsonArray;
@@ -33,7 +35,9 @@ public class RoqPluginAliasesProcessor {
     }
 
     @BuildStep
-    public void consumeTemplates(List<RoqFrontMatterTemplateBuildItem> templates,
+    public void consumeTemplates(
+            RoqSiteConfig config,
+            List<RoqFrontMatterTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
             BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
@@ -55,7 +59,9 @@ public class RoqPluginAliasesProcessor {
             }
             RoqUrl url = item.url();
             for (String alias : aliasesName) {
-                aliasMap.put(alias, url.path());
+                String aliasLink = Link.pageLink(config.rootPath(), alias, new Link.PageLinkData(
+                        item.raw().info().baseFileName(), item.raw().info().date(), item.raw().collection(), item.data()));
+                aliasMap.put(aliasLink, url.path());
             }
         }
 
@@ -71,12 +77,14 @@ public class RoqPluginAliasesProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    public void createVertxRedirects(RoqFrontMatterAliasesRecorder recorder,
+    public void createVertxRedirects(
+            HttpRootPathBuildItem httpRootPath,
+            RoqFrontMatterAliasesRecorder recorder,
             BuildProducer<RouteBuildItem> routes,
             List<RoqFrontMatterAliasesBuildItem> aliases) {
         for (RoqFrontMatterAliasesBuildItem item : aliases) {
             routes.produce(RouteBuildItem.builder()
-                    .route(PathUtils.prefixWithSlash(item.alias()))
+                    .route(httpRootPath.relativePath(item.alias()))
                     .handler(recorder.addRedirect(item.target()))
                     .build());
         }

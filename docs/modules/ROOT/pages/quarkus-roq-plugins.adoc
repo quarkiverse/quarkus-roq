@@ -91,3 +91,5 @@ aliases: [first-roq-article-ever]
 ----
 
 Now, when you access the URL `http://localhost:8081/first-roq-article-ever`, you will be redirected to the `2024-08-29-welcome-to-roq` blog post.
+
+NOTE: you can use link templating in aliases
