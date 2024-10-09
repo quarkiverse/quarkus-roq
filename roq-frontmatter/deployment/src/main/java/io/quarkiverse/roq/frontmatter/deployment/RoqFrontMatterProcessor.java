@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
@@ -94,8 +93,7 @@ class RoqFrontMatterProcessor {
             RoqFrontMatterConfig config,
             BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer,
-            RoqFrontMatterOutputBuildItem roqOutput,
-            List<RoqFrontMatterAliasesBuildItem> aliases) {
+            RoqFrontMatterOutputBuildItem roqOutput) {
         if (roqOutput == null) {
             return;
         }
@@ -106,12 +104,6 @@ class RoqFrontMatterProcessor {
                 selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path), null)); // We add a trailing slash to make it detected as a html page
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
-            }
-        }
-
-        if (!aliases.isEmpty()) {
-            for (RoqFrontMatterAliasesBuildItem aliasItem : aliases) {
-                selectedPathProducer.produce(new SelectedPathBuildItem(aliasItem.alias(), null));
             }
         }
     }

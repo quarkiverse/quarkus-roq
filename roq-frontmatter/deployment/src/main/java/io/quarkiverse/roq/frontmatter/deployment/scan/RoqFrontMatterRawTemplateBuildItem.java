@@ -1,9 +1,5 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
@@ -52,15 +48,9 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final boolean published;
 
-    /**
-     * List of aliases to be used for redirecting to an url.
-     */
-    private final List<String> aliases;
-
     public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data, String collection,
             String generatedTemplate,
-            boolean published,
-            List<String> aliases) {
+            boolean published) {
         this.info = info;
         this.layout = layout;
         this.isPage = isPage;
@@ -68,7 +58,6 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
         this.published = published;
-        this.aliases = Objects.requireNonNullElseGet(aliases, Collections::emptyList);
     }
 
     public boolean isPage() {
@@ -101,9 +90,5 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public boolean published() {
         return published;
-    }
-
-    public List<String> aliases() {
-        return Collections.unmodifiableList(aliases);
     }
 }

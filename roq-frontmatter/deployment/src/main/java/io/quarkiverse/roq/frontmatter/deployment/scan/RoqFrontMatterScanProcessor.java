@@ -13,9 +13,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -36,7 +34,6 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
@@ -46,7 +43,6 @@ public class RoqFrontMatterScanProcessor {
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     private static final String LAYOUT_KEY = "layout";
-    private static final String ALIASES_KEY = "aliases";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
 
     private record QuteMarkupSection(String open, String close) {
@@ -172,42 +168,25 @@ public class RoqFrontMatterScanProcessor {
                     final String content = stripFrontMatter(fullContent);
                     String dateString = parsePublishDate(file, fm, config);
 
-                    JsonArray aliasesArr = fm.getJsonArray(ALIASES_KEY);
-                    List<String> aliases = getAliases(aliasesArr);
-
                     PageInfo info = new PageInfo(id, draft, config.imagesPath(), dateString, content,
                             sourcePath, templatePath);
                     LOGGER.debugf("Creating generated template for %s" + templatePath);
                     final String generatedTemplate = generateTemplate(sourcePath, layout, content);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, layout, isPage, fm, collection, generatedTemplate,
-                                    isPage, aliases));
+                                    isPage));
                 } else {
                     PageInfo info = new PageInfo(id, false, config.imagesPath(), null, fullContent, sourcePath, templatePath);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, null, isPage, new JsonObject(), collection,
                                     fullContent,
-                                    isPage, List.of()));
+                                    isPage));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error while reading the FrontMatter file %s"
                         .formatted(sourcePath), e);
             }
         };
-    }
-
-    private static List<String> getAliases(JsonArray aliasesArr) {
-        if (aliasesArr == null) {
-            return List.of();
-        }
-        ArrayList<String> aliases = new ArrayList<>();
-        for (int i = 0; i < aliasesArr.size(); i++) {
-            String alias = aliasesArr.getString(i);
-            if (alias != null && !alias.isBlank()) {
-                aliases.add(alias);
-            }
-        }
-        return aliases;
     }
 
     protected static String parsePublishDate(Path file, JsonObject frontMatter, RoqFrontMatterConfig config) {

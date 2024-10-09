@@ -1,6 +1,5 @@
-package io.quarkiverse.roq.frontmatter.deployment.data;
+package io.quarkiverse.roq.plugin.aliases.deployment.items;
 
-import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.builder.item.MultiBuildItem;
 
 public final class RoqFrontMatterAliasesBuildItem extends MultiBuildItem {
@@ -16,7 +15,7 @@ public final class RoqFrontMatterAliasesBuildItem extends MultiBuildItem {
     private final String target;
 
     public RoqFrontMatterAliasesBuildItem(String alias, String target) {
-        this.alias = PathUtils.prefixWithSlash(alias);
+        this.alias = alias;
         this.target = target;
     }
 

@@ -13,7 +13,6 @@ import jakarta.inject.Singleton;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
@@ -152,18 +151,4 @@ class RoqFrontMatterInitProcessor {
                 .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))
                 .build();
     }
-
-    @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
-    public void produceRoute(List<RoqFrontMatterAliasesBuildItem> aliases, BuildProducer<RouteBuildItem> routes,
-            RoqFrontMatterRecorder recorder) {
-        for (var aliasItem : aliases) {
-            routes.produce(RouteBuildItem.builder()
-                    .route(aliasItem.alias())
-                    .handler(recorder.aliasRoute(
-                            aliasItem.target()))
-                    .build());
-        }
-    }
-
 }
