@@ -15,7 +15,7 @@ Don't forget to include tests in your pull requests. Also don't forget the docum
 
 ### Running
 
-This project uses Java 21 and Maven as dependency tooling.
+This project uses Java 21 and [Maven](https://maven.apache.org/) as build tooling.
 
 To run the tests, use the following:
 
