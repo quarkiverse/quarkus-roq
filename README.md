@@ -1,3 +1,4 @@
+
 <div align="center">
   
 <img src="https://github.com/quarkiverse/quarkus-roq/assets/2223984/0eb6642e-8dd3-4def-abb7-f63062ae755b" width="400" >
@@ -7,14 +8,20 @@
 # Quarkus Roq
 
 
-<div class="flex-container"><!-- .element: style="display: flex; flex-direction: row;" -->
+<table>
+  <tr>
+    <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+</td>
+<td valign="top">
 
 [![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
-
+</td>
+</tr>
+</table>
 </div>
 </div>
 
