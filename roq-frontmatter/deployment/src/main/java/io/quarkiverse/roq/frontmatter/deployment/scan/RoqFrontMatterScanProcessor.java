@@ -13,9 +13,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -30,6 +28,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterConfig;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -75,11 +74,13 @@ public class RoqFrontMatterScanProcessor {
     void scan(RoqProjectBuildItem roqProject,
             RoqJacksonBuildItem jackson,
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqFrontMatterConfig roqDataConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
         try {
+            dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             Set<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject, jackson.getYamlMapper(), roqDataConfig,
-                    watch);
+                    watch, dataModifications);
 
             for (RoqFrontMatterRawTemplateBuildItem item : items) {
                 dataProducer.produce(item);
@@ -91,7 +92,8 @@ public class RoqFrontMatterScanProcessor {
     }
 
     public Set<RoqFrontMatterRawTemplateBuildItem> resolveItems(RoqProjectBuildItem roqProject, YAMLMapper mapper,
-            RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
+            RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications) throws IOException {
 
         HashSet<RoqFrontMatterRawTemplateBuildItem> items = new HashSet<>();
         roqProject.consumeRoqDir(site -> {
@@ -104,7 +106,8 @@ public class RoqFrontMatterScanProcessor {
                             stream
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
-                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, watch, null, false));
+                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, dataModifications, watch, null,
+                                            false));
                         } catch (IOException e) {
                             throw new RuntimeException("Was not possible to scan includes dir %s".formatted(dir), e);
                         }
@@ -120,7 +123,8 @@ public class RoqFrontMatterScanProcessor {
                             stream
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
-                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, watch, collectionsDir.getValue(),
+                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, dataModifications, watch,
+                                            collectionsDir.getValue(),
                                             true));
                         } catch (IOException e) {
                             throw new RuntimeException("Was not possible to scan includes dir %s".formatted(dir), e);
@@ -134,7 +138,7 @@ public class RoqFrontMatterScanProcessor {
                             .filter(Files::isRegularFile)
                             .filter(RoqFrontMatterScanProcessor::isExtensionSupported)
                             .filter(not(RoqFrontMatterScanProcessor::isFileExcluded))
-                            .forEach(addBuildItem(site, items, mapper, roqDataConfig, watch, null, true));
+                            .forEach(addBuildItem(site, items, mapper, roqDataConfig, dataModifications, watch, null, true));
                 } catch (IOException e) {
                     throw new RuntimeException("Was not possible to scan data files on location %s".formatted(site), e);
                 }
@@ -145,8 +149,13 @@ public class RoqFrontMatterScanProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private static Consumer<Path> addBuildItem(Path root, HashSet<RoqFrontMatterRawTemplateBuildItem> items, YAMLMapper mapper,
-            RoqFrontMatterConfig config, BuildProducer<HotDeploymentWatchedFileBuildItem> watch, String collection,
+    private static Consumer<Path> addBuildItem(Path root,
+            HashSet<RoqFrontMatterRawTemplateBuildItem> items,
+            YAMLMapper mapper,
+            RoqFrontMatterConfig config,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            String collection,
             boolean isPage) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
@@ -159,7 +168,10 @@ public class RoqFrontMatterScanProcessor {
                 if (hasFrontMatter(fullContent)) {
                     JsonNode rootNode = mapper.readTree(getFrontMatter(fullContent));
                     final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
-                    final JsonObject fm = new JsonObject(map);
+                    JsonObject fm = new JsonObject(map);
+                    for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
+                        fm = modification.modifier().modify(id, templatePath, fm);
+                    }
                     final boolean draft = fm.getBoolean(DRAFT_KEY, false);
                     if (!config.draft() && draft) {
                         return;

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
@@ -75,6 +76,7 @@ class RoqFrontMatterProcessor {
         }
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(
+                        RoqFrontMatterMessages.class,
                         RoqTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,

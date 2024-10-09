@@ -33,16 +33,19 @@ public class RoqFrontMatterDataProcessor {
         if (roqFrontMatterTemplates.isEmpty()) {
             return;
         }
+
         final var byKey = roqFrontMatterTemplates.stream()
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
-            final JsonObject data = mergeParents(item, byKey);
+            JsonObject data = mergeParents(item, byKey);
             final String link = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
                     new Link.PageLinkData(item.info().baseFileName(), item.info().date(), item.collection(), data));
-            templatesProducer.produce(new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link), data));
+            RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
+                    data);
+            templatesProducer.produce(templateItem);
         }
     }
 
