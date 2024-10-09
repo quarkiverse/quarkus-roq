@@ -1,20 +1,14 @@
 package io.quarkiverse.roq.plugin.aliases.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.FrontMatterJsonData.mergeParents;
-import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
-import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.LINK_KEY;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.plugin.aliases.deployment.items.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.plugin.aliases.runtime.RoqFrontMatterAliasesRecorder;
@@ -40,7 +34,7 @@ public class RoqPluginAliasesProcessor {
     }
 
     @BuildStep
-    public void consumeTemplates(RoqSiteConfig config, List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
+    public void consumeTemplates(RoqSiteConfig config, List<RoqFrontMatterTemplateBuildItem> rawTemplates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
             BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
@@ -49,27 +43,16 @@ public class RoqPluginAliasesProcessor {
             return;
         }
 
-        final var byKey = rawTemplates.stream()
-                .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
-
         HashMap<String, String> aliasMap = new HashMap<>();
-        for (RoqFrontMatterRawTemplateBuildItem item : rawTemplates) {
+        for (RoqFrontMatterTemplateBuildItem item : rawTemplates) {
 
-            final JsonObject data = mergeParents(item, byKey);
-
-            Set<String> aliasesName = getAliases(data);
+            Set<String> aliasesName = getAliases(item.data());
             if (aliasesName.isEmpty()) {
                 continue;
             }
-
-            Link.PageLinkData pageLinkData = new Link.PageLinkData(item.info().baseFileName(), item.info().date(),
-                    item.collection(), data);
-            final String targetLink = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
-                    pageLinkData);
-
+            RoqUrl url = item.url();
             for (String alias : aliasesName) {
-                String aliasLink = Link.pageLink(config.rootPath(), alias, pageLinkData);
-                aliasMap.put(aliasLink, targetLink);
+                aliasMap.put(alias, url.path());
             }
         }
 
