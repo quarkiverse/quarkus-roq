@@ -7,6 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @QuarkusTest
 public class RoqTest {
 
@@ -45,7 +52,8 @@ public class RoqTest {
     }
 
     @Test
-    public void testPage() {
+    public void testPage() throws IOException, URISyntaxException {
+
         given()
                 .when().get("/events")
                 .then()

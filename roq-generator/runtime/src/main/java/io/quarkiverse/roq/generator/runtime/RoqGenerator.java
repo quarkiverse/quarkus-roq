@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.generator.runtime;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
@@ -57,6 +60,19 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     void onStart(@Observes StartupEvent ev) {
+        URL url = Thread.currentThread().getContextClassLoader()
+                .getResource("META-INF/resources/pages/about");
+
+        if (url != null) {
+            try (InputStream inputStream = url
+                .openStream()) {
+                byte[] bytes = inputStream.readAllBytes();
+                String result = new String(bytes);
+                System.out.println(result);
+            } catch (IOException e) {
+            }
+        }
+
         if (config.batch()) {
             generate().subscribe().with(t -> {
                 LOGGER.info("Roq generation succeeded in directory: " + outputDir());
