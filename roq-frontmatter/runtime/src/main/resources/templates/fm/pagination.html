@@ -1,0 +1,17 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+<nav class="pagination" role="navigation">
+  <ul>
+    {#if page.paginator.previous}
+    <p><a class="newer-posts" href="{page.paginator.previous}">{#insert newer}‹{/insert}</a></p>
+    {/if}
+
+    {#if page.paginator.total > 1}
+    <p><span class="page-number">{fm:pageNumber(page.paginator.currentIndex, page.paginator.total)}</span></p>
+    {/if}
+
+    {#if page.paginator.next}
+    <p><a class="older-posts" href="{page.paginator.next}">{#insert older}›{/insert}</a></p>
+    {/if}
+  </ul>
+</nav>

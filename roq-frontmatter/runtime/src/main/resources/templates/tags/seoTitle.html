@@ -3,9 +3,7 @@
 
 {#if pageTitle || siteTitle}
   <!-- SEO TITLE -->
-  {#fragment title rendered=false}
-  {#if pageTitle && pageTitle ne siteTitle}{pageTitle} - {siteTitle}{#else}{siteTitle}{/if}
-  {/fragment}
+  {#fragment title rendered=false}{#if pageTitle && pageTitle ne siteTitle}{pageTitle} - {siteTitle}{#else}{siteTitle}{/if}{/fragment}
   <title>{#include $title /}</title>
   <meta name="twitter:title" content="{#include $title /}">
 {/if}
