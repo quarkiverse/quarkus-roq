@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.plugin.aliases.deployment.items.RoqFrontMatterAliasesBuildItem;
@@ -34,17 +33,21 @@ public class RoqPluginAliasesProcessor {
     }
 
     @BuildStep
-    public void consumeTemplates(RoqSiteConfig config, List<RoqFrontMatterTemplateBuildItem> rawTemplates,
+    public void consumeTemplates(List<RoqFrontMatterTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
             BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
 
-        if (rawTemplates.isEmpty()) {
+        if (templates.isEmpty()) {
             return;
         }
 
         HashMap<String, String> aliasMap = new HashMap<>();
-        for (RoqFrontMatterTemplateBuildItem item : rawTemplates) {
+        for (RoqFrontMatterTemplateBuildItem item : templates) {
+
+            if (!item.published()) {
+                continue;
+            }
 
             Set<String> aliasesName = getAliases(item.data());
             if (aliasesName.isEmpty()) {

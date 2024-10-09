@@ -1,9 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.FrontMatterJsonData.*;
 import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -74,5 +75,27 @@ public class RoqFrontMatterDataProcessor {
             }
 
         }
+    }
+
+    public static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
+            Map<String, RoqFrontMatterRawTemplateBuildItem> byPath) {
+        Stack<JsonObject> fms = new Stack<>();
+        String parent = item.layout();
+        fms.add(item.data());
+        while (parent != null) {
+            if (byPath.containsKey(parent)) {
+                final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent);
+                parent = parentItem.layout();
+                fms.push(parentItem.data());
+            } else {
+                parent = null;
+            }
+        }
+
+        JsonObject merged = new JsonObject();
+        while (!fms.empty()) {
+            merged.mergeIn(fms.pop());
+        }
+        return merged;
     }
 }
