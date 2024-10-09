@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject;
 public class FrontMatterJsonData {
 
     public static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
-                                           Map<String, RoqFrontMatterRawTemplateBuildItem> byPath) {
+            Map<String, RoqFrontMatterRawTemplateBuildItem> byPath) {
         Stack<JsonObject> fms = new Stack<>();
         String parent = item.layout();
         fms.add(item.data());
