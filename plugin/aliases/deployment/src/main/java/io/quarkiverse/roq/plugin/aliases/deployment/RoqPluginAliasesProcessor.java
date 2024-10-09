@@ -25,6 +25,7 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
+import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -41,7 +42,8 @@ public class RoqPluginAliasesProcessor {
     @BuildStep
     public void consumeTemplates(RoqSiteConfig config, List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
-            BuildProducer<SelectedPathBuildItem> selectedPathsProducer) {
+            BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
+            BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
 
         if (rawTemplates.isEmpty()) {
             return;
@@ -75,6 +77,9 @@ public class RoqPluginAliasesProcessor {
             aliasesProducer.produce(new RoqFrontMatterAliasesBuildItem(alias.getKey(), alias.getValue()));
             selectedPathsProducer.produce(new SelectedPathBuildItem(
                     alias.getKey(), null));
+            notFoundPageDisplayableEndpointProducer.produce(
+                    new NotFoundPageDisplayableEndpointBuildItem(alias.getKey(),
+                            "Roq URL alias for " + alias.getValue() + " URL."));
         }
     }
 
