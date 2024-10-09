@@ -73,7 +73,3 @@ See our documentation to see [how to generate your static files](https://docs.qu
 ### Backlog
 
 We have a [Kanban board](https://github.com/orgs/quarkiverse/projects/6), which is currently visible only by members of the [Quarkiverse organization](https://github.com/quarkiverse).
-
-### Staling issues and PRs
-
-We have a [GitHub action to automatically close issues and PRs](.github/workflows/stale_issues.yml) that didn't have interactions for a while. If you want to disable it for a specific issue or PR, you can add the `pinned` label and it will never stale.
