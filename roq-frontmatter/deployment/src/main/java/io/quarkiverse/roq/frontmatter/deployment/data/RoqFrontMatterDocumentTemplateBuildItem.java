@@ -14,21 +14,21 @@ import io.vertx.core.json.JsonObject;
  * {@link io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem}
  */
 public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildItem {
-    private final RoqFrontMatterRawTemplateBuildItem item;
+    private final RoqFrontMatterRawTemplateBuildItem raw;
     private final RoqUrl url;
     private final String collection;
     private final JsonObject data;
 
-    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem item, RoqUrl url, String collection,
+    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, RoqUrl url, String collection,
             JsonObject data) {
-        this.item = item;
+        this.raw = raw;
         this.url = url;
         this.collection = collection;
         this.data = data;
     }
 
-    public RoqFrontMatterRawTemplateBuildItem item() {
-        return item;
+    public RoqFrontMatterRawTemplateBuildItem raw() {
+        return raw;
     }
 
     public String collection() {
