@@ -14,7 +14,7 @@
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{site.url}{post.url}</guid>
         <pubDate>{post.date}</pubDate>
-        <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{site.url}{post.url}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
+        <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
       </item>
     {/for}
   </channel>
