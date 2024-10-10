@@ -72,7 +72,6 @@ paginate:
 
 With these steps, you can create a flexible pagination system to improve your site’s navigation.
 
-
 == SEO
 
 Incorporating search engine optimization (SEO) is as simple as inserting this tag into your `<head>` section:
@@ -96,6 +95,24 @@ It will automatically use the FrontMatter data to fill the tags.
 <meta property="og:image" content="https://images.unsplash.com/photo.webp" />
 <meta property="og:locale" content="en-US" />
 <meta property="og:type" content="article" />
+----
+
+== RSS
+
+Incorporating and RSS feed of your posts is as simple as inserting this tag into your `<head>` section:
+
+[source,html]
+----
+<head>
+{#rss site /}
+</head>
+----
+
+It will automatically use the FrontMatter data generate an RSS feed link.
+
+[source,html]
+----
+<link rel="alternate" type="application/rss+xml" title="Your Blog" href="/rss.xml"/>
 ----
 
 == Links
