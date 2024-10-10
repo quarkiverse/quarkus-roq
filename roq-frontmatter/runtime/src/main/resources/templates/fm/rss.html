@@ -5,7 +5,7 @@
   <channel>
     <title><![CDATA[ {site.title} ]]></title>
     <description><![CDATA[ {site.description} ]]></description>
-    <link>{site.url}</link>
+    <link>{site.url.absolute}</link>
     <generator>Quarkus Roq</generator>
     <lastBuildDate>{#if site.collections.posts.size > 0}{site.collections.posts[0].date}{/if}</lastBuildDate>
     {#for post in site.collections.posts}
