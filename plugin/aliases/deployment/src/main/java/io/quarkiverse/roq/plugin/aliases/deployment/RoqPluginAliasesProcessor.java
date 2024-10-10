@@ -57,7 +57,7 @@ public class RoqPluginAliasesProcessor {
             for (String alias : aliasesName) {
                 String aliasLink = TemplateLink.pageLink(config.rootPath(), alias, new TemplateLink.PageLinkData(
                         item.raw().info(), item.raw().collection(), item.data()));
-                aliasMap.put(aliasLink, url.path());
+                aliasMap.put(aliasLink, url.absolute());
             }
         }
 
@@ -81,7 +81,7 @@ public class RoqPluginAliasesProcessor {
         for (RoqFrontMatterAliasesBuildItem item : aliases) {
             routes.produce(RouteBuildItem.builder()
                     .route(httpRootPath.relativePath(item.alias()))
-                    .handler(recorder.addRedirect(item.target()))
+                    .handler(recorder.sendRedirectPage(item.target()))
                     .build());
         }
     }
