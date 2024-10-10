@@ -130,11 +130,12 @@ public class RoqGenerator implements Handler<RoutingContext> {
             host = httpConfiguration.host;
             port = httpConfiguration.port;
         }
-        return client().get(port, host, PathUtils.join(httpBuildTimeConfig.rootPath, path))
+        final String fullPath = PathUtils.join(httpBuildTimeConfig.rootPath, path);
+        return client().get(port, host, fullPath)
                 .send()
                 .expecting(HttpResponseExpectation.status(200))
-                .onSuccess(r -> LOGGER.debugf("Roq request completed %s", path))
-                .onFailure(t -> LOGGER.errorf("Roq request failed %s", path, t))
+                .onSuccess(r -> LOGGER.debugf("Roq request completed %s", fullPath))
+                .onFailure(t -> LOGGER.errorf("Roq request failed %s", fullPath, t))
                 .toCompletionStage();
     }
 

@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.plugin.aliases.deployment;
 
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+
 import java.util.*;
 
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
@@ -14,7 +17,6 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.vertx.core.json.JsonArray;
@@ -64,7 +66,7 @@ public class RoqPluginAliasesProcessor {
         for (Map.Entry<String, String> alias : aliasMap.entrySet()) {
             aliasesProducer.produce(new RoqFrontMatterAliasesBuildItem(alias.getKey(), alias.getValue()));
             selectedPathsProducer.produce(new SelectedPathBuildItem(
-                    alias.getKey(), null));
+                    addTrailingSlash(alias.getKey()), null));
             notFoundPageDisplayableEndpointProducer.produce(
                     new NotFoundPageDisplayableEndpointBuildItem(alias.getKey(),
                             "Roq URL alias for " + alias.getValue() + " URL."));
@@ -74,13 +76,12 @@ public class RoqPluginAliasesProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     public void createVertxRedirects(
-            HttpRootPathBuildItem httpRootPath,
             RoqFrontMatterAliasesRecorder recorder,
             BuildProducer<RouteBuildItem> routes,
             List<RoqFrontMatterAliasesBuildItem> aliases) {
         for (RoqFrontMatterAliasesBuildItem item : aliases) {
             routes.produce(RouteBuildItem.builder()
-                    .route(httpRootPath.relativePath(item.alias()))
+                    .route(prefixWithSlash(item.alias()))
                     .handler(recorder.sendRedirectPage(item.target()))
                     .build());
         }
