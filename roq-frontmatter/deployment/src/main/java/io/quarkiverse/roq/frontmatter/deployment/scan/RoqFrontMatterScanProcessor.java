@@ -40,7 +40,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
     private static final Set<String> SUPPORTED_LAYOUT_EXTENSIONS = Set.of(".md", "markdown", ".html", ".asciidoc", ".adoc");
-    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*\\v---\\v", Pattern.DOTALL);
+    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---[\\s\\S]*?---\\n", Pattern.DOTALL);
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     private static final String LAYOUT_KEY = "layout";
@@ -283,7 +283,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static String stripFrontMatter(String content) {
-        return FRONTMATTER_PATTERN.matcher(content).replaceAll("");
+        return FRONTMATTER_PATTERN.matcher(content).replaceFirst("");
     }
 
     private static boolean hasFrontMatter(String content) {
