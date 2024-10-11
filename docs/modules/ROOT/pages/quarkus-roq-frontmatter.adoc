@@ -115,6 +115,13 @@ It will automatically use the FrontMatter data generate an RSS feed link.
 <link rel="alternate" type="application/rss+xml" title="Your Blog" href="/rss.xml"/>
 ----
 
+It will automatically utilize the Frontmatter data from all your blog posts to generate a valid Atom RSS feed link at `rss.xml`. Ensure you create an `rss.xml` file at the root of your site and include this single line of code:
+
+[source,html]
+----
+{#include fm/rss.html}
+----
+
 == Links
 
 TODO
