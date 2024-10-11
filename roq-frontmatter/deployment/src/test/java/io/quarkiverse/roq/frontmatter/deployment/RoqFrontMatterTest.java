@@ -65,4 +65,10 @@ public class RoqFrontMatterTest {
                 .body("html.body.article.span", equalTo("2020-10-24T12:00Z[UTC]"));
     }
 
+    @Test
+    public void testFrontMatterInContent() {
+        RestAssured.when().get("/bar/posts/markdown-post-k8s").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("A K8S post made with markdown"));
+    }
+
 }
