@@ -17,7 +17,7 @@ jobs:
     permissions:
       pull-requests: write # Required to update PR status comment
     steps:
-      - name: Download PR Artifact
+      - name: Download docs artifact
         uses: actions/download-artifact@v4
         with:
           name: docs
@@ -54,6 +54,13 @@ jobs:
           body: |
             😭 Deploy PR Preview for **docs** failed.
           body-marker: <!-- Preview status comment marker -->
+
+      - name: Download blog artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: blog
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Publishing blog to Surge.sh
         id: deploy-blog
