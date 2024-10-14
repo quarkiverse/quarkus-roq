@@ -2,7 +2,7 @@ name: Surge.sh Preview
 
 on:
   workflow_run:
-    workflows: [ "Publish website" ]
+    workflows: [ "Build" ]
     types:
       - completed
 
@@ -37,11 +37,11 @@ jobs:
           echo "id=$(<pr-id.txt)" >> $GITHUB_OUTPUT
           rm -f pr-id.txt
 
-      - name: Publishing to surge for preview
+      - name: Publishing docs to surge for preview
         id: deploy
         run: npx surge ./ --domain https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
 
-      - name: Update PR status comment on success
+      - name: Update PR status comment on success (docs)
         uses: quarkusio/action-helpers@main
         with:
           action: maintain-one-comment
@@ -49,9 +49,8 @@ jobs:
           pr-number: ${{ steps.pr.outputs.id }}
           body: |
             🚀 PR Preview ${{ github.sha }} has been successfully built and deployed to https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh
-
-            <img width="300" src="https://user-images.githubusercontent.com/507615/90250366-88233900-de6e-11ea-95a5-84f0762ffd39.png">
           body-marker: <!-- Preview status comment marker -->
+
       - name: Update PR status comment on failure
         uses: quarkusio/action-helpers@main
         if: ${{ failure() }}
@@ -61,5 +60,29 @@ jobs:
           pr-number: ${{ steps.pr.outputs.id }}
           body: |
             😭 Deploy PR Preview failed.
-            <img width="300" src="https://user-images.githubusercontent.com/507615/90250824-4e066700-de6f-11ea-8230-600ecc3d6a6b.png">
+          body-marker: <!-- Preview status comment marker -->
+
+      - name: Publishing blog to surge for preview
+        id: deploy-blog
+        run: npx surge ./ --domain https://quarkiverse-roq-blog-pr-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+
+      - name: Update PR status comment on success (blog)
+        uses: quarkusio/action-helpers@main
+        with:
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.id }}
+          body: |
+            🚀 PR Preview ${{ github.sha }} has been successfully built and deployed to https://quarkiverse-roq-pr-${{ steps.pr.outputs.id }}-preview.surge.sh
+          body-marker: <!-- Preview status comment marker -->
+
+      - name: Update PR status comment on failure
+        uses: quarkusio/action-helpers@main
+        if: ${{ failure() }}
+        with:
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.id }}
+          body: |
+            😭 Deploy PR Preview failed.
           body-marker: <!-- Preview status comment marker -->
