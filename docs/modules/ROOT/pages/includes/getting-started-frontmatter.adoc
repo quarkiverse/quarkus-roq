@@ -8,7 +8,7 @@ The site directory structure is:
 
 image::roq-dirs.png[Roq directory structure]
 
-// https://excalidraw.com/#json=agpYoI4FLPUDHIuS2qWZ2,_qAVC8dqhVn8Q-dJtj84yA
+// https://excalidraw.com/#json=2UadK2YBe2UPFhtCU4gpG,PsW-YruS9-myIWhXGgVZnw
 
 
 NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
