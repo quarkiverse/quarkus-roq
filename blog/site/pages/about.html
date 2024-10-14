@@ -39,6 +39,9 @@ link: /about
     </div>
     <div class="details">
       <h2 class="name">{contributor.name}</h2>
+      {#if cdi:authors.get(contributor.login)}
+      <span class="author">author</span>
+      {/if}
       <a href="{contributor.profile}" target="_blank" class="login">@{contributor.login}</a>
     </div>
   </article>

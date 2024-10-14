@@ -35,12 +35,20 @@
 
   .details {
     text-align: center;
+    display: flex;
+    flex-direction: column;
 
     .name {
       font-size: 1.5em;
       font-weight: bold;
-      margin-bottom: 5px;
+      margin-bottom: 0;
       color: #333;
+    }
+
+    .author {
+      font-weight: 500;
+      font-size: 0.8rem;
+      color: $dark-gray;
     }
 
     .login {
