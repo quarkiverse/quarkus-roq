@@ -300,12 +300,13 @@ layout: main
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
 
+=== Static files
 
-=== Static files, Styles and Javascript
+By default, all files in `site/static/` are treated as static. It is possible to configure other files to be static.
+
+=== Styles and Javascript
 
 NOTE: The Quarkus Web Bundler is included by default with the Roq extension.
-
-Put your static files in `src/main/resources/web/static`.
 
 You can add css and scripts in your static directory or bundle them.
 To use bundling scripts (js, ts) and styles (css, scss) should be located in `src/main/web/app/`. To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
