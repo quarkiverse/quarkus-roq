@@ -41,6 +41,7 @@ link: posts/:title
                     </div>
 
                 </div>
+                {#if cdi:authors.get(page.data.author)}
                 <div class="author">
                     <img src="https://github.com/{page.data.author}.png" alt="author-{page.data.author}"/>
                     <div class="author-data">
@@ -48,6 +49,7 @@ link: posts/:title
                         <span class="author-job-title">{cdi:authors.get(page.data.author).job_title}</span>
                     </div>
                 </div>
+                {/if}
             </div>
         </div> <!-- End Wrap Content -->
     </div> <!-- End Page Content -->
