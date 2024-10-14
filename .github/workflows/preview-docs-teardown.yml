@@ -11,9 +11,9 @@ jobs:
     permissions:
       pull-requests: write # Required to update PR status comment
     steps:
-      - name: Teardown surge preview (docs)
+      - name: Teardown Surge.sh preview (docs)
         id: deploy
-        run: npx surge teardown https://quarkiverse-roq-pr-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
+        run: npx surge teardown https://quarkiverse-roq-docs-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
       - name: Update PR status comment
         uses: quarkusio/action-helpers@main
         with:
@@ -24,9 +24,9 @@ jobs:
             🙈 The PR is closed and the preview is expired.
           body-marker: <!-- Preview status comment marker -->
 
-      - name: Teardown surge preview (blog)
+      - name: Teardown Surge.sh preview (blog)
         id: deploy
-        run: npx surge teardown https://quarkiverse-roq-blog-pr-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
+        run: npx surge teardown https://quarkiverse-roq-blog-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
       - name: Update PR status comment
         uses: quarkusio/action-helpers@main
         with:
