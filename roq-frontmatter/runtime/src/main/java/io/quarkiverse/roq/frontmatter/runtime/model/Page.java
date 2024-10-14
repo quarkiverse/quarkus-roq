@@ -34,7 +34,7 @@ public interface Page {
     }
 
     /**
-     * The file name without the extension (e.g my-favorite-beer)
+     * The file name without the extension (e.g. my-favorite-beer)
      */
     default String baseFileName() {
         return info().sourceBaseFileName();
