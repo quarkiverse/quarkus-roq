@@ -36,7 +36,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 
 A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`).
 
-You can also prepare partial templates. They are located by default in `site/_includes_/`. For example:
+You can also prepare partial templates. They are located by default in `site/_includes/`. For example:
 
 * `pagination.html`
 * `head.html`
@@ -45,7 +45,7 @@ NOTE: if you don't already have layouts and includes in your project, copy them 
 
 === Site index template
 
-Your site index template is required and should be located in `site/index.html`. In your templates, you can use Qute templating engine with type-safety and all.
+Your site index template is required and should be located in `site/index.html`.
 
 [source,html]
 .index.html
@@ -68,7 +68,6 @@ layout: main //<2>
 <1> The index.html also describe your `site` information through a FrontMatter header.
 <2> The layout to use (in this case `main` which refers to `site/_layout/main.html`).
 <3> We use the `{site.url(path)}` using Qute to resolve site urls, in this case it doesn't exist yet...
-
 
 === Variables
 
