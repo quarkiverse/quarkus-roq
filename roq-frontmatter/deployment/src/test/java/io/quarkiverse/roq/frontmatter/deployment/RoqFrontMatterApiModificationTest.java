@@ -23,8 +23,8 @@ public class RoqFrontMatterApiModificationTest {
 
                     @Override
                     public void execute(BuildContext context) {
-                        context.produce(new RoqFrontMatterDataModificationBuildItem((resolvedPath, sourcePath, data) -> {
-                            if (resolvedPath.equals("pages/some-page.html")) {
+                        context.produce(new RoqFrontMatterDataModificationBuildItem((sourcePath, data) -> {
+                            if (sourcePath.equals("pages/some-page.html")) {
                                 final JsonObject newData = data.copy();
                                 newData.put("some-text", "modified text");
                                 newData.put("link", "/somewhere-else");

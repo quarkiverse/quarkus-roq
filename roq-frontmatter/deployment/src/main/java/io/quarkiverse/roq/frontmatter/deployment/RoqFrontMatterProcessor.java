@@ -1,12 +1,12 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
@@ -108,7 +108,9 @@ class RoqFrontMatterProcessor {
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
             for (String path : roqOutput.allPagesByPath().keySet()) {
-                selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path), null)); // We add a trailing slash to make it detected as a html page
+                // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
+                final String selectedPath = getExtension(path) != null ? path : addTrailingSlash(path);
+                selectedPathProducer.produce(new SelectedPathBuildItem(selectedPath, null));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }

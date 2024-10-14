@@ -7,6 +7,9 @@ import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkus.qute.TemplateData;
 
+/**
+ * This represents a collection of documents {@link DocumentPage}
+ */
 @TemplateData
 @Vetoed
 public class RoqCollection extends ArrayList<DocumentPage> {
@@ -17,6 +20,9 @@ public class RoqCollection extends ArrayList<DocumentPage> {
                 .toList());
     }
 
+    /**
+     * Resolve the next document page in this collection
+     */
     public DocumentPage resolveNextPage(DocumentPage page) {
         final int i = this.indexOf(page);
         if (i == -1 || i >= this.size() - 1) {
@@ -25,6 +31,9 @@ public class RoqCollection extends ArrayList<DocumentPage> {
         return this.get(i + 1);
     }
 
+    /**
+     * Resolve the previous document page in this collection
+     */
     public DocumentPage resolvePreviousPage(DocumentPage page) {
         final int i = this.indexOf(page);
         if (i <= 0) {
@@ -37,6 +46,9 @@ public class RoqCollection extends ArrayList<DocumentPage> {
         return this.resolvePreviousPage(page);
     }
 
+    /**
+     * Get the sub-list of documents depending on the given paginator
+     */
     public List<DocumentPage> paginated(Paginator paginator) {
         var zeroBasedCurrent = paginator.currentIndex() - 1;
         return this.subList(zeroBasedCurrent * paginator.limit(),

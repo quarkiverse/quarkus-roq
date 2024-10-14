@@ -1,20 +1,19 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterPaginateTemplateBuildItem extends MultiBuildItem {
 
-    private final RoqFrontMatterRawTemplateBuildItem raw;
+    private final PageInfo info;
     private final String paginatedCollection;
     private final RoqUrl url;
     private final JsonObject data;
 
-    public RoqFrontMatterPaginateTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, String paginatedCollection,
-            RoqUrl url, JsonObject data) {
-        this.raw = raw;
+    public RoqFrontMatterPaginateTemplateBuildItem(RoqUrl url, PageInfo info, JsonObject data, String paginatedCollection) {
+        this.info = info;
         this.paginatedCollection = paginatedCollection;
         this.url = url;
         this.data = data;
@@ -24,8 +23,8 @@ public final class RoqFrontMatterPaginateTemplateBuildItem extends MultiBuildIte
         return paginatedCollection;
     }
 
-    public RoqFrontMatterRawTemplateBuildItem raw() {
-        return raw;
+    public PageInfo info() {
+        return info;
     }
 
     public RoqUrl url() {

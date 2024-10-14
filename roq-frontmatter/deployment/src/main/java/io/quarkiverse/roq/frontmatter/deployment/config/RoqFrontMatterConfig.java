@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.deployment;
+package io.quarkiverse.roq.frontmatter.deployment.config;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ import io.smallrye.config.WithDefault;
 public interface RoqFrontMatterConfig {
 
     String INCLUDES_DIR = "_layouts,_includes";
-    Map<String, String> DEFAULT_COLLECTIONS = Map.of("_posts", "posts");
+    Map<String, CollectionConfig> DEFAULT_COLLECTIONS = Map.of("_posts", new CollectionConfigRecord("posts", false));
 
     /**
      * The directory names containing includes and layouts (in the Roq site directory)
@@ -60,18 +60,20 @@ public interface RoqFrontMatterConfig {
     Optional<String> timeZone();
 
     /**
-     * The directory names containing collections as key and the corresponding collection name as value (in the Roq site
-     * directory)
+     * The directory names (in the Roq site directory) containing collections as key
+     * and the corresponding collection config as value
      */
-    @ConfigDocDefault("_posts=post")
-    @WithDefault("")
-    Map<String, String> collections();
+    @ConfigDocDefault("_posts={id: post, hidden: false}")
+    Map<String, CollectionConfig> collections();
 
-    default Map<String, String> collectionsOrDefaults() {
+    default Map<String, CollectionConfig> collectionsOrDefaults() {
         if (collections().isEmpty()) {
             return DEFAULT_COLLECTIONS;
         }
         return collections();
+    }
+
+    record CollectionConfigRecord(String id, boolean hidden) implements CollectionConfig {
     }
 
 }

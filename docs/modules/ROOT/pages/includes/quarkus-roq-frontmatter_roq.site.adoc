@@ -127,22 +127,39 @@ endif::add-copy-button-to-env-var[]
 |string
 |`document timezone if provided or system timezone`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections[`roq.site.collections."collections"`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-id]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-id[`roq.site.collections."collections".id`]##
 
 [.description]
 --
-The directory names containing collections as key and the corresponding collection name as value (in the Roq site directory)
+The id for this collection (e.g. posts), it is also used as default path.
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS_+++[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS__ID+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS_+++`
+Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS__ID+++`
 endif::add-copy-button-to-env-var[]
 --
-|Map<String,String>
-|`_posts=post`
+|string
+|required icon:exclamation-circle[title=Configuration property is required]
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-hidden[`roq.site.collections."collections".hidden`]##
+
+[.description]
+--
+If true, the collection won't be available on path but consumable as data.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS__HIDDEN+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS__HIDDEN+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
 
 |===
 
