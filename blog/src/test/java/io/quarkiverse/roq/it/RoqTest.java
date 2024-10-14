@@ -6,6 +6,13 @@ import static org.hamcrest.Matchers.containsString;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @QuarkusTest
 public class RoqTest {
 
@@ -31,6 +38,16 @@ public class RoqTest {
                 .body(containsString("2024 &copy; ROQ"));
     }
 
+    @Test
+    public void testPage() throws IOException, URISyntaxException {
+
+        given()
+                .when().get("/events")
+                .then()
+                .statusCode(200)
+                .body(containsString("I provide you with all the tools to generate static websites out of your Quarkus web application."));
+    }
+  
     @Test
     public void testPage() {
         given().when().get("/events").then().statusCode(200).body(containsString(

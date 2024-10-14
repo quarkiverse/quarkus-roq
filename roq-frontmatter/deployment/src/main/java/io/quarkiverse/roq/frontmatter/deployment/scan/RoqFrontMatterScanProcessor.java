@@ -37,6 +37,7 @@ import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
+import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
 import io.vertx.core.json.JsonObject;
 
@@ -82,7 +83,8 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqFrontMatterConfig roqDataConfig,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            BuildProducer<GeneratedStaticResourceBuildItem> resources) {
         try {
             dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             Set<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject, quteConfig, jackson.getYamlMapper(),
@@ -91,6 +93,8 @@ public class RoqFrontMatterScanProcessor {
 
             for (RoqFrontMatterRawTemplateBuildItem item : items) {
                 dataProducer.produce(item);
+                resources.produce(new GeneratedStaticResourceBuildItem(
+                        PathUtils.prefixWithSlash(item.id()), item.generatedContent().getBytes(StandardCharsets.UTF_8)));
             }
 
         } catch (IOException e) {
