@@ -25,6 +25,23 @@ endif::add-copy-button-to-env-var[]
 |list of string
 |`_layouts,_includes`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-static-files]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-static-files[`roq.site.static-files`]##
+
+[.description]
+--
+Files to serve as static (you can use glob expressions)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_STATIC_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_STATIC_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|`static/**`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-generator[`roq.site.generator`]##
 
 [.description]

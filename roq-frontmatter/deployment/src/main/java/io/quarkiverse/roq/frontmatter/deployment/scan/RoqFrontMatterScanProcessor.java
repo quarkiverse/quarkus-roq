@@ -6,6 +6,7 @@ import static java.util.function.Predicate.not;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZoneId;
@@ -78,6 +79,7 @@ public class RoqFrontMatterScanProcessor {
             QuteConfig quteConfig,
             RoqJacksonBuildItem jackson,
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
+            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqFrontMatterConfig roqDataConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
@@ -85,7 +87,7 @@ public class RoqFrontMatterScanProcessor {
             dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             Set<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject, quteConfig, jackson.getYamlMapper(),
                     roqDataConfig,
-                    watch, dataModifications);
+                    watch, dataModifications, staticFilesProducer);
 
             for (RoqFrontMatterRawTemplateBuildItem item : items) {
                 dataProducer.produce(item);
@@ -96,14 +98,17 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
-    public Set<RoqFrontMatterRawTemplateBuildItem> resolveItems(RoqProjectBuildItem roqProject, QuteConfig quteConfig,
+    public Set<RoqFrontMatterRawTemplateBuildItem> resolveItems(RoqProjectBuildItem roqProject,
+            QuteConfig quteConfig,
             YAMLMapper mapper,
-            RoqFrontMatterConfig roqDataConfig, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            List<RoqFrontMatterDataModificationBuildItem> dataModifications) throws IOException {
+            RoqFrontMatterConfig config,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer) throws IOException {
         HashSet<RoqFrontMatterRawTemplateBuildItem> items = new HashSet<>();
         roqProject.consumeRoqDir(site -> {
             if (Files.isDirectory(site)) {
-                for (String includesDir : roqDataConfig.includesDirs()) {
+                for (String includesDir : config.includesDirs()) {
                     // scan layouts
                     final Path dir = site.resolve(includesDir);
                     if (Files.isDirectory(dir)) {
@@ -111,7 +116,7 @@ public class RoqFrontMatterScanProcessor {
                             stream
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor::isExtensionSupportedForLayout)
-                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, dataModifications, watch, null,
+                                    .forEach(addBuildItem(dir, items, mapper, config, dataModifications, watch, null,
                                             false));
                         } catch (IOException e) {
                             throw new RuntimeException("Was not possible to scan includes dir %s".formatted(dir), e);
@@ -119,7 +124,7 @@ public class RoqFrontMatterScanProcessor {
                     }
                 }
 
-                final Map<String, CollectionConfig> collections = roqDataConfig.collectionsOrDefaults();
+                final Map<String, CollectionConfig> collections = config.collectionsOrDefaults();
                 for (Map.Entry<String, CollectionConfig> collectionsDir : collections.entrySet()) {
                     // scan collections
                     final Path dir = site.resolve(collectionsDir.getKey());
@@ -128,7 +133,7 @@ public class RoqFrontMatterScanProcessor {
                             stream
                                     .filter(Files::isRegularFile)
                                     .filter(RoqFrontMatterScanProcessor.isExtensionSupportedForTemplate(quteConfig))
-                                    .forEach(addBuildItem(dir, items, mapper, roqDataConfig, dataModifications, watch,
+                                    .forEach(addBuildItem(dir, items, mapper, config, dataModifications, watch,
                                             collectionsDir.getValue(),
                                             true));
                         } catch (IOException e) {
@@ -141,9 +146,15 @@ public class RoqFrontMatterScanProcessor {
                 try (Stream<Path> stream = Files.walk(site)) {
                     stream
                             .filter(Files::isRegularFile)
-                            .filter(RoqFrontMatterScanProcessor.isExtensionSupportedForTemplate(quteConfig))
                             .filter(not(RoqFrontMatterScanProcessor::isFileExcluded))
-                            .forEach(addBuildItem(site, items, mapper, roqDataConfig, dataModifications, watch, null, true));
+                            .forEach(p -> {
+                                if (isStaticFile(site, config).test(p)) {
+                                    String link = toUnixPath(site.relativize(p).toString());
+                                    staticFilesProducer.produce(new RoqFrontMatterStaticFileBuildItem(link, p));
+                                } else if (RoqFrontMatterScanProcessor.isExtensionSupportedForTemplate(quteConfig).test(p)) {
+                                    addBuildItem(site, items, mapper, config, dataModifications, watch, null, true).accept(p);
+                                }
+                            });
                 } catch (IOException e) {
                     throw new RuntimeException("Was not possible to scan data files on location %s".formatted(site), e);
                 }
@@ -183,8 +194,11 @@ public class RoqFrontMatterScanProcessor {
                     }
                     final String layout = normalizedLayout(fm.getString(LAYOUT_KEY));
                     final String content = stripFrontMatter(fullContent);
-                    String dateString = parsePublishDate(file, fm, config);
-
+                    ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
+                    if (date != null && !config.future() && date.isAfter(ZonedDateTime.now())) {
+                        return;
+                    }
+                    String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
                     PageInfo info = PageInfo.create(sourcePath, draft, config.imagesPath(), dateString, content,
                             sourcePath, quteTemplatePath);
                     LOGGER.debugf("Creating generated template for id %s" + sourcePath);
@@ -207,29 +221,36 @@ public class RoqFrontMatterScanProcessor {
         };
     }
 
-    protected static String parsePublishDate(Path file, JsonObject frontMatter, RoqFrontMatterConfig config) {
+    private static Predicate<Path> isStaticFile(Path root, RoqFrontMatterConfig config) {
+        return path -> {
+            final FileSystem fs = root.getFileSystem();
+            final Path relative = root.relativize(path);
+            return config.staticFiles().stream().anyMatch(glob -> fs.getPathMatcher("glob:" + glob).matches(relative));
+        };
+    }
+
+    protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
+            Optional<String> timeZone) {
         String dateString;
         if (frontMatter.containsKey(DATE_KEY)) {
             dateString = frontMatter.getString(DATE_KEY);
         } else {
             Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.getFileName().toString());
-            if (!matcher.find())
-                return null;
+            if (!matcher.find()) {
+                // Lets fallback on using today's date if not specified
+                return ZonedDateTime.now();
+            }
             dateString = matcher.group(1);
         }
 
-        ZonedDateTime date = new DateTimeFormatterBuilder().appendPattern(config.dateFormat())
+        return new DateTimeFormatterBuilder().appendPattern(dateFormat)
                 .parseDefaulting(ChronoField.HOUR_OF_DAY, 12)
                 .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
                 .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
                 .toFormatter()
-                .withZone(config.timeZone().isPresent() ? ZoneId.of(config.timeZone().get()) : ZoneId.systemDefault())
+                .withZone(timeZone.isPresent() ? ZoneId.of(timeZone.get()) : ZoneId.systemDefault())
                 .parse(dateString, ZonedDateTime::from);
-        if (!config.future() && date.isAfter(ZonedDateTime.now())) {
-            return null;
-        }
 
-        return date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
     }
 
     private static String generateTemplate(String fileName, String layout, String content) {

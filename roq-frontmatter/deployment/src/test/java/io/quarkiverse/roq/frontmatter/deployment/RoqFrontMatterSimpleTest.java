@@ -34,4 +34,9 @@ public class RoqFrontMatterSimpleTest {
                 .body("html.body.div.h1[1]", containsString("Some Post"));
     }
 
+    @Test
+    public void testStatic() {
+        RestAssured.when().get("/static/assets/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
+    }
+
 }

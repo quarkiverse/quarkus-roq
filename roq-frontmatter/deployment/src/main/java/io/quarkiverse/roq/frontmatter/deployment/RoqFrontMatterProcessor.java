@@ -8,11 +8,14 @@ import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
+import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -20,6 +23,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
+import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
 class RoqFrontMatterProcessor {
 
@@ -114,6 +118,17 @@ class RoqFrontMatterProcessor {
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }
+        }
+    }
+
+    @BuildStep
+    void bindStaticFiles(
+            RoqSiteConfig config,
+            List<RoqFrontMatterStaticFileBuildItem> staticFiles,
+            BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
+        for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
+            staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(
+                    PathUtils.join(config.rootPath(), staticFile.link()), staticFile.filePath()));
         }
     }
 

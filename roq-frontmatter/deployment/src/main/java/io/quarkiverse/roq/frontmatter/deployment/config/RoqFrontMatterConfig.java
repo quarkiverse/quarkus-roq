@@ -15,6 +15,7 @@ import io.smallrye.config.WithDefault;
 public interface RoqFrontMatterConfig {
 
     String INCLUDES_DIR = "_layouts,_includes";
+    String STATIC_FILES = "static/**";
     Map<String, CollectionConfig> DEFAULT_COLLECTIONS = Map.of("_posts", new CollectionConfigRecord("posts", false));
 
     /**
@@ -22,6 +23,12 @@ public interface RoqFrontMatterConfig {
      */
     @WithDefault(INCLUDES_DIR)
     List<String> includesDirs();
+
+    /**
+     * Files to serve as static (you can use glob expressions)
+     */
+    @WithDefault(STATIC_FILES)
+    List<String> staticFiles();
 
     /**
      * When enabled it will select all FrontMatter pages in Roq Generator
