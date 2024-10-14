@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 import jakarta.enterprise.inject.Vetoed;
 
@@ -11,9 +12,10 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public record PageInfo(
         /**
-         * The page resolve path (e.g. posts/my-favorite-beer.html)
+         * The page unique id, it is either the source file name (e.g. _posts/my-favorite-beer.md or a generated id for dynamic
+         * pages).
          */
-        String resolvedPath,
+        String id,
 
         /**
          * If this page is a draft or not
@@ -36,23 +38,26 @@ public record PageInfo(
         String rawContent,
 
         /**
-         * The path of the source file (e.g posts/my-favorite-beer.md)
+         * The path of the source file (e.g _posts/my-favorite-beer.md)
          */
-        String sourcePath,
+        String sourceFilePath,
 
         /**
-         * The generated template path (e.g posts/my-favorite-beer.html)
+         * The generated template path for Qute (e.g posts/my-favorite-beer.html)
          */
         String generatedTemplatePath) {
 
-    public static PageInfo create(String resolvedPath, boolean draft, String imagesRootPath, String dateString,
+    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "asciidoc", "adoc");
+
+    public static PageInfo create(String id, boolean draft, String imagesRootPath, String dateString,
             String rawContent,
-            String sourcePath) {
-        return new PageInfo(resolvedPath, draft, imagesRootPath, dateString, rawContent, sourcePath, resolvedPath);
+            String sourcePath,
+            String quteTemplatePath) {
+        return new PageInfo(id, draft, imagesRootPath, dateString, rawContent, sourcePath, quteTemplatePath);
     }
 
-    public PageInfo changeResolvedPath(String resolvedPath) {
-        return new PageInfo(resolvedPath, draft(), imagesRootPath(), dateString(), rawContent(), sourcePath(),
+    public PageInfo changeId(String id) {
+        return new PageInfo(id, draft(), imagesRootPath(), dateString(), rawContent(), sourceFilePath(),
                 generatedTemplatePath());
     }
 
@@ -64,22 +69,22 @@ public record PageInfo(
      * The file name (e.g my-favorite-beer.md)
      */
     public String sourceFileName() {
-        return PathUtils.fileName(sourcePath);
+        return PathUtils.fileName(sourceFilePath);
     }
 
     /**
      * The file name without the extension (e.g my-favorite-beer)
      */
-    public String baseFileName() {
+    public String sourceBaseFileName() {
         return PathUtils.removeExtension(sourceFileName());
     }
 
-    public String getExtension() {
+    public String getSourceFileExtension() {
         return PathUtils.getExtension(sourceFileName());
     }
 
     public boolean isHtml() {
-        return "html".equalsIgnoreCase(getExtension());
+        return HTML_OUTPUT_EXTENSIONS.contains(getSourceFileExtension());
     }
 
 }

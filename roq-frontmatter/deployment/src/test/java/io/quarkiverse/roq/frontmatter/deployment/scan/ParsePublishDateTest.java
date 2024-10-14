@@ -11,7 +11,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterConfig;
+import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
+import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.vertx.core.json.JsonObject;
 
 public class ParsePublishDateTest {
@@ -127,7 +128,7 @@ public class ParsePublishDateTest {
         }
 
         @Override
-        public Map<String, String> collections() {
+        public Map<String, CollectionConfig> collections() {
             return Map.of();
         }
     }

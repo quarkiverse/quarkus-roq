@@ -9,16 +9,22 @@ import io.quarkus.builder.item.MultiBuildItem;
 public final class RoqFrontMatterPageBuildItem extends MultiBuildItem {
     private final String id;
     private final RoqUrl url;
+    private final boolean hidden;
     private final Supplier<? extends Page> page;
 
-    public RoqFrontMatterPageBuildItem(String id, RoqUrl url, Supplier<? extends Page> page) {
+    public RoqFrontMatterPageBuildItem(String id, RoqUrl url, boolean hidden, Supplier<? extends Page> page) {
         this.id = id;
         this.url = url;
+        this.hidden = hidden;
         this.page = page;
     }
 
     public RoqUrl url() {
         return url;
+    }
+
+    public boolean hidden() {
+        return hidden;
     }
 
     public String id() {

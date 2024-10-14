@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import static io.quarkiverse.roq.frontmatter.runtime.model.PageInfo.HTML_OUTPUT_EXTENSIONS;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
 
@@ -27,7 +28,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterConfig;
+import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
+import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.util.PathUtils;
@@ -39,7 +41,6 @@ import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
-    private static final Set<String> SUPPORTED_LAYOUT_EXTENSIONS = Set.of(".md", "markdown", ".html", ".asciidoc", ".adoc");
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---\\v", Pattern.DOTALL);
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
@@ -118,8 +119,8 @@ public class RoqFrontMatterScanProcessor {
                     }
                 }
 
-                final Map<String, String> collections = roqDataConfig.collectionsOrDefaults();
-                for (Map.Entry<String, String> collectionsDir : collections.entrySet()) {
+                final Map<String, CollectionConfig> collections = roqDataConfig.collectionsOrDefaults();
+                for (Map.Entry<String, CollectionConfig> collectionsDir : collections.entrySet()) {
                     // scan collections
                     final Path dir = site.resolve(collectionsDir.getKey());
                     if (Files.isDirectory(dir)) {
@@ -159,21 +160,22 @@ public class RoqFrontMatterScanProcessor {
             RoqFrontMatterConfig config,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            String collection,
+            CollectionConfig collection,
             boolean isPage) {
         return file -> {
             watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(file.toAbsolutePath().toString()).build());
             String sourcePath = toUnixPath(
-                    collection != null ? collection + "/" + root.relativize(file) : root.relativize(file).toString());
-            String resolvedPath = removeExtension(sourcePath) + resolveOutputExtension(sourcePath);
+                    collection != null ? collection.id() + "/" + root.relativize(file) : root.relativize(file).toString());
+            String quteTemplatePath = removeExtension(sourcePath) + resolveOutputExtension(sourcePath);
             try {
                 final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
                 if (hasFrontMatter(fullContent)) {
                     JsonNode rootNode = mapper.readTree(getFrontMatter(fullContent));
                     final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
                     JsonObject fm = new JsonObject(map);
+
                     for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                        fm = modification.modifier().modify(resolvedPath, sourcePath, fm);
+                        fm = modification.modifier().modify(sourcePath, fm);
                     }
                     final boolean draft = fm.getBoolean(DRAFT_KEY, false);
                     if (!config.draft() && draft) {
@@ -183,15 +185,16 @@ public class RoqFrontMatterScanProcessor {
                     final String content = stripFrontMatter(fullContent);
                     String dateString = parsePublishDate(file, fm, config);
 
-                    PageInfo info = PageInfo.create(resolvedPath, draft, config.imagesPath(), dateString, content,
-                            sourcePath);
-                    LOGGER.debugf("Creating generated template for %s" + resolvedPath);
+                    PageInfo info = PageInfo.create(sourcePath, draft, config.imagesPath(), dateString, content,
+                            sourcePath, quteTemplatePath);
+                    LOGGER.debugf("Creating generated template for id %s" + sourcePath);
                     final String generatedTemplate = generateTemplate(sourcePath, layout, content);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, layout, isPage, fm, collection, generatedTemplate,
                                     isPage));
                 } else {
-                    PageInfo info = PageInfo.create(resolvedPath, false, config.imagesPath(), null, fullContent, sourcePath);
+                    PageInfo info = PageInfo.create(sourcePath, false, config.imagesPath(), null, fullContent, sourcePath,
+                            quteTemplatePath);
                     items.add(
                             new RoqFrontMatterRawTemplateBuildItem(info, null, isPage, new JsonObject(), collection,
                                     fullContent,
@@ -263,8 +266,8 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static boolean isExtensionSupportedForLayout(Path path) {
-        String fileName = path.getFileName().toString();
-        return SUPPORTED_LAYOUT_EXTENSIONS.stream().anyMatch(fileName::endsWith);
+        final String extension = getExtension(path.toString());
+        return HTML_OUTPUT_EXTENSIONS.contains(extension);
     }
 
     private static Predicate<? super Path> isExtensionSupportedForTemplate(QuteConfig quteConfig) {

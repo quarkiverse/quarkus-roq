@@ -8,6 +8,7 @@ CAUTION: Roq FrontMatter is already included as part of the Roq Static Site Gene
 
 include::includes/getting-started-frontmatter.adoc[]
 
+[#pagination]
 == Pagination
 
 Adding pagination to your Roq site is an easy way to improve content
@@ -28,7 +29,7 @@ Next, in your template, loop through the paginated posts using:
 
 [source,html]
 ----
-{#for post in site.collections.posts.paginated(page.paginator)}
+{#for post in site.collections.posts.paginated(page.paginator)} // <1>
 <article class="post">
   ...
 </article>

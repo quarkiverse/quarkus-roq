@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
+import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
@@ -16,10 +17,10 @@ import io.vertx.core.json.JsonObject;
 public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildItem {
     private final RoqFrontMatterRawTemplateBuildItem raw;
     private final RoqUrl url;
-    private final String collection;
+    private final CollectionConfig collection;
     private final JsonObject data;
 
-    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, RoqUrl url, String collection,
+    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, RoqUrl url, CollectionConfig collection,
             JsonObject data) {
         this.raw = raw;
         this.url = url;
@@ -31,7 +32,7 @@ public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildIte
         return raw;
     }
 
-    public String collection() {
+    public CollectionConfig collection() {
         return collection;
     }
 

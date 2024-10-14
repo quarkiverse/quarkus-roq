@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,17 +49,18 @@ class RoqFrontMatterInitProcessor {
 
         // Published collections
         final Map<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
-                .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
+                .collect(Collectors.groupingBy(i -> i.collection().id()));
         final Map<String, Supplier<DocumentPage>> documentsById = new HashMap<>();
         for (Map.Entry<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
             List<Supplier<DocumentPage>> docs = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
                 final RoqUrl url = item.url();
-                final Supplier<DocumentPage> document = recorder.createDocument(item.collection(),
+                final Supplier<DocumentPage> document = recorder.createDocument(item.collection().id(),
                         url,
-                        item.info(), item.data());
-                documentsById.put(item.info().resolvedPath(), document);
-                pagesProducer.produce(new RoqFrontMatterPageBuildItem(item.info().resolvedPath(), url, document));
+                        item.info(), item.data(), item.collection().hidden());
+                documentsById.put(item.info().id(), document);
+                pagesProducer
+                        .produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, item.collection().hidden(), document));
                 docs.add(document);
             }
             collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(e.getKey(), docs));
@@ -70,7 +72,7 @@ class RoqFrontMatterInitProcessor {
             for (String id : i.documentIds()) {
                 final Supplier<DocumentPage> doc = documentsById.get(id);
                 if (doc == null) {
-                    throw new IllegalStateException("No document found for resolvedPath " + id);
+                    throw new IllegalStateException("No document found for id " + id);
                 }
                 docs.add(doc);
             }
@@ -93,10 +95,10 @@ class RoqFrontMatterInitProcessor {
         for (RoqFrontMatterPublishPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.info(), page.data(), page.paginator());
-            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().resolvedPath(), page.url(), recordedPage));
+            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), false, recordedPage));
             normalPagesProducer
-                    .produce(new RoqFrontMatterNormalPageBuildItem(page.info().resolvedPath(), page.url(), recordedPage));
-            if (page.info().resolvedPath().equals("index.html")) {
+                    .produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
+            if (page.info().id().startsWith("index.")) {
                 indexPageProducer.produce(new RoqFrontMatterIndexPageBuildItem(recordedPage));
             }
         }
@@ -132,6 +134,7 @@ class RoqFrontMatterInitProcessor {
                 .done());
 
         final Map<String, Supplier<? extends Page>> allPagesByPath = pageItems.stream()
+                .filter(not(RoqFrontMatterPageBuildItem::hidden))
                 .collect(Collectors.toMap(i -> i.url().path(), RoqFrontMatterPageBuildItem::page));
         return new RoqFrontMatterOutputBuildItem(allPagesByPath, collectionsSupplier);
     }

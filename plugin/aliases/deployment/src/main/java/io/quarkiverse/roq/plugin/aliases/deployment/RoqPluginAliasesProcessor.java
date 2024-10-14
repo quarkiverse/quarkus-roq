@@ -58,7 +58,7 @@ public class RoqPluginAliasesProcessor {
             RoqUrl url = item.url();
             for (String alias : aliasesName) {
                 String aliasLink = TemplateLink.pageLink(config.rootPath(), alias, new TemplateLink.PageLinkData(
-                        item.raw().info(), item.raw().collection(), item.data()));
+                        item.raw().info(), item.raw().collectionId(), item.data()));
                 aliasMap.put(aliasLink, url.absolute());
             }
         }
@@ -68,7 +68,7 @@ public class RoqPluginAliasesProcessor {
             selectedPathsProducer.produce(new SelectedPathBuildItem(
                     addTrailingSlash(alias.getKey()), null));
             notFoundPageDisplayableEndpointProducer.produce(
-                    new NotFoundPageDisplayableEndpointBuildItem(alias.getKey(),
+                    new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(alias.getKey()),
                             "Roq URL alias for " + alias.getValue() + " URL."));
         }
     }

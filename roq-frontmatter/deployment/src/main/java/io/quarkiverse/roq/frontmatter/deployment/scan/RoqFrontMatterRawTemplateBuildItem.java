@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
@@ -36,7 +37,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final JsonObject data;
 
-    private final String collection;
+    private final CollectionConfig collection;
 
     /**
      * The generated template content to be passed to be passed to Qute.
@@ -44,11 +45,12 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final String generatedTemplate;
 
     /**
-     * Should this template be published.
+     * Should this template be published (published templates can be available in the data, but hidden from routing).
      */
     private final boolean published;
 
-    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data, String collection,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data,
+            CollectionConfig collection,
             String generatedTemplate,
             boolean published) {
         this.info = info;
@@ -64,8 +66,8 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return isPage;
     }
 
-    public String resolvedPath() {
-        return info.resolvedPath();
+    public String id() {
+        return info.id();
     }
 
     public PageInfo info() {
@@ -80,8 +82,12 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return data;
     }
 
-    public String collection() {
+    public CollectionConfig collection() {
         return collection;
+    }
+
+    public String collectionId() {
+        return collection != null ? collection.id() : null;
     }
 
     public String generatedContent() {

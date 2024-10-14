@@ -22,7 +22,7 @@ link: ":name.html"
       <h3 class="menu-title">MENU</h3>
       <ul>
         {#for item in cdi:menu.items}
-        <li><a href="{site.rootUrl.resolve(item.url)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
+        <li><a href="{site.url(item.path)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
         {/for}
       </ul>
     </div>

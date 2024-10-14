@@ -2,6 +2,7 @@ include::./includes/attributes.adoc[]
 
 = Quarkus Roq Plugins
 
+[#plugin-tagging]
 == Roq Plugin Tagging
 
 This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
@@ -55,7 +56,7 @@ paginate: true
 
 ----
 
-
+[#plugin-aliases]
 == Roq Plugin Aliases
 
 This plugin allows referencing a page using an alias.

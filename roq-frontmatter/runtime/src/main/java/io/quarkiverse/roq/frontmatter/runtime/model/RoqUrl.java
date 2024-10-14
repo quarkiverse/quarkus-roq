@@ -10,58 +10,81 @@ import jakarta.enterprise.inject.Vetoed;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateData;
 
+/**
+ * This represents a Roq url for pages, resources, ...
+ *
+ * @param root the site url with root path included (e.g. "https://example.com/my-root/")
+ * @param path the path of the resource (e.g. "site/posts/hello-world/")
+ */
 @TemplateData
 @Vetoed
-public record RoqUrl(RootUrl rootUrl, String path) {
+public record RoqUrl(
+        RootUrl root,
+        String path) {
 
-    public RoqUrl(RootUrl rootUrl, String path) {
+    public RoqUrl(RootUrl root, String path) {
         this.path = path;
-        this.rootUrl = rootUrl;
+        this.root = root;
     }
 
+    /**
+     * Using a RootUrl as a String will print relative url
+     */
     @Override
     public String toString() {
         return relative();
     }
 
+    /**
+     * The relative url to this resource (including the root path).
+     * If it is external it will return the external full url.
+     * (e.g. /my-root/site/posts/hello-world/)
+     */
     public String relative() {
         if (isExternal()) {
             return path();
         }
-        return PathUtils.join(rootUrl.rootPath(), path());
+        return PathUtils.join(root.rootPath(), path());
     }
 
+    /**
+     * @return the absolute url to this resource (e.g. http://example.com/my-root/site/posts/hello-world/)
+     */
     public String absolute() {
         if (isExternal()) {
             return path();
         }
-        return PathUtils.join(rootUrl().absolute(), path());
+        return PathUtils.join(root().absolute(), path());
     }
 
+    /**
+     * Encode this url to be used as a query parameter
+     */
     public String encoded() {
         return URLEncoder.encode(absolute(), StandardCharsets.UTF_8);
     }
 
     /**
-     * Check if this is an absolute Url starting with http:// or https://
+     * Check if this is a full path starting with http:// or https://
      *
-     * @return true is it's an absolute url
+     * @return true is it's a full path url
      */
-    public static boolean isPathAbsolute(String path) {
+    public static boolean isFullPath(String path) {
         return path.startsWith("http://") || path.startsWith("https://");
     }
 
     /**
-     * Create a new Url joining the other path
+     * Create a new Url joining the other path.
+     * Whatever if the path starts with `/`, it will always join.
      *
      * @param other the other path to join
      * @return the new joined url
      */
     public RoqUrl resolve(Object other) {
-        if (isPathAbsolute(other.toString())) {
+        if (isFullPath(other.toString())) {
             return new RoqUrl(null, other.toString());
         }
-        return new RoqUrl(rootUrl(), PathUtils.join(path(), removeTrailingSlash(other.toString())));
+        return new RoqUrl(root(), PathUtils.join(path(), removeTrailingSlash(other.toString())));
     }
 
     /**
@@ -81,18 +104,31 @@ public record RoqUrl(RootUrl rootUrl, String path) {
      * @return the concatenated url
      */
     public RoqUrl append(Object other) {
-        return new RoqUrl(rootUrl(), path() + other.toString());
+        return new RoqUrl(root(), path() + other.toString());
     }
 
+    /**
+     * @return true if this RoqUrl is external
+     */
     public boolean isExternal() {
-        return rootUrl() == null;
+        return root() == null;
     }
 
-    public static RoqUrl fromRoot(RootUrl rootUrl, String path) {
-        if (isPathAbsolute(path)) {
+    /**
+     * resolve the path from the application root
+     *
+     * @param path the path to resolve
+     * @return the resolved RoqUrl
+     */
+    public RoqUrl fromRoot(String path) {
+        return this.root.resolve(path);
+    }
+
+    public static RoqUrl fromRoot(RootUrl root, String path) {
+        if (isFullPath(path)) {
             return new RoqUrl(null, path);
         }
-        return new RoqUrl(rootUrl, removeTrailingSlash(path));
+        return new RoqUrl(root, removeTrailingSlash(path));
     }
 
 }

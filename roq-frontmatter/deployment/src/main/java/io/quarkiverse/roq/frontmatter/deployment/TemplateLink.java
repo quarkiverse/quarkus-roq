@@ -50,11 +50,11 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
                 Map.entry(":name", () -> {
                     if (data.pageInfo().isHtml()) {
-                        return slugify(data.pageInfo().baseFileName());
+                        return slugify(data.pageInfo().sourceBaseFileName());
                     }
-                    return slugify(data.pageInfo().baseFileName()) + "." + data.pageInfo().getExtension();
+                    return slugify(data.pageInfo().sourceBaseFileName()) + "." + data.pageInfo().getSourceFileExtension();
                 }),
-                Map.entry(":title", () -> data.data().getString("slug", slugify(data.pageInfo().baseFileName())))));
+                Map.entry(":title", () -> data.data().getString("slug", slugify(data.pageInfo().sourceBaseFileName())))));
         if (other != null) {
             result.putAll(other);
         }

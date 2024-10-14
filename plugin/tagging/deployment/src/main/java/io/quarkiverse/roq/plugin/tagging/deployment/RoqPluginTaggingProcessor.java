@@ -19,6 +19,7 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPa
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -61,13 +62,13 @@ public class RoqPluginTaggingProcessor {
             final String derivedFromCollection = item.data().getString("tagging");
             final Map<String, List<String>> derived = new HashMap<>();
             for (RoqFrontMatterDocumentTemplateBuildItem document : documents.stream()
-                    .filter(d -> d.collection().equals(derivedFromCollection)).toList()) {
+                    .filter(d -> d.collection().id().equals(derivedFromCollection)).toList()) {
                 final List<String> tags = resolveTags(document);
 
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
                     derived.computeIfAbsent(tag, k -> new ArrayList<>())
-                            .add(document.raw().resolvedPath());
+                            .add(document.raw().id());
                 }
             }
 
@@ -85,13 +86,16 @@ public class RoqPluginTaggingProcessor {
                         data.getString(LINK_KEY, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE),
                         new PageLinkData(item.info(), tagCollection, data));
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
+
+                PageInfo info = item.info().changeId(tagCollection);
+
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {
                     paginatedPagesProducer
-                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(item, tagCollection, url, data));
+                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(url, info, data, tagCollection));
                 } else {
 
-                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(url, item.info(), data, null));
+                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(url, info, data, null));
                 }
             }
         }
