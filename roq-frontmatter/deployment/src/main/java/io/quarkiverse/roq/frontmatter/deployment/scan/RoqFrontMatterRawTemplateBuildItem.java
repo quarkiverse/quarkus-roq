@@ -1,47 +1,56 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
 /**
- * A build item representing a Roq fm file.
+ * A build item representing a Roq FM file.
+ * This template is just extracted from the disk, data is not yet merged with layouts.
+ *
+ * Use {@link io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem} to read all FM templates with
+ * merged data.
  */
 public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
+    /**
+     * The page details.
+     */
     private final PageInfo info;
 
     /**
-     * The layout used for this template
+     * The layout used for this template.
      */
     private final String layout;
 
     /**
      * true if it's a page template.
      * or false if it's an include template.
-     *
+     * <p>
      * Include template should not be published.
      */
     private final boolean isPage;
 
     /**
-     * The FrontMatter data (it is not merged with parents at this stage)
+     * The FrontMatter data (it is not merged with parents at this stage).
      */
     private final JsonObject data;
 
-    private final String collection;
+    private final CollectionConfig collection;
 
     /**
-     * The generated template content to be passed to be passed to Qute
+     * The generated template content to be passed to be passed to Qute.
      */
     private final String generatedTemplate;
 
     /**
-     * Should this template be published
+     * Should this template be published (published templates can be available in the data, but hidden from routing).
      */
     private final boolean published;
 
-    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data, String collection,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data,
+            CollectionConfig collection,
             String generatedTemplate,
             boolean published) {
         this.info = info;
@@ -73,8 +82,12 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return data;
     }
 
-    public String collection() {
+    public CollectionConfig collection() {
         return collection;
+    }
+
+    public String collectionId() {
+        return collection != null ? collection.id() : null;
     }
 
     public String generatedContent() {

@@ -1,13 +1,15 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.Link.DEFAULT_PAGE_LINK_TEMPLATE;
+import static io.quarkiverse.roq.frontmatter.deployment.TemplateLink.DEFAULT_PAGE_LINK_TEMPLATE;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
@@ -26,48 +28,70 @@ public class RoqFrontMatterDataProcessor {
     void prepareData(HttpBuildTimeConfig httpConfig,
             RoqSiteConfig config,
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
-            BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
-            BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
-            BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
+            BuildProducer<RoqFrontMatterTemplateBuildItem> templatesProducer,
             List<RoqFrontMatterRawTemplateBuildItem> roqFrontMatterTemplates) {
         if (roqFrontMatterTemplates.isEmpty()) {
             return;
         }
+
         final var byKey = roqFrontMatterTemplates.stream()
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
+            JsonObject data = mergeParents(item, byKey);
+            final String link = TemplateLink.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
+                    new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
+            RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
+                    data);
+            templatesProducer.produce(templateItem);
+        }
+    }
+
+    @BuildStep
+    void dispatchByType(BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
+            BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
+            BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
+            List<RoqFrontMatterTemplateBuildItem> templates) {
+        if (templates.isEmpty()) {
+            return;
+        }
+
+        for (RoqFrontMatterTemplateBuildItem item : templates) {
             if (!item.published()) {
                 continue;
             }
-            final JsonObject data = mergeParents(item, byKey);
-            final String link = Link.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
-                    new Link.PageLinkData(item.info().baseFileName(), item.info().date(), item.collection(), data));
-            if (item.collection() != null) {
+            if (item.raw().collection() != null) {
                 documentTemplatesProducer
-                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item, rootUrl.resolve(link), item.collection(),
-                                data));
+                        .produce(new RoqFrontMatterDocumentTemplateBuildItem(item.raw(), item.url(), item.raw().collection(),
+                                item.data()));
             } else {
-                if (data.containsKey(PAGINATE_KEY)) {
+                if (item.data().containsKey(PAGINATE_KEY)) {
                     // Pagination is created needs collections size so it's produced after
-                    paginatedPagesProducer.produce(new RoqFrontMatterPaginateTemplateBuildItem(item, null, link, data));
+                    paginatedPagesProducer
+                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(item.url(), item.raw().info(), item.data(),
+                                    null));
                 } else {
-                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(link, item.info(), data, null));
+                    pagesProducer
+                            .produce(new RoqFrontMatterPublishPageBuildItem(item.url(), item.raw().info(), item.data(), null));
                 }
             }
 
         }
     }
 
-    private static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
+    public static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
             Map<String, RoqFrontMatterRawTemplateBuildItem> byPath) {
         Stack<JsonObject> fms = new Stack<>();
         String parent = item.layout();
         fms.add(item.data());
         while (parent != null) {
-            if (byPath.containsKey(parent)) {
+            if (byPath.containsKey(parent + ".html")) {
+                final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent + ".html");
+                parent = parentItem.layout();
+                fms.push(parentItem.data());
+            } else if (byPath.containsKey(parent)) {
                 final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent);
                 parent = parentItem.layout();
                 fms.push(parentItem.data());

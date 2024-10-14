@@ -34,27 +34,10 @@ Next, in your template, loop through the paginated posts using:
 To add pagination controls, add something like this to `_includes/pagination.html` and include it in your page `\{#include pagination.html/}`:
 
 ```html
-<div class="container">
-  <nav class="pagination" role="pagination">
-    <ul>
-      \{#if page.paginator.previous}
-      \{#if page.paginator.isSecond}
-      <p><a class="newer-posts" href="\{site.url}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
-      \{#else}
-      <p><a class="newer-posts" href="\{page.paginator.previous)}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
-      \{/if}
-      \{/if}
-
-      \{#if page.paginator.total > 1}
-      <p><span class="page-number">Page \{page.paginator.currentIndex} of \{page.paginator.total}</span></p>
-      \{/if}
-
-      \{#if page.paginator.next}
-      <p><a class="older-posts" href="\{page.paginator.next)}"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
-      \{/if}
-    </ul>
-  </nav>
-</div>
+\{#include fm/pagination.html}
+\{#newer}<i class="fa fa-long-arrow-left" aria-hidden="true"></i>\{/newer}
+\{#older}<i class="fa fa-long-arrow-right" aria-hidden="true"></i>\{/older}
+\{/include}
 ```
 
 You can further customize your pagination by setting the page size and link format:

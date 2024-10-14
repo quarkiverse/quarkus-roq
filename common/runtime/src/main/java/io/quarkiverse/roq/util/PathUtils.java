@@ -45,6 +45,11 @@ public final class PathUtils {
         return i > 0 ? path.substring(0, i) : path;
     }
 
+    public static String getExtension(String path) {
+        final int i = path.lastIndexOf(".");
+        return i > 0 ? path.substring(i + 1) : null;
+    }
+
     public static String fileName(String path) {
         final int i = path.lastIndexOf("/");
         if (i == -1) {

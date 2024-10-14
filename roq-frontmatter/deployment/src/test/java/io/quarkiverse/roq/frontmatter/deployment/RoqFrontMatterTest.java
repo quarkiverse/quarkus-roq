@@ -15,18 +15,7 @@ public class RoqFrontMatterTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addAsResource("application.properties")
-                    .addAsResource("site/_data/foo.yml")
-                    .addAsResource("site/_includes/foo/bar.html")
-                    .addAsResource("site/_includes/view.html")
-                    .addAsResource("site/_includes/header.html")
-                    .addAsResource("site/_layouts/default.html")
-                    .addAsResource("site/_layouts/page.html")
-                    .addAsResource("site/_layouts/post.html")
-                    .addAsResource("site/index.html")
-                    .addAsResource("site/_posts/awesome-post.html")
-                    .addAsResource("site/_posts/2020-10-24-old-post.md")
-                    .addAsResource("site/_posts/markdown-post.md")
-                    .addAsResource("site/pages/cool-page.html"));
+                    .addAsResource("site"));
 
     @Test
     public void testHtmlPost() {
@@ -74,6 +63,12 @@ public class RoqFrontMatterTest {
     public void testDateFileName() {
         RestAssured.when().get("/bar/posts/old-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.body.article.span", equalTo("2020-10-24T12:00Z[UTC]"));
+    }
+
+    @Test
+    public void testFrontMatterInContent() {
+        RestAssured.when().get("/bar/posts/markdown-post-k8s").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("A K8S post made with markdown"));
     }
 
 }

@@ -12,10 +12,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
-public class Link {
+public class TemplateLink {
     public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:name";
     public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page";
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
@@ -23,31 +24,37 @@ public class Link {
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
 
     public interface LinkData {
-        String baseFileName();
+        PageInfo pageInfo();
 
         String collection();
-
-        ZonedDateTime date();
 
         JsonObject data();
     }
 
-    public record PageLinkData(String baseFileName, ZonedDateTime date, String collection,
+    public record PageLinkData(PageInfo pageInfo, String collection,
             JsonObject data) implements LinkData {
     }
 
-    public record PaginateLinkData(String baseFileName, ZonedDateTime date, String collection, String page,
+    public record PaginateLinkData(PageInfo pageInfo, String collection, String page,
             JsonObject data) implements LinkData {
     }
 
     private static Map<String, Supplier<String>> withBasePlaceHolders(LinkData data, Map<String, Supplier<String>> other) {
         Map<String, Supplier<String>> result = new HashMap<>(Map.ofEntries(
                 Map.entry(":collection", data::collection),
-                Map.entry(":year", () -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
-                Map.entry(":month", () -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
-                Map.entry(":day", () -> Optional.ofNullable(data.date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":name", () -> slugify(data.baseFileName())),
-                Map.entry(":title", () -> data.data().getString("slug", slugify(data.baseFileName())))));
+                Map.entry(":year",
+                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
+                Map.entry(":month",
+                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
+                Map.entry(":day",
+                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
+                Map.entry(":name", () -> {
+                    if (data.pageInfo().isHtml()) {
+                        return slugify(data.pageInfo().sourceBaseFileName());
+                    }
+                    return slugify(data.pageInfo().sourceBaseFileName()) + "." + data.pageInfo().getSourceFileExtension();
+                }),
+                Map.entry(":title", () -> data.data().getString("slug", slugify(data.pageInfo().sourceBaseFileName())))));
         if (other != null) {
             result.putAll(other);
         }

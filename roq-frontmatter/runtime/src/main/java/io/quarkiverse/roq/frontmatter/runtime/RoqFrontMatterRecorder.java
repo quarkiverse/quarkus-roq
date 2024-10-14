@@ -46,8 +46,9 @@ public class RoqFrontMatterRecorder {
         return () -> new NormalPage(url, info, data, paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageInfo info, JsonObject data) {
-        return () -> new DocumentPage(collection, url, info, data);
+    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageInfo info, JsonObject data,
+            boolean hidden) {
+        return () -> new DocumentPage(collection, url, info, data, hidden);
     }
 
     public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage,
@@ -58,7 +59,7 @@ public class RoqFrontMatterRecorder {
             for (Supplier<NormalPage> pagesSupplier : normalPagesSuppliers) {
                 pages.add(pagesSupplier.get());
             }
-            return new Site(rootUrl, indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesPath()),
+            return new Site(indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesRootPath()),
                     indexPage.get().data(), pages, roqCollectionsSupplier.get());
         };
     }
@@ -75,4 +76,7 @@ public class RoqFrontMatterRecorder {
         return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers);
     }
 
+    public Handler<RoutingContext> aliasRoute(String target) {
+        return ctx -> ctx.redirect(target);
+    }
 }

@@ -9,8 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.quarkiverse.roq.frontmatter.deployment.Link;
-import io.quarkiverse.roq.frontmatter.deployment.Link.PageLinkData;
+import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
+import io.quarkiverse.roq.frontmatter.deployment.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginateTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
@@ -18,6 +19,8 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPa
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -36,6 +39,7 @@ public class RoqPluginTaggingProcessor {
     @BuildStep
     void publishTagPages(
             RoqSiteConfig config,
+            RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
             List<RoqFrontMatterDocumentTemplateBuildItem> documents,
             BuildProducer<RoqFrontMatterPublishDerivedCollectionBuildItem> derivedCollectionProducer,
@@ -58,13 +62,13 @@ public class RoqPluginTaggingProcessor {
             final String derivedFromCollection = item.data().getString("tagging");
             final Map<String, List<String>> derived = new HashMap<>();
             for (RoqFrontMatterDocumentTemplateBuildItem document : documents.stream()
-                    .filter(d -> d.collection().equals(derivedFromCollection)).toList()) {
+                    .filter(d -> d.collection().id().equals(derivedFromCollection)).toList()) {
                 final List<String> tags = resolveTags(document);
 
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
                     derived.computeIfAbsent(tag, k -> new ArrayList<>())
-                            .add(document.item().id());
+                            .add(document.raw().id());
                 }
             }
 
@@ -78,16 +82,20 @@ public class RoqPluginTaggingProcessor {
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(tagCollection, e.getValue(), data));
 
-                final String link = Link.pageLink(config.rootPath(),
+                final String link = TemplateLink.pageLink(config.rootPath(),
                         data.getString(LINK_KEY, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE),
-                        new PageLinkData(item.info().baseFileName(), item.info().date(), tagCollection, data));
+                        new PageLinkData(item.info(), tagCollection, data));
+                final RoqUrl url = rootUrl.rootUrl().resolve(link);
+
+                PageInfo info = item.info().changeId(tagCollection);
 
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {
                     paginatedPagesProducer
-                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(item, tagCollection, link, data));
+                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(url, info, data, tagCollection));
                 } else {
-                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(link, item.info(), data, null));
+
+                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(url, info, data, null));
                 }
             }
         }

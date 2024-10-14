@@ -1,0 +1,15 @@
+---
+title: Simple Site
+layout:  default
+paginate:
+  collection: posts
+  size: 2
+---
+
+<div>
+  {#for post in site.collections.posts.paginated(page.paginator)}
+    <h1>{post.title}</h1>
+  {/for}
+</div>
+
+{#include fm/pagination.html /}

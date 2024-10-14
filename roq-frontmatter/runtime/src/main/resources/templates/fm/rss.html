@@ -1,0 +1,21 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title><![CDATA[ {site.title} ]]></title>
+    <description><![CDATA[ {site.description} ]]></description>
+    <link>{site.url.absolute}</link>
+    <generator>Quarkus Roq</generator>
+    <lastBuildDate>{#if site.collections.posts.size > 0}{site.collections.posts[0].date}{/if}</lastBuildDate>
+    {#for post in site.collections.posts}
+      <item>
+        <title><![CDATA[{post.title}]]></title>
+        <link>{post.url.absolute}</link>
+        <guid isPermaLink="false">{post.url.absolute}</guid>
+        <pubDate>{post.date}</pubDate>
+        <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
+      </item>
+    {/for}
+  </channel>
+</rss>

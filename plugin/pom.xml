@@ -14,5 +14,6 @@
 
     <modules>
         <module>tagging</module>
+        <module>aliases</module>
     </modules>
 </project>

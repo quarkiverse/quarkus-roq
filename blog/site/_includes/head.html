@@ -7,12 +7,13 @@
   <meta charset="utf-8">
 
   {#seo page site /}
+  {#rss site /}
 
   <!-- Edit site and author settings in `_config.yml` to make the social details your own -->
-  <base href="{site.rootUrl.relative}">
+  <base href="{site.url.root.relative}">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link rel="shortcut icon" href="{site.rootUrl.resolve('/static/assets/images/roq-icon.svg').absolute}" type="image/svg">
+  <link rel="shortcut icon" href="{site.url.fromRoot('/static/assets/images/roq-icon.svg').absolute}" type="image/svg">
   <!-- Chrome, Firefox OS and Opera -->
   <meta name="theme-color" content="#263959">
   <!-- Windows Phone -->
@@ -22,7 +23,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=PT+Serif:400,700|Lato:300,400,700&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{site.rootUrl.resolve('static/assets/fonts/font-awesome/css/font-awesome.min.css')}">
+  <link rel="stylesheet" href="{site.url.fromRoot('static/assets/fonts/font-awesome/css/font-awesome.min.css')}">
 
 
   {#bundle /}

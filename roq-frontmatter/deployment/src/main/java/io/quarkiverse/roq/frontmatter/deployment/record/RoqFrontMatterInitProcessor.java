@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
-import static org.aesh.readline.terminal.Key.e;
+import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +11,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
-
-import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
@@ -25,15 +23,16 @@ import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.builder.BuildException;
-import io.quarkus.deployment.annotations.*;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Consume;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
 
 class RoqFrontMatterInitProcessor {
-
-    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterInitProcessor.class);
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
@@ -50,17 +49,18 @@ class RoqFrontMatterInitProcessor {
 
         // Published collections
         final Map<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
-                .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
+                .collect(Collectors.groupingBy(i -> i.collection().id()));
         final Map<String, Supplier<DocumentPage>> documentsById = new HashMap<>();
         for (Map.Entry<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
             List<Supplier<DocumentPage>> docs = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
                 final RoqUrl url = item.url();
-                final Supplier<DocumentPage> document = recorder.createDocument(item.collection(),
+                final Supplier<DocumentPage> document = recorder.createDocument(item.collection().id(),
                         url,
-                        item.info(), item.data());
+                        item.info(), item.data(), item.collection().hidden());
                 documentsById.put(item.info().id(), document);
-                pagesProducer.produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, document));
+                pagesProducer
+                        .produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, item.collection().hidden(), document));
                 docs.add(document);
             }
             collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(e.getKey(), docs));
@@ -93,12 +93,12 @@ class RoqFrontMatterInitProcessor {
             return;
         }
         for (RoqFrontMatterPublishPageBuildItem page : pages) {
-            final RoqUrl url = rootUrlItem.rootUrl().resolve(page.link());
-            final Supplier<NormalPage> recordedPage = recorder.createPage(url,
+            final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.info(), page.data(), page.paginator());
-            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), url, recordedPage));
-            normalPagesProducer.produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), url, recordedPage));
-            if (page.info().id().equals("index")) {
+            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), false, recordedPage));
+            normalPagesProducer
+                    .produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
+            if (page.info().id().startsWith("index.")) {
                 indexPageProducer.produce(new RoqFrontMatterIndexPageBuildItem(recordedPage));
             }
         }
@@ -134,6 +134,7 @@ class RoqFrontMatterInitProcessor {
                 .done());
 
         final Map<String, Supplier<? extends Page>> allPagesByPath = pageItems.stream()
+                .filter(not(RoqFrontMatterPageBuildItem::hidden))
                 .collect(Collectors.toMap(i -> i.url().path(), RoqFrontMatterPageBuildItem::page));
         return new RoqFrontMatterOutputBuildItem(allPagesByPath, collectionsSupplier);
     }
@@ -154,5 +155,4 @@ class RoqFrontMatterInitProcessor {
                 .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))
                 .build();
     }
-
 }

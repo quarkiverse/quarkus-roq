@@ -1,17 +1,21 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
+import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -19,6 +23,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
+import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
 class RoqFrontMatterProcessor {
 
@@ -40,6 +45,7 @@ class RoqFrontMatterProcessor {
         }
         final Set<String> docTemplates = new HashSet<>();
         final Set<String> pageTemplates = new HashSet<>();
+        final Set<String> layoutTemplates = new HashSet<>();
         // Produce generated Qute templates
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             templatePathProducer
@@ -51,6 +57,8 @@ class RoqFrontMatterProcessor {
                 } else {
                     pageTemplates.add(item.info().generatedTemplatePath());
                 }
+            } else {
+                layoutTemplates.add(item.info().generatedTemplatePath());
             }
         }
 
@@ -62,8 +70,10 @@ class RoqFrontMatterProcessor {
             } else if (pageTemplates.contains(c.getTemplateId())) {
                 c.addParameter("page", NormalPage.class.getName());
                 c.addParameter("site", Site.class.getName());
+            } else if (layoutTemplates.contains(c.getTemplateId())) {
+                c.addParameter("page", Page.class.getName());
+                c.addParameter("site", Site.class.getName());
             }
-
         }));
     }
 
@@ -75,6 +85,7 @@ class RoqFrontMatterProcessor {
         }
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(
+                        RoqFrontMatterMessages.class,
                         RoqTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,
@@ -97,13 +108,27 @@ class RoqFrontMatterProcessor {
         if (roqOutput == null) {
             return;
         }
+
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
             for (String path : roqOutput.allPagesByPath().keySet()) {
-                selectedPathProducer.produce(new SelectedPathBuildItem(addTrailingSlash(path), null)); // We add a trailing slash to make it detected as a html page
+                // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
+                final String selectedPath = getExtension(path) != null ? path : addTrailingSlash(path);
+                selectedPathProducer.produce(new SelectedPathBuildItem(selectedPath, null));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }
+        }
+    }
+
+    @BuildStep
+    void bindStaticFiles(
+            RoqSiteConfig config,
+            List<RoqFrontMatterStaticFileBuildItem> staticFiles,
+            BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
+        for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
+            staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(
+                    PathUtils.join(config.rootPath(), staticFile.link()), staticFile.filePath()));
         }
     }
 
