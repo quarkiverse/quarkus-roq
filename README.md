@@ -7,7 +7,6 @@
 
 # Quarkus Roq
 
-
 <table>
   <tr>
     <td valign="top" >
