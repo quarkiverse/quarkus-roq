@@ -1,30 +1,39 @@
 package io.quarkiverse.roq.deployment.config;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "quarkus.roq")
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
 public interface RoqConfig {
 
-    String DEFAULT_DIR = "site"; // {project-dir}/site
-    String DEFAULT_RESOURCE_DIR = "site"; // src/main/resources/site
+    String DEFAULT_DIR = ""; // {project-dir}/
+    String DEFAULT_RESOURCE_DIR = ""; // src/main/resources/
 
     /**
      * Path to the Roq directory (relative to the project root).
      */
-    @WithDefault(DEFAULT_DIR)
-    String dir();
+    @WithName("dir")
+    Optional<String> dirOptional();
+
+    default String dir() {
+        return dirOptional().orElse(DEFAULT_DIR);
+    }
 
     /**
      * Path to the Roq directory in the resources.
      */
-    @WithDefault(DEFAULT_RESOURCE_DIR)
-    String resourceDir();
+    @WithName("resource-dir")
+    Optional<String> resourceDirOptional();
+
+    default String resourceDir() {
+        return resourceDirOptional().orElse(DEFAULT_RESOURCE_DIR);
+    }
 
     static boolean isEqual(RoqConfig q1, RoqConfig q2) {
         if (!Objects.equals(q1.dir(), q2.dir())) {

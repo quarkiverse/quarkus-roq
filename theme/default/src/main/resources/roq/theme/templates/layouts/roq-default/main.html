@@ -1,0 +1,58 @@
+---
+layout: roq-default/default
+link: ":name.html"
+---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<aside class="sidebar">
+  <header>
+    <div class="about">
+      {#if site.img}
+      <div class="cover-author-image">
+        <a href="{site.url}"><img src="{site.img}" alt="{site.data.name}"></a>
+      </div>
+      {/if}
+      <div class="author-name">{site.data.name}</div>
+      <p>{site.description}</p>
+      <p>I crafted this blog myself and <a href="https://github.com/quarkiverse/quarkus-roq/actions/workflows/deploy-blog.yml" target="_blank">published it</a> on GitHub Pages. The sources of this example website are located <a href="https://github.com/quarkiverse/quarkus-roq/tree/main/blog" target="_blank">there</a>.</p>
+
+    </div>
+    <div class="menu">
+      <h3 class="menu-title">MENU</h3>
+      <ul>
+        {#for item in cdi:menu.items}
+        <li><a href="{site.url(item.path)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
+        {/for}
+      </ul>
+    </div>
+  </header> <!-- End Header -->
+  <footer>
+    <section class="contact">
+      <h3 class="contact-title">Contact me</h3>
+      <ul>
+        {#if site.data.social-twitter??}
+        <li><a href="https://twitter.com/{site.data.social-twitter}" target="_blank"><i class="fa-brands fa-twitter" aria-hidden="true"></i></a></li>
+        {/if}
+        {#if site.data.social-facebook??}
+        <li><a href="https://facebook.com/{site.data.social-facebook}" target="_blank"><i class="fa-brands fa-facebook" aria-hidden="true"></i></a></li>
+        {/if}
+        {#if site.data.social-github??}
+        <li class="github"><a href="http://github.com/{site.data.social-github}" target="_blank"><i class="fa-brands fa-github"></i></a></li>
+        {/if}
+        {#if site.data.social-linkedin??}
+        <li class="linkedin"><a href="https://in.linkedin.com/in/{site.data.social-linkedin}" target="_blank"><i class="fa-brands fa-linkedin"></i></a></li>
+        {/if}
+        {#if site.data.social-email??}
+        <li class="email"><a href="mailto:{site.data.social-email?}"><i class="fa fa-envelope-o"></i></a></li>
+        {/if}
+      </ul>
+    </section> <!-- End Section Contact -->
+    <div class="copyright">
+      <p>{global:now.format('Y')} &copy; {site.data.simple-name}</p>
+    </div>
+  </footer> <!-- End Footer -->
+</aside> <!-- End Sidebar -->
+<div class="content-box clearfix">
+  {#insert /}
+</div>

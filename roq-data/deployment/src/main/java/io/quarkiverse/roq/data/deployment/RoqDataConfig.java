@@ -12,7 +12,7 @@ import io.smallrye.config.WithDefault;
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
 public interface RoqDataConfig {
 
-    String DEFAULT_DIR = "_data";
+    String DEFAULT_DIR = "data";
 
     /**
      * The location of the Roq data files relative to the quarkus.roq.dir.

@@ -12,7 +12,7 @@ import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;

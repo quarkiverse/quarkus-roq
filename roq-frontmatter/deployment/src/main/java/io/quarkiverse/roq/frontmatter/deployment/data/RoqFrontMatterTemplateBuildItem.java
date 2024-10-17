@@ -35,4 +35,8 @@ public final class RoqFrontMatterTemplateBuildItem extends MultiBuildItem {
     public JsonObject data() {
         return data;
     }
+
+    public boolean isPage() {
+        return raw.isPage();
+    }
 }

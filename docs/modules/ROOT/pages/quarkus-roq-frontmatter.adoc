@@ -35,7 +35,7 @@ Next, in your template, loop through the paginated posts using:
 </article>
 {/for}
 
-{#include pagination.html/}
+{#include includes/pagination.html/}
 ----
 
 === Step 2: Including Pagination Controls

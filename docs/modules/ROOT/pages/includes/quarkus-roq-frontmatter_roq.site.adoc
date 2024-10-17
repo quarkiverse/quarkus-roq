@@ -8,28 +8,45 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-includes-dirs]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-includes-dirs[`roq.site.includes-dirs`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-ignored-files[`roq.site.ignored-files`]##
 
 [.description]
 --
-The directory names containing includes and layouts (in the Roq site directory)
+The ignored files in the Roq site directory (you can use glob expressions).
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++ROQ_SITE_INCLUDES_DIRS+++[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_IGNORED_FILES+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++ROQ_SITE_INCLUDES_DIRS+++`
+Environment variable: `+++ROQ_SITE_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`_layouts,_includes`
+|`**/_**,_**,.**,${quarkus.roq.data.dir}/**`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-template-files]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-template-files[`roq.site.template-files`]##
+
+[.description]
+--
+The files to use as raw templates (n the Roq site directory (you can use glob expressions)),
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_TEMPLATE_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_TEMPLATE_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|`partials/**,includes/**,tags/**`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-static-files]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-static-files[`roq.site.static-files`]##
 
 [.description]
 --
-Files to serve as static (you can use glob expressions)
+Files to serve as static in the Roq site directory (you can use glob expressions)
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -41,6 +58,23 @@ endif::add-copy-button-to-env-var[]
 --
 |list of string
 |`static/**`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-layouts-dir]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-layouts-dir[`roq.site.layouts-dir`]##
+
+[.description]
+--
+The directory containing layouts in the Roq site directory (dir name).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_LAYOUTS_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_LAYOUTS_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`layouts`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-generator[`roq.site.generator`]##
 
@@ -80,7 +114,7 @@ a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-images
 
 [.description]
 --
-The public path containing pages and posts images
+The public path containing pages and posts images (relative to the site path)
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -91,7 +125,24 @@ Environment variable: `+++ROQ_SITE_IMAGES_PATH+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`/static/assets/images`
+|`static/assets/images`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-theme]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-theme[`roq.site.theme`]##
+
+[.description]
+--
+This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_THEME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++ROQ_SITE_THEME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-draft]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-draft[`roq.site.draft`]##
 
@@ -144,24 +195,24 @@ endif::add-copy-button-to-env-var[]
 |string
 |`document timezone if provided or system timezone`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-id]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-id[`roq.site.collections."collections".id`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-map]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-map[`roq.site.collections."collections-map"`]##
 
 [.description]
 --
-The id for this collection (e.g. posts), it is also used as default path.
+If this collection is enabled
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS__ID+++[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS_MAP_+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS__ID+++`
+Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS_MAP_+++`
 endif::add-copy-button-to-env-var[]
 --
-|string
-|required icon:exclamation-circle[title=Configuration property is required]
+|boolean
+|`true`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-hidden[`roq.site.collections."collections".hidden`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_roq-site-collections-collections-map-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_roq-site-collections-collections-map-hidden[`roq.site.collections."collections-map".hidden`]##
 
 [.description]
 --
@@ -169,10 +220,10 @@ If true, the collection won't be available on path but consumable as data.
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS__HIDDEN+++[]
+Environment variable: env_var_with_copy_button:+++ROQ_SITE_COLLECTIONS__COLLECTIONS_MAP__HIDDEN+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS__HIDDEN+++`
+Environment variable: `+++ROQ_SITE_COLLECTIONS__COLLECTIONS_MAP__HIDDEN+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean

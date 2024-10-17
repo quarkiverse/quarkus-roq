@@ -23,7 +23,7 @@ public class RoqProjectProcessor {
 
         String resourceDir;
         try {
-            final boolean hasResourceDir = Thread.currentThread().getContextClassLoader()
+            final boolean hasResourceDir = config.resourceDir().isEmpty() || Thread.currentThread().getContextClassLoader()
                     .getResources(config.resourceDir()).hasMoreElements();
             resourceDir = hasResourceDir ? config.resourceDir() : null;
         } catch (IOException e) {

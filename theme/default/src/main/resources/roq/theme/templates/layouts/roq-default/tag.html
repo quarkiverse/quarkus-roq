@@ -1,0 +1,31 @@
+---
+layout: roq-default/main
+paginate: true
+tagging: posts
+---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+
+<header class="header-page">
+  <h1 class="page-title">{page.data.tag}</h1>
+</header>
+
+{#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
+<article class="post">
+  {#if post.img}
+  <a class="post-thumbnail" style="background-image: url({post.img})" href="{post.url}"></a>
+  {/if}
+  <div class="post-content">
+    <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>
+    <p>{post.description}</p>
+    <span class="post-date">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+    <span class="post-words">
+      {post.readTime} minute read
+    </span>
+  </div>
+</article>
+{/for}
+
+{#include partials/roq-default/pagination.html/}

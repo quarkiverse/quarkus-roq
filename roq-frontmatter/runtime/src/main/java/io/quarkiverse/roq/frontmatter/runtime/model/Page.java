@@ -83,7 +83,7 @@ public interface Page {
         if (img == null) {
             return null;
         }
-        return url().root().resolve(info().imagesRootPath()).resolve(img);
+        return url().resolve(info().imagesDirPath()).resolve(img);
     }
 
     /**
@@ -106,13 +106,4 @@ public interface Page {
     static String getImgFromData(JsonObject data) {
         return data.getString("img", data.getString("image", data.getString("picture")));
     }
-
-    static RoqUrl resolveImgUrl(RootUrl rootUrl, JsonObject data) {
-        final String img = getImgFromData(data);
-        if (img == null) {
-            return null;
-        }
-        return rootUrl.resolve(img);
-    }
-
 }

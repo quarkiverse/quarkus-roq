@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
-import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
@@ -25,19 +25,16 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final String layout;
 
     /**
-     * true if it's a page template.
-     * or false if it's an include template.
-     * <p>
      * Include template should not be published.
      */
-    private final boolean isPage;
+    private final TemplateType type;
 
     /**
      * The FrontMatter data (it is not merged with parents at this stage).
      */
     private final JsonObject data;
 
-    private final CollectionConfig collection;
+    private final ConfiguredCollection collection;
 
     /**
      * The generated template content to be passed to be passed to Qute.
@@ -49,13 +46,13 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final boolean published;
 
-    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, boolean isPage, JsonObject data,
-            CollectionConfig collection,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, TemplateType type, JsonObject data,
+            ConfiguredCollection collection,
             String generatedTemplate,
             boolean published) {
         this.info = info;
         this.layout = layout;
-        this.isPage = isPage;
+        this.type = type;
         this.data = data;
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
@@ -63,7 +60,11 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     }
 
     public boolean isPage() {
-        return isPage;
+        return type.isPage();
+    }
+
+    public boolean isLayout() {
+        return !type.isPage();
     }
 
     public String id() {
@@ -82,7 +83,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return data;
     }
 
-    public CollectionConfig collection() {
+    public ConfiguredCollection collection() {
         return collection;
     }
 
@@ -96,5 +97,15 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public boolean published() {
         return published;
+    }
+
+    public enum TemplateType {
+        DOCUMENT_PAGE,
+        NORMAL_PAGE,
+        LAYOUT;
+
+        public boolean isPage() {
+            return this != LAYOUT;
+        }
     }
 }

@@ -1,9 +1,9 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import io.quarkiverse.roq.frontmatter.deployment.config.CollectionConfig;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
@@ -17,10 +17,10 @@ import io.vertx.core.json.JsonObject;
 public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildItem {
     private final RoqFrontMatterRawTemplateBuildItem raw;
     private final RoqUrl url;
-    private final CollectionConfig collection;
+    private final ConfiguredCollection collection;
     private final JsonObject data;
 
-    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, RoqUrl url, CollectionConfig collection,
+    RoqFrontMatterDocumentTemplateBuildItem(RoqFrontMatterRawTemplateBuildItem raw, RoqUrl url, ConfiguredCollection collection,
             JsonObject data) {
         this.raw = raw;
         this.url = url;
@@ -32,7 +32,7 @@ public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildIte
         return raw;
     }
 
-    public CollectionConfig collection() {
+    public ConfiguredCollection collection() {
         return collection;
     }
 
@@ -42,5 +42,9 @@ public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildIte
 
     public JsonObject data() {
         return data;
+    }
+
+    public boolean isPage() {
+        return raw.isPage();
     }
 }

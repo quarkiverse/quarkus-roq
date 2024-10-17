@@ -1,4 +1,3 @@
-:summaryTableId: quarkus-roq_quarkus-roq
 [.configuration-legend]
 icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
 [.configuration-reference.searchable, cols="80,.^10,.^10"]
@@ -23,7 +22,7 @@ Environment variable: `+++QUARKUS_ROQ_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`site`
+|
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-resource-dir[`quarkus.roq.resource-dir`]##
 
@@ -40,7 +39,7 @@ Environment variable: `+++QUARKUS_ROQ_RESOURCE_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`site`
+|
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties[`quarkus.roq.jackson.fail-on-unknown-properties`]##
 
@@ -116,5 +115,3 @@ endif::add-copy-button-to-env-var[]
 
 |===
 
-
-:!summaryTableId:
