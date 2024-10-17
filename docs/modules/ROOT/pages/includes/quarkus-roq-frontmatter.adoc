@@ -194,7 +194,7 @@ Environment variable: `+++SITE_IMAGES_PATH+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`assets/images`
+|`static/assets/images`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-theme]] [.property-path]##link:#quarkus-roq-frontmatter_site-theme[`site.theme`]##
 

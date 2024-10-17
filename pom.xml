@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -30,8 +31,8 @@
         <connection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</connection>
         <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</developerConnection>
         <url>https://github.com/quarkiverse/quarkus-roq</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
@@ -72,6 +73,11 @@
                             <arg>-parameters</arg>
                         </compilerArgs>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-config-doc-maven-plugin</artifactId>
+                    <version>${quarkus.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
