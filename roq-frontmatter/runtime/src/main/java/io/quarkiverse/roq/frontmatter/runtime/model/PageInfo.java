@@ -23,9 +23,9 @@ public record PageInfo(
         boolean draft,
 
         /**
-         * Where the images for this page are based (e.g. /static/images)
+         * Where all the images for this page are based relative to the site path (e.g. {site-path}/static/images)
          */
-        String imagesRootPath,
+        String imagesDirPath,
 
         /**
          * This page zoned date
@@ -49,15 +49,15 @@ public record PageInfo(
 
     public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "asciidoc", "adoc");
 
-    public static PageInfo create(String id, boolean draft, String imagesRootPath, String dateString,
+    public static PageInfo create(String id, boolean draft, String imagesDirPath, String dateString,
             String rawContent,
             String sourcePath,
             String quteTemplatePath) {
-        return new PageInfo(id, draft, imagesRootPath, dateString, rawContent, sourcePath, quteTemplatePath);
+        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplatePath);
     }
 
     public PageInfo changeId(String id) {
-        return new PageInfo(id, draft(), imagesRootPath(), dateString(), rawContent(), sourceFilePath(),
+        return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
                 generatedTemplatePath());
     }
 

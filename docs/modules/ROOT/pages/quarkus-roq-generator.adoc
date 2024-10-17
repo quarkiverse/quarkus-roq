@@ -17,7 +17,7 @@ QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run -DskipTests
 
 By default, it will generate the static site in the `target/roq` directory.
 
-TIP: When used within the Roq Static Site Generator extension, it is already pre-configured to generate the whole site (which can be disabled with `quarkys.roq.site.generator=false`). In standalone mode, by default, only the `/` (index.html) and `static/**` will be generated. Follow the next section to configure the selection.
+TIP: When used within the Roq Static Site Generator extension, it is already pre-configured to generate the whole site (which can be disabled with `site.generator=false`). In standalone mode, by default, only the `/` (index.html) and `static/**` will be generated. Follow the next section to configure the selection.
 
 
 You can now try or deploy your static website with any static file server. We provide a small tool to try it:

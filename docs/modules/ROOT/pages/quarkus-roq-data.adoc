@@ -8,7 +8,7 @@ CAUTION: Roq Data is already included as part of the Roq Static Site Generator e
 
 == Data Mapping
 
-You can add JSON or YAML files to your project's `site/_data` directory.
+You can add JSON or YAML files to your project's `data` directory.
 
 NOTE: The data file can use `.json`, `.yml`, or `.yaml` extensions.
 

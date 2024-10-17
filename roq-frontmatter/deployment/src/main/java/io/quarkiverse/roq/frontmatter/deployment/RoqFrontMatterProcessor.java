@@ -6,13 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.quarkiverse.roq.frontmatter.deployment.config.RoqFrontMatterConfig;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
-import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.util.PathUtils;
@@ -25,9 +24,9 @@ import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
-class RoqFrontMatterProcessor {
+public class RoqFrontMatterProcessor {
 
-    private static final String FEATURE = "roq-frontmatter";
+    public static final String FEATURE = "roq-frontmatter";
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -101,7 +100,7 @@ class RoqFrontMatterProcessor {
 
     @BuildStep
     void bindEndpoints(
-            RoqFrontMatterConfig config,
+            RoqSiteConfig config,
             BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer,
             RoqFrontMatterOutputBuildItem roqOutput) {

@@ -18,7 +18,7 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDe
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
-import io.quarkiverse.roq.frontmatter.runtime.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;

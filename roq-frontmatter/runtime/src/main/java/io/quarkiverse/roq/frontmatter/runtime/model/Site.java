@@ -14,14 +14,14 @@ import io.vertx.core.json.JsonObject;
  * This represents a Roq site.
  *
  * @param url the Roq site url to the index page
- * @param imagesUrl directory to resolve images url (e.g. /static/images)
+ * @param imagesDirUrl directory to resolve images url (e.g. /static/images)
  * @param data the site FM data (declared in the index.html)
  * @param pages all the pages in this site (without the documents)
  * @param collections all the collections in this site (containing documents)
  */
 @TemplateData
 @Vetoed
-public record Site(RoqUrl url, RoqUrl imagesUrl, JsonObject data, java.util.List<NormalPage> pages,
+public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.List<NormalPage> pages,
         RoqCollections collections) {
 
     /**
@@ -46,7 +46,7 @@ public record Site(RoqUrl url, RoqUrl imagesUrl, JsonObject data, java.util.List
         if (img == null) {
             return null;
         }
-        return imagesUrl().resolve(img);
+        return imagesDirUrl().resolve(img);
     }
 
     /**

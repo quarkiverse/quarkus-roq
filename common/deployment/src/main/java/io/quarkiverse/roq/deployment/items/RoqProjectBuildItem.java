@@ -52,7 +52,7 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
              */
             Path rootDir,
             /*
-             * The roq directory of the project defaults to {project-dir}/site
+             * The roq directory of the project defaults is the rootDir
              */
             Path roqDir) {
 

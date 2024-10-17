@@ -1,0 +1,74 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "ia3andy",
+      "name": "Andy Damevin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2223984?v=4",
+      "profile": "https://github.com/ia3andy",
+      "contributions": [
+        "maintenance",
+        "code"
+      ]
+    },
+    {
+      "login": "mcruzdev",
+      "name": "Matheus Cruz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56329339?v=4",
+      "profile": "https://matheuscruz.dev",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "melloware",
+      "name": "Melloware",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4399574?v=4",
+      "profile": "https://melloware.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "maxandersen",
+      "name": "Max Rydahl Andersen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54129?v=4",
+      "profile": "https://xam.dk",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
+    },
+    {
+      "login": "holly-cummins",
+      "name": "Holly Cummins",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11509290?v=4",
+      "profile": "https://hollycummins.com",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "edewit",
+      "name": "Erik Jan de Wit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51133?v=4",
+      "profile": "http://blog.nerdin.ch",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "quarkus-roq",
+  "projectOwner": "quarkiverse"
+}

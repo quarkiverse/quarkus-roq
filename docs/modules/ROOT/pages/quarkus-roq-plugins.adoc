@@ -25,7 +25,7 @@ To enable tagging, create a layout template, add `tagging: [collection id]` in F
 
 
 [source,yaml]
-._layouts/tag.html
+.templates/layouts/tag.html
 ----
 ---
 layout: main
@@ -42,7 +42,7 @@ tagging: posts
 This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
 
 [source,yaml]
-._layouts/tag.html
+.templates/layouts/tag.html
 ----
 ---
 layout: main
@@ -77,7 +77,7 @@ For example, consider that you want to create a shortened link for your post.
 To create an alias, create a page and add `aliases: [your-alias-here, another-alias-here]` in the Front Matter (FM). As a result, you will have the possibility to access the page using a customized URL as alias.
 
 [source,yaml]
-._posts_/2024-08-29-welcome-to-roq.md
+.content/posts/2024-08-29-welcome-to-roq.md
 ----
 ---
 layout: post

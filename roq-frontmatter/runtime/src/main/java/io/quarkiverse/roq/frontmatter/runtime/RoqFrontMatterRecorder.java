@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkus.runtime.annotations.Recorder;
@@ -59,7 +60,7 @@ public class RoqFrontMatterRecorder {
             for (Supplier<NormalPage> pagesSupplier : normalPagesSuppliers) {
                 pages.add(pagesSupplier.get());
             }
-            return new Site(indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesRootPath()),
+            return new Site(indexPage.get().url(), rootUrl.resolve(indexPage.get().info().imagesDirPath()),
                     indexPage.get().data(), pages, roqCollectionsSupplier.get());
         };
     }

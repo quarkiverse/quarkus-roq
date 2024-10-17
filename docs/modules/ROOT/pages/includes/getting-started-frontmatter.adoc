@@ -1,14 +1,14 @@
 [[getting-started]]
 == Getting started
 
-By default, your site should be located in the `site` directory of your project root, or in the resources (i.e. `src/main/resources/site`).
+By default, your site should be located in the project directory, or in the resources (i.e. `src/main/resources/`).
 
-The site directory structure is:
+The default directory structure is:
 
 
 image::roq-dirs.png[Roq directory structure]
 
-// https://excalidraw.com/#json=2UadK2YBe2UPFhtCU4gpG,PsW-YruS9-myIWhXGgVZnw
+// https://excalidraw.com/#json=iDMNJoYdZ-_57mVkcHRWl,bwhI0ERmsEaDs5H1g4sfSQ
 
 
 NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
@@ -25,9 +25,9 @@ This header contains yaml data used to configure many things such as:
 * Content generation
 * Pagination
 
-=== Layouts and Includes
+=== Layouts and Partials
 
-For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `site/_layouts/`. For example:
+For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
 * `main`: the base layout for all kind of pages
 * `page`: the layout of normal pages
@@ -36,19 +36,19 @@ For your site, you will have one or more kind of pages, this is what we call "la
 
 A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`).
 
-You can also prepare partial templates. They are located by default in `site/_includes/`. For example:
+You can also prepare partial templates. They are located by default in `templates/partials/`. For example:
 
 * `pagination.html`
 * `head.html`
 
-NOTE: if you don't already have layouts and includes in your project, copy them from the https://github.com/quarkiverse/quarkus-roq/tree/main/blog/site[Roq Blog].
+NOTE: if you don't already have layouts and partials in your project, add the default Roq theme or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/site[example templates].
 
 === Site index template
 
-Your site index template is required and should be located in `site/index.html`.
+Your site index template is required and should be located in `content/index.html`.
 
 [source,html]
-.index.html
+.content/index.html
 ----
 ---
 title: Hello Roqers // <1>
@@ -73,7 +73,7 @@ layout: main //<2>
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
 
-* The `site` variable allow to access site global info from any page, document, layout or include.
+* The `site` variable allow to access site global info from any page, document, layout or partial.
 +
 .Show attributes
 [%collapsible]
@@ -129,7 +129,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-* The `page` variable is available in pages, documents, layouts, and includes. It contains the info for the page it is used from.
+* The `page` variable is available in pages, documents, layouts, and partials. It contains the info for the page it is used from.
 +
 .Show attributes
 [%collapsible]
@@ -224,10 +224,10 @@ https://github.com/quarkiverse/quarkus-roq/issues/169
 Collections are a great way to group related content such as blog posts, recipes, member of a team or talks at a conference.
 Once created you can easily iterate and link to them.
 
-By default, Roq is configured with a `posts` collection using the `site/_posts` directory. Let's create our first post:
+By default, Roq is configured with a `posts` collection using the `content/posts` directory. Let's create our first post:
 
 [source,html]
-._posts/2024-10-14-roq-solid.md
+.content/posts/2024-10-14-roq-solid.md
 ----
 ---
 title: Roq bad puns
@@ -259,14 +259,14 @@ Here is a list of puns suggested by Chat GPT:
 15.	Stone Cold Roq – Referring to something very cool or emotionless.
 
 ----
-<1> This time we use the `_layouts/post.html` layout.
+<1> This time we use the `templates/layouts/post.html` layout.
 <2> You can define tags (see xref:quarkus-roq-plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
 <3> You have shortcut on the `page` to access `title` and `description`.
 
 Then let's edit our index page to show the list of posts:
 
 [source,html]
-.index.html
+.content/index.html
 ----
 ---
 title: Hello Roqers
@@ -301,7 +301,7 @@ layout: main
 
 === Static files
 
-By default, all files in `site/static/` are treated as static. It is possible to configure other files to be static.
+By default, all files in `static/` are treated as static..
 
 === Styles and Javascript
 
@@ -311,7 +311,7 @@ You can add css and scripts in your static directory or bundle them.
 To use bundling scripts (js, ts) and styles (css, scss) should be located in `src/main/web/app/`. To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
 
 [source,html]
-._layouts/head.html
+.layouts/head.html
 ----
 <head>
   ...
