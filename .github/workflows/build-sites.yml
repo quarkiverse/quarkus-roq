@@ -34,7 +34,7 @@ jobs:
           cache: 'maven'
 
       - name: Build docs
-        run: mvn -B verify --file pom.xml -DskipTests
+        run: mvn -B install --file pom.xml -DskipTests
 
       - name: Store PR id
         if: github.event_name == 'pull_request'
