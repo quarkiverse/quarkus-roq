@@ -59,7 +59,7 @@ paginate: true
 [#plugin-aliases]
 == Roq Plugin Aliases
 
-This plugin allows referencing a page using an alias.
+This plugin allows creating one or many aliases (redirections) for a page.
 
 To install it, add the following code to your dependencies file:
 
