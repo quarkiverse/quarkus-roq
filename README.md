@@ -17,7 +17,7 @@
 </td>
 <td valign="top">
 
-[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-parent)
+[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square)](https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-project-parent)
 </td>
 </tr>
 </table>
