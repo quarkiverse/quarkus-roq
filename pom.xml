@@ -23,7 +23,6 @@
         <module>roq-frontmatter</module>
         <module>roq/runtime</module>
         <module>roq/deployment</module>
-        <module>roq/integration-tests</module>
         <module>plugin</module>
         <module>theme</module>
     </modules>
@@ -107,6 +106,7 @@
             </activation>
             <modules>
                 <module>blog</module>
+                <module>roq/integration-tests</module>
             </modules>
         </profile>
     </profiles>

@@ -4,5 +4,9 @@ type: code
 tags: extension-codestart
 metadata:
   title: Roq
-  description: Start to code with the Roq extension.
-  related-guide-section: https://quarkiverse.github.io/quarkiverse-docs/quarkus-roq/dev/ce
+  description: This codestart provides a starter Roq site.
+  related-guide-section: https://quarkiverse.github.io/quarkiverse-docs/quarkus-roq/dev/
+language:
+  base:
+    dependencies:
+      - "io.quarkiverse.roq:quarkus-roq-theme-default:${project.version}"

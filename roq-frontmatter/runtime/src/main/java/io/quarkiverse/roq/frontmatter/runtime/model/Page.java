@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -83,7 +84,7 @@ public interface Page {
         if (img == null) {
             return null;
         }
-        return url().resolve(info().imagesDirPath()).resolve(img);
+        return Arc.container().beanInstanceSupplier(Site.class).get().get().url().resolve(info().imagesDirPath()).resolve(img);
     }
 
     /**

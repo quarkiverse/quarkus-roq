@@ -6,7 +6,9 @@ layout: roq-default/main
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
 
-{#insert /}
+<div class="hero">
+  {#insert /}
+</div>
 
 {#if site.collections.get('posts')}
 {#for post in site.collections.get('posts').paginated(page.paginator)}

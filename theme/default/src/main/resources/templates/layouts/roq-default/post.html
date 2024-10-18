@@ -43,9 +43,9 @@ link: posts/:title
                 </div>
                 {#if cdi:authors.get(page.data.author)}
                 <div class="author">
-                    <img src="https://github.com/{page.data.author}.png" alt="author-{page.data.author}"/>
+                    <img src="{cdi:authors.get(page.data.author).img}" alt="author-{page.data.author}"/>
                     <div class="author-data">
-                        <a target="_blank" href="https://github.com/{page.data.author}" class="author-name">{cdi:authors.get(page.data.author).name}</a>
+                        <a target="_blank" href="{cdi:authors.get(page.data.author).url}" class="author-name">{cdi:authors.get(page.data.author).name}</a>
                         <span class="author-job-title">{cdi:authors.get(page.data.author).job_title}</span>
                     </div>
                 </div>

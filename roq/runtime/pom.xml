@@ -35,6 +35,28 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/codestarts</directory>
+                <includes>
+                    <include>**/codestart.yml</include>
+                </includes>
+                <targetPath>../codestarts</targetPath>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/codestarts</directory>
+                <excludes>
+                    <exclude>**/codestart.yml</exclude>
+                </excludes>
+                <targetPath>../codestarts</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>
@@ -69,12 +91,12 @@
                 <executions>
                     <execution>
                         <id>generate-codestart-jar</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <classesDirectory>${project.basedir}/src/main</classesDirectory>
+                            <classesDirectory>${project.build.directory}</classesDirectory>
                             <includes>
                                 <include>codestarts/**</include>
                             </includes>
