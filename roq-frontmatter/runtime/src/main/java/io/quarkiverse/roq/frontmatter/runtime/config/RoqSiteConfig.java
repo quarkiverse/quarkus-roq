@@ -20,7 +20,6 @@ public interface RoqSiteConfig {
     String DIR_NAME_PATTERN = "^[a-zA-Z0-9._-]{1,255}$";
     String LAYOUTS_DIR = "layouts";
     String CONTENT_DIR = "content";
-    String TEMPLATES_DIR = "templates";
     String STATIC_DIR = "static";
     String IGNORED_FILES = "**/_**,_**,.**";
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false));
@@ -57,13 +56,6 @@ public interface RoqSiteConfig {
     List<String> ignoredFiles();
 
     /**
-     * The directory which contains templates (partials, tags and layouts) in the Roq site directory (dir name).
-     */
-    @WithDefault(TEMPLATES_DIR)
-    @Pattern(regexp = DIR_NAME_PATTERN)
-    String templateDir();
-
-    /**
      * The directory which contains content (pages and collections) in the Roq site directory.
      */
     @WithDefault(CONTENT_DIR)
@@ -76,13 +68,6 @@ public interface RoqSiteConfig {
     @WithDefault(STATIC_DIR)
     @Pattern(regexp = DIR_NAME_PATTERN)
     String staticDir();
-
-    /**
-     * The directory containing layouts in the templates dir (dir name).
-     */
-    @WithDefault(LAYOUTS_DIR)
-    @Pattern(regexp = DIR_NAME_PATTERN)
-    String layoutsDir();
 
     /**
      * When enabled it will select all FrontMatter pages in Roq Generator

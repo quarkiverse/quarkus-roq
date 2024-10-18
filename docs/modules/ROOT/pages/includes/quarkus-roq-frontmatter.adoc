@@ -77,23 +77,6 @@ endif::add-copy-button-to-env-var[]
 |list of string
 |`**/_**,_**,.**`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-template-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-template-dir[`site.template-dir`]##
-
-[.description]
---
-The directory which contains templates (partials, tags and layouts) in the Roq site directory (dir name).
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_TEMPLATE_DIR+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_TEMPLATE_DIR+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|`templates`
-
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`site.content-dir`]##
 
 [.description]
@@ -127,23 +110,6 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |`static`
-
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-layouts-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-layouts-dir[`site.layouts-dir`]##
-
-[.description]
---
-The directory containing layouts in the templates dir (dir name).
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_LAYOUTS_DIR+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_LAYOUTS_DIR+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|`layouts`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_site-generator[`site.generator`]##
 

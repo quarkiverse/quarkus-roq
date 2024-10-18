@@ -1,16 +1,15 @@
 ---
 layout: roq-default/main
-paginate:
-  collection: posts
-  size: 5
 ---
 
 
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
 
+{#insert /}
 
-{#for post in site.collections.posts.paginated(page.paginator)}
+{#if site.collections.get('posts')}
+{#for post in site.collections.get('posts').paginated(page.paginator)}
 <article class="post">
   {#if post.img}
   <a class="post-thumbnail" style="background-image: url({post.img})" href="{post.url}"></a>
@@ -27,3 +26,4 @@ paginate:
 {/for}
 
 {#include partials/roq-default/pagination.html/}
+{/if}

@@ -25,22 +25,36 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         return project != null || roqResourceDir != null;
     }
 
-    public void consumePathFromRoqDir(String resource, Consumer<Path> consumer) throws IOException {
+    public void consumePathFromRoqResourceDir(String resource, Consumer<Path> consumer) throws IOException {
         if (roqResourceDir != null) {
             ClassPathUtils.consumeAsPaths(PathUtils.join(roqResourceDir, resource), consumer);
         }
+    }
+
+    public void consumePathFromRoqDir(String resource, Consumer<Path> consumer) throws IOException {
         if (project != null) {
             consumer.accept(project.roqDir().resolve(resource));
         }
     }
 
-    public void consumeRoqDir(Consumer<Path> consumer) throws IOException {
+    public void consumeRoqResourceDir(Consumer<Path> consumer) throws IOException {
         if (roqResourceDir != null) {
             ClassPathUtils.consumeAsPaths(roqResourceDir, consumer);
         }
+    }
+
+    public void consumeRoqDir(Consumer<Path> consumer) throws IOException {
         if (project != null) {
             consumer.accept(project.roqDir());
         }
+    }
+
+    public boolean isRoqResourcesInRoot() {
+        return roqResourceDir != null && roqResourceDir.isEmpty();
+    }
+
+    public String roqResourceDir() {
+        return roqResourceDir;
     }
 
     /**
