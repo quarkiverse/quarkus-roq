@@ -1,0 +1,1 @@
+console.log("Hello, you Roq! I am at src/main/resources/web/app/main.js")

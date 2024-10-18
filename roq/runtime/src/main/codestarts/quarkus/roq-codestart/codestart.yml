@@ -1,0 +1,8 @@
+name: roq-codestart
+ref: roq
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq
+  description: Start to code with the Roq extension.
+  related-guide-section: https://quarkiverse.github.io/quarkiverse-docs/quarkus-roq/dev/ce
