@@ -50,6 +50,9 @@ public class RoqCollection extends ArrayList<DocumentPage> {
      * Get the sub-list of documents depending on the given paginator
      */
     public List<DocumentPage> paginated(Paginator paginator) {
+        if (paginator == null) {
+            return this;
+        }
         var zeroBasedCurrent = paginator.currentIndex() - 1;
         return this.subList(zeroBasedCurrent * paginator.limit(),
                 Math.min(this.size(), (zeroBasedCurrent * paginator.limit()) + paginator.limit()));

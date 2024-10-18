@@ -168,7 +168,7 @@ public class RoqDataReaderProcessor {
 
         Map<String, RoqDataBuildItem> items = new HashMap<>();
 
-        roqProject.consumePathFromRoqDir(config.dir(), (path) -> {
+        final Consumer<Path> roqDirConsumer = (path) -> {
             if (Files.isDirectory(path)) {
                 try (Stream<Path> pathStream = Files.find(path, Integer.MAX_VALUE,
                         (p, a) -> Files.isRegularFile(p) && isExtensionSupported(p))) {
@@ -177,8 +177,9 @@ public class RoqDataReaderProcessor {
                     throw new RuntimeException("Error while scanning data files on location %s".formatted(path.toString()), e);
                 }
             }
-        });
-
+        };
+        roqProject.consumePathFromRoqDir(config.dir(), roqDirConsumer);
+        roqProject.consumePathFromRoqResourceDir(config.dir(), roqDirConsumer);
         return items.values();
     }
 

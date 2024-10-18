@@ -34,13 +34,13 @@ public class RoqFrontMatterDataProcessor {
             return;
         }
 
-        final var byKey = roqFrontMatterTemplates.stream()
+        final var byId = roqFrontMatterTemplates.stream()
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
-            JsonObject data = mergeParents(item, byKey);
+            JsonObject data = mergeParents(item, byId);
             final String link = TemplateLink.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
                     new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
             RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
@@ -82,22 +82,17 @@ public class RoqFrontMatterDataProcessor {
     }
 
     public static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
-            Map<String, RoqFrontMatterRawTemplateBuildItem> byPath) {
+            Map<String, RoqFrontMatterRawTemplateBuildItem> byId) {
         Stack<JsonObject> fms = new Stack<>();
         String parent = item.layout();
         fms.add(item.data());
         while (parent != null) {
-            if (byPath.containsKey(parent + ".html")) {
-                final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent + ".html");
-                parent = parentItem.layout();
-                fms.push(parentItem.data());
-            } else if (byPath.containsKey(parent)) {
-                final RoqFrontMatterRawTemplateBuildItem parentItem = byPath.get(parent);
-                parent = parentItem.layout();
-                fms.push(parentItem.data());
-            } else {
-                parent = null;
+            if (!byId.containsKey(parent)) {
+                throw new IllegalStateException("Invalid layout: " + parent + " in " + item.info().sourceFileName());
             }
+            final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
+            parent = parentItem.layout();
+            fms.push(parentItem.data());
         }
 
         JsonObject merged = new JsonObject();
