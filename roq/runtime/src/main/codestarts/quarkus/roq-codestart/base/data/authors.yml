@@ -1,9 +1,8 @@
-qlover:
-  name: "Quarkus Lover"
-  email: "qlover@quarkuslover.io"
-  emailhash: "6e9f555c0f97757a625cd2e9e79a8255"
-  job_title: Senior Software Engineer
-  twitter: "quarkusio"
+roqqy:
+  name: "Roqqy Balboa"
+  job_title: Roq Boxer
+  url: "https://github.com/quarkiverse/quarkus-roq"
+  img: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/refs/heads/main/blog/static/assets/images/iamroq.png"
   bio: |
     Quarkus is my go-to framework for making Java development not only faster but more fun. 
     I’m driven by the mission to create high-performance, lightweight microservices that scale effortlessly in the cloud. 

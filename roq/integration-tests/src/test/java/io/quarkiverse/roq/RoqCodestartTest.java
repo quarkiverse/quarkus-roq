@@ -21,13 +21,9 @@ public class RoqCodestartTest {
     void testContent(QuarkusCodestartCatalog.Language language) throws Throwable {
         codestartTest.assertThatGeneratedFile(language, "content/index.html")
                 .content().contains("title: Hello, world! I'm Roq");
-        codestartTest.assertThatGeneratedFile(language, "src/main/resources/web/app/main.js")
-                .content()
-                .contains("""
-                        console.log("Hello, you Roq! I am at src/main/resources/web/app/main.js")""");
         codestartTest.assertThatGeneratedFile(language, "data/authors.yml")
                 .content()
-                .contains("qlover@quarkuslover.io");
+                .contains("Roq Boxer");
         codestartTest.assertThatGeneratedFile(language, "data/menu.yml")
                 .content()
                 .contains("fa-regular fa-newspaper");
