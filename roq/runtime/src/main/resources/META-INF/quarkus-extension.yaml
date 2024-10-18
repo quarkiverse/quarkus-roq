@@ -19,3 +19,10 @@ metadata:
   config:
     - "quarkus.roq"
   status: "preview"
+  codestart:
+    name: "roq"
+    languages:
+    - "java"
+    - "kotlin"
+    - "scala"
+    artifact: "io.quarkiverse.roq:quarkus-roq:codestarts:jar:${project.version}"
