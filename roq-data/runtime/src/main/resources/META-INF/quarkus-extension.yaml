@@ -1,5 +1,5 @@
 name: Roq Data
-description: Allow consumption of JSON and YAML data files as CDI beans
+description: Use json/yaml files content from your templates and articles with type safety.
 metadata:
   keywords:
     - json

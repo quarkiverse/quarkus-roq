@@ -1,5 +1,5 @@
-name: Roq Generator
-description: Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
+name: Roq Plugin Tagging
+description: This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
 metadata:
   keywords:
     - website
@@ -11,7 +11,10 @@ metadata:
     - site
     - generator
     - web
-  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-generator.html
+    - roq
+    - tagging
+    - plugin
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-tagging
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"
