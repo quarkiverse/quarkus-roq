@@ -23,7 +23,7 @@ Roq depends on a set of extensions which can also be used standalone:
 Knowing that *you don't need to learn Quarkus or Java* to use Roq, consider the following advantages:
 
 1. *Quarkus-based*:
-Since Roq is just a very thing layer on top of Quarkus, it ensures that the tool stays up to date and benefits from the robust support provided by the Quarkus ecosystem.
+Since Roq is just a very thin layer on top of Quarkus, it ensures that the tool stays up to date and benefits from the robust support provided by the Quarkus ecosystem.
 
 2. *For everyone*:
 It is very easy to use with any level of knowledge. You can start with an existing theme (as a dependency) and only write Markdown or Asciidoc content, or customize everything.
@@ -80,12 +80,6 @@ or in your project directory such as `my-site`:
 ----
 quarkus.roq.dir=my-site
 ----
-
-
-
-
-
-
 
 [[extension-configuration-reference]]
 == Extension Configuration Reference

@@ -5,10 +5,9 @@ By default, your site should be located in the project directory, or in the reso
 
 The default directory structure is:
 
-
 image::roq-dirs.png[Roq directory structure]
 
-// https://excalidraw.com/#json=iDMNJoYdZ-_57mVkcHRWl,bwhI0ERmsEaDs5H1g4sfSQ
+// https://excalidraw.com/#json=VbxiMXccXfFuW0S2-nqnc,v3IIL7FZIpJqIsUshso-FQ
 
 
 NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
@@ -41,7 +40,22 @@ You can also prepare partial templates. They are located by default in `template
 * `pagination.html`
 * `head.html`
 
-NOTE: if you don't already have layouts and partials in your project, add the default Roq theme or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/site[example templates].
+NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/templates[example templates]).
+
+[#install-theme]
+=== Install a theme
+
+To install a theme, simply add the dependency to your pom.xml. Example with Roq's default theme:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-theme-default</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+It will provide templates, scripts and styles for your site. To use a layout, refer to it with `:theme/` prefix (there is an in the next part).
 
 === Site index template
 
@@ -53,7 +67,7 @@ Your site index template is required and should be located in `content/index.htm
 ---
 title: Hello Roqers // <1>
 description: It is time to start Roqing 🎸!
-layout: main //<2>
+layout: :theme/main //<2>
 ---
 
 <h1>Hello fellow Roqers 🤘</h1>
@@ -66,7 +80,7 @@ layout: main //<2>
 ----
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
-<2> The layout to use (in this case `main` which refers to `site/_layout/main.html`).
+<2> The layout to use (in this case `:theme/main` which refers to the `main` layout from the theme).
 <3> We use the `{site.url(path)}` using Qute to resolve site urls, in this case it doesn't exist yet...
 
 === Variables
@@ -192,13 +206,13 @@ Any directory without the `_` prefix in the site directory will be scanned for p
 Let's create your first page and spice things up a bit by using Markdown.
 
 [source,html]
-.pages/roq-bottom.md
+.roq-bottom.md
 ----
 ---
 title: Roq Bottom
 description: When you hit Roq bottom, try Roq to climb back up!
-layout: page
-link: /roq-bottom <1>
+layout: :theme/page
+link: /climb-back-up <1>
 the-rope: You Roq! <2>
 ---
 
@@ -210,7 +224,7 @@ __{page.data.the-rope}!__ <3>
 
 ----
 
-<1> you can use `link` to give this page a custom link.
+<1> you can use `link` to give this page a custom link (by default it will use the file-name).
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
 
@@ -232,7 +246,7 @@ By default, Roq is configured with a `posts` collection using the `content/posts
 ---
 title: Roq bad puns
 description: Roq is very good for bad puns 🤭
-layout: post <1>
+layout: :theme/post <1>
 tags: <2>
   - funny
   - ai
@@ -259,7 +273,7 @@ Here is a list of puns suggested by Chat GPT:
 15.	Stone Cold Roq – Referring to something very cool or emotionless.
 
 ----
-<1> This time we use the `templates/layouts/post.html` layout.
+<1> This time we use the `post` layout from the theme.
 <2> You can define tags (see xref:quarkus-roq-plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
 <3> You have shortcut on the `page` to access `title` and `description`.
 
