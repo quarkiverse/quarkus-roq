@@ -5,7 +5,7 @@ date: 2024-10-18 00:00:00 -0300
 description: This is the first article ever made with Quarkus Roq
 img: https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 tags: blogging
-author: ia3andy
+author: qlover
 aliases: [first-roq-article-ever]
 ---
 
