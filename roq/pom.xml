@@ -8,12 +8,26 @@
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-data-parent</artifactId>
+    <artifactId>quarkus-roq-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Quarkus Roq - Data</name>
+    <name>Quarkus Roq - Parent</name>
 
     <modules>
         <module>deployment</module>
         <module>runtime</module>
     </modules>
+    <profiles>
+        <profile>
+            <id>it</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>integration-tests</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
