@@ -1,0 +1,23 @@
+name: Roq Plugin Asciidoc
+description: This plugin allows to use Asciidoc in ROQ
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - asciidoc
+    - plugin
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-asciidoc
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq"
+  status: "preview"
