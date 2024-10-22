@@ -94,3 +94,20 @@ aliases: [first-roq-article-ever]
 Now, when you access the URL `http://localhost:8081/first-roq-article-ever`, you will be redirected to the `2024-08-29-welcome-to-roq` blog post.
 
 NOTE: you can use link templating in aliases
+
+[#plugin-asciidoc]
+== Roq Plugin AsciiDoc
+
+This plugin allows to use asciidoc to produce content.
+
+To install it add:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-asciidoc</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Once done, every file with either '.adoc' or '.asciidoc' extension will be processed.

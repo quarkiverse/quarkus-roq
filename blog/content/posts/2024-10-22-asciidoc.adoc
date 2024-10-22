@@ -1,0 +1,50 @@
+---
+layout: :theme/post
+title: Write your blog posts in AsciiDoc
+description: Automatically generate html from AsciiDoc content
+img: https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=3198&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+tags: plugin, frontmatter, guide, asciidoc
+author: jtama
+aliases: [asciidoc]
+---
+
+Writing content is AsciiDoc format is an absolut no brainer. Roq provides a plugin to handle it transparently for you.
+
+To use it, you need to add the `quarkus-roq-plugin-asciidoc' to your project.
+
+[%collapsible]
+====
+You can do that using several ways :
+
+[qanda]
+Manually:: 
+[source,xml]
+.pom.xml
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-asciidoc</artifactId>
+    <version>$\{quarkus-roq.version\}</version>
+</dependency>
+----
+
+Using the Quarkus cli::
+[source,shell]
+----
+quarkus extension add io.quarkiverse.roq:quarkus-roq-plugin-asciidoc
+----
+
+Using the Maven::
+[source,shell]
+----
+./mvnw quarkus:add-extension -Dextensions="io.quarkiverse.roq:quarkus-roq-plugin-asciidoc"
+----
+
+Using the Gradle::
+[source,shell]
+----
+./gradlew addExtension --extensions="io.quarkiverse.roq:quarkus-roq-plugin-asciidoc"
+----
+====
+
+Once done, you can start writing your blog posts in AsciiDoc format.
