@@ -12,7 +12,7 @@
     <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </td>
 <td valign="top">
@@ -53,6 +53,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://hollycummins.com"><img src="https://avatars.githubusercontent.com/u/11509290?v=4?s=100" width="100px;" alt="Holly Cummins"/><br /><sub><b>Holly Cummins</b></sub></a><br /><a href="#ideas-holly-cummins" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://blog.nerdin.ch"><img src="https://avatars.githubusercontent.com/u/51133?v=4?s=100" width="100px;" alt="Erik Jan de Wit"/><br /><sub><b>Erik Jan de Wit</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=edewit" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jtama"><img src="https://avatars.githubusercontent.com/u/39991688?v=4?s=100" width="100px;" alt="Jérôme Tama"/><br /><sub><b>Jérôme Tama</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=jtama" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/RayzaAnchayhua"><img src="https://avatars.githubusercontent.com/u/93015921?v=4?s=100" width="100px;" alt="Rayza Luana"/><br /><sub><b>Rayza Luana</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=RayzaAnchayhua" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
