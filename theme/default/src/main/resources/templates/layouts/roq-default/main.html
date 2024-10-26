@@ -16,12 +16,7 @@ layout: roq-default/default
       <p>{site.description.markdownify.safe}</p>
     </div>
     <div class="menu">
-      <h3 class="menu-title">MENU</h3>
-      <ul>
-        {#for item in cdi:menu.items}
-        <li><a href="{site.url(item.path)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
-        {/for}
-      </ul>
+      {#include partials/roq-default/menu /}
     </div>
   </header> <!-- End Header -->
   <footer>
