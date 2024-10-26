@@ -1,5 +1,5 @@
 ---
-layout: :theme/post
+layout: post
 title: Mastering Pagination in Roq
 img: https://images.unsplash.com/photo-1502126829571-83575bb53030?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 description: Learn how to implement pagination in Roq to enhance your content navigation. This article walks through the process of adding pagination, configuring page size, and customizing links.
@@ -23,9 +23,7 @@ Next, in your template, loop through the paginated posts using:
 
 ```html
 \{#for post in site.collections.posts.paginated(page.paginator)}
-<article class="post">
-  ...
-</article>
+<article class="post">...</article>
 \{/for}
 ```
 
@@ -41,8 +39,9 @@ To add pagination controls, add something like this to `partials/pagination.html
 ```
 
 You can further customize your pagination by setting the page size and link format:
+
 ```yaml
-paginate: 
+paginate:
   size: 4
   collection: posts
   link: posts/page-:page
