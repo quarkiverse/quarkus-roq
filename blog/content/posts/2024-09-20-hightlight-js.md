@@ -34,7 +34,7 @@ This will make the Highlight.js library available to your project.
 Now, let’s configure Highlight.js. In your `src/main/resources/web/app/main.js`, import the library and activate it:
 
 ```javascript
-import hljs from "highlight.js";
+import hljs from 'highlight.js';
 
 hljs.highlightAll();
 ```
@@ -44,7 +44,7 @@ hljs.highlightAll();
 To style the code blocks, import the Highlight.js default theme into your SCSS file. Add this to your `src/main/resources/web/app/main.scss`:
 
 ```scss
-@import "highlight.js/scss/default.scss";
+@import 'highlight.js/scss/default.scss';
 ```
 
 And that's it! Now your code blocks will be beautifully highlighted, adding a more polished and professional look to your content.

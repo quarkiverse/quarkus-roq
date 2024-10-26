@@ -32,12 +32,10 @@ Next, in your template, loop through the paginated posts using:
 To add pagination controls, add something like this to `partials/pagination.html` and include it in your page `\{#include partials/pagination.html/}`:
 
 ```html
-\{#include fm/pagination.html} \{#newer}<i
-  class="fa fa-long-arrow-left"
-  aria-hidden="true"
-></i
->\{/newer} \{#older}<i class="fa fa-long-arrow-right" aria-hidden="true"></i
->\{/older} \{/include}
+\{#include fm/pagination.html}
+\{#newer}<i class="fa fa-long-arrow-left" aria-hidden="true"></i>\{/newer}
+\{#older}<i class="fa fa-long-arrow-right" aria-hidden="true"></i>\{/older}
+\{/include}
 ```
 
 You can further customize your pagination by setting the page size and link format:

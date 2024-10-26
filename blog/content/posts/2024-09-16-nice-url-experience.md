@@ -27,7 +27,7 @@ Managing URLs is now very easy! With our updated Qute-powered feature, you can n
 - ** Smart URL:**
 
 ```html
-<meta name="twitter:image:src" content="\{page.img.absolute}" />
+<meta name="twitter:image:src" content="\{page.img.absolute}" >
 ```
 
 There is a method in Page to retrieve the image url as a `RoqUrl` from the configured site images path. It is smart so that if the page image is external, it won't be affected.
