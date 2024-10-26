@@ -1,5 +1,5 @@
 ---
-layout: :theme/post
+layout: post
 title: "Welcome to Roq!"
 date: 2024-08-29 13:32:20 +0200
 description: This is the first article ever made with Quarkus Roq
@@ -24,12 +24,14 @@ And Roq adds the missing pieces:
 **Roq FrontMatter:** allow to create pages and collections (posts, ...) using Markdown or Asciidoc with layouting. In fact, your static website content.
 
 **What's missing?** we now need to incrementally add the toolkit to ease the process of creating static content through Quarkus:
+
 - SEO
 - Image processing ([quarkus-web-bundler/issues/42](https://github.com/quarkiverse/quarkus-web-bundler/issues/42))
 - Pagination ([quarkus-roq/issues/65](https://github.com/quarkiverse/quarkus-web-bundler/issues/42))
 - Advanced routing (redirect, ...)
 
 **To go further:**
+
 - Compat with tools like [https://frontmatter.codes/](https://frontmatter.codes/)
 - Compat with IDEs plugins
 - Roq GitHub action
@@ -45,9 +47,8 @@ This is a great opportunity to participate in a fun focus group and be involved 
 
 There will be small, medium, bigger features to develop with any level of involvement. Participating could just be giving thoughts and discussing things..
 
-
 Check out the [Roq docs][roq-docs] for more info on how to get the most out of Roq. File all bugs/feature requests at [Roq’s GitHub repo][roq-gh].
 
 [quarkus-web-docs]: https://quarkus.io/guides/web
 [roq-docs]: https://docs.quarkiverse.io/quarkus-roq/dev/index.html
-[roq-gh]:   https://github.com/quarkiverse/quarkus-roq
+[roq-gh]: https://github.com/quarkiverse/quarkus-roq
