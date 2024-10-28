@@ -10,13 +10,16 @@
   height: 100%;
   padding: 20px 10px;
   background-color: $white;
+
+  section {
+    margin: 0 0 40px;
+    text-align: center;
+  }
 }
 .page-content {
   flex-grow: 1;
 }
 .about {
-  margin: 0 0 40px;
-  text-align: center;
   .cover-author-image {
     width: 100px;
     height: 100px;

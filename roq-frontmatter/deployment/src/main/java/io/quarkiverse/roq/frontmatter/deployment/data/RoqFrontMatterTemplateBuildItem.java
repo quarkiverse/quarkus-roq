@@ -39,4 +39,8 @@ public final class RoqFrontMatterTemplateBuildItem extends MultiBuildItem {
     public boolean isPage() {
         return raw.isPage();
     }
+
+    public boolean isLayout() {
+        return raw.isLayout();
+    }
 }

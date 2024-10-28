@@ -2,7 +2,6 @@ package io.quarkiverse.roq.plugin.tagging.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.LINK_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.PAGINATE_KEY;
-import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +48,7 @@ public class RoqPluginTaggingProcessor {
 
         // Let's find non page templates with the tagging data
         final List<RoqFrontMatterTemplateBuildItem> taggingTemplates = templates.stream()
-                .filter(not(RoqFrontMatterTemplateBuildItem::isPage))
+                .filter(RoqFrontMatterTemplateBuildItem::isLayout)
                 .filter(i -> i.data().containsKey("tagging"))
                 .toList();
 

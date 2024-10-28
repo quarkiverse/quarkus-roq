@@ -1,0 +1,22 @@
+---
+layout: theme-layouts/roq-default/main
+---
+
+{#insert /}
+
+{#description}
+<p>{site.description}</p>
+<p>I crafted this blog myself and <a href="https://github.com/quarkiverse/quarkus-roq/actions/workflows/deploy-blog.yml" target="_blank">published it</a> on GitHub Pages. The sources of this example website are located <a href="https://github.com/quarkiverse/quarkus-roq/tree/main/blog" target="_blank">there</a>.</p>
+{/}
+
+{#footer}
+<footer>
+  {#include partials/roq-default/sidebar-contact /}
+  <section class="support">
+    <p><b>To support me, give me some stars:</b></p>
+    <!-- Place this tag where you want the button to render. -->
+    <a class="github-button" href="https://github.com/quarkiverse/quarkus-roq" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star quarkiverse/quarkus-roq on GitHub">Star</a>
+  </section>
+  {#include partials/roq-default/sidebar-copyright /}
+</footer>
+{/}

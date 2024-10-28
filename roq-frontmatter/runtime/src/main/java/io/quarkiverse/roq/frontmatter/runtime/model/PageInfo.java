@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
 import java.util.Set;
+import java.util.function.Function;
 
 import jakarta.enterprise.inject.Vetoed;
 
@@ -45,20 +46,31 @@ public record PageInfo(
         /**
          * The generated template path for Qute (e.g posts/my-favorite-beer.html)
          */
-        String generatedTemplatePath) {
+        String generatedTemplateId) {
 
     public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "asciidoc", "adoc");
 
     public static PageInfo create(String id, boolean draft, String imagesDirPath, String dateString,
             String rawContent,
             String sourcePath,
-            String quteTemplatePath) {
-        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplatePath);
+            String quteTemplateId) {
+        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId);
     }
 
     public PageInfo changeId(String id) {
         return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplatePath());
+                generatedTemplateId());
+    }
+
+    public PageInfo changeIds(Function<String, String> function) {
+        return new PageInfo(function.apply(id()), draft(), imagesDirPath(), dateString(), rawContent(),
+                sourceFilePath(),
+                function.apply(generatedTemplateId()));
+    }
+
+    public PageInfo changeIdAndGeneratedTemplateId(String id) {
+        return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
+                generatedTemplateId());
     }
 
     public ZonedDateTime date() {

@@ -18,7 +18,6 @@ import io.smallrye.config.WithParentName;
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface RoqSiteConfig {
     String DIR_NAME_PATTERN = "^[a-zA-Z0-9._-]{1,255}$";
-    String LAYOUTS_DIR = "layouts";
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String IGNORED_FILES = "**/_**,_**,.**";
