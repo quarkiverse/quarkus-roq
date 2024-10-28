@@ -119,7 +119,7 @@ public class RoqFrontMatterScanProcessor {
                         produceRawTemplate(dataProducer, new RoqFrontMatterRawTemplateBuildItem(
                                 item.info().changeIds(RoqFrontMatterScanProcessor::removeThemePrefix),
                                 item.layout(),
-                                item.type(),
+                                TemplateType.LAYOUT,
                                 item.data(),
                                 item.collection(),
                                 item.generatedTemplate(),

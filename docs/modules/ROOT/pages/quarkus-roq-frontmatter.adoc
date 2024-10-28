@@ -123,6 +123,121 @@ It will automatically utilize the Frontmatter data from all your blog posts to g
 {#include fm/rss.html}
 ----
 
+== Themes
+
+=== Overriding theme layouts
+
+In Roq, you can override theme layouts by inserting an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
+
+For example, let’s override the `roq-default` theme's main layout so that our customizations apply everywhere it is used.
+
+.templates/layouts/roq-default/main.html
+[source,html]
+----
+---
+layout: theme-layouts/roq-default/main // <1>
+---
+
+{#insert /} // <2>
+
+{#description} // <3>
+Here I can override the description section
+{/}
+
+{#footer}
+<footer>
+And here the footer
+</footer>
+{/}
+----
+<1> *Inherits from the theme layout:* This layout uses the original theme layout (`roq-default/main`) as a base.
+<2> *Inheritance mechanism:* `{#insert /}` ensures that this layout will inherit sections defined in the theme layout.
+<3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
+
+Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
+
+=== Developing a theme
+
+To develop a theme, create a Maven module which will contain the theme layouts, partials, scripts and styles.
+
+[source]
+----
+.
+└── main
+    ├── resources
+    │   ├── application.properties
+    │   └── templates
+    │       ├── partials
+    │       │   └── roq-default // <1>
+    │       │       ├── head.html
+    │       │       ├── pagination.html
+    │       │       ├── sidebar-about.html
+    │       │       ├── sidebar-contact.html
+    │       │       ├── sidebar-copyright.html
+    │       │       └── sidebar-menu.html
+    │       └── theme-layouts // <2>
+    │           └── roq-default
+    │               ├── default.html
+    │               ├── index.html
+    │               ├── main.html
+    │               ├── page.html
+    │               ├── post.html
+    │               └── tag.html
+    └── web
+        ├── roq.js
+        ├── roq.scss
+----
+<1> You can add partials for your theme, they need to be located in a directory with the theme name.
+<2> Layouts needs to be declared in the `theme-layouts` so that they can be overridden by consuming websites.
+
+Same as for a site, script and styles can either be added to `src/main/resoucres/META-INF/resources` or bundled using Maven esbuild plugin:
+
+.pom.xml
+[source,xml]
+----
+             <plugin>
+                <groupId>io.mvnpm</groupId>
+                <artifactId>esbuild-maven-plugin</artifactId>
+                <version>0.0.2</version>
+                <executions>
+                    <execution>
+                        <id>esbuild</id>
+                        <goals>
+                            <goal>esbuild</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <entryPoint>roq.js</entryPoint> // <1>
+                </configuration>
+                <dependencies> // <2>
+                    <dependency>
+                        <groupId>org.mvnpm.at.fortawesome</groupId>
+                        <artifactId>fontawesome-free</artifactId>
+                        <version>6.6.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.fontsource</groupId>
+                        <artifactId>pt-serif</artifactId>
+                        <version>5.1.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+----
+<1> Add your esbuild entrypoint from `src/main/resources/web`
+<2> Add mvnpm or webjars dependencies
+
+This bundle will be available in `/static/bundle/roq.js` and `/static/bundle/roq.css` which can be used in your theme html `<head>`
+
+Create an application.properties:
+
+.src/main/resources/application.properties
+[source,properties]
+----
+site.theme=roq-default // <1>
+----
+<1> Thanks to this, all call to `layout: :theme/...` will automatically refer to this theme.
+
 == Links
 
 TODO
