@@ -80,7 +80,7 @@ To create an alias, create a page and add `aliases: [your-alias-here, another-al
 .content/posts/2024-08-29-welcome-to-roq.md
 ----
 ---
-layout: post
+layout: :theme/post
 title: "Welcome to Roq!"
 date: 2024-08-29 13:32:20 +0200
 description: This is the first article ever made with Quarkus Roq

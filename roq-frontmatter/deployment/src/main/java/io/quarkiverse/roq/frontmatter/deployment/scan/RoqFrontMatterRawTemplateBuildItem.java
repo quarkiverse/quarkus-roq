@@ -64,7 +64,11 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     }
 
     public boolean isLayout() {
-        return !type.isPage();
+        return type.isLayout();
+    }
+
+    public TemplateType type() {
+        return type;
     }
 
     public String id() {
@@ -91,7 +95,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return collection != null ? collection.id() : null;
     }
 
-    public String generatedContent() {
+    public String generatedTemplate() {
         return generatedTemplate;
     }
 
@@ -102,10 +106,20 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     public enum TemplateType {
         DOCUMENT_PAGE,
         NORMAL_PAGE,
+        THEME_LAYOUT,
         LAYOUT;
 
         public boolean isPage() {
-            return this != LAYOUT;
+            return this == DOCUMENT_PAGE || this == NORMAL_PAGE;
         }
+
+        public boolean isLayout() {
+            return this == LAYOUT;
+        }
+
+        public boolean isThemeLayout() {
+            return this == THEME_LAYOUT;
+        }
+
     }
 }

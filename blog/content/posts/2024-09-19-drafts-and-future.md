@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: :theme/post
 title: "Easily manage Drafts and Future articles in Roq"
 date: 2024-09-19 10:45:00 +0200
 description: Roq SSG introduces a new feature that allows you to hide or show draft and future articles using simple Quarkus configurations. This update gives developers greater control over which content is visible, improving content management and workflow.

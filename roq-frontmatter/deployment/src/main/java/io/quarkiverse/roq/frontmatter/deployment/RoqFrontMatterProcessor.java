@@ -48,16 +48,16 @@ public class RoqFrontMatterProcessor {
         // Produce generated Qute templates
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             templatePathProducer
-                    .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplatePath()).extensionInfo(FEATURE)
-                            .content(item.generatedContent()).build());
+                    .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplateId()).extensionInfo(FEATURE)
+                            .content(item.generatedTemplate()).build());
             if (item.published()) {
                 if (item.collection() != null) {
-                    docTemplates.add(item.info().generatedTemplatePath());
+                    docTemplates.add(item.info().generatedTemplateId());
                 } else {
-                    pageTemplates.add(item.info().generatedTemplatePath());
+                    pageTemplates.add(item.info().generatedTemplateId());
                 }
             } else {
-                layoutTemplates.add(item.info().generatedTemplatePath());
+                layoutTemplates.add(item.info().generatedTemplateId());
             }
         }
 

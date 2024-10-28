@@ -1,0 +1,9 @@
+<section class="about">
+  {#if site.img}
+  <div class="cover-author-image">
+    <a href="{site.url}"><img src="{site.img}" alt="{site.data.name}"></a>
+  </div>
+  {/if}
+  <div class="author-name">{site.data.name}</div>
+  {#insert description}<p>{site.description}</p>{/}
+</section>
