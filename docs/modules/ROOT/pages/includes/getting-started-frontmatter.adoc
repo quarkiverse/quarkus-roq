@@ -33,7 +33,9 @@ For your site, you will have one or more kind of pages, this is what we call "la
 * `post`: the layout for blog posts
 * `recipe`: the layout for recipes or whatever
 
-A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`).
+A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`). 
+
+TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike partials, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
 You can also prepare partial templates. They are located by default in `templates/partials/`. For example:
 
@@ -55,7 +57,7 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 </dependency>
 ----
 
-It will provide templates, scripts and styles for your site. To use a layout, refer to it with `:theme/` prefix (there is an in the next part).
+It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:quarkus-roq-frontmatter.adoc#themes[*Theme section*].
 
 === Site index template
 
