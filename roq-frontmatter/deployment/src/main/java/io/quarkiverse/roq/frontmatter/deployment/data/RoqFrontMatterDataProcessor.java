@@ -1,7 +1,5 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.TemplateLink.DEFAULT_PAGE_LINK_TEMPLATE;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -41,7 +39,8 @@ public class RoqFrontMatterDataProcessor {
 
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             JsonObject data = mergeParents(item, byId);
-            final String link = TemplateLink.pageLink(config.rootPath(), data.getString(LINK_KEY, DEFAULT_PAGE_LINK_TEMPLATE),
+            final String link = TemplateLink.pageLink(config.rootPath(),
+                    data.getString(LINK_KEY),
                     new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
             RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
                     data);

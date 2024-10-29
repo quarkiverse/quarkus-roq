@@ -3,7 +3,7 @@ layout: :theme/post
 title: "Effortless URL Handling in Roq with Qute super-power"
 date: 2024-09-16 13:32:20 +0200
 description: Effortlessly manage both relative and absolute URLs with our enhanced Qute-powered feature. Utilizing the RoqUrl class, you can easily join and resolve paths, ensuring clean and predictable URLs. This update simplifies URL handling, making your code more efficient and your content easier to navigate and share.
-img: https://images.unsplash.com/photo-1671530467085-40043a792439?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: https://images.unsplash.com/photo-1671530467085-40043a792439?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 tags: cool-stuff, frontmatter, guide
 author: ia3andy
 ---
@@ -27,7 +27,7 @@ Managing URLs is now very easy! With our updated Qute-powered feature, you can n
 - ** Smart URL:**
 
 ```html
-<meta name="twitter:image:src" content="\{page.img.absolute}" >
+<meta name="twitter:image:src" content="\{page.image.absolute}" >
 ```
 
 There is a method in Page to retrieve the image url as a `RoqUrl` from the configured site images path. It is smart so that if the page image is external, it won't be affected.

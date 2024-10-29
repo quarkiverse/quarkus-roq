@@ -23,7 +23,7 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     /**
      * Resolve the next document page in this collection
      */
-    public DocumentPage resolveNextPage(DocumentPage page) {
+    public DocumentPage nextPage(DocumentPage page) {
         final int i = this.indexOf(page);
         if (i == -1 || i >= this.size() - 1) {
             return null;
@@ -34,7 +34,7 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     /**
      * Resolve the previous document page in this collection
      */
-    public DocumentPage resolvePreviousPage(DocumentPage page) {
+    public DocumentPage previousPage(DocumentPage page) {
         final int i = this.indexOf(page);
         if (i <= 0) {
             return null;
@@ -42,8 +42,8 @@ public class RoqCollection extends ArrayList<DocumentPage> {
         return this.get(i - 1);
     }
 
-    public DocumentPage resolvePrevPage(DocumentPage page) {
-        return this.resolvePreviousPage(page);
+    public DocumentPage prevPage(DocumentPage page) {
+        return this.previousPage(page);
     }
 
     /**

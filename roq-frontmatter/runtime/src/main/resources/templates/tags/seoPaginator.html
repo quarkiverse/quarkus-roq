@@ -9,14 +9,10 @@
     {/if}
 {#else if page.collection??}
   <!-- SEO COLLECTION PAGES -->
-  {#let prevPage = site.collections.resolvePreviousPage(page)}
-  {#if prevPage}
-  <link rel="prev" href="{prevPage.url.absolute}" />
+  {#if page.prevPage}
+  <link rel="prev" href="{page.prevPage.url.absolute}" />
   {/if}
-  {/let}
-  {#let nextPage = site.collections.resolveNextPage(page) }
-  {#if nextPage}
-  <link rel="next" href="{nextPage.url.absolute}" />
+  {#if page.nextPage}
+  <link rel="next" href="{page.nextPage.url.absolute}" />
   {/if}
-  {/let}
 {/if}

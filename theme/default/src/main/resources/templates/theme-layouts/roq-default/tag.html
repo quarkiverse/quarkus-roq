@@ -14,8 +14,8 @@ tagging: posts
 
 {#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
 <article class="post">
-  {#if post.img}
-  <a class="post-thumbnail" style="background-image: url({post.img})" href="{post.url}"></a>
+  {#if post.image}
+  <a class="post-thumbnail" style="background-image: url({post.image})" href="{post.url}"></a>
   {/if}
   <div class="post-content">
     <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>

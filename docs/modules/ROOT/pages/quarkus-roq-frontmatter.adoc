@@ -37,6 +37,7 @@ Next, in your template, loop through the paginated posts using:
 
 {#include includes/pagination.html/}
 ----
+<1> Calling `.paginated(page.paginator)` will resolve to the posts for the computed page.
 
 === Step 2: Including Pagination Controls
 
@@ -240,9 +241,171 @@ site.theme=roq-default // <1>
 ----
 <1> Thanks to this, all call to `layout: :theme/...` will automatically refer to this theme.
 
-== Links
+[#links]
+== Links & Urls
 
-TODO
+The output location of pages and documents is determined by the FrontMatter `link` key. This `link` value can include placeholders, which will be dynamically replaced with relevant values for routing.
+
+TIP: Those links are also available in the Qute data to allow <<roq-url>>.
+
+[#link-placeholders]
+=== Link placeholders
+
+|===
+| Type of page | Placeholder  | Description | Example Output
+
+| All
+| `:path`
+| The file path of the page, slugified (converted to a URL-friendly format) without the extension.
+| `my-page`, `search` or `docs/my-doc`
+
+| All
+| `:slug`
+| The slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the file name.
+| `my-page-title`
+
+| All
+| `:ext`
+| The file extension with the dot. Empty for all files with html output (md, asciidoc, html, ...).
+| `.json`
+
+| All
+| `:ext!`
+| Force the output file extension.
+| `.html`, `.json`
+
+| All
+| `:year`
+| The year of the page’s date or the current year if the date is not available.
+| `2024`
+
+| All
+| `:month`
+| The month (formatted as two digits) of the page’s date or the current month if the date is not available.
+| `10`
+
+| All
+| `:day`
+| The day (formatted as two digits) of the page’s date or the current day if the date is not available.
+| `28`
+
+| Document
+| `:collection`
+| Represents the collection to which the document belongs, such as a specific category or folder name.
+| `blog`, `articles`, `recipes`
+
+| Paginated
+| `:page`
+| Represents the current page.
+| `1`, `2`
+|===
+
+
+Default link value:
+
+* for pages: `/:path:ext`.
+* for documents: `/:collection/:slug`.
+* for paginated page: `/:collection/page:page`.
+
+TIP: You can define `link` in a layout to affect all the pages using that layout.
+
+[#roq-url]
+=== Creating links between your pages
+
+The pages links are automatically converted to urls by Roq, they are available in the `site.url` and the `page.url` variables. This makes creating links very easy:
+
+[source,html]
+----
+<a href="{site.url}">Back to main page</a>
+----
+
+or
+
+[source,html]
+----
+<a href="{page.nextPage.url}">{page.nextPage.title}</a>
+----
+
+or
+
+[source,html]
+----
+{#for post in site.collections.posts}
+  <a href="{post.url}">{post.title}</a>
+{/for}
+----
+
+TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{site.url.absolute}`).
+
+=== Manual linking
+
+Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
+
+
+=== Images url resolution
+
+By default, pages and documents images should be located in `/static/assets/images` (you can choose another path in the config). To define an image for a page or document, you can use the FrontMatter `image` (or `img` or `picture`) key. It should contain the path to your page image relative to the configured images location (e.g. `image: foo.webp` will refer to `/static/assets/images/foo.webp`), or an absolute path starting with `http(s)://`.
+
+Roq will automatically resolve the url for the image in `page.image` (or `site.image`). This makes showing images very easy:
+[source,html]
+----
+<img src="{site.image.absolute}" title="{site.title}" /> // <1>
+<img src="{site.image('something.png')}" title="{site.title}" /> // <2>
+----
+<1> Will print the site image absolute url.
+<2> Will print `/static/assets/images/something.png`.
+
+or
+
+[source,html]
+----
+---
+layout: :theme/page
+title: Foo
+image: foo.webp // <1>
+---
+
+<img src="{page.image}" title="{page.title}" /> // <2>
+----
+<1> The path to your page image relative to the configured images location (or an absolute path starting with `http(s)://`).
+<2> `page.image` will be resolved to `/static/assets/images/foo.webp`.
+
+TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{page.image.absolute}`).
+
+You can have other FrontMatter data with images, to convert them to url, use `page.dataAsImage('foo')`.
+
+[source,html]
+----
+---
+layout: :theme/page
+title: Foo
+image: foo.webp
+other-image: other-foo.webp
+list-of-images:
+  - https://my-picture.io/foo-1.webp <1>
+  - foo-2.webp
+images-with-titles:
+  - title: Foo 1
+    path: foo-1.webp
+  - title: Foo 2
+    path: foo-2.webp
+---
+
+<img src="{page.dataAsImage('other-image')}" title="Another image" /> <2>
+
+{#for image in page.dataAsImages('list-of-images')} <3>
+  <img src="{image}" />
+{/for}
+
+{#for image in page.data('images-with-titles')}
+  <img src="{page.image(image.path)}" title="{image.title}" /> <4>
+{/for}
+----
+<1> The resolution is smart and also allows using absolute urls (they won't be changed).
+<2> `page.dataAsImage` will resolve the data from `other-image` and resolve the image url from its value.
+<3> It also works with arrays using `page.dataAsImages`.
+<4> If you want to resolve any image path use `page.image(path)`.
+
 
 [[standalone-installation]]
 == Standalone installation

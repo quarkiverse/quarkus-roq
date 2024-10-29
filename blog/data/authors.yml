@@ -1,16 +1,16 @@
 ia3andy:
   name: "Andy Damevin"
   email: "adamevin@redhat.com"
-  img: "https://github.com/ia3andy.png"
-  job_title: Principal Software Engineer
+  image: "https://github.com/ia3andy.png"
+  job: Principal Software Engineer
   url: "https://x.com/ia3andy"
   twitter: "ia3andy"
   bio: "I am happy to wake up every day and make the Java world a better place with Quarkus. I am mostly a backend developer but I am not that bad at doing web apps either in my spare time, in fact, you can be the judge of that since Roq is my baby :-)"
 mcruzdev:
   name: "Matheus Cruz"
   email: "matheuscruz.dev@gmail.com"
-  img: "https://github.com/mcruzdev.png"
+  image: "https://github.com/mcruzdev.png"
   url: "https://x.com/mcruzdev"
-  job_title: Senior Software Engineer
+  job: Senior Software Engineer
   twitter: "mcruzdev"
   bio: "I am a passionate learner, open-source enthusiast, and Java developer with a drive for continuous improvement. When I’m not coding, you can find me on the Brazilian Jiu Jitsu mats, playing the guitar, or exploring new challenges. I believe in the power of community, collaboration, and creativity—both in and outside of tech."

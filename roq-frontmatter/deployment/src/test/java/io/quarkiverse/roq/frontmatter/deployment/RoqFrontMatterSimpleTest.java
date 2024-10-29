@@ -27,6 +27,14 @@ public class RoqFrontMatterSimpleTest {
     }
 
     @Test
+    public void testPost() {
+        RestAssured.when().get("/the-posts/new-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("New Post - Simple Site"))
+                .body("html.body.article.h1", equalTo("New post with html"))
+                .body("html.body.article.p", equalTo("This is a new post."));
+    }
+
+    @Test
     public void testIndex() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Simple Site"))
