@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * A build item representing a Roq FM file.
  * This template is just extracted from the disk, data is not yet merged with layouts.
- *
+ * <p>
  * Use {@link io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem} to read all FM templates with
  * merged data.
  */
