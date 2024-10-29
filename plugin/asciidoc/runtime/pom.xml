@@ -21,6 +21,11 @@
             <artifactId>quarkus-qute-web-asciidoc</artifactId>
             <version>${quarkus-qute-web.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.yupiik.maven</groupId>
+            <artifactId>ascii2svg</artifactId>
+            <version>1.2.3</version>
+        </dependency>
     </dependencies>
 
     <build>
