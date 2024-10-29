@@ -1,11 +1,11 @@
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 
-{#if page.img}
+{#if page.image}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image:src" content="{page.img.absolute}" />
-  <meta property="og:image" content="{page.img.absolute}" />
+  <meta name="twitter:image:src" content="{page.image.absolute}" />
+  <meta property="og:image" content="{page.image.absolute}" />
 {#else}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary">

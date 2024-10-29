@@ -83,7 +83,9 @@ layout: :theme/main //<2>
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
 <2> The layout to use (in this case `:theme/main` which refers to the `main` layout from the theme).
-<3> We use the `{site.url(path)}` using Qute to resolve site urls, in this case it doesn't exist yet...
+<3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
+
+TIP: There are different ways to link your pages as explained in the  xref:quarkus-roq-frontmatter.adoc#links[Links & Urls] section.
 
 === Variables
 
@@ -133,7 +135,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The site description
 | `A description`
 
-| `site.img`
+| `site.image`
 | `RoqUrl`
 | The site image URL if present
 | `http://example.com/static/images/site.png`
@@ -189,7 +191,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The description of the page (shortcut from FM)
 | `This is the about us page.`
 
-| `page.img()`
+| `page.image()`
 | `RoqUrl`
 | The image URL of the page if present
 | `http://example.com/static/images/about.png`
@@ -295,8 +297,8 @@ layout: main
 
 {#for post in site.collections.posts} // <1>
 <article class="post">
-  {#if post.img}
-  <a class="post-thumbnail" style="background-image: url({post.img})" href="{post.url}"></a> // <2> <3>
+  {#if post.image}
+  <a class="post-thumbnail" style="background-image: url({post.image})" href="{post.url}"></a> // <2> <3>
   {/if}
   <div class="post-content">
     <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>
@@ -310,7 +312,7 @@ layout: main
 {/for}
 ----
 <1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to xref:quarkus-roq-frontmatter.adoc#pagination[paginate].
-<2> `post.img` is smart and is already resolved to the image url (as a RoqUrl).
+<2> `post.image` is smart and is already resolved to the image url (as a RoqUrl).
 <3> `post.url` contains the post url (as a RoqUrl), you could also use `post.url.absolute` to get the absolute url.
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.

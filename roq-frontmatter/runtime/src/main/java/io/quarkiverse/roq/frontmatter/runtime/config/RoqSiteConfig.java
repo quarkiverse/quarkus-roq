@@ -81,7 +81,7 @@ public interface RoqSiteConfig {
     boolean future();
 
     /**
-     * The public path containing pages and posts images (relative to the site path)
+     * The public path containing pages and documents images (relative to the site path)
      */
     @WithDefault("static/assets/images")
     String imagesPath();

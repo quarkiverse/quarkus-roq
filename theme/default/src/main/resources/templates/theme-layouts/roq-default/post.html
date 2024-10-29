@@ -1,6 +1,5 @@
 ---
 layout: roq-default/main
-link: posts/:title
 ---
 
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
@@ -10,10 +9,10 @@ link: posts/:title
 <article class="article-page">
   {#insert article-start /}
   <div class="page-content">
-    {#if page.img}
+    {#if page.image}
     <div class="page-cover-image">
       <figure>
-        <img class="page-image" src="{page.img}" alt="{page.title}">
+        <img class="page-image" src="{page.image}" alt="{page.title}">
         {#if page.data.figCaption??}
         <figcaption>{page.data.figCaption}</figcaption>
         {/if}
@@ -44,16 +43,18 @@ link: posts/:title
           </div>
 
         </div>
-        {#if cdi:authors.get(page.data.author)}
+        {#let author=cdi:authors.get(page.data.author)}
+        {#if author}
         <div class="author">
-          <img src="{cdi:authors.get(page.data.author).img}" alt="author-{page.data.author}"/>
+          <img src="{site.image(author.image)}" alt="author-{page.data.author}"/>
           <div class="author-data">
-            <a target="_blank" href="{cdi:authors.get(page.data.author).url}"
-               class="author-name">{cdi:authors.get(page.data.author).name}</a>
-            <span class="author-job-title">{cdi:authors.get(page.data.author).job_title}</span>
+            <a target="_blank" href="{author.url}"
+               class="author-name">{author.name}</a>
+            <span class="author-job-title">{author.job}</span>
           </div>
         </div>
         {/if}
+        {/let}
       </div>
     </div> <!-- End Wrap Content -->
   </div> <!-- End Page Content -->

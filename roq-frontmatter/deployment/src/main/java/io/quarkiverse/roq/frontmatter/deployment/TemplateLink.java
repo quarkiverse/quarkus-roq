@@ -1,8 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
-import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
-import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.*;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,7 +16,8 @@ import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
 public class TemplateLink {
-    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:name";
+    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:path:ext";
+    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug";
     public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page";
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
@@ -48,13 +48,11 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":name", () -> {
-                    if (data.pageInfo().isHtml()) {
-                        return slugify(data.pageInfo().sourceBaseFileName());
-                    }
-                    return slugify(data.pageInfo().sourceBaseFileName()) + "." + data.pageInfo().getSourceFileExtension();
-                }),
-                Map.entry(":title", () -> data.data().getString("slug", slugify(data.pageInfo().sourceBaseFileName())))));
+                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true)),
+                Map.entry(":ext", () -> data.pageInfo().isHtml() ? "" : "." + data.pageInfo().getSourceFileExtension()),
+                Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().getSourceFileExtension()),
+                Map.entry(":slug", () -> slugify(data.data().getString("slug",
+                        data.data().getString("title", data.pageInfo().sourceBaseFileName()))))));
         if (other != null) {
             result.putAll(other);
         }
@@ -62,7 +60,8 @@ public class TemplateLink {
     }
 
     public static String pageLink(String rootPath, String template, PageLinkData data) {
-        return link(rootPath, template, DEFAULT_PAGE_LINK_TEMPLATE, withBasePlaceHolders(data, null));
+        return link(rootPath, template, data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE,
+                withBasePlaceHolders(data, null));
     }
 
     public static String paginateLink(String rootPath, String template, PaginateLinkData data) {

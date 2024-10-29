@@ -1,5 +1,6 @@
 package io.quarkiverse.roq;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -29,6 +30,11 @@ public class RoqCodestartTest {
                 .contains("fa-regular fa-newspaper");
         codestartTest.assertThatGeneratedFile(language, "static/assets/images/iamroq.png")
                 .exists();
+    }
+
+    @Test
+    void buildAll() throws Throwable {
+        codestartTest.buildAllProjects();
     }
 
 }

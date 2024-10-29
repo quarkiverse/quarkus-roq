@@ -82,9 +82,11 @@ public class RoqPluginTaggingProcessor {
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(tagCollection, e.getValue(), data));
 
-                final String link = TemplateLink.pageLink(config.rootPath(),
+                final String link = TemplateLink.link(config.rootPath(),
                         tagging.link(),
-                        new PageLinkData(item.raw().info(), tagCollection, data));
+                        DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE,
+                        new PageLinkData(item.raw().info(), tagCollection, data),
+                        Map.of(":tag", e::getKey));
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
 
                 PageInfo info = item.raw().info().changeId(tagCollection);

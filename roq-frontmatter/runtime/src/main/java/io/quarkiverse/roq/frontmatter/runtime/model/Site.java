@@ -41,12 +41,21 @@ public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.L
     /**
      * The site image url if present
      */
-    public RoqUrl img() {
+    public RoqUrl image() {
         final String img = Page.getImgFromData(data());
         if (img == null) {
             return null;
         }
         return imagesDirUrl().resolve(img);
+    }
+
+    /**
+     * Resolve an image url
+     *
+     * @param imageRelativePath the image relative path from the configured image dir
+     */
+    public RoqUrl image(Object imageRelativePath) {
+        return imagesDirUrl().resolve(String.valueOf(imageRelativePath));
     }
 
     /**

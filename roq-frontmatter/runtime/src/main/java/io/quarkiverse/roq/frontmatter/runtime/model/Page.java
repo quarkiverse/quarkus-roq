@@ -1,11 +1,13 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -79,12 +81,53 @@ public interface Page {
     /**
      * The page image resolved url
      */
-    default RoqUrl img() {
+    default RoqUrl image() {
         final String img = Page.getImgFromData(data());
         if (img == null) {
             return null;
         }
-        return Arc.container().beanInstanceSupplier(Site.class).get().get().url().resolve(info().imagesDirPath()).resolve(img);
+        return Arc.container().beanInstanceSupplier(Site.class).get().get().image(img);
+    }
+
+    /**
+     * Resolve an image url
+     *
+     * @param imageRelativePath the image relative path from the configured image dir
+     */
+    default RoqUrl image(Object imageRelativePath) {
+        return Arc.container().beanInstanceSupplier(Site.class).get().get().image(String.valueOf(imageRelativePath));
+    }
+
+    /**
+     * The page image resolved url from a given key
+     *
+     * @param key the data key containing the image relative path
+     * @return the url
+     */
+    default Object dataAsImage(Object key) {
+        final Object img = data().getValue(String.valueOf(key));
+        if (img == null) {
+            return null;
+        }
+        final Site site = Arc.container().beanInstanceSupplier(Site.class).get().get();
+        if (img instanceof String imgString) {
+            return site.image(imgString);
+        }
+        return null;
+    }
+
+    /**
+     * The page image resolved url from a given key
+     *
+     * @param key the data key containing the image array of relative path
+     * @return the list of urls
+     */
+    default List<RoqUrl> dataAsImages(Object key) {
+        final Object img = data().getValue(String.valueOf(key));
+        if (img instanceof JsonArray list) {
+            return list.stream().filter(s -> s instanceof String).map(String::valueOf).map(this::image).toList();
+        }
+        return null;
     }
 
     /**

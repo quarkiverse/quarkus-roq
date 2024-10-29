@@ -1,6 +1,6 @@
 roqqy:
   name: "Roqqy Balboa"
-  job_title: Roq Boxer
+  job: Roq Boxer
   url: "https://github.com/quarkiverse/quarkus-roq"
   img: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/refs/heads/main/blog/static/assets/images/iamroq.png"
   bio: |

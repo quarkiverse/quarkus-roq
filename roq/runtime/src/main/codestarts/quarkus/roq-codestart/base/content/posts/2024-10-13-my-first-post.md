@@ -2,7 +2,7 @@
 layout: :theme/post
 title: "My First Roq Post!"
 description: This is my first article ever made with Quarkus Roq
-img: blog.avif
+image: blog.avif
 tags: blogging
 author: roqqy
 ---

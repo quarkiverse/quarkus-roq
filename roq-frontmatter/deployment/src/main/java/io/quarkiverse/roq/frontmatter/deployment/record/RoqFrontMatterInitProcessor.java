@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
@@ -33,6 +35,7 @@ import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
 
 class RoqFrontMatterInitProcessor {
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterInitProcessor.class);
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
@@ -124,7 +127,9 @@ class RoqFrontMatterInitProcessor {
         final Map<String, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
                 Collectors.toMap(RoqFrontMatterCollectionBuildItem::name, RoqFrontMatterCollectionBuildItem::documents));
         final Supplier<RoqCollections> collectionsSupplier = recorder.createRoqCollections(collectionsMap);
-        final List<Supplier<NormalPage>> pages = normalPageItems.stream().map(RoqFrontMatterNormalPageBuildItem::page).toList();
+        final List<Supplier<NormalPage>> pages = normalPageItems.stream()
+                .map(RoqFrontMatterNormalPageBuildItem::page)
+                .toList();
         final Supplier<Site> siteSupplier = recorder.createSite(rootUrlItem.rootUrl(), indexPageItem.page(), pages,
                 collectionsSupplier);
         beansProducer.produce(SyntheticBeanBuildItem.configure(Site.class)
@@ -134,6 +139,11 @@ class RoqFrontMatterInitProcessor {
                 .done());
 
         final Map<String, Supplier<? extends Page>> allPagesByPath = pageItems.stream()
+                .peek(i -> {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debugf("Published %s page '%s' on '%s'", i.hidden() ? "hidden" : "", i.id(), i.url().toString());
+                    }
+                })
                 .filter(not(RoqFrontMatterPageBuildItem::hidden))
                 .collect(Collectors.toMap(i -> i.url().path(), RoqFrontMatterPageBuildItem::page));
         return new RoqFrontMatterOutputBuildItem(allPagesByPath, collectionsSupplier);

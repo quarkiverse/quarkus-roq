@@ -19,37 +19,13 @@ public record RoqCollections(Map<String, RoqCollection> collections) {
     }
 
     /**
-     * Resolve the next document in the given document collection
-     */
-    public DocumentPage resolveNextPage(DocumentPage page) {
-        final RoqCollection collection = resolveCollection(page);
-        if (collection == null)
-            return null;
-        return collection.resolveNextPage(page);
-    }
-
-    /**
-     * Resolve the previous document in the given document collection
-     */
-    public DocumentPage resolvePreviousPage(DocumentPage page) {
-        final RoqCollection collection = resolveCollection(page);
-        if (collection == null)
-            return null;
-        return collection.resolvePreviousPage(page);
-    }
-
-    /**
      * Resolve the collection for this document page
      */
     public RoqCollection resolveCollection(DocumentPage page) {
-        if (page.collection() == null) {
+        if (page.collectionId() == null) {
             return null;
         }
-        return this.get(page.collection());
-    }
-
-    public DocumentPage resolvePrevPage(DocumentPage page) {
-        return this.resolvePreviousPage(page);
+        return this.get(page.collectionId());
     }
 
 }

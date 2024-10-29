@@ -29,11 +29,15 @@ public class RoqTemplateExtension {
     }
 
     public static String slugify(String text) {
+        return slugify(text, false);
+    }
+
+    public static String slugify(String text, boolean allowSlashes) {
         if (text == null) {
             throw new IllegalArgumentException("Link input cannot be null");
         }
         return text.toLowerCase()
-                .replaceAll("[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
+                .replaceAll(allowSlashes ? "[^a-z0-9\\-/]" : "[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
                 .replaceAll("-+", "-") // Replace multiple hyphens with a single one
                 .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
     }

@@ -1,7 +1,7 @@
 ---
 layout: :theme/post
 title: Mastering Pagination in Roq
-img: https://images.unsplash.com/photo-1502126829571-83575bb53030?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: https://images.unsplash.com/photo-1502126829571-83575bb53030?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 description: Learn how to implement pagination in Roq to enhance your content navigation. This article walks through the process of adding pagination, configuring page size, and customizing links.
 author: ia3andy
 tags: pagination, frontmatter, guide

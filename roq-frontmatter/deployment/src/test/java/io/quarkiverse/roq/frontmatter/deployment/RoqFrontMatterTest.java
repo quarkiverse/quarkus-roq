@@ -19,7 +19,7 @@ public class RoqFrontMatterTest {
 
     @Test
     public void testHtmlPost() {
-        RestAssured.when().get("/bar/posts/awesome-post").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/posts/awesome-post-1").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Post"))
                 .body("html.head.base.@href", equalTo("/foo"))
                 .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content", equalTo("https://mywebsite.com/foo/bar"))
@@ -67,7 +67,7 @@ public class RoqFrontMatterTest {
 
     @Test
     public void testFrontMatterInContent() {
-        RestAssured.when().get("/bar/posts/markdown-post-k8s").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/posts/k8s-post").then().statusCode(200).log().ifValidationFails()
                 .body(containsString("A K8S post made with markdown"));
     }
 
