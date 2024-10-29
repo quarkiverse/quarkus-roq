@@ -1,12 +1,13 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.frontmatter.runtime.model.PageInfo.HTML_OUTPUT_EXTENSIONS;
-import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.util.PathUtils.getExtension;
+import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 import static java.util.function.Predicate.not;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZoneId;
@@ -14,7 +15,12 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -24,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jboss.logging.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -59,7 +64,6 @@ public class RoqFrontMatterScanProcessor {
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(RoqFrontMatterScanProcessor.class);
 
     private record QuteMarkupSection(String open, String close) {
         public static final QuteMarkupSection MARKDOWN = new QuteMarkupSection("{#markdown}", "{/markdown}");
@@ -379,14 +383,6 @@ public class RoqFrontMatterScanProcessor {
         };
     }
 
-    private static Predicate<Path> matchGlobs(Path root, List<String> globs) {
-        return path -> {
-            final FileSystem fs = root.getFileSystem();
-            final Path relative = root.relativize(path);
-            return globs.stream().anyMatch(glob -> fs.getPathMatcher("glob:" + glob).matches(relative));
-        };
-    }
-
     protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
             Optional<String> timeZone) {
         String dateString;
@@ -459,13 +455,6 @@ public class RoqFrontMatterScanProcessor {
     private static boolean isExtensionSupportedForLayout(Path path) {
         final String extension = getExtension(path.toString());
         return HTML_OUTPUT_EXTENSIONS.contains(extension);
-    }
-
-    private static Predicate<? super Path> isExtensionSupportedForTemplate(QuteConfig quteConfig) {
-        return (p) -> {
-            String fileName = p.getFileName().toString();
-            return isExtensionSupportedForLayout(p) || quteConfig.suffixes.stream().anyMatch(fileName::endsWith);
-        };
     }
 
     private static String getFrontMatter(String content) {

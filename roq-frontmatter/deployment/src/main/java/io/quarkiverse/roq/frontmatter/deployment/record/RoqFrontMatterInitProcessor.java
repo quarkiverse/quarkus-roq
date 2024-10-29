@@ -146,7 +146,7 @@ class RoqFrontMatterInitProcessor {
                 })
                 .filter(not(RoqFrontMatterPageBuildItem::hidden))
                 .collect(Collectors.toMap(i -> i.url().path(), RoqFrontMatterPageBuildItem::page));
-        return new RoqFrontMatterOutputBuildItem(allPagesByPath, collectionsSupplier);
+        return new RoqFrontMatterOutputBuildItem(allPagesByPath);
     }
 
     @BuildStep

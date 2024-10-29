@@ -3,7 +3,11 @@ package io.quarkiverse.roq.plugin.aliases.deployment;
 import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
 import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;

@@ -1,6 +1,5 @@
 package io.quarkiverse.roq.deployment.config;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -35,13 +34,4 @@ public interface RoqConfig {
         return resourceDirOptional().orElse(DEFAULT_RESOURCE_DIR);
     }
 
-    static boolean isEqual(RoqConfig q1, RoqConfig q2) {
-        if (!Objects.equals(q1.dir(), q2.dir())) {
-            return false;
-        }
-        if (!Objects.equals(q1.resourceDir(), q2.resourceDir())) {
-            return false;
-        }
-        return true;
-    }
 }
