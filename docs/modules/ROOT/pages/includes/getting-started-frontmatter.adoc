@@ -305,7 +305,7 @@ layout: main
     <p>{post.description}</p>
     <span class="post-date">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span> // <4>
     <span class="post-words">
-      {post.readTime} minute read <5>
+      {post.readTime} minute(s) read <5>
     </span>
   </div>
 </article>

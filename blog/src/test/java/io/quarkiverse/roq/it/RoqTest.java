@@ -13,7 +13,7 @@ public class RoqTest {
     public void testIndex() {
         given().when().get("/").then().statusCode(200).body(containsString(
                         "I provide you with all the tools to generate static websites out of your Quarkus web application."))
-                .body(containsString("Hello, world! I&#39;m Roq")).body(containsString("minute read"))
+                .body(containsString("Hello, world! I&#39;m Roq")).body(containsString("minute(s) read"))
                 .body(containsString("Page 1 of")).body(containsString("2024 &copy; ROQ"));
     }
 
