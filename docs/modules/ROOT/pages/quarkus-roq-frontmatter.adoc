@@ -129,6 +129,8 @@ It will automatically utilize the Frontmatter data from all your blog posts to g
 
 In Roq, you can override theme layouts by inserting an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
 
+TIP: Roq layouts are leveraging https://quarkus.io/guides/qute-reference#include_helper[Qute includes] under the hood. It is possible to define insert sections which can define overridable default content.
+
 For example, let’s override the `roq-default` theme's main layout so that our customizations apply everywhere it is used.
 
 .templates/layouts/roq-default/main.html
