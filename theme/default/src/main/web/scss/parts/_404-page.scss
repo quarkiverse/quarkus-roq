@@ -1,0 +1,29 @@
+.main-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+body {
+  width: 100vw;
+  background-color: white;
+}
+
+.wrapper {
+  height: 100vh;
+  max-width: 100%;
+}
+
+.main-404 {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    height: 200px;
+  }
+}
