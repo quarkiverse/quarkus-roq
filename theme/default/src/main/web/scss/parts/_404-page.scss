@@ -1,29 +1,21 @@
-.main-404 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-body {
+body.page-not-found {
   width: 100vw;
   background-color: white;
-}
+  .wrapper {
+    height: 100vh;
+    max-width: 100%;
 
-.wrapper {
-  height: 100vh;
-  max-width: 100%;
-}
+    .main {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
 
-.main-404 {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    height: 200px;
+      img {
+        height: 200px;
+      }
+    }
   }
 }
+
