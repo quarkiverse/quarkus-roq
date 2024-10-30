@@ -13,6 +13,7 @@ metadata:
     - web
     - roq
     - tagging
+    - tag
     - plugin
   guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-tagging
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
