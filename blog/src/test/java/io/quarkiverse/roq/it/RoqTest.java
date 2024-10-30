@@ -12,7 +12,7 @@ public class RoqTest {
     @Test
     public void testIndex() {
         given().when().get("/").then().statusCode(200).body(containsString(
-                        "I provide you with all the tools to generate static websites out of your Quarkus web application."))
+                        "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("Hello, world! I&#39;m Roq")).body(containsString("minute(s) read"))
                 .body(containsString("Page 1 of")).body(containsString("2024 &copy; ROQ"));
     }
@@ -25,7 +25,7 @@ public class RoqTest {
     @Test
     public void testPosts() {
         given().when().get("/posts/welcome-to-roq").then().statusCode(200).body(containsString(
-                        "I provide you with all the tools to generate static websites out of your Quarkus web application."))
+                        "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("<p>Hello folks,</p>"))
                 .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
                 .body(containsString("2024 &copy; ROQ"));
@@ -42,7 +42,7 @@ public class RoqTest {
     @Test
     public void testPage() {
         given().when().get("/events").then().statusCode(200).body(containsString(
-                        "I provide you with all the tools to generate static websites out of your Quarkus web application."))
+                        "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
                 .body(containsString("2024 &copy; ROQ"));
     }
