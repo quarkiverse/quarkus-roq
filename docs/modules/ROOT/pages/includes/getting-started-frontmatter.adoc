@@ -1,7 +1,9 @@
 [[getting-started]]
 == Getting started
 
-By default, your site should be located in the project directory, or in the resources (i.e. `src/main/resources/`).
+By default, your site should be located in the **project root directory**.
+
+TIP: you can also put it in the resources (i.e. `src/main/resources/`).
 
 The default directory structure is:
 
