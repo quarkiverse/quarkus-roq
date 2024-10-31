@@ -9,9 +9,10 @@ layout: :theme/page
 {#for event in cdi:events.list}
 <article class="event">
   <div class="event-content">
+    <span class="post-date"><i class="fa fa-calendar"></i>{event.parsedDate.format('yyyy, MMM dd')}</span>
     <h2 class="event-title">{event.title}</h2>
     <p>{event.description}</p>
-    <span class="post-date">{event.parsedDate.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+    {#if event.link}<a href="{site.url.resolve(event.link)}">More info...</a>{/if}
   </div>
 </article>
 {/for}

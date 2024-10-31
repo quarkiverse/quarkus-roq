@@ -49,19 +49,19 @@ Thanks to Qute, Roq offers code completion, which is beneficial when working in 
 [#generate]
 == Get up and running with Roq
 
-*https://code.quarkus.io/?a=blog-with-roq&e=io.quarkiverse.roq%3Aquarkus-roq[Click here,window=_blank]  to generate your Roq Starter App.*
+*https://code.quarkus.io/?a=roq-with-blog&e=io.quarkiverse.roq%3Aquarkus-roq[Click here,window=_blank]  to generate your Roq Starter App.*
 
 or use the https://quarkus.io/guides/cli-tooling[Quarkus CLI,window=_blank]:
 [source,shell]
 ----
-quarkus create app blog-with-roq -x=io.quarkiverse.roq:quarkus-roq
+quarkus create app roq-with-blog -x=io.quarkiverse.roq:quarkus-roq
 ----
 
 Then
 
 [source,shell]
 ----
-cd blog-with-roq
+cd roq-with-blog
 quarkus dev
 ----
 

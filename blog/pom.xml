@@ -178,6 +178,9 @@
                     <name>standalone</name>
                 </property>
             </activation>
+            <properties>
+                <quarkus-roq.version>1.0.1</quarkus-roq.version>
+            </properties>
         </profile>
     </profiles>
 </project>
