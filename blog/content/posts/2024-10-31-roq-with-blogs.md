@@ -70,10 +70,12 @@ For those who wonder, "Roq" was chosen because: `static = rock, rock + quarkus =
 
 🗓️ **June 19, 2024:** [Roq Focus Group](https://github.com/quarkusio/quarkus/discussions/41309)
 
-Thanks to the awesome team 🧑‍💻👩🏻‍💻!
+And now, thanks to the awesome team 🧑‍💻👩🏻‍💻!
 
 🗓️ **October 31, 2024:** **Roq 1.0**
 
 🎉🍾🥂
+
+If you like the idea, support us, give us a star ⭐ or start contributing... 
 
 
