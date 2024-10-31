@@ -68,6 +68,12 @@ pre {
     white-space: pre-wrap;
     word-wrap: break-word;
     word-break: break-all;
+    background-color: #d8d8d8;
+    border-radius: 5px;
+  }
+
+  code.hljs {
+    background-color: #d8d8d8;
   }
 }
 
