@@ -133,6 +133,7 @@ class RoqFrontMatterInitProcessor {
         final Supplier<Site> siteSupplier = recorder.createSite(rootUrlItem.rootUrl(), indexPageItem.page(), pages,
                 collectionsSupplier);
         beansProducer.produce(SyntheticBeanBuildItem.configure(Site.class)
+                .named("site")
                 .scope(Singleton.class)
                 .unremovable()
                 .supplier(siteSupplier)
