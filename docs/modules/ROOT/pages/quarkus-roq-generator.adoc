@@ -83,6 +83,7 @@ You need to produce a `RoqSelection` singleton from your application:
 
 TIP: Use `@Transactional` if you need to iterate through database entities to prepare your selection. For example if the blog post ids are stored in a database.
 
+include::includes/github-pages.adoc[]
 
 [[standalone-installation]]
 == Standalone installation

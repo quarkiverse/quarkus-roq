@@ -67,6 +67,8 @@ quarkus dev
 
 include::includes/getting-started-frontmatter.adoc[]
 
+include::includes/github-pages.adoc[]
+
 [[custom-roq-dir]]
 == Configure a custom Roq directory
 

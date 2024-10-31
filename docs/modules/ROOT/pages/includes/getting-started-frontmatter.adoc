@@ -345,4 +345,3 @@ You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
 
 
-
