@@ -1,3 +1,11 @@
+- title: "Quarkus Insight - What is Quarkus Roq?"
+  description: "Andy Damevin, Matheus Cruz and Melloware join us to discuss Quarkus Roq, which includes tooling for generating a static website with Quarkus."
+  date: "2024-11-11"
+  link: https://www.youtube.com/quarkusio/live
+- title: "Roq 1.0"
+  description: "Roq 1.0 is out, it's time to Roq with blogs!"
+  date: "2024-10-31"
+  link: https://docs.quarkiverse.io/quarkus-roq/dev/index.html#generate
 - title: "Roq 1.0 Beta"
   description: "You can start building your site or blog with Roq. More features will come to cover all the needs you can expect from an awesome SSG!"
   date: "2024-10-20"
