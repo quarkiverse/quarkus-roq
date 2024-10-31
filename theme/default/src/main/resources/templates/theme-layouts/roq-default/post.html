@@ -46,9 +46,9 @@ layout: roq-default/main
         {#let author=cdi:authors.get(page.data.author)}
         {#if author}
         <div class="author">
-          <img src="{site.image(author.image)}" alt="author-{page.data.author}"/>
+          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}"/>
           <div class="author-data">
-            <a target="_blank" href="{author.url}"
+            <a target="_blank" href="{author.profile}"
                class="author-name">{author.name}</a>
             <span class="author-job-title">{author.job}</span>
           </div>

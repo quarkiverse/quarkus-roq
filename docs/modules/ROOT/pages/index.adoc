@@ -46,23 +46,28 @@ Roq provides a smoother local development experience without the need to "test i
 8. *Code Completion* (coming soon):
 Thanks to Qute, Roq offers code completion, which is beneficial when working in templates, helping to reduce errors and improve developer productivity.
 
+[#generate]
+== Get up and running with Roq
 
-== Installation
+*https://code.quarkus.io/?a=blog-with-roq&e=io.quarkiverse.roq%3Aquarkus-roq[Click here,window=_blank]  to generate your Roq Starter App.*
 
-If you want to use this extension, you need to add the `io.quarkiverse.roq:quarkus-roq` extension first to your build file.
-
-For instance, with Maven, add the following dependency to your POM file:
-
-[source,xml,subs=attributes+]
+or use the https://quarkus.io/guides/cli-tooling[Quarkus CLI,window=_blank]:
+[source,shell]
 ----
-<dependency>
-    <groupId>io.quarkiverse.roq</groupId>
-    <artifactId>quarkus-roq</artifactId>
-    <version>{project-version}</version>
-</dependency>
+quarkus create app blog-with-roq -x=io.quarkiverse.roq:quarkus-roq
+----
+
+Then
+
+[source,shell]
+----
+cd blog-with-roq
+quarkus dev
 ----
 
 include::includes/getting-started-frontmatter.adoc[]
+
+include::includes/github-pages.adoc[]
 
 [[custom-roq-dir]]
 == Configure a custom Roq directory

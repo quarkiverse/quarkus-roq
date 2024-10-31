@@ -1,8 +1,9 @@
 roqqy:
   name: "Roqqy Balboa"
   job: Roq Boxer
-  url: "https://github.com/quarkiverse/quarkus-roq"
-  image: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/refs/heads/main/blog/static/assets/images/iamroq.png"
+  nickname: roqqy
+  profile: "https://github.com/quarkiverse/quarkus-roq"
+  avatar: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/refs/heads/main/blog/static/assets/images/iamroq.png"
   bio: |
     Quarkus is my go-to framework for making Java development not only faster but more fun. 
     I’m driven by the mission to create high-performance, lightweight microservices that scale effortlessly in the cloud. 

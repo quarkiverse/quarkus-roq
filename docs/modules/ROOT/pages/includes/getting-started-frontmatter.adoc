@@ -1,7 +1,9 @@
 [[getting-started]]
 == Getting started
 
-By default, your site should be located in the project directory, or in the resources (i.e. `src/main/resources/`).
+By default, your site should be located in the **project root directory**.
+
+TIP: you can also put it in the resources (i.e. `src/main/resources/`).
 
 The default directory structure is:
 
@@ -341,6 +343,5 @@ It will be rendered with the relevant `<script>` and `<style>` tags to include y
 
 You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
-
 
 

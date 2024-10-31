@@ -10,14 +10,17 @@ layout: :theme/page
 # About Roq
 
 Roq stands out in the Java development community as a powerful static site generator, bridging the gap between the
-likes of Gatsby, Hugo, and the broader backend community. While tools like Jekyll once filled this space, they’ve become outdated and cumbersome,
-especially with Ruby’s limitations.
-Roq offers a modern solution, leveraging Quarkus with no configuration needed, allowing developers to start quickly
-using Codestart and simply editing their site directory.
+likes of Gatsby, Hugo, and the broader backend community. With GitHub Actions support out-of-the-box, Roq is easy to use for beginners, but also flexible enough to provide
+Java hooks for advanced users.
 
-With GitHub Actions support out-of-the-box, Roq is easy to use for beginners, but also flexible enough to provide
-  Java hooks for advanced users.
+## Authors
 
-__This tool is a testament to how extensible and powerful Quarkus is, offering a low-risk yet highly capable platform that will evolve as demand grows.__
-
+<div class="authors">
+  <!-- authors.yml is in the data/ -->
+  {#for id in cdi:authors.fields}
+    {#let author=cdi:authors.get(id)}
+    <!-- the author-card tag is defined in the default Roq theme -->
+    {#author-card name=author.name avatar=author.avatar nickname=author.nickname profile=author.profile /}
+  {/for}
+</div>
 

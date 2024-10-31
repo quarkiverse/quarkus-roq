@@ -1,4 +1,4 @@
-.contributors {
+.authors {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
@@ -6,7 +6,7 @@
   background-color: #f9f9f9;
 }
 
-.contributor {
+.author-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -39,6 +39,7 @@
     flex-direction: column;
 
     .name {
+      margin-block-start: 0.2em;
       font-size: 1.5em;
       font-weight: bold;
       margin-bottom: 0;
@@ -54,12 +55,6 @@
     .login {
       font-size: 1.2em;
       color: #777;
-      margin-bottom: 10px;
-    }
-
-    .contributions {
-      font-size: 1em;
-      color: #555;
       margin-bottom: 10px;
     }
 
