@@ -16,6 +16,7 @@ public class RoqDataBindingEnforceBeanDataFileSideTest {
             .withApplicationRoot((jar) -> jar
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq\nquarkus.roq.data.enforce-bean=true"),
                             "application.properties"))
+            .overrideConfigKey("quarkus.log.category.\"io.quarkiverse.roq.data.*\".level", "DEBUG")
             .assertException(e -> {
                 assertThat(e).isInstanceOf(IllegalStateException.class)
                         .hasMessageContaining(

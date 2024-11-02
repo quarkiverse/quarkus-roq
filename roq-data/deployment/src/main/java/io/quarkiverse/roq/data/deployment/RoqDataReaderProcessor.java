@@ -85,14 +85,16 @@ public class RoqDataReaderProcessor {
         Map<String, AnnotationInstance> annotationMap = annotations.stream().collect(Collectors.toMap(
                 annotation -> annotation.value().asString(), Function.identity()));
 
-        List<String> errors = collectConfigErrors(annotationMap.keySet(), dataJsonMap.keySet());
+        List<String> messages = collectConfigMessages(annotationMap.keySet(), dataJsonMap.keySet());
 
-        if (config.enforceBean() && !errors.isEmpty()) {
+        if (config.enforceBean() && !messages.isEmpty()) {
             throw new IllegalStateException(
                     "The Roq data configuration is not valid. The data mapping and data files are not matching: %n%s"
-                            .formatted(String.join(System.lineSeparator(), errors)));
+                            .formatted(String.join(System.lineSeparator(), messages)));
         } else {
-            errors.forEach(LOG::warn);
+            if (LOG.isDebugEnabled()) {
+                messages.forEach(LOG::debug);
+            }
         }
 
         for (RoqDataBuildItem roqDataBuildItem : roqDataBuildItems) {
@@ -155,7 +157,7 @@ public class RoqDataReaderProcessor {
         return false;
     }
 
-    private List<String> collectConfigErrors(Set<String> annotations, Set<String> data) {
+    private List<String> collectConfigMessages(Set<String> annotations, Set<String> data) {
         List<String> messages = new ArrayList<>();
         for (String name : annotations) {
             if (!data.contains(name)) {
