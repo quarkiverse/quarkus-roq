@@ -1,9 +1,15 @@
 [[github-pages]]
 == Deploy to GitHub Pages
 
-Here is an example workflow file to deploy to GitHub Pages:
+To create your GitHub Page with Roq:
 
-..github/workflows/deploy-gh-pages.yml
+1. *Open* your GitHub repository page
+2. **Go to** Settings->Page
+3. *Pick:* `Source: GitHub Actions`
+4. *Click* on Static Html "Configure" button
+5. Paste this content  (to adapt with Gradle):
+
+..github/workflows/static.yml
 [source,yaml]
 ----
 ## Deploy to GH-Pages for your Quarkus Roq blog.
@@ -13,6 +19,9 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+env:
+  QUARKUS_ROQ_GENERATOR_BATCH: true
 
 jobs:
   build:
@@ -25,8 +34,21 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: 'maven'
+      - name: Get GitHub Pages URL
+        id: get_url
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url');echo "ghp-url=$url";
+          path=$(echo "$url" | sed -E 's|https?://[^/]+(/.*)?|\1|')
+          url=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|')
+          if [ -z "$path" ]; then
+            path="/"
+          fi
+          echo "SITE_URL=$url"; echo "SITE_URL=$url" >> $GITHUB_ENV;
+          echo "SITE_PATH=$path"; echo "SITE_PATH=$path" >> $GITHUB_ENV;
       - name: Build & Generate Blog
-        run: QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B package quarkus:run -DskipTests
+        run: mvn -B package quarkus:run -DskipTests -Dquarkus.http.root-path=$SITE_PATH -Dsite.url=$SITE_URL
       - name: Upload site as artifact
         uses: actions/upload-artifact@v4
         with:
