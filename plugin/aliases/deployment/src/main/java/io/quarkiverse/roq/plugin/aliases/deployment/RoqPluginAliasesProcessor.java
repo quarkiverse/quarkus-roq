@@ -29,7 +29,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqPluginAliasesProcessor {
 
     private static final String FEATURE = "roq-plugin-aliases";
-    private static final String ALIASES_KEY = "aliases";
+    private static final Set<String> ALIASES_FOR_REDIRECTING = Set.of("redirect_from", "redirect-from", "aliases");
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -92,15 +92,17 @@ public class RoqPluginAliasesProcessor {
     }
 
     private Set<String> getAliases(JsonObject json) {
-        JsonArray array = json.getJsonArray(ALIASES_KEY);
-        if (array == null) {
-            return Set.of();
-        }
-        Set<String> aliases = new HashSet<>();
-        for (int i = 0; i < array.size(); i++) {
-            String alias = array.getString(i);
-            if (!alias.isBlank()) {
-                aliases.add(alias);
+        HashSet<String> aliases = new HashSet<>();
+        for (String aliasesKey : ALIASES_FOR_REDIRECTING) {
+            JsonArray jsonArray = json.getJsonArray(aliasesKey);
+            if (jsonArray == null) {
+                continue;
+            }
+            for (int i = 0; i < jsonArray.size(); i++) {
+                String alias = jsonArray.getString(i);
+                if (!alias.isBlank()) {
+                    aliases.add(alias);
+                }
             }
         }
         return aliases;
