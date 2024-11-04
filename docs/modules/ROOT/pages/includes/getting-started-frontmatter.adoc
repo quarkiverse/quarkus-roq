@@ -236,8 +236,29 @@ __{page.data.the-rope}!__ <3>
 
 === Asciidoc support
 
-We will soon introduce support for asciidoc, this will be available by adding an extension to the pom.xml:
-https://github.com/quarkiverse/quarkus-roq/issues/169
+Asciidoc is supported by Roq, though partially for the moment.
+
+All the formatting features are available. But others such as _diagrams_ are not yet supported.
+
+Custom attributes can also be used, but be sure to escape their use -`\{custom-attribute}`-. Other wise the Qute rendering engine will try to interpolate them.
+
+
+==== Includes
+
+The standard Asciidoc include is not supported, but you can use Qute includes instead:
+
+. Place your file in a folder under the `template` directory (for example `partials`)
+. Use Qute include directive `{# partials/your_included_file.adoc/}` to inject it
+
+==== Images
+
+The standard `imagedir` attribute is not supported.
+
+You should instead place your images under the `static/assets/images` folder, and reference them with the image macro :
+
+ image::/static/assets/images/your_image.png[]
+
+
 
 === Collections
 
