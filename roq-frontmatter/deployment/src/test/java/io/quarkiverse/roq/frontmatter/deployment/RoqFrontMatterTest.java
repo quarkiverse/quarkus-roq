@@ -30,16 +30,6 @@ public class RoqFrontMatterTest {
     }
 
     @Test
-    public void testMdPost() {
-        RestAssured.when().get("/bar/posts/markdown-post").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("Markdown Post"))
-                .body("html.body.article.h1", equalTo("A post made with markdown"))
-                .body("html.body.article.blockquote.p", equalTo("bar"))
-                .body("html.body.div.h2", equalTo("Markdown Post"))
-                .body("html.body.div.p", equalTo("bar bar bar"));
-    }
-
-    @Test
     public void testPage() {
         RestAssured.when().get("/bar/my-cool-page").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Page"))
@@ -53,8 +43,8 @@ public class RoqFrontMatterTest {
     public void testIndex() {
         RestAssured.when().get("/bar").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
-                .body("html.body.div.h1[0]", containsString("posts/awesome-post"))
-                .body("html.body.div.h1[1]", containsString("posts/markdown-post"))
+                .body("html.body.div.h1[0]", containsString("posts/awesome-post.html"))
+                .body("html.body.div.h1[1]", containsString("posts/2020-10-24-old-post.html"))
                 .body("html.body.div.h2", equalTo("Hello, world! I'm Roq"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }
@@ -63,12 +53,6 @@ public class RoqFrontMatterTest {
     public void testDateFileName() {
         RestAssured.when().get("/bar/posts/old-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.body.article.span", equalTo("2020-10-24T12:00Z[UTC]"));
-    }
-
-    @Test
-    public void testFrontMatterInContent() {
-        RestAssured.when().get("/bar/posts/k8s-post").then().statusCode(200).log().ifValidationFails()
-                .body(containsString("A K8S post made with markdown"));
     }
 
 }

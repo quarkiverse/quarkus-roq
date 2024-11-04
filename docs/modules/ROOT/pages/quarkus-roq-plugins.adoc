@@ -111,3 +111,22 @@ To install it add:
 ----
 
 Once done, every file with either '.adoc' or '.asciidoc' extension will be processed.
+
+[#plugin-markdown]
+== Roq Plugin Markdown
+
+This plugin allows to use markdown to produce content.
+
+NOTE: Markdown plugin is already included in Quarkus Roq extension.
+
+To install it add:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-markdown</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Once done, every file with either '.md' or '.markdown' extension will be processed.

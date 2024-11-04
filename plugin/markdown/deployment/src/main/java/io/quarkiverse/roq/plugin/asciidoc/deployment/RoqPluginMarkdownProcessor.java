@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.plugin.asciidoc.deployment;
+package io.quarkiverse.roq.plugin.markdown.deployment;
 
 import java.util.Set;
 
@@ -6,9 +6,9 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBu
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
-public class RoqPluginAsciidocProcessor {
+public class RoqPluginMarkdownProcessor {
 
-    private static final String FEATURE = "roq-plugin-asciidoc";
+    private static final String FEATURE = "roq-plugin-markdown";
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -17,8 +17,8 @@ public class RoqPluginAsciidocProcessor {
 
     @BuildStep
     RoqFrontMatterQuteMarkupBuildItem markup() {
-        return new RoqFrontMatterQuteMarkupBuildItem(Set.of("adoc", "asciidoc"),
-                new RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection("{#asciidoc}", "{/asciidoc}"));
+        return new RoqFrontMatterQuteMarkupBuildItem(Set.of("md", "markdown"),
+                new RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection("{#markdown}", "{/markdown}"));
     }
 
 }

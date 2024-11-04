@@ -4,18 +4,16 @@
 
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
-        <artifactId>quarkus-roq-project-parent</artifactId>
+        <artifactId>quarkus-roq-plugin-parent</artifactId>
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-plugin-parent</artifactId>
+    <artifactId>quarkus-roq-plugin-markdown-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Quarkus Roq - Plugins</name>
+    <name>Quarkus Roq - Plugin - Markdown</name>
 
     <modules>
-        <module>tagging</module>
-        <module>aliases</module>
-        <module>markdown</module>
-        <module>asciidoc</module>
+        <module>deployment</module>
+        <module>runtime</module>
     </modules>
 </project>

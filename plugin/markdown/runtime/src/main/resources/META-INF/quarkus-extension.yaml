@@ -1,0 +1,23 @@
+name: Roq Plugin Markdown
+description: This plugin allows to use Markdown in ROQ
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - markdown
+    - plugin
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-markdown
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq"
+  status: "preview"
