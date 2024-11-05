@@ -2,11 +2,14 @@ package io.quarkiverse.roq.deployment.items;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import io.quarkiverse.roq.util.PathUtils;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.builder.item.SimpleBuildItem;
-import io.quarkus.runtime.util.ClassPathUtils;
+import io.quarkus.paths.PathVisit;
 
 public final class RoqProjectBuildItem extends SimpleBuildItem {
     private final RoqProject project;
@@ -25,9 +28,9 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         return project != null || roqResourceDir != null;
     }
 
-    public void consumePathFromRoqResourceDir(String resource, Consumer<Path> consumer) throws IOException {
+    public void consumePathFromRoqResourceDir(String resource, Consumer<PathVisit> consumer) throws IOException {
         if (roqResourceDir != null) {
-            ClassPathUtils.consumeAsPaths(PathUtils.join(roqResourceDir, resource), consumer);
+            visitRuntimeResources(PathUtils.join(roqResourceDir, resource), consumer);
         }
     }
 
@@ -37,9 +40,9 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         }
     }
 
-    public void consumeRoqResourceDir(Consumer<Path> consumer) throws IOException {
+    public void consumeRoqResourceDir(Consumer<PathVisit> consumer) throws IOException {
         if (roqResourceDir != null) {
-            ClassPathUtils.consumeAsPaths(roqResourceDir, consumer);
+            visitRuntimeResources(roqResourceDir, consumer);
         }
     }
 
@@ -55,6 +58,16 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
 
     public String roqResourceDir() {
         return roqResourceDir;
+    }
+
+    public static void visitRuntimeResources(String resourceName, Consumer<PathVisit> visitor) {
+        final Set<String> visited = new HashSet<>();
+        // There is an issue in visitRuntimeResources calling visitor multiple time with the same resource.
+        QuarkusClassLoader.visitRuntimeResources(resourceName, p -> {
+            if (visited.add(p.getUrl().toExternalForm())) {
+                visitor.accept(p);
+            }
+        });
     }
 
     /**

@@ -22,7 +22,7 @@ public record RootUrl(
         String rootPath) {
     public RootUrl(String url, String rootPath) {
         this.url = url;
-        this.rootPath = PathUtils.removeTrailingSlash(rootPath);
+        this.rootPath = PathUtils.prefixWithSlash(PathUtils.removeTrailingSlash(rootPath));
     }
 
     /**

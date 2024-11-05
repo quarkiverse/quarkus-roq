@@ -23,15 +23,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-plugin-markdown</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
             <artifactId>quarkus-web-bundler</artifactId>
             <version>${quarkus-web-bundler.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.qute.web</groupId>
-            <artifactId>quarkus-qute-web-markdown</artifactId>
-            <version>${quarkus-qute-web.version}</version>
-        </dependency>
+
     </dependencies>
 
     <build>

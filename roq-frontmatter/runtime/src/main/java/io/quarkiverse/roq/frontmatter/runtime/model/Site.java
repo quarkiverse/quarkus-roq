@@ -1,12 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -66,15 +64,17 @@ public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.L
     }
 
     /**
-     * Shortcut for url().resolve(path).resolve(other1).resolve(other2)...
+     * Shortcut for url().resolve(path).resolve(path1)...
      */
-    public RoqUrl url(Object path, Object... others) {
-        if (others == null) {
-            return this.url(path);
-        }
-        return this.url().resolve(PathUtils.join(path.toString(), Arrays.stream(others)
-                .map(Object::toString)
-                .toArray(String[]::new)));
+    public RoqUrl url(Object path, Object path1) {
+        return this.url(path).resolve(path1);
+    }
+
+    /**
+     * Shortcut for url().resolve(path).resolve(path1)...
+     */
+    public RoqUrl url(Object path, Object path1, Object path2) {
+        return this.url(path).resolve(path1).resolve(path2);
     }
 
     /**

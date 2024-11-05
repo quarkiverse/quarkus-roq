@@ -189,7 +189,7 @@ public class RoqDataReaderProcessor {
             }
         };
         roqProject.consumePathFromRoqDir(config.dir(), roqDirConsumer);
-        roqProject.consumePathFromRoqResourceDir(config.dir(), roqDirConsumer);
+        roqProject.consumePathFromRoqResourceDir(config.dir(), p -> roqDirConsumer.accept(p.getPath()));
         return items.values();
     }
 

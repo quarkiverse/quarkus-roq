@@ -4,47 +4,47 @@
 
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
-        <artifactId>quarkus-roq-parent</artifactId>
+        <artifactId>quarkus-roq-plugin-markdown-parent</artifactId>
         <version>999-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-deployment</artifactId>
-    <name>Quarkus Roq - Deployment</name>
+    <artifactId>quarkus-roq-plugin-markdown-deployment</artifactId>
+    <name>Quarkus Roq - Plugin - Markdown - Deployment</name>
 
     <dependencies>
-        <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-generator-deployment</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-frontmatter-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-common-deployment</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.web-bundler</groupId>
-            <artifactId>quarkus-web-bundler-deployment</artifactId>
-            <version>${quarkus-web-bundler.version}</version>
+            <groupId>io.quarkiverse.qute.web</groupId>
+            <artifactId>quarkus-qute-web-markdown-deployment</artifactId>
+            <version>${quarkus-qute-web.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-plugin-markdown-deployment</artifactId>
+            <artifactId>quarkus-roq-plugin-markdown</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-internal</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

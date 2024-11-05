@@ -1,6 +1,6 @@
 ---
 k8s: true
-layout: post
+layout: :theme/post
 title: K8S Post
 description: This aims to solve the issue 158
 foo: bar
