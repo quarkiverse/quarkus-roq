@@ -1,3 +1,10 @@
+jtama:
+  name: "Jérôme Tama"
+  avatar: "https://github.com/jtama.png"
+  job: Ce que je veux
+  profile: "https://x.com/jtama_"
+  nickname: "jtama"
+  bio: "Passionate about Java, Quarkus, containers, and documentation as code, I mainly develop, train, and sometimes contribute to OSS projects"
 ia3andy:
   name: "Andy Damevin"
   avatar: "https://github.com/ia3andy.png"
