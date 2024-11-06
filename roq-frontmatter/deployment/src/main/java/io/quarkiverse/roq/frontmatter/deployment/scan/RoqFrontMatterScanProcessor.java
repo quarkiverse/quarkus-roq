@@ -334,7 +334,7 @@ public class RoqFrontMatterScanProcessor {
                         return;
                     }
 
-                    final String layoutId = normalizedLayout(config.theme(), LAYOUTS_DIR,
+                    final String layoutId = normalizedLayout(config.theme(),
                             fm.getString(LAYOUT_KEY));
                     final String content = stripFrontMatter(fullContent);
                     ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
@@ -399,7 +399,7 @@ public class RoqFrontMatterScanProcessor {
         return template.toString();
     }
 
-    private static String normalizedLayout(Optional<String> theme, String layoutDir, String layout) {
+    private static String normalizedLayout(Optional<String> theme, String layout) {
         if (layout == null) {
             return null;
         }
@@ -413,10 +413,22 @@ public class RoqFrontMatterScanProcessor {
             }
         }
 
-        if (!normalized.contains(PathUtils.addTrailingSlash(layoutDir))) {
-            normalized = PathUtils.join(layoutDir, normalized);
+        if (!normalized.contains(PathUtils.addTrailingSlash(LAYOUTS_DIR))) {
+            normalized = PathUtils.join(LAYOUTS_DIR, normalized);
         }
         return removeExtension(normalized);
+    }
+
+    public static String getLayoutKey(Optional<String> theme, String resolvedLayout) {
+        String result = resolvedLayout;
+        if (result.startsWith(addTrailingSlash(LAYOUTS_DIR))) {
+            result = result.substring(PathUtils.addTrailingSlash(LAYOUTS_DIR).length());
+
+            if (theme.isPresent() && result.contains(theme.get())) {
+                result = result.replace(theme.get(), ":theme");
+            }
+        }
+        return result;
     }
 
     private static String resolveOutputExtension(Map<String, QuteMarkupSection> markups, String fileName) {
