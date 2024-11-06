@@ -4,23 +4,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.ClassType;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
@@ -85,14 +75,13 @@ public class RoqDataReaderProcessor {
         Map<String, AnnotationInstance> annotationMap = annotations.stream().collect(Collectors.toMap(
                 annotation -> annotation.value().asString(), Function.identity()));
 
-        List<String> errors = collectConfigErrors(annotationMap.keySet(), dataJsonMap.keySet());
-
-        if (config.enforceBean() && !errors.isEmpty()) {
-            throw new IllegalStateException(
-                    "The Roq data configuration is not valid. The data mapping and data files are not matching: %n%s"
-                            .formatted(String.join(System.lineSeparator(), errors)));
-        } else {
-            errors.forEach(LOG::warn);
+        if (config.enforceBean()) {
+            List<String> dataMappingErrors = collectDataMappingErrors(annotationMap.keySet(), dataJsonMap.keySet());
+            if (!dataMappingErrors.isEmpty()) {
+                throw new RuntimeException(
+                        "Roq data is configured to enforce beans for data. Some data mapping and data files are not matching: %n%s"
+                                .formatted(String.join(System.lineSeparator(), dataMappingErrors)));
+            }
         }
 
         for (RoqDataBuildItem roqDataBuildItem : roqDataBuildItems) {
@@ -155,8 +144,9 @@ public class RoqDataReaderProcessor {
         return false;
     }
 
-    private List<String> collectConfigErrors(Set<String> annotations, Set<String> data) {
+    private List<String> collectDataMappingErrors(Set<String> annotations, Set<String> data) {
         List<String> messages = new ArrayList<>();
+
         for (String name : annotations) {
             if (!data.contains(name)) {
                 messages.add("The @DataMapping#value('%s') does not match with any data file".formatted(name));

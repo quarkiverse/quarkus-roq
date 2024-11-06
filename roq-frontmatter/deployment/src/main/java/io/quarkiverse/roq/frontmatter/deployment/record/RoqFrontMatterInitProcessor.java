@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
 import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
-import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,12 +23,9 @@ import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
-import io.quarkus.builder.BuildException;
-import io.quarkus.deployment.annotations.BuildProducer;
-import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.Consume;
-import io.quarkus.deployment.annotations.ExecutionTime;
+import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
@@ -110,19 +106,20 @@ class RoqFrontMatterInitProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     RoqFrontMatterOutputBuildItem bindSite(
+            LaunchModeBuildItem launchMode,
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             RoqFrontMatterIndexPageBuildItem indexPageItem,
             List<RoqFrontMatterCollectionBuildItem> collectionItems,
             List<RoqFrontMatterPageBuildItem> pageItems,
             List<RoqFrontMatterNormalPageBuildItem> normalPageItems,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
-            RoqFrontMatterRecorder recorder) throws BuildException {
+            RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
             return null;
         }
         // Create Site bean
         if (indexPageItem == null) {
-            throw new BuildException("Roq site must declare an index.html page");
+            throw new RuntimeException("Roq site must declare an index.html page");
         }
         final Map<String, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
                 Collectors.toMap(RoqFrontMatterCollectionBuildItem::name, RoqFrontMatterCollectionBuildItem::documents));
@@ -138,15 +135,27 @@ class RoqFrontMatterInitProcessor {
                 .unremovable()
                 .supplier(siteSupplier)
                 .done());
-
-        final Map<String, Supplier<? extends Page>> allPagesByPath = pageItems.stream()
-                .peek(i -> {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debugf("Published %s page '%s' on '%s'", i.hidden() ? "hidden" : "", i.id(), i.url().toString());
-                    }
-                })
-                .filter(not(RoqFrontMatterPageBuildItem::hidden))
-                .collect(Collectors.toMap(i -> i.url().path(), RoqFrontMatterPageBuildItem::page));
+        Map<String, RoqFrontMatterPageBuildItem> itemsMap = new HashMap<>();
+        Map<String, Supplier<? extends Page>> allPagesByPath = new HashMap<>();
+        for (RoqFrontMatterPageBuildItem i : pageItems) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debugf("Published %s page '%s' on '%s'", i.hidden() ? "hidden" : "", i.id(), i.url().toString());
+            }
+            if (i.hidden()) {
+                continue;
+            }
+            final RoqFrontMatterPageBuildItem prev = itemsMap.put(i.url().path(), i);
+            allPagesByPath.put(i.url().path(), i.page());
+            if (prev != null) {
+                if (launchMode.getLaunchMode().isDevOrTest()) {
+                    LOGGER.warnf("The same url (%s) has been found more than once in %s and %s", i.url().path(), prev.id(),
+                            i.id());
+                } else {
+                    throw new RuntimeException("The same url (%s) has been found more than once in %s and %s"
+                            .formatted(i.url().path(), prev.id(), i.id()));
+                }
+            }
+        }
         return new RoqFrontMatterOutputBuildItem(allPagesByPath);
     }
 

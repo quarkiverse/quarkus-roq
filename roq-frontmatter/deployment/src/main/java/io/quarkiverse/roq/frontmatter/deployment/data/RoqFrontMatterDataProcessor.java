@@ -33,10 +33,11 @@ public class RoqFrontMatterDataProcessor {
         }
 
         final var byId = roqFrontMatterTemplates.stream()
-                .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity()));
+                .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity(), (a, b) -> {
+                    throw new IllegalStateException("Multiple templates found with id '" + a.id() + "', this is a bug.");
+                }));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
-
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             JsonObject data = mergeParents(item, byId);
             final String link = TemplateLink.pageLink(config.rootPath(),
@@ -87,7 +88,8 @@ public class RoqFrontMatterDataProcessor {
         fms.add(item.data());
         while (parent != null) {
             if (!byId.containsKey(parent)) {
-                throw new IllegalStateException("Invalid layout: " + parent + " in " + item.info().sourceFileName());
+                throw new IllegalStateException(
+                        "Layout '" + parent + "' not found (file: '" + item.info().sourceFileName() + "')");
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();

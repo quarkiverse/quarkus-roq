@@ -45,6 +45,7 @@ import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
@@ -407,7 +408,8 @@ public class RoqFrontMatterScanProcessor {
             if (theme.isPresent()) {
                 normalized = normalized.replace(":theme", theme.get());
             } else {
-                throw new ConfigurationException("Using :theme in 'layout: " + layout + " is only possible with a theme.");
+                throw new ConfigurationException(
+                        "No theme detected! Using :theme in 'layout: " + layout + " is only possible with a theme installed.");
             }
         }
 
@@ -418,11 +420,15 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static String resolveOutputExtension(Map<String, QuteMarkupSection> markups, String fileName) {
-        if (find(markups, fileName, null) == null) {
-            final String extension = getExtension(fileName);
-            if (extension == null) {
-                return "";
-            }
+        if (find(markups, fileName, null) != null) {
+            return ".html";
+        }
+        final String extension = getExtension(fileName);
+        if (extension == null) {
+            return "";
+        }
+        final String mimeTypeForExtension = MimeMapping.getMimeTypeForExtension(extension);
+        if (mimeTypeForExtension != null) {
             return "." + extension;
         }
         return ".html";

@@ -17,9 +17,9 @@ public class RoqDataBindingEnforceBeanDataFileSideTest {
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq\nquarkus.roq.data.enforce-bean=true"),
                             "application.properties"))
             .assertException(e -> {
-                assertThat(e).isInstanceOf(IllegalStateException.class)
+                assertThat(e).isInstanceOf(RuntimeException.class)
                         .hasMessageContaining(
-                                "The Roq data configuration is not valid. The data mapping and data files are not matching:")
+                                "Roq data is configured to enforce beans for data. Some data mapping and data files are not matching:")
                         .hasMessageContaining("The data file 'bar' does not match with any @DataMapping class");
             });
 

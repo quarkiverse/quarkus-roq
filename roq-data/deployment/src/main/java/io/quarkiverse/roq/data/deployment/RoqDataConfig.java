@@ -29,6 +29,12 @@ public interface RoqDataConfig {
     @WithDefault("false")
     boolean enforceBean();
 
+    /**
+     * Log data beans as info during build
+     */
+    @WithDefault("true")
+    boolean logDataBeans();
+
     static boolean isEqual(RoqDataConfig q1, RoqDataConfig q2) {
         return Objects.equals(q1.dir(), q2.dir()) && Objects.equals(q1.enforceBean(), q2.enforceBean());
     }
