@@ -10,6 +10,7 @@ import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -33,13 +34,14 @@ public class RoqFrontMatterDataProcessor {
         }
 
         final var byId = roqFrontMatterTemplates.stream()
+                .filter(i -> !i.type().isPage())
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity(), (a, b) -> {
                     throw new IllegalStateException("Multiple templates found with id '" + a.id() + "', this is a bug.");
                 }));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
-            JsonObject data = mergeParents(item, byId);
+            JsonObject data = mergeParents(config, item, byId);
             final String link = TemplateLink.pageLink(config.rootPath(),
                     data.getString(LINK_KEY),
                     new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
@@ -81,15 +83,17 @@ public class RoqFrontMatterDataProcessor {
         }
     }
 
-    public static JsonObject mergeParents(RoqFrontMatterRawTemplateBuildItem item,
+    public static JsonObject mergeParents(RoqSiteConfig config, RoqFrontMatterRawTemplateBuildItem item,
             Map<String, RoqFrontMatterRawTemplateBuildItem> byId) {
         Stack<JsonObject> fms = new Stack<>();
         String parent = item.layout();
         fms.add(item.data());
         while (parent != null) {
             if (!byId.containsKey(parent)) {
-                throw new IllegalStateException(
-                        "Layout '" + parent + "' not found (file: '" + item.info().sourceFileName() + "')");
+                final String layoutKey = RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), parent);
+                throw new RuntimeException(
+                        "Layout '%s' not found for file: '%s'. Available layouts: %s.".formatted(layoutKey,
+                                item.info().sourceFileName(), getAvailableLayouts(config, byId)));
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();
@@ -101,5 +105,12 @@ public class RoqFrontMatterDataProcessor {
             merged.mergeIn(fms.pop());
         }
         return merged;
+    }
+
+    private static String getAvailableLayouts(RoqSiteConfig config, Map<String, RoqFrontMatterRawTemplateBuildItem> byId) {
+        return byId.entrySet().stream()
+                .filter(i -> i.getValue().isLayout())
+                .map(i -> RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), i.getKey()))
+                .map("'%s'"::formatted).collect(Collectors.joining(", "));
     }
 }
