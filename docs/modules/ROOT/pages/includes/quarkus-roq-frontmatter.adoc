@@ -132,7 +132,7 @@ a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-future]] [
 
 [.description]
 --
-Show future pages
+Show future documents
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -246,6 +246,23 @@ endif::add-copy-button-to-env-var[]
 --
 |boolean
 |`true`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-future]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-future[`site.collections."collections-map".future`]##
+
+[.description]
+--
+Show future documents (overrides global future for this collection)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__FUTURE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__FUTURE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-hidden[`site.collections."collections-map".hidden`]##
 
