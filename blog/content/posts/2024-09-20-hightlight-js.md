@@ -10,11 +10,7 @@ author: ia3andy
 
 Adding syntax highlighting to your Roq project has never been easier. Here’s a quick guide to help you integrate **Highlight.js** in your project with the help of the Quarkus web-bundler extension.
 
-### Step 1: Add the Quarkus Web-Bundler
-
-First, you’ll need to add the [Quarkus Web-Bundler](https://github.com/quarkiverse/quarkus-web-bundler) to your project. This tool will bundle your JavaScript and SCSS resources.
-
-### Step 2: Add Highlight.js Dependency
+### Step 1: Add Highlight.js Dependency
 
 Next, add **Highlight.js** to your `pom.xml` like this:
 
@@ -29,7 +25,11 @@ Next, add **Highlight.js** to your `pom.xml` like this:
 
 This will make the Highlight.js library available to your project.
 
-### Step 3: Initialize Highlight.js
+### Step 2: Initialize Highlight.js
+
+Roq is pre-configured with the [Quarkus Web-Bundler](https://github.com/quarkiverse/quarkus-web-bundler)  to automatically bundle you Javascripts and Styles located in `src/main/resource/web/app`.
+
+The Roq default theme includes the `{#bundle /}` [tag](https://docs.quarkiverse.io/quarkus-web-bundler/dev/advanced-guides.html#bundle-tag), if you are using your own templates, make sure it is present.
 
 Now, let’s configure Highlight.js. In your `src/main/resources/web/app/main.js`, import the library and activate it:
 
@@ -39,7 +39,7 @@ import hljs from 'highlight.js';
 hljs.highlightAll();
 ```
 
-### Step 4: Style Your Syntax Highlighting
+### Step 3: Style Your Syntax Highlighting
 
 To style the code blocks, import the Highlight.js default theme into your SCSS file. Add this to your `src/main/resources/web/app/main.scss`:
 
