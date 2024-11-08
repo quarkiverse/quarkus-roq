@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,13 +50,27 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     /**
      * Get the sub-list of documents depending on the given paginator
      */
-    public List<DocumentPage> paginated(Paginator paginator) {
+    public Collection<DocumentPage> paginated(Paginator paginator) {
         if (paginator == null) {
             return this;
         }
         var zeroBasedCurrent = paginator.currentIndex() - 1;
         return this.subList(zeroBasedCurrent * paginator.limit(),
                 Math.min(this.size(), (zeroBasedCurrent * paginator.limit()) + paginator.limit()));
+    }
+
+    /**
+     * @return future documents
+     */
+    public Collection<DocumentPage> future() {
+        return stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
+    }
+
+    /**
+     * @return past documents
+     */
+    public Collection<DocumentPage> past() {
+        return stream().filter(d -> d.date().isBefore(ZonedDateTime.now())).toList();
     }
 
     /**
@@ -66,7 +81,7 @@ public class RoqCollection extends ArrayList<DocumentPage> {
      * @param keys the keys to search for in the pages' data. Multiple keys can be passed.
      * @return a {@code List<Object>} containing all non-null values found in the pages for the specified keys.
      */
-    public List<Object> by(String... keys) {
+    public Collection<Object> by(String... keys) {
         return this.stream()
                 .flatMap(page -> Arrays.stream(keys)
                         .map(page::data) // Get the data for each key

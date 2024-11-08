@@ -372,7 +372,8 @@ public class RoqFrontMatterScanProcessor {
                             fm.getString(LAYOUT_KEY));
                     final String content = stripFrontMatter(fullContent);
                     ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
-                    if (date != null && !config.future() && date.isAfter(ZonedDateTime.now())) {
+                    final boolean noFuture = !config.future() && (collection == null || !collection.future());
+                    if (date != null && noFuture && date.isAfter(ZonedDateTime.now())) {
                         return;
                     }
                     String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);

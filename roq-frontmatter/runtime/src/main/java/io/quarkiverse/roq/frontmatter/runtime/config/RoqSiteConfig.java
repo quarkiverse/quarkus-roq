@@ -21,7 +21,7 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String IGNORED_FILES = "**/_**,_**,.**";
-    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false));
+    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false, false));
 
     /**
      * The root path of your site (e.g. /blog) relative the quarkus http root path.
@@ -75,7 +75,7 @@ public interface RoqSiteConfig {
     boolean generator();
 
     /**
-     * Show future pages
+     * Show future documents
      */
     @WithDefault("false")
     boolean future();
@@ -122,7 +122,7 @@ public interface RoqSiteConfig {
             return DEFAULT_COLLECTIONS;
         }
         return collectionsMap().entrySet().stream().filter(e -> e.getValue().enabled())
-                .map(e -> new ConfiguredCollection(e.getKey(), e.getValue().hidden())).toList();
+                .map(e -> new ConfiguredCollection(e.getKey(), e.getValue().hidden(), e.getValue().future())).toList();
     }
 
     interface CollectionConfig {
@@ -132,6 +132,12 @@ public interface RoqSiteConfig {
         @WithParentName
         @WithDefault("true")
         boolean enabled();
+
+        /**
+         * Show future documents (overrides global future for this collection)
+         */
+        @WithDefault("false")
+        boolean future();
 
         /**
          * If true, the collection won't be available on path but consumable as data.
