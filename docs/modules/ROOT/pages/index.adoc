@@ -6,7 +6,7 @@ Roq allows to easily create a static website or blog using Quarkus super-powers.
 
 == How it works
 
-// https://excalidraw.com/#json=FbBiH5H7j5qFS-XZ96TDI,GIDI6Ss_p_VFKo62ip9t4A
+// https://excalidraw.com/#json=pZssfxY47ooeLKkHeH0cM,7jxUkcUdHu3WcR1ktCRFow
 image::roq-how-it-works.png[Roq - How it works]
 
 [TIP]
