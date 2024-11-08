@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public record SelectedPath(String path, String outputPath, PageSource source) {
 
-    private static final Pattern NON_FILE_CHARS = Pattern.compile("[^a-zA-Z0-9\\\\/.]");
+    private static final Pattern NON_FILE_CHARS = Pattern.compile("[^a-zA-Z0-9_\\\\/.\\-]");
 
     private SelectedPath(SelectedPathBuilder builder) {
         this(builder.path, builder.outputPath, builder.source);
