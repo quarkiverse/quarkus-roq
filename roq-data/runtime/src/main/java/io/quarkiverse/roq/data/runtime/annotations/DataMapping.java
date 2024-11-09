@@ -13,7 +13,20 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 @Documented
 public @interface DataMapping {
+
+    /**
+     * Indicates the name of the data file, excluding the file extension.
+     * This name should match the data source file used for mapping purposes.
+     *
+     * @return the data file name without its extension
+     */
     String value();
 
+    /**
+     * Indicates if the root element of the data file is structured as an array.
+     * Set this to {@code true} if the root element is an array; otherwise, {@code false}.
+     *
+     * @return {@code true} if the root element is an array, {@code false} otherwise
+     */
     boolean parentArray() default false;
 }
