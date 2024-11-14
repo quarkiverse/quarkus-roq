@@ -55,6 +55,11 @@
             <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-plugin-qrcode</artifactId>
+            <version>${quarkus-roq.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
