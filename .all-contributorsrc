@@ -90,6 +90,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "zakkak",
+      "name": "Foivos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1435395?v=4",
+      "profile": "https://foivos.zakkak.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
