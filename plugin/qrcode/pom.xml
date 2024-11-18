@@ -4,19 +4,19 @@
 
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
-        <artifactId>quarkus-roq-project-parent</artifactId>
+        <artifactId>quarkus-roq-plugin-parent</artifactId>
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-plugin-parent</artifactId>
+    <artifactId>quarkus-roq-plugin-qrcode-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Quarkus Roq - Plugins</name>
+    <name>Quarkus Roq - Plugin - QrCode</name>
 
+    <properties>
+        <quarkus-barcode.version>0.0.3</quarkus-barcode.version>
+    </properties>
     <modules>
-        <module>tagging</module>
-        <module>aliases</module>
-        <module>markdown</module>
-        <module>asciidoc</module>
-        <module>qrcode</module>
+        <module>deployment</module>
+        <module>runtime</module>
     </modules>
 </project>
