@@ -43,7 +43,8 @@ layout: roq-default/main
           </div>
 
         </div>
-        {#let author= (page.data.author?? ? cdi:authors.get(page.data.author) : null)}
+        {#if page.data.author??}
+        {#let author=cdi:authors.get(page.data.author)}
         {#if author}
         <div class="author">
           <img src="{site.image(author.avatar)}" alt="author-{page.data.author}"/>
@@ -55,6 +56,7 @@ layout: roq-default/main
         </div>
         {/if}
         {/let}
+        {/if}
       </div>
     </div> <!-- End Wrap Content -->
   </div> <!-- End Page Content -->
