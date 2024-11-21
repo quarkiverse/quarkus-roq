@@ -148,7 +148,11 @@ To install it add:
 
 Then create a template and add the `{#qrcode ...}` tag to it and style and size it as you want.
 
+By default, the plugin generates a html output which is compatible with both `HTML` and  `MarkDown` templates. If you want to use the plugin with an `asciidoc`, you can say so using the `asciidoc` attribute (which defaults to `false`.
+
 [source,yaml]
 ----
-{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /}
+{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /} // Will generate HTML code
+{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
 ----
+
