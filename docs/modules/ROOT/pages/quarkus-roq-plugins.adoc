@@ -148,7 +148,7 @@ To install it add:
 
 Then create a template and add the `{#qrcode ...}` tag to it and style and size it as you want.
 
-By default, the plugin generates a html output which is compatible with both `HTML` and  `MarkDown` templates. If you want to use the plugin with an `asciidoc`, you can say so using the `asciidoc` attribute (which defaults to `false`.
+By default, the plugin produces HTML output compatible with both `HTML` and `MarkDown` templates. To use the plugin with `asciidoc`, set the `asciidoc` attribute to `true` (the default is `false`).
 
 [source,yaml]
 ----
