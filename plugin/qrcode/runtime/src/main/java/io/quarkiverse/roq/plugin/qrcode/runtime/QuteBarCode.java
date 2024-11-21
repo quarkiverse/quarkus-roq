@@ -32,9 +32,10 @@ public abstract class QuteBarCode implements SectionHelperFactory<QuteBarCode.Cu
          * @param background The background color
          * @param width The width in pixels
          * @param height The height in pixels
+         * @param asciidoc Whether to render the barcode as an Asciidoc image
          * @return The encoded barcode as a String (typically HTML)
          */
-        String encode(String value, String alt, String foreground, String background, int width, int height);
+        String encode(String value, String alt, String foreground, String background, int width, int height, Boolean asciidoc);
     }
 
     private String name;
@@ -65,21 +66,27 @@ public abstract class QuteBarCode implements SectionHelperFactory<QuteBarCode.Cu
                 .addParameter(Parameter.builder("background").optional())
                 .addParameter(Parameter.builder("width").optional())
                 .addParameter(Parameter.builder("height").optional())
+                .addParameter(Parameter.builder("asciidoc").optional())
                 .build();
     }
 
     @Override
     public Scope initializeBlock(Scope outerScope, BlockInfo block) {
-        TypeUtil.declareBlock(block, "value", "alt", "foreground", "background", "width", "height");
+        TypeUtil.declareBlock(block, "value", "alt", "foreground", "background", "width", "height", "asciidoc");
         return SectionHelperFactory.super.initializeBlock(outerScope, block);
     }
 
     @Override
     public CustomSectionHelper initialize(SectionInitContext context) {
         TypeUtil.requireParameter(context, "value");
-        Map<String, Expression> params = TypeUtil.collectExpressions(context, "value", "alt", "foreground", "background",
+        Map<String, Expression> params = TypeUtil.collectExpressions(context,
+                "value",
+                "alt",
+                "foreground",
+                "background",
                 "width",
-                "height");
+                "height",
+                "asciidoc");
         return new CustomSectionHelper(params, encoder);
     }
 
@@ -106,8 +113,9 @@ public abstract class QuteBarCode implements SectionHelperFactory<QuteBarCode.Cu
                         String background = TypeUtil.typecheckValue(values, "background", String.class, "white");
                         Integer width = TypeUtil.typecheckValue(values, "width", Integer.class, 200);
                         Integer height = TypeUtil.typecheckValue(values, "height", Integer.class, 200);
-
-                        return new SingleResultNode(encoder.encode(value, alt, foreground, background, width, height));
+                        Boolean asciidoc = TypeUtil.typecheckValue(values, "asciidoc", Boolean.class, false);
+                        return new SingleResultNode(
+                                encoder.encode(value, alt, foreground, background, width, height, asciidoc));
                     });
         }
     }
