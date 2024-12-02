@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -33,10 +34,11 @@ public class RoqBlogTest {
 
     @Test
     public void testPostsAsciidoc() {
-        given().when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
+        ValidatableResponse body = given().when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
                         "Writing content is AsciiDoc format is an absolut no brainer"))
                 .body(containsString("<pre class=\"highlightjs highlight\"><code class=\"language-shell hljs\" data-lang=\"shell\">quarkus extension add io.quarkiverse.roq:quarkus-roq-plugin-asciidoc</code></pre>"))
                 .body(containsString("2024 &copy; ROQ"));
+        System.out.println(body.extract().body().asString());
     }
 
     @Test

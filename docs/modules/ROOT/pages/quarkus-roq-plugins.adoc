@@ -156,3 +156,31 @@ By default, the plugin produces HTML output compatible with both `HTML` and `Mar
 {#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
 ----
 
+[#plugin-serie]
+== Roq Plugin Serie
+
+This plugin allows you to join multiple posts in a serie.
+
+To install it add:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-serie</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Then add the `serie` attribute in the Front Matter of the posts you want to join.
+
+[source,yaml]
+----
+---
+layout: :theme/post
+title: Assemble you blog post in a serie
+description: Automatically serie header for your posts
+tags: plugin, frontmatter, guide, serie
+author: John Doe
+serie: Serie Title
+---
+----
