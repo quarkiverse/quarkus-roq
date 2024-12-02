@@ -16,8 +16,6 @@ The selected paths to include in the static website Glob syntax is authorized fo
 For dynamic paths selection, produce a `RoqSelection` in you app.
 
 ```
-```
-
 `&++#++64;Produces
 &++#++64;Singleton
 &++#++64;Transactional
@@ -25,7 +23,9 @@ RoqSelection produce() ++{++
     return new RoqSelection(List.of(
             SelectedPath.builder().html("/roq?name=foo").build(),
             SelectedPath.builder().html("/blog/hello/").build(),
-            SelectedPath.builder().path("/api/hello?name=foo").outputPath("/hello-foo.json").build()));` ++}++
+            SelectedPath.builder().path("/api/hello?name=foo").outputPath("/hello-foo.json").build()));`
+}
+```
 
 
 ifdef::add-copy-button-to-env-var[]
