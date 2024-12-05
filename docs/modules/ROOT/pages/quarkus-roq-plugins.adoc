@@ -188,7 +188,7 @@ layout: theme-layouts/roq-default/post
 <1> This will add the series partial before the post content, if it's declared.
 <2> This is the post content
 
-And finally, use this layout and add the `SeriesEntry` attribute in the Front Matter of the posts you want to join.
+And finally, use this layout and add the `series` attribute in the Front Matter of the posts you want to join.
 
 [source,yaml]
 ----
