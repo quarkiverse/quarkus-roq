@@ -26,7 +26,7 @@ public record Series(Map<String, SeriesEntry> series) {
             this.documents = new LazyValue<>(() -> {
                 Site site = Site.getBeanInstance();
                 return documentIds.stream().map(site::document)
-                        .sorted(BY_DATE)
+                        .sorted(BY_DATE.reversed())
                         .toList();
             });
         }
