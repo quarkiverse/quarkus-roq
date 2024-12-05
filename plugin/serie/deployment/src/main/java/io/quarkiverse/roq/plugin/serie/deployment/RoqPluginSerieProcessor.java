@@ -1,17 +1,17 @@
 package io.quarkiverse.roq.plugin.serie.deployment;
 
+import static io.quarkiverse.roq.plugin.series.runtime.Series.FM_SERIE;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
 import io.quarkiverse.roq.plugin.series.runtime.SerieMessage;
 import io.quarkiverse.roq.plugin.series.runtime.Series;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesRecorder;
@@ -42,9 +42,9 @@ public class RoqPluginSerieProcessor {
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(SerieMessage.class)
                 .setUnremovable().build());
+        reflectiveClass.produce(
+                ReflectiveClassBuildItem.builder(Series.class).serialization().constructors().fields().methods().build());
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(Series.Serie.class).serialization()
-                .constructors().fields().methods().build());
-        reflectiveClass.produce(ReflectiveClassBuildItem.builder(Series.Serie.Entry.class).serialization()
                 .constructors().fields().methods().build());
     }
 
@@ -53,25 +53,26 @@ public class RoqPluginSerieProcessor {
     void generateSeries(
             SeriesRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
-            List<RoqFrontMatterRawTemplateBuildItem> templates) {
-        Map<String, List<String>> serieTemplates = templates.stream()
-                .filter(Predicate.not(RoqFrontMatterRawTemplateBuildItem::isLayout))
-                .filter(item -> item.data().containsKey("serie"))
+            List<RoqFrontMatterDocumentTemplateBuildItem> documents) {
+        // Currently, we don't enforce series to be on the same collection, should we?
+        Map<String, List<String>> series = documents.stream()
+                .filter(item -> item.data().containsKey(FM_SERIE))
                 .collect(Collectors.toMap(
-                        item -> item.data().getString("serie"),
-                        item -> new ArrayList<>(List.of(item.data().getString("title"))),
+                        item -> item.data().getString(FM_SERIE),
+                        item -> new ArrayList<>(List.of(item.raw().id())),
                         (a, b) -> {
                             a.addAll(b);
                             return a;
                         }));
-        if (serieTemplates.isEmpty()) {
+
+        if (series.isEmpty()) {
             return;
         }
         beansProducer.produce(SyntheticBeanBuildItem.configure(Series.class)
                 .named("series")
                 .scope(Singleton.class)
                 .unremovable()
-                .runtimeValue(recorder.generateSeries(serieTemplates))
+                .runtimeValue(recorder.generateSeries(series))
                 .done());
     }
 

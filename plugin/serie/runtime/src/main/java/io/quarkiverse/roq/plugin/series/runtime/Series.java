@@ -1,25 +1,77 @@
 package io.quarkiverse.roq.plugin.series.runtime;
 
+import static io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.BY_DATE;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkus.arc.impl.LazyValue;
 
-public record Series(List<Serie> series) {
+public record Series(Map<String, Serie> series) {
 
-    public record Serie(String title, List<Entry> entries) {
+    public static final String FM_SERIE = "serie";
 
-        public record Entry(String title) {
-            public String link() {
-                return "/posts/%s".formatted(RoqTemplateExtension.slugify(title));
-            }
+    public static final class Serie {
+        private final String title;
+        private final List<String> documentIds;
+        private final LazyValue<List<DocumentPage>> documents;
+
+        public Serie(String title, List<String> documentIds) {
+            this.title = title;
+            this.documentIds = documentIds;
+            this.documents = new LazyValue<>(() -> {
+                Site site = Site.getBeanInstance();
+                return documentIds.stream().map(site::document)
+                        .sorted(BY_DATE)
+                        .toList();
+            });
+        }
+
+        public List<DocumentPage> documents() {
+            return documents.get();
+        }
+
+        public String title() {
+            return title;
+        }
+
+        public List<String> documentIds() {
+            return documentIds;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (obj == null || obj.getClass() != this.getClass())
+                return false;
+            var that = (Serie) obj;
+            return Objects.equals(this.title, that.title) &&
+                    Objects.equals(this.documentIds, that.documentIds);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(title, documentIds);
+        }
+
+        @Override
+        public String toString() {
+            return "Serie[" +
+                    "title=" + title + ", " +
+                    "documentIds=" + documentIds + ']';
         }
 
     }
 
-    public Serie findSerie(String title) {
-        return series.stream()
-                .filter(serie -> serie.title().equals(title))
-                .findFirst()
-                .orElse(null);
+    public Serie getForPage(Page page) {
+        if (!page.data().containsKey(FM_SERIE)) {
+            return null;
+        }
+        return series.get(page.data().getString(FM_SERIE));
     }
 }

@@ -4,6 +4,8 @@ metadata:
   keywords:
     - json
     - yaml
+    - roq
+    - ssg
     - data
     - static
   guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html

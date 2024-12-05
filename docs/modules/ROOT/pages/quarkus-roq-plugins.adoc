@@ -41,7 +41,7 @@ tagging: posts
 
 This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
 
-[source,yaml]
+[source,html]
 .templates/layouts/tag.html
 ----
 ---
@@ -171,16 +171,35 @@ To install it add:
 </dependency>
 ----
 
-Then add the `serie` attribute in the Front Matter of the posts you want to join.
+Edit the layout for your posts, for example when using roq-default theme:
+
+[source,html]
+.templates/layouts/roq-default/post-serie.html
+----
+---
+layout: theme-layouts/roq-default/post
+---
+
+{#include partials/roq-serie /} //<1>
+
+{#insert /} //<2>
+
+----
+<1> This will add the serie partial before the post content, if it's declared.
+<2> This is the post content
+
+And finally, use this layout and add the `serie` attribute in the Front Matter of the posts you want to join.
 
 [source,yaml]
 ----
 ---
-layout: :theme/post
+layout: serie-post
 title: Assemble you blog post in a serie
 description: Automatically serie header for your posts
 tags: plugin, frontmatter, guide, serie
 author: John Doe
-serie: Serie Title
+serie: My Serie Title // <1>
 ---
 ----
+
+<1> You should use the exact same title for all documents in the serie.

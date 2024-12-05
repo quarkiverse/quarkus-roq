@@ -9,6 +9,8 @@ metadata:
     - hugo
     - lume
     - site
+    - ssg
+    - roq
     - generator
     - web
   guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-generator.html

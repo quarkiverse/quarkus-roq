@@ -6,6 +6,8 @@ metadata:
     - frontmatter
     - asciidoc
     - site
+    - ssg
+    - roq
     - content
     - qute
   guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-frontmatter.html

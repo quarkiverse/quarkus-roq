@@ -12,6 +12,7 @@ metadata:
     - generator
     - web
     - roq
+    - ssg
     - asciidoc
     - plugin
   guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-asciidoc

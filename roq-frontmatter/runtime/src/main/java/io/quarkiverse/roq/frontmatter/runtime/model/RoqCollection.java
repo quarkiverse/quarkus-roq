@@ -15,9 +15,12 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public class RoqCollection extends ArrayList<DocumentPage> {
 
+    public static final Comparator<DocumentPage> BY_DATE = Comparator
+            .comparing(DocumentPage::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+
     public RoqCollection(List<DocumentPage> documents) {
         super(documents.stream()
-                .sorted(Comparator.comparing(DocumentPage::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .sorted(BY_DATE)
                 .toList());
     }
 
