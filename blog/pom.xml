@@ -56,7 +56,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-plugin-serie</artifactId>
+            <artifactId>quarkus-roq-plugin-series</artifactId>
             <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>

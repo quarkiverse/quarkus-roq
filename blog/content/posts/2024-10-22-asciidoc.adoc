@@ -6,7 +6,7 @@ img: https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=3198&au
 tags: plugin, frontmatter, guide, asciidoc
 author: jtama
 aliases: [asciidoc]
-serie: roq-plugins
+series: roq-plugins
 ---
 
 Writing content is AsciiDoc format is an absolut no brainer. Roq provides a plugin to handle it transparently for you.
