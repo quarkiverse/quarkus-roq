@@ -12,6 +12,7 @@ metadata:
     - generator
     - web
     - roq
+    - ssg
     - aliases
     - redirect
     - plugin

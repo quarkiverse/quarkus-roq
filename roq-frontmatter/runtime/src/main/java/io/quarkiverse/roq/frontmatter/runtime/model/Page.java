@@ -17,6 +17,9 @@ import io.vertx.core.json.JsonObject;
 @Vetoed
 public interface Page {
 
+    String FM_TITLE = "title";
+    String FM_DESCRIPTION = "description";
+
     /**
      * Page info
      */
@@ -68,14 +71,14 @@ public interface Page {
      * The page title (from FM data)
      */
     default String title() {
-        return data().getString("title");
+        return data().getString(FM_TITLE);
     }
 
     /**
      * The page description (from FM data)
      */
     default String description() {
-        return data().getString("description");
+        return data().getString(FM_DESCRIPTION);
     }
 
     /**

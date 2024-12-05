@@ -2,25 +2,54 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
 /**
  * This represents a Roq site.
- *
- * @param url the Roq site url to the index page
- * @param imagesDirUrl directory to resolve images url (e.g. /static/images)
- * @param data the site FM data (declared in the index.html)
- * @param pages all the pages in this site (without the documents)
- * @param collections all the collections in this site (containing documents)
  */
 @TemplateData
 @Vetoed
-public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.List<NormalPage> pages,
-        RoqCollections collections) {
+public final class Site {
+    private final RoqUrl url;
+    private final RoqUrl imagesDirUrl;
+    private final JsonObject data;
+    private final List<NormalPage> pages;
+    private final RoqCollections collections;
+    private final LazyValue<Map<String, NormalPage>> pagesById;
+    private final LazyValue<Map<String, DocumentPage>> documentsById;
+
+    /**
+     * @param url the Roq site url to the index page
+     * @param imagesDirUrl directory to resolve images url (e.g. /static/images)
+     * @param data the site FM data (declared in the index.html)
+     * @param pages all the pages in this site (without the documents)
+     * @param collections all the collections in this site (containing documents)
+     */
+    public Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, List<NormalPage> pages,
+            RoqCollections collections) {
+        this.url = url;
+        this.imagesDirUrl = imagesDirUrl;
+        this.data = data;
+        this.pages = pages;
+        this.collections = collections;
+        this.pagesById = new LazyValue<>(() -> pages.stream().collect(Collectors.toMap(NormalPage::id, Function.identity())));
+        this.documentsById = new LazyValue<>(() -> collections().collections().values().stream()
+                .flatMap(Collection::stream).collect(Collectors.toMap(DocumentPage::id, Function.identity(), (a, b) -> a)));
+    }
+
+    public static Site getBeanInstance() {
+        return Arc.container().beanInstanceSupplier(Site.class).get().get();
+    }
 
     /**
      * The site title
@@ -84,7 +113,7 @@ public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.L
      * @return the page or null
      */
     public NormalPage page(String id) {
-        return pages.stream().filter(p -> p.info().id().equals(id)).findFirst().orElse(null);
+        return pagesById.get().get(id);
     }
 
     /**
@@ -94,10 +123,56 @@ public record Site(RoqUrl url, RoqUrl imagesDirUrl, JsonObject data, java.util.L
      * @return the document page or null
      */
     public DocumentPage document(String id) {
-        final List<DocumentPage> documents = collections().collections().values().stream()
-                .flatMap(Collection::stream)
-                .toList();
-        return documents.stream().filter(d -> d.info().id().equals(id)).findFirst().orElse(null);
+        return documentsById.get().get(id);
+    }
+
+    public RoqUrl url() {
+        return url;
+    }
+
+    public RoqUrl imagesDirUrl() {
+        return imagesDirUrl;
+    }
+
+    public JsonObject data() {
+        return data;
+    }
+
+    public List<NormalPage> pages() {
+        return pages;
+    }
+
+    public RoqCollections collections() {
+        return collections;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        var that = (Site) obj;
+        return Objects.equals(this.url, that.url) &&
+                Objects.equals(this.imagesDirUrl, that.imagesDirUrl) &&
+                Objects.equals(this.data, that.data) &&
+                Objects.equals(this.pages, that.pages) &&
+                Objects.equals(this.collections, that.collections);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, imagesDirUrl, data, pages, collections);
+    }
+
+    @Override
+    public String toString() {
+        return "Site[" +
+                "url=" + url + ", " +
+                "imagesDirUrl=" + imagesDirUrl + ", " +
+                "data=" + data + ", " +
+                "pages=" + pages + ", " +
+                "collections=" + collections + ']';
     }
 
 }

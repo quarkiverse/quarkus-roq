@@ -41,7 +41,7 @@ tagging: posts
 
 This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
 
-[source,yaml]
+[source,html]
 .templates/layouts/tag.html
 ----
 ---
@@ -156,3 +156,50 @@ By default, the plugin produces HTML output compatible with both `HTML` and `Mar
 {#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
 ----
 
+[#plugin-series]
+== Roq Plugin Series
+
+This plugin allows you to join multiple posts in a series.
+
+To install it add:
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-series</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Edit the layout for your posts, for example when using roq-default theme:
+
+[source,html]
+.templates/layouts/roq-default/post-series.html
+----
+---
+layout: theme-layouts/roq-default/post
+---
+
+{#include partials/roq-series /} //<1>
+
+{#insert /} //<2>
+
+----
+<1> This will add the series partial before the post content, if it's declared.
+<2> This is the post content
+
+And finally, use this layout and add the `series` attribute in the Front Matter of the posts you want to join.
+
+[source,yaml]
+----
+---
+layout: series-post
+title: Assemble you blog post in a series
+description: Automatically series header for your posts
+tags: plugin, frontmatter, guide, series
+author: John Doe
+series: My series Title // <1>
+---
+----
+
+<1> You should use the exact same title for all documents in the series.
