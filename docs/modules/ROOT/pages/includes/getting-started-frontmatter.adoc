@@ -256,8 +256,7 @@ The standard `imagedir` attribute is not supported.
 
 You should instead place your images under the `static/assets/images` folder, and reference them with the image macro :
 
- image::/static/assets/images/your_image.png[]
-
+ image::\{site.imagesDirUrl.resolve('your_image.png')}[Image description]
 
 
 === Collections
