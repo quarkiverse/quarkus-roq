@@ -13,7 +13,7 @@
     <name>Quarkus Roq - Plugin - QrCode</name>
 
     <properties>
-        <quarkus-barcode.version>0.0.3</quarkus-barcode.version>
+        <quarkus-barcode.version>1.0.0</quarkus-barcode.version>
     </properties>
     <modules>
         <module>deployment</module>
