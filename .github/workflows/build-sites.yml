@@ -50,8 +50,9 @@ jobs:
           retention-days: 3
 
       - name: Build blog
+        if: github.event_name == 'pull_request'
         run: |
-          QUARKUS_ROQ_GENERATOR_BATCH=true mvn -f blog package quarkus:run
+          QUARKUS_ROQ_GENERATOR_BATCH=true mvn -Dsite.future=true -f blog package quarkus:run
 
       - name: Publishing blog
         if: github.event_name == 'pull_request'
