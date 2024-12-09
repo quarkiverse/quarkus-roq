@@ -19,10 +19,12 @@
     width: 30px;
     height: 30px;
     line-height: 30px;
-    vertical-align: center;
+    vertical-align: middle;
     text-align: center;
     font-weight: bold;
     margin-right: 10px;
+    min-width: 30px;
+    max-width: 30px;
   }
 
   a .index {
