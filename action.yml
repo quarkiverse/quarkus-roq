@@ -63,18 +63,19 @@ runs:
         if [ -z "$path" ]; then
           path="/"
         fi
-        echo "SITE_URL=$url" >> $GITHUB_ENV
-        echo "SITE_PATH=$path" >> $GITHUB_ENV
-        echo "::set-output name=site-url::$url"
-        echo "::set-output name=site-path::$path"
-    - name: Set SITE_URL and SITE_PATH
-      shell: bash
-      run: |
-        SITE_DIR=${{ inputs.site-url }}
+        
+        SITE_URL=${{ inputs.site-url || $url }}
+        SITE_PATH=${{ inputs.site-path || $path }}
+        SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
-        SITE_URL=${{ inputs.site-url || env.SITE_URL }}
-        SITE_PATH=${{ inputs.site-path || env.SITE_PATH }}
-        echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL and SITE_PATH=$SITE_PATH"
+        
+        echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
+        echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
+        
+        echo "SITE_DIR=$SITE_DIR" >> $GITHUB_OUTPUT
+        echo "SITE_URL=$SITE_URL" >> $GITHUB_OUTPUT
+        echo "SITE_PATH=$SITE_PATH" >> $GITHUB_OUTPUT
 
     # Step 3: Build Quarkus Blog with Quarkus HTTP Root Path
     - name: Build & Generate Blog
