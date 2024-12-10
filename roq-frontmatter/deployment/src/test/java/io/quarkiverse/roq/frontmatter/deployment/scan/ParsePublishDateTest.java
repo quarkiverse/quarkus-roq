@@ -38,7 +38,7 @@ public class ParsePublishDateTest {
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         // then
-        assertEquals("2020-10-13T12:00:00Z[GMT]", publishDate);
+        assertEquals("2020-10-13T00:00:00Z[GMT]", publishDate);
     }
 
     @Test
