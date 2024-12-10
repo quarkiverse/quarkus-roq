@@ -91,7 +91,7 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ input.site-directory }}${{ inputs.artifact-path }}
+        path: ${{ inputs.site-directory }}${{ inputs.artifact-path }}
         retention-days: ${{ inputs.retention-days }}
 
     # Step 5: Download Built Site for Deployment
