@@ -77,8 +77,8 @@ runs:
     # Step 3: Build Quarkus Blog with Quarkus HTTP Root Path
     - name: Build & Generate Blog
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
       run: |
+        cd ${{ inputs.working-directory }}
         ${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
