@@ -1,9 +1,6 @@
 name: "Build and Deploy Roq Site"
-description: "Sets up JDK, builds the Quarkus site, and deploys it to GitHub Pages."
+description: "Sets up JDK, builds the Quarkus site, and upload the GitHub Pages artifact."
 inputs:
-  github-token:
-    description: "GitHub token for accessing GitHub Pages"
-    required: true
   setup-java:
     description: "Whether to setup Java or not"
     required: false
@@ -24,32 +21,29 @@ inputs:
     description: "Maven cache strategy"
     required: false
     default: "maven"
-  site-url:
-    description: "The URL of the site (overrides auto-detected URL if provided)"
-    required: false
-  site-path:
-    description: "The path of the site (overrides auto-detected path if provided)"
-    required: false
-  maven-build-args:
-    description: "Additional Maven build arguments"
-    required: false
-    default: "-DskipTests"
-  artifact-name:
-    description: "Name of the artifact to upload"
-    required: false
-    default: "site"
-  artifact-path:
-    description: "Path of the artifact to upload"
-    required: false
-    default: "target/roq"
-  retention-days:
-    description: "Retention days for the uploaded artifact"
-    required: false
-    default: "1"
   site-directory:
     description: "The directory containing the Roq site"
     required: false
     default: "./"
+  maven-build-args:
+    description: "Additional Maven build arguments"
+    required: false
+    default: "-DskipTests"
+  github-pages:
+    description: "Whether to configure and Upload GitHub Pages artifact or not"
+    default: true
+    required: false
+  github-token:
+    description: "GitHub token for accessing GitHub Pages url (required if github-pages)"
+    required: false
+  site-url:
+    description: "The full URL of the site including the eventual root path (required if not github-pages)"
+    required: false
+  artifact-path:
+    description: "Path of the artifact to upload (from the site-directory)"
+    required: false
+    default: "target/roq"
+
 runs:
   using: "composite"
   steps:
@@ -65,33 +59,36 @@ runs:
     # Step 2: Get GitHub Pages URL (if not provided as input)
     - name: Get GitHub Pages URL
       shell: bash
-      if: ${{ inputs.site-url == null || inputs.site-path == null }}
+      if: ${{ inputs.github-pages == 'true' && inputs.site-url == null }}
       id: get_url
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        echo "SITE_FULL_URL=$url" >> $GITHUB_ENV
+
+    # Step 3: Setting environments for the build
+    - name: Setting envs
+      shell: bash
+      run: |
+        url=${{ inputs.site-url || env.SITE_FULL_URL }}
+        if [ -z "url" ]; then
+          echo "site-url is required if github-pages=false"
+          exit 1
+        fi
         path=$(echo "$url" | sed -E 's|https?://[^/]+(/.*)?|\1|')
         url=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|')
         if [ -z "$path" ]; then
           path="/"
         fi
-        input_url=${{ inputs.site-url }}
-        input_path=${{ inputs.site-path }}
-        SITE_URL=${input_url:-$url}
-        SITE_PATH=${input_path:-$path}
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
-        
         echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
-        echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
-        echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
-        
-        echo "SITE_DIR=$SITE_DIR" >> $GITHUB_OUTPUT
-        echo "SITE_URL=$SITE_URL" >> $GITHUB_OUTPUT
-        echo "SITE_PATH=$SITE_PATH" >> $GITHUB_OUTPUT
+        echo "SITE_URL=$url" >> $GITHUB_ENV
+        echo "SITE_PATH=path" >> $GITHUB_ENV
+        echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
-    # Step 3: Build Quarkus Blog with Quarkus HTTP Root Path
+    # Step 4: Build and Generate Quarkus Blog with Quarkus HTTP Root Path
     - name: Build & Generate Blog
       shell: bash
       run: |
@@ -103,12 +100,14 @@ runs:
       env:
         QUARKUS_ROQ_GENERATOR_BATCH: true
 
-    # Step 6: Setup GitHub Pages
+    # Step 5: Setup GitHub Pages
     - name: Setup Pages
+      if: ${{ inputs.github-pages == 'true' }}
       uses: actions/configure-pages@v5
 
-    # Step 7: Upload Artifact to GitHub Pages
+    # Step 6: Upload Artifact to GitHub Pages
     - name: Upload Artifact
+      if: ${{ inputs.github-pages == 'true' }}
       uses: actions/upload-pages-artifact@v3
       with:
         path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}
