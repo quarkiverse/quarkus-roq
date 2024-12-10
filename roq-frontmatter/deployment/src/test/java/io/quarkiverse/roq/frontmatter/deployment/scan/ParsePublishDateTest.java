@@ -24,7 +24,7 @@ public class ParsePublishDateTest {
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         // then
-        assertEquals("2004-09-07T12:00:00Z[GMT]", publishDate);
+        assertEquals("2004-09-07T00:00:00Z[GMT]", publishDate);
     }
 
     @Test

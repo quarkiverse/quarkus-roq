@@ -31,7 +31,8 @@ jobs:
         run: mvn -B clean install -DskipTests
       ####
 
-      - uses: ./ # replace by quarkiverse/quarkus-roq@...
+      - name: Build and Deploy Blog
+        uses: ./ # replace by quarkiverse/quarkus-roq@...
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Those are not needed in most cases:
