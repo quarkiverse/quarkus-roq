@@ -71,10 +71,12 @@ runs:
     - name: Build & Generate Blog
       shell: bash
       run: |
-        mvn -B package quarkus:run \
+        ./mvnw -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
           -Dsite.url=${{ env.SITE_URL }}
+      env:
+        QUARKUS_ROQ_GENERATOR_BATCH: true
 
     # Step 4: Upload Built Site as Artifact
     - name: Upload Site as Artifact
