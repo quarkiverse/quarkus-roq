@@ -31,6 +31,6 @@ jobs:
         run: mvn -B clean install -DskipTests
       ####
 
-      - uses: ./action.yml
+      - uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
