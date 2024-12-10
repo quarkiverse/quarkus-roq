@@ -34,6 +34,6 @@ jobs:
       - uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: 'blog'
+          site-directory: 'blog/'
           maven-executable: 'mvn'
           maven-build-args: '-DskipTests -Dquarkus.profile=gh-pages'
