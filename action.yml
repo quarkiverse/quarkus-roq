@@ -44,6 +44,7 @@ runs:
 
     # Step 2: Get GitHub Pages URL (if not provided as input)
     - name: Get GitHub Pages URL
+      shell: bash
       if: ${{ inputs.site-url == null || inputs.site-path == null }}
       id: get_url
       env:
@@ -60,6 +61,7 @@ runs:
         echo "::set-output name=site-url::$url"
         echo "::set-output name=site-path::$path"
     - name: Set SITE_URL and SITE_PATH
+      shell: bash
       run: |
         SITE_URL=${{ inputs.site-url || env.SITE_URL }}
         SITE_PATH=${{ inputs.site-path || env.SITE_PATH }}
@@ -67,6 +69,7 @@ runs:
 
     # Step 3: Build Quarkus Blog with Quarkus HTTP Root Path
     - name: Build & Generate Blog
+      shell: bash
       run: |
         mvn -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
