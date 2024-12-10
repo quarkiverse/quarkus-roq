@@ -105,12 +105,10 @@ runs:
 
     # Step 6: Setup GitHub Pages
     - name: Setup Pages
-      if: ${{ inputs.deploy-to-pages }}
       uses: actions/configure-pages@v5
 
     # Step 7: Upload Artifact to GitHub Pages
     - name: Upload Artifact
-      if: ${{ inputs.deploy-to-pages }}
       uses: actions/upload-pages-artifact@v3
       with:
         path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}
