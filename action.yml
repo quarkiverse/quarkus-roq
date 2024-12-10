@@ -71,21 +71,21 @@ runs:
     - name: Setting envs
       shell: bash
       run: |
-        url=${{ inputs.site-url || env.SITE_FULL_URL }}
-        if [ -z "$url" ]; then
-          echo "site-url is required if github-pages=false"
+        SITE_URL=${{ inputs.site-url || env.SITE_FULL_URL }}
+        if [ -z "$SITE_URL" ]; then
+          echo "site-url input is required if github-pages=false"
           exit 1
         fi
-        path=$(echo "$url" | sed -E 's|https?://[^/]+(/.*)?|\1|')
-        url=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|')
-        if [ -z "$path" ]; then
-          path="/"
+        SITE_PATH=$(echo "$SITE_URL" | sed -E 's|https?://[^/]+(/.*)?|\1|')
+        SITE_URL=$(echo "$SITE_URL" | sed -E 's|(https?://[^/]+).*|\1|')
+        if [ -z "$SITE_PATH" ]; then
+          SITE_PATH="/"
         fi
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
         echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
-        echo "SITE_URL=$url" >> $GITHUB_ENV
-        echo "SITE_PATH=$path" >> $GITHUB_ENV
+        echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
     # Step 4: Build and Generate Quarkus Blog with Quarkus HTTP Root Path
