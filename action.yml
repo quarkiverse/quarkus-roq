@@ -10,6 +10,10 @@ inputs:
   java-distribution:
     description: "Java distribution to use"
     default: "temurin"
+  maven-executable:
+    description: 'Choose whether to use mvn or ./mvnw'
+    required: false
+    default: 'mvn'
   maven-cache:
     description: "Maven cache strategy"
     default: "maven"
@@ -71,7 +75,7 @@ runs:
     - name: Build & Generate Blog
       shell: bash
       run: |
-        ./mvnw -B package quarkus:run \
+        ${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
           -Dsite.url=${{ env.SITE_URL }}
