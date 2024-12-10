@@ -85,7 +85,7 @@ runs:
         SITE_DIR=${SITE_DIR%/}/
         echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
         echo "SITE_URL=$url" >> $GITHUB_ENV
-        echo "SITE_PATH=path" >> $GITHUB_ENV
+        echo "SITE_PATH=$path" >> $GITHUB_ENV
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
     # Step 4: Build and Generate Quarkus Blog with Quarkus HTTP Root Path
