@@ -65,8 +65,8 @@ runs:
         fi
         input_url=${{ inputs.site-url }}
         input_path=${{ inputs.site-path }}
-        SITE_URL=${$input_url:-$url}
-        SITE_PATH=${$input_path:-$path}
+        SITE_URL=${input_url:-$url}
+        SITE_PATH=${input_path:-$path}
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
         
