@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     permissions:
       pages: write      # to deploy to Pages
@@ -31,7 +31,7 @@ jobs:
         run: mvn -B clean install -DskipTests
       ####
 
-      - name: Build and Deploy Blog
+      - name: Generate Blog
         uses: ./ # replace by quarkiverse/quarkus-roq@...
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -40,3 +40,16 @@ jobs:
           site-directory: 'blog'
           maven-executable: 'mvn'
           maven-build-args: '-DskipTests -Dquarkus.profile=gh-pages'
+
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

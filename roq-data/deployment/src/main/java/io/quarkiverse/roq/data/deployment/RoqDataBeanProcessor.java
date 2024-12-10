@@ -74,7 +74,7 @@ class RoqDataBeanProcessor {
         }
         if (!beans.isEmpty() && config.logDataBeans()) {
             LOG.infof("Roq data beans%s: %n%s",
-                    roqDataJsonBuildItems.isEmpty() ? "" : " (* use @DataMapping to enable type-safety)",
+                    roqDataJsonBuildItems.isEmpty() ? "" : " (* add a @DataMapping to enable type-safety)",
                     String.join(System.lineSeparator(), beans));
         }
     }

@@ -1,10 +1,6 @@
 name: "Build and Deploy Roq Site"
 description: "Sets up JDK, builds the Quarkus site, and deploys it to GitHub Pages."
 inputs:
-  deploy-to-pages:
-    description: 'Whether to deploy the site to GitHub Pages (true/false)'
-    required: false
-    default: 'true'
   github-token:
     description: "GitHub token for accessing GitHub Pages"
     required: true
@@ -107,22 +103,6 @@ runs:
       env:
         QUARKUS_ROQ_GENERATOR_BATCH: true
 
-    # Step 4: Upload Built Site as Artifact
-    - name: Upload Site as Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ inputs.artifact-name }}
-        path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}
-        retention-days: ${{ inputs.retention-days }}
-
-    # Step 5: Download Built Site for Deployment
-    - name: Download Built Site
-      if: ${{ inputs.deploy-to-pages }}
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.artifact-name }}
-        path: _site
-
     # Step 6: Setup GitHub Pages
     - name: Setup Pages
       if: ${{ inputs.deploy-to-pages }}
@@ -132,9 +112,5 @@ runs:
     - name: Upload Artifact
       if: ${{ inputs.deploy-to-pages }}
       uses: actions/upload-pages-artifact@v3
-
-    # Step 8: Deploy to GitHub Pages
-    - name: Deploy to GitHub Pages
-      if: ${{ inputs.deploy-to-pages }}
-      id: deployment
-      uses: actions/deploy-pages@v4
+      with:
+        path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}

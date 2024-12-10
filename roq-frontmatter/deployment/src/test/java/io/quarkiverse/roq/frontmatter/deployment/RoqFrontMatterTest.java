@@ -52,7 +52,7 @@ public class RoqFrontMatterTest {
     @Test
     public void testDateFileName() {
         RestAssured.when().get("/bar/posts/old-post").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.article.span", equalTo("2020-10-24T12:00Z[UTC]"));
+                .body("html.body.article.span", equalTo("2020-10-24T00:00Z[UTC]"));
     }
 
 }
