@@ -31,6 +31,9 @@ jobs:
         run: mvn -B clean install -DskipTests
       ####
 
-      - uses: ./
+      - uses: ../
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: 'blog'
+          maven-executable: 'mvn'
+          maven-build-args: '-DskipTests -Dquarkus.profile=gh-pages'
