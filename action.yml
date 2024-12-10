@@ -1,0 +1,102 @@
+name: "Build and Deploy Roq Site"
+description: "Sets up JDK, builds the Quarkus site, and deploys it to GitHub Pages."
+inputs:
+  github-token:
+    description: "GitHub token for accessing GitHub Pages"
+    required: true
+  java-version:
+    description: "Java version to use for the build"
+    default: "21"
+  java-distribution:
+    description: "Java distribution to use"
+    default: "temurin"
+  maven-cache:
+    description: "Maven cache strategy"
+    default: "maven"
+  site-url:
+    description: "The URL of the site (overrides auto-detected URL if provided)"
+    required: false
+  site-path:
+    description: "The path of the site (overrides auto-detected path if provided)"
+    required: false
+  maven-build-args:
+    description: "Additional Maven build arguments"
+    default: "-DskipTests"
+  artifact-name:
+    description: "Name of the artifact to upload"
+    default: "site"
+  artifact-path:
+    description: "Path of the artifact to upload"
+    default: "target/roq"
+  retention-days:
+    description: "Retention days for the uploaded artifact"
+    default: "1"
+runs:
+  using: "composite"
+  steps:
+    # Step 1: Set up JDK
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+        cache: ${{ inputs.maven-cache }}
+
+    # Step 2: Get GitHub Pages URL (if not provided as input)
+    - name: Get GitHub Pages URL
+      if: ${{ inputs.site-url == null || inputs.site-path == null }}
+      id: get_url
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        path=$(echo "$url" | sed -E 's|https?://[^/]+(/.*)?|\1|')
+        url=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|')
+        if [ -z "$path" ]; then
+          path="/"
+        fi
+        echo "SITE_URL=$url" >> $GITHUB_ENV
+        echo "SITE_PATH=$path" >> $GITHUB_ENV
+        echo "::set-output name=site-url::$url"
+        echo "::set-output name=site-path::$path"
+    - name: Set SITE_URL and SITE_PATH
+      run: |
+        SITE_URL=${{ inputs.site-url || env.SITE_URL }}
+        SITE_PATH=${{ inputs.site-path || env.SITE_PATH }}
+        echo "Using SITE_URL=$SITE_URL and SITE_PATH=$SITE_PATH"
+
+    # Step 3: Build Quarkus Blog with Quarkus HTTP Root Path
+    - name: Build & Generate Blog
+      run: |
+        mvn -B package quarkus:run \
+          ${{ inputs.maven-build-args }} \
+          -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
+          -Dsite.url=${{ env.SITE_URL }}
+
+    # Step 4: Upload Built Site as Artifact
+    - name: Upload Site as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
+        retention-days: ${{ inputs.retention-days }}
+
+    # Step 5: Download Built Site for Deployment
+    - name: Download Built Site
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: _site
+
+    # Step 6: Setup GitHub Pages
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    # Step 7: Upload Artifact to GitHub Pages
+    - name: Upload Artifact
+      uses: actions/upload-pages-artifact@v3
+
+    # Step 8: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
