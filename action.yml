@@ -1,14 +1,24 @@
 name: "Build and Deploy Roq Site"
 description: "Sets up JDK, builds the Quarkus site, and deploys it to GitHub Pages."
 inputs:
+  deploy-to-pages:
+    description: 'Whether to deploy the site to GitHub Pages (true/false)'
+    required: false
+    default: 'true'
   github-token:
     description: "GitHub token for accessing GitHub Pages"
     required: true
+  setup-java:
+    description: "Whether to setup Java or not"
+    required: false
+    default: 'true'
   java-version:
     description: "Java version to use for the build"
+    required: false
     default: "21"
   java-distribution:
     description: "Java distribution to use"
+    required: false
     default: "temurin"
   maven-executable:
     description: 'Choose whether to use mvn or ./mvnw'
@@ -16,6 +26,7 @@ inputs:
     default: './mvnw'
   maven-cache:
     description: "Maven cache strategy"
+    required: false
     default: "maven"
   site-url:
     description: "The URL of the site (overrides auto-detected URL if provided)"
@@ -25,24 +36,30 @@ inputs:
     required: false
   maven-build-args:
     description: "Additional Maven build arguments"
+    required: false
     default: "-DskipTests"
   artifact-name:
     description: "Name of the artifact to upload"
+    required: false
     default: "site"
   artifact-path:
     description: "Path of the artifact to upload"
+    required: false
     default: "target/roq"
   retention-days:
     description: "Retention days for the uploaded artifact"
+    required: false
     default: "1"
   site-directory:
     description: "The directory containing the Roq site"
+    required: false
     default: "./"
 runs:
   using: "composite"
   steps:
-    # Step 1: Set up JDK
-    - name: Set up JDK
+    # Step 1: Set up Java
+    - name: Set up Java
+      if: ${{ inputs.setup-java }}
       uses: actions/setup-java@v4
       with:
         java-version: ${{ inputs.java-version }}
@@ -100,6 +117,7 @@ runs:
 
     # Step 5: Download Built Site for Deployment
     - name: Download Built Site
+      if: ${{ inputs.deploy-to-pages }}
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
@@ -107,13 +125,16 @@ runs:
 
     # Step 6: Setup GitHub Pages
     - name: Setup Pages
+      if: ${{ inputs.deploy-to-pages }}
       uses: actions/configure-pages@v5
 
     # Step 7: Upload Artifact to GitHub Pages
     - name: Upload Artifact
+      if: ${{ inputs.deploy-to-pages }}
       uses: actions/upload-pages-artifact@v3
 
     # Step 8: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
+      if: ${{ inputs.deploy-to-pages }}
       id: deployment
       uses: actions/deploy-pages@v4
