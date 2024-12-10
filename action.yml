@@ -70,7 +70,8 @@ runs:
     - name: Set SITE_URL and SITE_PATH
       shell: bash
       run: |
-        SITE_DIR=${{ inputs.site-url%/}/}
+        SITE_DIR=${{ inputs.site-url }}
+        SITE_DIR=${SITE_DIR%/}/
         SITE_URL=${{ inputs.site-url || env.SITE_URL }}
         SITE_PATH=${{ inputs.site-path || env.SITE_PATH }}
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL and SITE_PATH=$SITE_PATH"
