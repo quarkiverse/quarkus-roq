@@ -73,10 +73,9 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         # Fetch GitHub Pages URL
-        # Fetch GitHub Pages URL
         url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' 2>/dev/null || echo '')
-        # Check if URL is non-empty (i.e., GitHub Pages is enabled)
-        if [ -n "$url" ]; then
+        # Check if URL is starts with http
+        if [[ $url == http* ]]; then
           echo "GitHub Pages is enabled for this repository: $url"
           echo "SITE_FULL_URL=$url" >> $GITHUB_ENV 
         else
