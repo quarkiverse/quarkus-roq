@@ -1,13 +1,7 @@
 [[github-pages]]
 == Deploy to GitHub Pages
 
-To create your GitHub Page with Roq:
-
-1. *Open* your GitHub repository page
-2. **Go to** Settings->Page
-3. *Pick:* `Source: GitHub Actions`
-4. *Click* on Static Html "Configure" button
-5. Paste this content  (to adapt with Gradle):
+Check if you already have the `.github/workflows/deploy.yml` file, if you don't create it:
 
 ..github/workflows/deploy.yml
 [source,yaml]
@@ -43,4 +37,14 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 ----
+
+Then to enable GitHub Pages:
+
+1. *Open* your GitHub repository page
+2. **Go to** Settings->Page
+3. *Pick:* `Source: GitHub Actions`, that's enough (no save button)
+
+It's all good, restart your deploy workflow and enjoy!
+
+
 
