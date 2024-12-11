@@ -37,12 +37,20 @@ inputs:
     description: "GitHub token for accessing GitHub Pages url (required if github-pages)"
     required: false
   site-url:
-    description: "The full URL of the site including the eventual root path (required if not github-pages)"
+    description: "The full URL of the site including the eventual root path"
     required: false
   artifact-path:
     description: "Path of the artifact to upload (from the site-directory)"
     required: false
     default: "target/roq"
+  site-future:
+    description: "Generate future posts"
+    default: 'false'
+    required: false
+  site-draft:
+    description: "Generate draft posts"
+    default: 'false'
+    required: false
 
 runs:
   using: "composite"
@@ -71,15 +79,14 @@ runs:
     - name: Setting envs
       shell: bash
       run: |
-        SITE_URL=${{ inputs.site-url || env.SITE_FULL_URL }}
-        if [ -z "$SITE_URL" ]; then
-          echo "site-url input is required if github-pages=false"
-          exit 1
-        fi
-        SITE_PATH=$(echo "$SITE_URL" | sed -E 's|https?://[^/]+(/.*)?|\1|')
-        SITE_URL=$(echo "$SITE_URL" | sed -E 's|(https?://[^/]+).*|\1|')
-        if [ -z "$SITE_PATH" ]; then
-          SITE_PATH="/"
+        FULL_URL=${{ inputs.site-url || env.SITE_FULL_URL || '/' }}
+        if [[ "$FULL_URL" =~ ^https?:// ]]; then
+          SITE_URL=$(echo "$FULL_URL" | sed -E 's|(https?://[^/]+).*|\1|')        # Extract base URL
+          SITE_PATH=$(echo "$FULL_URL" | sed -E 's|https?://[^/]+||')             # Extract path
+          [[ -z "$SITE_PATH" ]] && SITE_PATH="/"                                  # Default to "/" if no path
+        else
+          SITE_URL=""
+          SITE_PATH="${FULL_URL:-/}"                                              # Use input as SITE_PATH or default to "/"
         fi
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
@@ -96,7 +103,9 @@ runs:
         ${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
-          -Dsite.url=${{ env.SITE_URL }}
+          -Dsite.url=${{ env.SITE_URL }} \
+          -Dsite.future=${{ inputs.site-future }} \
+          -Dsite.draft=${{ inputs.site-draft }}
       env:
         QUARKUS_ROQ_GENERATOR_BATCH: true
 

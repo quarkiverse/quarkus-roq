@@ -22,7 +22,7 @@ jobs:
           java-version: 21
           cache: 'maven'
 
-      - name: Build docs
+      - name: Build Roq
         run: mvn -B install --file pom.xml -DskipTests
 
       - name: Store PR id
@@ -37,8 +37,12 @@ jobs:
           retention-days: 3
 
       - name: Build blog
-        run: |
-          QUARKUS_ROQ_GENERATOR_BATCH=true mvn -Dsite.future=true -f blog package quarkus:run -DskipTests
+        uses: ./
+        with:
+          github-pages: false
+          site-directory: 'blog'
+          site-future: 'true'
+          maven-executable: 'mvn'
 
       - name: Publishing blog
         uses: actions/upload-artifact@v4
