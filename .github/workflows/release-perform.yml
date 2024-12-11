@@ -2,8 +2,8 @@ name: Quarkiverse Perform Release
 run-name: Perform ${{github.event.inputs.tag || github.ref_name}} Release
 on:
   push:
-    tags:
-      - '*'
+    tags-ignore:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
