@@ -73,17 +73,14 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         # Fetch GitHub Pages URL
-        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' || '')
-        
+        # Fetch GitHub Pages URL
+        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' 2>/dev/null || echo '')
         # Check if URL is non-empty (i.e., GitHub Pages is enabled)
-        if [[ -z "$url" ]]; then
+        if [ -n "$url" ]; then
           echo "GitHub Pages is enabled for this repository: $url"
           echo "SITE_FULL_URL=$url" >> $GITHUB_ENV 
         else
-          echo "Error: GitHub Pages is not enabled for this repository."
-          echo "To enable GitHub Pages:"
-          echo "1. Go to 'Settings' > 'Pages' in your repository."
-          echo "2. Configure the branch and folder for GitHub Pages."
+          echo "::error::GitHub Pages is not enabled for this repository. To enable GitHub Pages: Go to 'Settings' > 'Pages' in your repository and configure GitHub Pages."
           exit 1
         fi
 
