@@ -78,6 +78,7 @@ runs:
         # Check for 404 error
         if [[ $? -eq 0 ]]; then
           echo "GitHub Pages is enabled for this repository: $url"
+          echo "SITE_FULL_URL=$url" >> $GITHUB_ENV 
         else
           echo "Error: GitHub Pages is not enabled for this repository."
           echo "To enable GitHub Pages:"
@@ -85,7 +86,6 @@ runs:
           echo "2. Configure the branch and folder for GitHub Pages."
           exit 1
         fi
-        echo "SITE_FULL_URL=$url" >> $GITHUB_ENV
 
     # Step 3: Setting environments for the build
     - name: Setting envs
