@@ -79,10 +79,11 @@ runs:
         if [[ $? -eq 0 ]]; then
           echo "GitHub Pages is enabled for this repository: $url"
         else
-          echo "GitHub Pages is not enabled for this repository."
+          echo "Error: GitHub Pages is not enabled for this repository."
           echo "To enable GitHub Pages:"
           echo "1. Go to 'Settings' > 'Pages' in your repository."
           echo "2. Configure the branch and folder for GitHub Pages."
+          exit 1
         fi
         echo "SITE_FULL_URL=$url" >> $GITHUB_ENV
 
