@@ -24,8 +24,6 @@ Jotak, a Red Hat developer working on the NetObserv project, used to lean more t
 
 netobserv.io ([repo](https://github.com/netobserv/netobserv.github.io))
 
-
-
 **Will you be the next to share your Roq's journey?** Come on 😎 !!!
 
 
