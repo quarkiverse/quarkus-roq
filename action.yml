@@ -73,7 +73,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         # Fetch GitHub Pages URL
-        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' --silent)
+        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' || '')
         
         # Check if URL is non-empty (i.e., GitHub Pages is enabled)
         if [[ -z "$url" ]]; then
