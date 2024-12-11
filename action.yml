@@ -75,8 +75,8 @@ runs:
         # Fetch GitHub Pages URL
         url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' 2>/dev/null)
         
-        # Check for 404 error
-        if [[ $? -eq 0 ]]; then
+        # Check if URL is non-empty (i.e., GitHub Pages is enabled)
+        if [[ -n "$url" ]]; then
           echo "GitHub Pages is enabled for this repository: $url"
           echo "SITE_FULL_URL=$url" >> $GITHUB_ENV 
         else
