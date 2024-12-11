@@ -72,7 +72,18 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        # Fetch GitHub Pages URL
+        url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' 2>/dev/null)
+        
+        # Check for 404 error
+        if [[ $? -eq 0 ]]; then
+          echo "GitHub Pages is enabled for this repository: $url"
+        else
+          echo "GitHub Pages is not enabled for this repository."
+          echo "To enable GitHub Pages:"
+          echo "1. Go to 'Settings' > 'Pages' in your repository."
+          echo "2. Configure the branch and folder for GitHub Pages."
+        fi
         echo "SITE_FULL_URL=$url" >> $GITHUB_ENV
 
     # Step 3: Setting environments for the build

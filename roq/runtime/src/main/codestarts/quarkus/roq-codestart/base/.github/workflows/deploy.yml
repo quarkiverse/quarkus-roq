@@ -1,18 +1,3 @@
-[[github-pages]]
-== Deploy to GitHub Pages
-
-To create your GitHub Page with Roq:
-
-1. *Open* your GitHub repository page
-2. **Go to** Settings->Page
-3. *Pick:* `Source: GitHub Actions`
-4. *Click* on Static Html "Configure" button
-5. Paste this content  (to adapt with Gradle):
-
-..github/workflows/deploy.yml
-[source,yaml]
-----
-## Deploy to GH-Pages for your Quarkus Roq blog.
 name: Roq Site Deploy
 
 on:
@@ -42,5 +27,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-----
-
