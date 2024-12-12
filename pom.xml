@@ -36,7 +36,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.17.3</quarkus.version>
+        <quarkus.version>3.17.4</quarkus.version>
         <assertj.version>3.26.3</assertj.version>
         <quarkus-qute-web.version>3.2.2</quarkus-qute-web.version>
         <quarkus-web-bundler.version>1.8.0</quarkus-web-bundler.version>
