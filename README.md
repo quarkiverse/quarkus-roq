@@ -27,14 +27,23 @@
 
 The Roq Static Site Generator extension allows to easily create a static website or blog (such as [Roq's blog](https://pages.quarkiverse.io/quarkus-roq/)) using Quarkus super-powers.
 
-Get started with the [documentation](https://docs.quarkiverse.io/quarkus-roq/dev/index.html).
+## Get up and running with Roq
 
-Roq already includes a set of extensions which can also be used standalone:
-- [Roq Data](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html): Use json/yaml files content from your templates and articles with type safety.
-- [Roq FrontMatter](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-frontmatter.html):  Create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
-- [Roq Generator](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-generator.html): Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
+[Click here](https://code.quarkus.io/?a=roq-my-site&e=io.quarkiverse.roq%3Aquarkus-roq) to generate your Roq Starter App.
 
+or use the [Quarkus CLI](https://quarkus.io/guides/cli-tooling):
 
+```shell
+quarkus create app roq-my-site -x=io.quarkiverse.roq:quarkus-roq
+```
+
+Then
+```shell
+cd roq-with-blog
+quarkus dev
+```
+
+Learn more in the [documentation](https://docs.quarkiverse.io/quarkus-roq/dev/index.html).
 
 ## Contributors ✨
 
