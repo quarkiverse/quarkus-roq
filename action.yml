@@ -1,8 +1,8 @@
 name: "Build and Deploy Roq Site"
 description: "Sets up JDK, builds the Quarkus site, and upload the GitHub Pages artifact."
 branding:
-  icon: 'award'
-  color: 'dribbble'
+  icon: 'dribbble'
+  color: 'orange'
 inputs:
   setup-java:
     description: "Whether to setup Java or not"
