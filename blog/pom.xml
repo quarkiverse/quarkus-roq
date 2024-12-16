@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>
-            <version>11.10.0</version>
+            <version>11.11.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
