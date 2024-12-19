@@ -1,4 +1,4 @@
-include::./includes/attributes.adoc[]
+include::./_includes/attributes.adoc[]
 
 = Quarkus Roq Plugins
 

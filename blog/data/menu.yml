@@ -1,4 +1,7 @@
 items:
+  - title: "Getting Started"
+    path: "/getting-started"
+    icon: "fa fa-code"
   - title: "Blog"
     path: "/"
     icon: "fa-regular fa-newspaper"
@@ -9,6 +12,6 @@ items:
     path: "/about"
     icon: "fa fa-thumbs-up"
   - title: "Documentation"
-    path: "https://docs.quarkiverse.io/quarkus-roq/dev/index.html"
+    path: "/doc/basics"
     icon: "fa-solid fa-book"
     target: "_blank"

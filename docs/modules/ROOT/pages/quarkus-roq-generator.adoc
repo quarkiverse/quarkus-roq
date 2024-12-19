@@ -1,4 +1,4 @@
-include::./includes/attributes.adoc[]
+include::./_includes/attributes.adoc[]
 
 = Quarkus Roq Generator
 
@@ -10,7 +10,7 @@ CAUTION: Roq Generator is already included as part of the Roq Static Site Genera
 
 You can generate your static site using:
 
-[source,shell]
+[source,console]
 ----
 QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run -DskipTests
 ----
@@ -21,7 +21,7 @@ TIP: When used within the Roq Static Site Generator extension, it is already pre
 
 
 You can now try or deploy your static website with any static file server. We provide a small tool to try it:
-[source,shell]
+[source,console]
 ----
 $ jbang app install --verbose --fresh --force roq@quarkiverse/quarkus-roq
 $ roq                                                                                                                         decks->!+(ia3andy/decks)
@@ -83,7 +83,7 @@ You need to produce a `RoqSelection` singleton from your application:
 
 TIP: Use `@Transactional` if you need to iterate through database entities to prepare your selection. For example if the blog post ids are stored in a database.
 
-include::includes/github-pages.adoc[]
+include::_includes/github-pages.adoc[]
 
 [[standalone-installation]]
 == Standalone installation
@@ -106,4 +106,4 @@ For instance, with Maven, add the following dependency to your POM file:
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 
-include::includes/quarkus-roq-generator.adoc[leveloffset=+1, opts=optional]
+include::_includes/quarkus-roq-generator.adoc[leveloffset=+1, opts=optional]

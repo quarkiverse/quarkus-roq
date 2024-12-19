@@ -1,4 +1,4 @@
-include::./includes/attributes.adoc[]
+include::./_includes/attributes.adoc[]
 
 = Quarkus Roq Data
 
@@ -197,4 +197,4 @@ For instance, with Maven, add the following dependency to your POM file:
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 
-include::includes/quarkus-roq-data.adoc[leveloffset=+1, opts=optional]
+include::_includes/quarkus-roq-data.adoc[leveloffset=+1, opts=optional]

@@ -323,9 +323,16 @@ public class RoqFrontMatterScanProcessor {
                         // add Qute templates
                         try {
                             final String link = toUnixPath(templatesRoot.relativize(p).toString());
+                            final String content = Files.readString(p, StandardCharsets.UTF_8);
+                            if (content.length() > 65535) {
+                                LOGGER.warnf(
+                                        "Ignoring template '%s' because it is too large for recording, consider splitting it.",
+                                        link);
+                                return;
+                            }
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
                                     .path(link)
-                                    .content(Files.readString(p, StandardCharsets.UTF_8))
+                                    .content(content)
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
                                     .build());
                         } catch (IOException e) {

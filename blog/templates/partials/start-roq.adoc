@@ -1,0 +1,16 @@
+
+*https://code.quarkus.io/?a=roq-with-blog&e=io.quarkiverse.roq%3Aquarkus-roq[Click here,window=_blank]  to generate your Roq Starter App.*
+
+or use the https://quarkus.io/guides/cli-tooling[Quarkus CLI,window=_blank]:
+[source,console]
+----
+quarkus create app roq-with-blog -x=io.quarkiverse.roq:quarkus-roq
+----
+
+Then
+
+[source,console]
+----
+cd roq-with-blog
+quarkus dev
+----

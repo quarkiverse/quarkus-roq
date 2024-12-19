@@ -7,9 +7,6 @@ tags: blogging
 author: ia3andy
 ---
 
-{#qrcode value="https://pages.quarkiverse.io/quarkus-roq/" alt="QR Code for the blog" foreground="000000" background="FFFFFF" width=300 height=300 /}
-
-<br/
 Hello folks,
 
 First let me thanks the Roq [contributors]({site.url('about')}), they have been awesome and this has been so fun to create Roq!
@@ -19,13 +16,13 @@ First let me thanks the Roq [contributors]({site.url('about')}), they have been 
 [Click here](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=Click%20here%20to,roq%0Aquarkus%20dev) to generate your Roq Starter App.
 
 or use the [Quarkus CLI](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=or%20use%20the-,Quarkus%20CLI,-%3A):
-```shell
+```console
 quarkus create app blog-with-roq -x=io.quarkiverse.roq:quarkus-roq
 ```
 
 Then
 
-```shell
+```console
 cd blog-with-roq
 quarkus dev
 ```

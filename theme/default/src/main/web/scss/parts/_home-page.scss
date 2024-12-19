@@ -18,6 +18,7 @@
 }
 .page-content {
   flex-grow: 1;
+  padding: 40px;
 }
 .about {
   .cover-author-image {
@@ -116,6 +117,7 @@
       margin-left: 10px;
       i {
         margin-right: 20px;
+        width: 18px;
       }
       a {
         color: $body-color;

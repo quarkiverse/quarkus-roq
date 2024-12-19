@@ -13,3 +13,7 @@ paginate:
   collection: posts
   size: 5
 ---
+
+= The Roq Blog
+
+If you haven't check out our link:{site.url('getting-started')}[getting started] page.

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
@@ -65,7 +66,7 @@
                 <artifactId>quarkus-config-doc-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <targetDirectory>${project.basedir}/modules/ROOT/pages/includes/</targetDirectory>
+                    <targetDirectory>${project.basedir}/modules/ROOT/pages/_includes/</targetDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -78,7 +79,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/modules/ROOT/pages/includes/</outputDirectory>
+                            <outputDirectory>${project.basedir}/modules/ROOT/pages/_includes/</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}/templates/includes</directory>
@@ -95,10 +96,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/generated-docs/_images/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/generated-docs/static/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/modules/ROOT/assets/images/</directory>
+                                    <directory>${project.basedir}/modules/ROOT/assets/static/</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>
@@ -109,6 +110,15 @@
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>convert-asciidoc</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

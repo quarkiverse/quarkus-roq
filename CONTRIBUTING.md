@@ -19,7 +19,7 @@ This project uses Java 21 and [Maven](https://maven.apache.org/) as build toolin
 
 To run the tests, use the following:
 
-```shell
+```console
 mvn verify
 ```
 
@@ -31,7 +31,7 @@ Maven automatically formats code and organizes imports when you run `mvn verify`
 
 To install all Roq extensions, we need to run:
 
-```shell
+```console
 mvn clean install
 ```
 
@@ -46,19 +46,19 @@ There are two ways for running the blog post locally:
 
 Go to `blog` directory:
 
-```shell
+```console
 cd blog
 ```
 
 And, to execute the following maven command:
 
-```shell
+```console
 mvn quarkus:dev
 ```
 
 If you are using Quarkus CLI, you can use:
 
-```shell
+```console
 quarkus dev
 ```
 

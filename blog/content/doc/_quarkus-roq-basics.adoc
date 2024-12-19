@@ -1,22 +1,82 @@
-[[getting-started]]
-== Getting started
+include::./_includes/attributes.adoc[]
 
-By default, your site should be located in the **project root directory**.
+= Roq Basics
 
-TIP: you can also put it in the resources (i.e. `src/main/resources/`).
+By default, your site files should be located in the **project root directory**.
+
+TIP: you may also put it in the Java resources (i.e. `src/main/resources/`).
+
+== Directory Structure
 
 The default directory structure is:
+[source]
+----
+my-site/
+├── data/                                // <1>
+│   ├── menu.yml
+│   └── tags.yml
+│
+├── content/                             // <2>
+│   ├── posts/                           // <3>
+│   │   ├── 2024-10-14-roq-ssg.md
+│   │   └── 2024-10-20-heart-roq.md
+│   │
+│   ├── roq-bottom.md                    // <4>
+│   └── index.html                       // <5>
+│
+├── static/                              // <6>
+│   └── assets/
+│
+└── templates/                           // <7>
+    ├── partials/                        // <8>
+    │   ├── head.html
+    │   └── pagination.html
+    │
+    └── layouts/                         // <9>
+        ├── base.html
+        ├── page.html
+        └── post.html
+└── pom.xml                              // <10>
+----
 
-image::roq-dirs.png[Roq directory structure]
+<1> **Roq Data Files**
+The `data/` directory contains data files like `menu.yml` and `tags.yml`. These files can hold structured data used across the site.
 
-// https://excalidraw.com/#json=VbxiMXccXfFuW0S2-nqnc,v3IIL7FZIpJqIsUshso-FQ
+<2> **Content Files**
+The `content/` directory is where all content of the site that will be generated as pages resides (.html, .md, .adoc*, .json, .xml, ...)
 
+<3> **Collections**
+The `posts/` directory is the default collection in Roq, it is optional. It holds content files for blog posts or similar structured documents. You can configure multiples collections (recipes, events, ...).
 
-NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
+<4> **Additional Files**
+Content files like `roq-bottom.md` outside a collection will be treated as pages.
+
+<5> **Index File**
+The `index.html` file is required and serves as the homepage. It provides site-wide data using FrontMatter.
+
+<6> **Static Assets**
+The `static/` directory holds static assets, such as images, CSS, or JavaScript files. These files are configurable and will not be processed.
+
+<7> **Templates**
+The `templates/` directory is optional as templates can be provided by a theme. It contains Qute templates for partials and layouts.
+
+<8> **Qute Partials**
+The `partials/` directory contains reusable Qute template fragments, such as `head.html` and `pagination.html`, which can be included in layouts.
+
+<9> **Layouts**
+The `layouts/` directory defines the structure for pages and documents. For example:
+- `base.html` is the main layout.
+- `page.html` and `post.html` are specific layouts for pages and posts.
+
+<10> **Build files**
+The build file such as a `pom.xml` is needed to configure the build. It contains dependencies for your site such as theme and plugins.
+
 
 === Qute and FrontMatter
 
 All templates can use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
+
+TIP: Type-safety doesn't make it more complex, it just means that using wrong variables and such will result in build error. This way it won't leak in production.
 
 Templates for layout, documents and pages can declare a FrontMatter (referred as FM data) header delimited by  two `---`.
 This header contains yaml data used to configure many things such as:
@@ -240,7 +300,7 @@ Asciidoc is supported by Roq, though partially for the moment.
 
 All the formatting features are available. But others such as _diagrams_ are not yet supported.
 
-Custom attributes can also be used, but be sure to escape their use -`\{custom-attribute}`-. Other wise the Qute rendering engine will try to interpolate them.
+Custom attributes can also be used, but be sure to escape their use -`{custom-attribute}`-. Other wise the Qute rendering engine will try to interpolate them.
 
 
 ==== Includes
@@ -256,7 +316,7 @@ The standard `imagedir` attribute is not supported.
 
 You should instead place your images under the `static/assets/images` folder, and reference them with the image macro :
 
- image::\{site.imagesDirUrl.resolve('your_image.png')}[Image description]
+ image::{site.imagesDirUrl.resolve('your_image.png')}[Image description]
 
 
 === Collections

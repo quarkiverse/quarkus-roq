@@ -53,7 +53,7 @@ public class RoqCollection extends ArrayList<DocumentPage> {
     /**
      * Get the sub-list of documents depending on the given paginator
      */
-    public Collection<DocumentPage> paginated(Paginator paginator) {
+    public List<DocumentPage> paginated(Paginator paginator) {
         if (paginator == null) {
             return this;
         }
@@ -62,17 +62,23 @@ public class RoqCollection extends ArrayList<DocumentPage> {
                 Math.min(this.size(), (zeroBasedCurrent * paginator.limit()) + paginator.limit()));
     }
 
+    public List<DocumentPage> randomise() {
+        final ArrayList<DocumentPage> list = new ArrayList<>(this);
+        Collections.shuffle(list);
+        return list;
+    }
+
     /**
      * @return future documents
      */
-    public Collection<DocumentPage> future() {
+    public List<DocumentPage> future() {
         return stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
     }
 
     /**
      * @return past documents
      */
-    public Collection<DocumentPage> past() {
+    public List<DocumentPage> past() {
         return stream().filter(d -> d.date().isBefore(ZonedDateTime.now())).toList();
     }
 
@@ -84,7 +90,7 @@ public class RoqCollection extends ArrayList<DocumentPage> {
      * @param keys the keys to search for in the pages' data. Multiple keys can be passed.
      * @return a {@code List<Object>} containing all non-null values found in the pages for the specified keys.
      */
-    public Collection<Object> by(String... keys) {
+    public List<Object> by(String... keys) {
         return this.stream()
                 .flatMap(page -> Arrays.stream(keys)
                         .map(page::data) // Get the data for each key
