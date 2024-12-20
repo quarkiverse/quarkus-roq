@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>roq-blog</artifactId>
@@ -51,7 +52,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-plugin-asciidoc</artifactId>
+            <artifactId>quarkus-roq-plugin-asciidoc-jruby</artifactId>
             <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
@@ -100,7 +101,16 @@
         </dependency>
     </dependencies>
     <build>
+
         <plugins>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-config-doc-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <targetDirectory>${project.basedir}/templates/partials/doc/configs</targetDirectory>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
@@ -123,16 +133,28 @@
                 <version>1.0.1</version>
                 <executions>
                     <execution>
-                        <id>copy-contributors</id>
+                        <id>copy-data</id>
                         <phase>generate-resources</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
                         <configuration>
-                            <sourceFile>${project.basedir}/../.all-contributorsrc</sourceFile>
-                            <destinationFile>data/contributors.json</destinationFile>
+                            <fileSets>
+                                <fileSet>
+                                    <sourceFile>${project.basedir}/../.all-contributorsrc</sourceFile>
+                                    <destinationFile>data/contributors.json</destinationFile>
+                                </fileSet>
+                                <fileSet>
+                                    <sourceFile>${project.basedir}/../.github/project.yml</sourceFile>
+                                    <destinationFile>data/project-info.yml</destinationFile>
+                                </fileSet>
+                            </fileSets>
+
                         </configuration>
                     </execution>
+
+
+
                 </executions>
             </plugin>
             <plugin>
@@ -165,7 +187,8 @@
                 </executions>
                 <configuration>
                     <systemPropertyVariables>
-                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner
+                        </native.image.path>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
@@ -174,18 +197,6 @@
         </plugins>
     </build>
     <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <skipITs>false</skipITs>
-                <quarkus.native.enabled>true</quarkus.native.enabled>
-            </properties>
-        </profile>
         <profile>
             <id>standalone</id>
             <activation>

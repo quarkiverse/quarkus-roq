@@ -3,7 +3,7 @@ items:
     path: "/"
     icon: "fa-regular fa-newspaper"
   - title: "Documentation"
-    path: "https://docs.quarkiverse.io/quarkus-roq/dev/index.html"
+    path: "https://pages.quarkiverse.io/quarkus-roq/docs/"
     icon: "fa-solid fa-book"
     target: "_blank"
   - title: "About"

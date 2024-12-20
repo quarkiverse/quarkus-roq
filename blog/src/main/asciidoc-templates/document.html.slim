@@ -1,0 +1,17 @@
+- if document.attributes['toc']
+  - toc = converter.convert(document, 'toc')
+  div.asciidoc
+    aside.toc.sidebar
+      div.toc-menu
+        = toc
+    article.doc.asciidoctor
+     h1.page = document.doctitle
+     aside.toc.embedded
+       h3 Contents
+       = toc
+     = content
+- else
+  div.asciidoc
+    article.doc.asciidoctor
+     h1.page = document.doctitle
+     = content

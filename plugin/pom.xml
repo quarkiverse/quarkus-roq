@@ -17,6 +17,7 @@
         <module>aliases</module>
         <module>markdown</module>
         <module>asciidoc</module>
+        <module>asciidoc-jruby</module>
         <module>qrcode</module>
         <module>series</module>
     </modules>

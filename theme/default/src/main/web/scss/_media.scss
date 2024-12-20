@@ -39,6 +39,10 @@
     }
 
   }
+  .wrap-content, .page-content {
+    padding: 20px;
+  }
+
   .about {
     text-align: center;
     max-width: 480px;
@@ -68,6 +72,9 @@
 /* Extra Small Devices, Phones */
 @media only screen and (max-width : 480px) {
   .content-box {
+    padding: 10px;
+  }
+  .wrap-content, .page-content {
     padding: 10px;
   }
   .post {

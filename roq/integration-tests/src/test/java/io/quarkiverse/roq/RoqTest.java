@@ -30,7 +30,8 @@ public class RoqTest {
     public void testCodestartAbout() {
         RestAssured.when().get("/about").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("About - Hello, world! I'm Roq"))
-                .body(containsString("Roq stands out in the Java development community"))
+                .body(containsString(
+                        "Roq is a powerful static site generator that combines the best features of tools like Jekyll and Hugo"))
                 .body(containsString("Roqqy Balboa"));
     }
 

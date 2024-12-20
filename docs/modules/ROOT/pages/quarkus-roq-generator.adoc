@@ -1,4 +1,4 @@
-include::./includes/attributes.adoc[]
+include::./_includes/attributes.adoc[]
 
 = Quarkus Roq Generator
 
@@ -83,7 +83,6 @@ You need to produce a `RoqSelection` singleton from your application:
 
 TIP: Use `@Transactional` if you need to iterate through database entities to prepare your selection. For example if the blog post ids are stored in a database.
 
-include::includes/github-pages.adoc[]
 
 [[standalone-installation]]
 == Standalone installation
@@ -106,4 +105,4 @@ For instance, with Maven, add the following dependency to your POM file:
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 
-include::includes/quarkus-roq-generator.adoc[leveloffset=+1, opts=optional]
+include::_includes/quarkus-roq-generator.adoc[leveloffset=+1, opts=optional]

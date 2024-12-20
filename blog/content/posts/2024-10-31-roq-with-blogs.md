@@ -7,9 +7,6 @@ tags: blogging
 author: ia3andy
 ---
 
-{#qrcode value="https://pages.quarkiverse.io/quarkus-roq/" alt="QR Code for the blog" foreground="000000" background="FFFFFF" width=300 height=300 /}
-
-<br/
 Hello folks,
 
 First let me thanks the Roq [contributors]({site.url('about')}), they have been awesome and this has been so fun to create Roq!

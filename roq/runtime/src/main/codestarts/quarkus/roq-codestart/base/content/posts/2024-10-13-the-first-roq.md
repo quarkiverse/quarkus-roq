@@ -35,4 +35,4 @@ It's time to write awesome articles!
 
 __Thank you!__
 
-**PS:** To make the tag work ([#blogging]({site.url.resolve('posts/tag/blogging')})), you need to [enable tagging](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-tagging).
+**PS:** To make the tag work ([#blogging]({site.url.resolve('posts/tag/blogging')})), you need to [enable tagging](https://pages.quarkiverse.io/quarkus-roq/docs/plugins#plugin-tagging).

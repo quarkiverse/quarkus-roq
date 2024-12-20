@@ -1,22 +1,23 @@
-[[getting-started]]
-== Getting started
+---
+title: Basics
+layout: doc
+---
+{#include partials/doc/doc-attributes.adoc/}
+= Roq the basics
 
-By default, your site should be located in the **project root directory**.
+By default, your site files should be located in the **project root directory**.
 
-TIP: you can also put it in the resources (i.e. `src/main/resources/`).
-
-The default directory structure is:
-
-image::roq-dirs.png[Roq directory structure]
-
-// https://excalidraw.com/#json=VbxiMXccXfFuW0S2-nqnc,v3IIL7FZIpJqIsUshso-FQ
+TIP: you may also put it in the Java resources (i.e. `src/main/resources/`).
 
 
-NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
+{#include partials/doc/directory-structure.adoc /}
+
 
 === Qute and FrontMatter
 
 All templates can use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
+
+TIP: Type-safety doesn't make it more complex, it just means that using wrong variables and such will result in build error. This way it won't leak in production.
 
 Templates for layout, documents and pages can declare a FrontMatter (referred as FM data) header delimited by  two `---`.
 This header contains yaml data used to configure many things such as:
@@ -35,7 +36,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 * `post`: the layout for blog posts
 * `recipe`: the layout for recipes or whatever
 
-A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`). 
+A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`).
 
 TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike partials, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
@@ -50,28 +51,33 @@ NOTE: if you don't already have layouts and partials in your project, <<install-
 === Install a theme
 
 To install a theme, simply add the dependency to your pom.xml. Example with Roq's default theme:
-[source,xml,subs=attributes+]
+[source,xml]
 ----
 <dependency>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-theme-default</artifactId>
-    <version>{project-version}</version>
+    <version>{cdi:project-info.release.current-version}</version>
 </dependency>
 ----
 
-It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:quarkus-roq-frontmatter.adoc#themes[*Theme section*].
+
+It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the link:{site.url('docs/advanced')}#themes[*Theme section*].
+
 
 === Site index template
 
 Your site index template is required and should be located in `content/index.html`.
 
+{|
 [source,html]
 .content/index.html
 ----
 ---
+
 title: Hello Roqers // <1>
 description: It is time to start Roqing 🎸!
-layout: :theme/main //<2>
+layout: :theme/index //<2>
+
 ---
 
 <h1>Hello fellow Roqers 🤘</h1>
@@ -84,12 +90,16 @@ layout: :theme/main //<2>
 ----
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
-<2> The layout to use (in this case `:theme/main` which refers to the `main` layout from the theme).
+<2> The layout to use (in this case `:theme/index` which refers to the `index` layout from the theme).
 <3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
 
-TIP: There are different ways to link your pages as explained in the  xref:quarkus-roq-frontmatter.adoc#links[Links & Urls] section.
+|}
+
+TIP: There are different ways to link your pages as explained in the  link:{site.url('docs/advanced')}#links[Links & Urls] section.
 
 === Variables
+
+{|
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
 
@@ -211,15 +221,17 @@ Any directory without the `_` prefix in the site directory will be scanned for p
 
 Let's create your first page and spice things up a bit by using Markdown.
 
-[source,html]
+[source,markdown]
 .roq-bottom.md
 ----
 ---
+
 title: Roq Bottom
 description: When you hit Roq bottom, try Roq to climb back up!
 layout: :theme/page
 link: /climb-back-up <1>
 the-rope: You Roq! <2>
+
 ---
 
 # Roq Bottom
@@ -234,29 +246,9 @@ __{page.data.the-rope}!__ <3>
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
 
-=== Asciidoc support
+=== Global data
 
-Asciidoc is supported by Roq, though partially for the moment.
-
-All the formatting features are available. But others such as _diagrams_ are not yet supported.
-
-Custom attributes can also be used, but be sure to escape their use -`\{custom-attribute}`-. Other wise the Qute rendering engine will try to interpolate them.
-
-
-==== Includes
-
-The standard Asciidoc include is not supported, but you can use Qute includes instead:
-
-. Place your file in a folder under the `template` directory (for example `partials`)
-. Use Qute include directive `{# partials/your_included_file.adoc/}` to inject it
-
-==== Images
-
-The standard `imagedir` attribute is not supported.
-
-You should instead place your images under the `static/assets/images` folder, and reference them with the image macro :
-
- image::\{site.imagesDirUrl.resolve('your_image.png')}[Image description]
+It is possible to 
 
 
 === Collections
@@ -266,10 +258,11 @@ Once created you can easily iterate and link to them.
 
 By default, Roq is configured with a `posts` collection using the `content/posts` directory. Let's create our first post:
 
-[source,html]
+[source,markdown]
 .content/posts/2024-10-14-roq-solid.md
 ----
 ---
+
 title: Roq bad puns
 description: Roq is very good for bad puns 🤭
 layout: :theme/post <1>
@@ -277,6 +270,7 @@ tags: <2>
   - funny
   - ai
 img: 2024/10/roq-solid.jpg
+
 ---
 
 # {page.title} <3>
@@ -299,9 +293,11 @@ Here is a list of puns suggested by Chat GPT:
 15.	Stone Cold Roq – Referring to something very cool or emotionless.
 
 ----
+|}
 <1> This time we use the `post` layout from the theme.
-<2> You can define tags (see xref:quarkus-roq-plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
+<2> You can define tags (see link:{site.url('docs/plugins')}#plugin-tagging[Plugins] to create pages for tags).
 <3> You have shortcut on the `page` to access `title` and `description`.
+{|
 
 Then let's edit our index page to show the list of posts:
 
@@ -333,11 +329,14 @@ layout: main
 </article>
 {/for}
 ----
-<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to xref:quarkus-roq-frontmatter.adoc#pagination[paginate].
+|}
+<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  link:{site.url('docs/advanced')}#pagination[paginate]).
 <2> `post.image` is smart and is already resolved to the image url (as a RoqUrl).
 <3> `post.url` contains the post url (as a RoqUrl), you could also use `post.url.absolute` to get the absolute url.
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
+
+{|
 
 === Static files
 
@@ -365,3 +364,27 @@ You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
 
 
+=== Asciidoc support
+
+|}
+Asciidoc is supported by Roq using link:{site.url('docs/plugins')}#plugin-asciidoc[plugins].
+
+{|
+Using `{something}` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `\\{something}`, or wrap more content inside `{|` and `|&#125;`.
+
+
+==== Includes
+
+The standard Asciidoc include is not supported, but you can use Qute includes instead:
+
+. Place your file in a folder under the `template` directory (for example `partials`)
+. Use Qute include directive `{# partials/your_included_file.adoc /}` to include it
+
+==== Images
+
+You should place your images under the `static/assets/images` folder, and reference them with the image macro :
+
+ image::{site.imagesDirUrl.resolve('your_image.png')}[Image description]
+
+
+|}
