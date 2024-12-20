@@ -1,0 +1,109 @@
+---
+title: Publishing
+layout: doc
+---
+{#include partials/doc/doc-attributes.adoc/}
+{|
+= Publishing a Roq Site
+
+== Roq GitHub Action
+
+Roq provides a https://github.com/quarkiverse/quarkus-roq/blob/main/action.yml[GitHub action] to publish to GitHub pages or other services.
+
+[[github-pages]]
+=== To GitHub Pages
+
+Check if you already have the `.github/workflows/deploy.yml` file, if you don't create it:
+
+..github/workflows/deploy.yml
+[source,yaml]
+----
+## Deploy to GH-Pages for your Quarkus Roq site.
+name: Roq Site Deploy
+
+on:
+  push:
+    branches: [ main ]   # Switch to the branch which should be deployed to GitHub Pages
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Roq Site
+        uses: quarkiverse/quarkus-roq@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}   # Used to automatically get the GitHub Pages url
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+----
+
+Then to enable GitHub Pages:
+
+1. *Open* your GitHub repository page
+2. **Go to** Settings->Page
+3. *Pick:* `Source: GitHub Actions`, that's enough (no save button)
+
+It's all good, restart your deploy workflow and enjoy!
+
+== To other services
+
+..github/workflows/deploy-other.yml
+[source,yaml]
+----
+## Deploy to another service for your Quarkus Roq site.
+name: Roq Site Deploy other
+
+on:
+  push:
+    branches: [ main ]   # Switch to the branch which should be deployed to GitHub Pages
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Roq Site
+        uses: quarkiverse/quarkus-roq@v1
+        with:
+          github-pages: false
+      - name: Publishing blog
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: target/roq
+          retention-days: 3
+----
+|}
+
+This will create a GitHub artifact named `site` that you can download from another job (or another workflow). For example, the PR Preview https://github.com/quarkiverse/quarkus-roq/blob/main/.github/workflows/preview-pr.yml[workflow] of Roq publishes to Surge.
+
+== Building Roq
+
+Roq is based on Quarkus, you just need to set up a JDK to build your Roq site using this command:
+
+[source,shell]
+----
+export QUARKUS_ROQ_GENERATOR_BATCH=true
+./mvnw -B package quarkus:run
+----
+
+== Other CIs
+
+Using the command above should be easy to configure on any CI.
+
+TIP: if you created a configuration for a given CI which could help others, please share it here 🙏
+

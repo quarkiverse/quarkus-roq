@@ -1,4 +1,4 @@
-name: Roq Plugin Tagging
+name: Roq Plugin - Tagging
 description: This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
 metadata:
   keywords:

@@ -1,4 +1,4 @@
-.sidebar {
+aside.sidebar.main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -66,8 +66,7 @@
   }
 }
 .content-box {
-  padding: 20px;
-  padding-left: 260px;
+  padding: 0px 0px 0px 260px;
 
   display: flex;
   flex-direction: row;

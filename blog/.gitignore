@@ -1,1 +1,3 @@
 data/*.json
+data/project-info.yml
+templates/partials/doc/configs/**

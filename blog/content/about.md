@@ -1,19 +1,19 @@
 ---
 title: About
 description: |
-  Roq stands out in the Java development community as a powerful static site generator, bridging the gap between the
-  likes of Gatsby, Hugo, and the broader backend community. With GitHub Actions support out-of-the-box, Roq is easy to use for beginners, but also flexible enough to provide
-  Java hooks for advanced users.
+  Roq is a powerful static site generator that combines the best features of tools like Jekyll and Hugo, but within the Java ecosystem. It offers a modern approach with Quarkus at its core, requiring zero configuration to get started —ideal for developers who want to jump right in, while still being flexible enough for advanced users to hook into Java for deeper customization.
 layout: :theme/page
 ---
 
 # About Roq
 
-Roq stands out in the Java development community as a powerful static site generator, bridging the gap between the likes of Gatsby, Hugo, and the broader backend community. As Andy Damevin explains, while tools like Jekyll once filled this space, they’ve become outdated and cumbersome, especially with Ruby’s limitations. Roq offers a modern solution, leveraging Quarkus with no configuration needed, allowing developers to start quickly using Codestart and simply editing their site directory.
-
-With GitHub Actions support out-of-the-box, Roq is easy to use for beginners, but also flexible enough to provide Java hooks for advanced users.
+Roq is a powerful static site generator that combines the best features of tools like Jekyll and Hugo, but within the Java ecosystem. It offers a modern approach with Quarkus at its core, requiring zero configuration to get started —ideal for developers who want to jump right in, while still being flexible enough for advanced users to hook into Java for deeper customization.
 
 **This tool is a testament to how extensible and powerful Quarkus is, offering a low-risk yet highly capable platform that will evolve as demand grows.**
+
+## Origins
+
+I wrote a [blog post]({site.url('posts/roq-with-blogs')}) explaining how it all started.
 
 ## Credits
 

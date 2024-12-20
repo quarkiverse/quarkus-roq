@@ -1,0 +1,172 @@
+:root {
+  /* colors */
+  --asciidoc-color-brand-primary: #e40046;
+  --asciidoc-color-white: #fff;
+  --asciidoc-color-smoke-10: #fefefe;
+  --asciidoc-color-smoke-30: #fafafa;
+  --asciidoc-color-smoke-50: #f5f5f5;
+  --asciidoc-color-smoke-70: #f0f0f0;
+  --asciidoc-color-smoke-90: #e1e1e1;
+  --asciidoc-color-gray-10: #c1c1c1;
+  --asciidoc-color-gray-15: #bababa;
+  --asciidoc-color-gray-30: #8e8e8e;
+  --asciidoc-color-gray-50: #808080;
+  --asciidoc-color-gray-70: #5d5d5d;
+  --asciidoc-color-jet-20: #4a4a4a;
+  --asciidoc-color-jet-30: #424242;
+  --asciidoc-color-jet-50: #333;
+  --asciidoc-color-jet-70: #222;
+  --asciidoc-color-jet-80: #191919;
+  --asciidoc-color-black: #000;
+  /* utils */
+  --asciidoc-rem-base: 18; /* used to compute rem value from desired pixel value (e.g., calc(18 / var(--asciidoc-rem-base) * 1rem) = 18px) */
+  --asciidoc-viewport-height: calc(100 * var(--asciidoc-vh, 1vh)); /* used to represent a tunable value of 100vh */
+  /* fonts */
+  --asciidoc-body-font-size: 1.0625em; /* 17px */
+  --asciidoc-body-font-size--asciidoc-desktop: 1.125em; /* 18px */
+  --asciidoc-body-font-size--asciidoc-print: 0.9375em; /* 15px */
+  --asciidoc-body-line-height: 1.15;
+  --asciidoc-body-font-color: var(--asciidoc-color-jet-80);
+  --asciidoc-body-font-family: "Roboto", sans-serif;
+  --asciidoc-body-font-weight-bold: 600;
+  --asciidoc-monospace-font-family: "Roboto Mono", monospace;
+  --asciidoc-monospace-font-weight-bold: 600;
+  /* base */
+  --asciidoc-body-background: var(--asciidoc-color-white);
+  --asciidoc-panel-background: var(--asciidoc-color-smoke-30);
+  --asciidoc-panel-border-color: var(--asciidoc-color-smoke-90);
+  --asciidoc-scrollbar-track-color: var(--asciidoc-color-smoke-30);
+  --asciidoc-scrollbar-thumb-color: var(--asciidoc-color-gray-10);
+  --asciidoc-scrollbar_hover-thumb-color: #9c9c9c;
+  /* navbar */
+  --asciidoc-navbar-background: var(--asciidoc-color-jet-80);
+  --asciidoc-navbar-font-color: var(--asciidoc-color-white);
+  --asciidoc-navbar-heading-font-color: var(--asciidoc-color-gray-70);
+  --asciidoc-navbar-heading-font-weight: var(--asciidoc-body-font-weight-bold);
+  --asciidoc-navbar_hover-background: var(--asciidoc-color-black);
+  --asciidoc-navbar-button-background: var(--asciidoc-color-white);
+  --asciidoc-navbar-button-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-navbar-button-font-color: var(--asciidoc-body-font-color);
+  --asciidoc-navbar-menu-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-navbar-menu-border-radius: 0 0 0.25rem 0.25rem;
+  --asciidoc-navbar-menu-box-shadow: 0 2px 4px rgba(160, 160, 160, 0.15);
+  --asciidoc-navbar-menu-background: var(--asciidoc-color-white);
+  --asciidoc-navbar-menu-font-color: var(--asciidoc-body-font-color);
+  --asciidoc-navbar-menu-icon-filter: invert(10%); /* matches --asciidoc-color-jet-80 */
+  --asciidoc-navbar-menu_hover-background: var(--asciidoc-color-smoke-50);
+  /* nav */
+  --asciidoc-nav-background: var(--asciidoc-panel-background);
+  --asciidoc-nav-border-color: var(--asciidoc-color-gray-10);
+  --asciidoc-nav-line-height: 1.35;
+  --asciidoc-nav-heading-font-color: var(--asciidoc-color-brand-primary);
+  --asciidoc-nav-muted-color: var(--asciidoc-color-gray-70);
+  --asciidoc-nav-muted-icon-filter: invert(36.5%); /* matches --asciidoc-color-gray-70 */
+  --asciidoc-nav-panel-divider-color: var(--asciidoc-color-smoke-90);
+  --asciidoc-nav-secondary-background: var(--asciidoc-color-smoke-70);
+  /* toolbar */
+  --asciidoc-toolbar-background: var(--asciidoc-panel-background);
+  --asciidoc-toolbar-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-toolbar-font-color: var(--asciidoc-nav-muted-color);
+  --asciidoc-toolbar-icon-filter: var(--asciidoc-nav-muted-icon-filter);
+  --asciidoc-toolbar-primary-icon-filter: var(--asciidoc-navbar-menu-icon-filter);
+  --asciidoc-toolbar-muted-color: var(--asciidoc-color-gray-30);
+  --asciidoc-page-version-menu-background: var(--asciidoc-color-smoke-70);
+  --asciidoc-page-version-missing-font-color: var(--asciidoc-color-gray-30);
+  /* admonitions (see https://coolors.co/802392-e40046-2d7dd2-43b929-ff7700) */
+  --asciidoc-caution-color: #802392;
+  --asciidoc-caution-on-color: var(--asciidoc-color-white);
+  --asciidoc-important-color: var(--asciidoc-color-brand-primary);
+  --asciidoc-important-on-color: var(--asciidoc-color-white);
+  --asciidoc-note-color: #2d7dd2;
+  --asciidoc-note-on-color: var(--asciidoc-color-white);
+  --asciidoc-tip-color: #43b929;
+  --asciidoc-tip-on-color: var(--asciidoc-color-white);
+  --asciidoc-warning-color: #f70;
+  --asciidoc-warning-on-color: var(--asciidoc-color-white);
+  /* doc */
+  /*
+  --asciidoc-doc-font-color: #242424;
+  --asciidoc-doc-font-color: #24292e;
+  */
+  --asciidoc-doc-font-color: #24262b;
+  --asciidoc-doc-icon-filter: invert(14.5%); /* matches #242424 */
+  --asciidoc-doc-font-size: inherit;
+  --asciidoc-doc-font-size--asciidoc-desktop: calc(17 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-doc-line-height: 1.6;
+  --asciidoc-doc-margin: 0 auto;
+  --asciidoc-doc-margin--asciidoc-desktop: 0 2rem;
+  --asciidoc-heading-font-color: var(--asciidoc-color-jet-80);
+  --asciidoc-heading-font-weight: normal;
+  --asciidoc-alt-heading-font-weight: var(--asciidoc-body-font-weight-bold);
+  --asciidoc-section-divider-color: var(--asciidoc-panel-border-color);
+  /*
+  --asciidoc-link-font-color: #048ba8; blue munsell
+  --asciidoc-link-font-color: #2e86ab; blue NCS
+  --asciidoc-link-font-color: #2c7fa2; blue NCS (with increased contrast)
+  --asciidoc-link-font-color: #218380; celadon green
+  */
+  --asciidoc-link-font-color: #2c7fa2;
+  --asciidoc-link_hover-font-color: #08658c; /* brightness(75%) saturate(150%) */
+  --asciidoc-link_unresolved-font-color: var(--asciidoc-important-color);
+  --asciidoc-link_unresolved-hover-font-color: #ec003a;
+  --asciidoc-abstract-background: var(--asciidoc-color-smoke-70);
+  --asciidoc-abstract-font-color: var(--asciidoc-color-jet-20);
+  --asciidoc-abstract-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-admonition-background: var(--asciidoc-panel-background);
+  --asciidoc-admonition-label-font-weight: var(--asciidoc-body-font-weight-bold);
+  --asciidoc-caption-font-color: var(--asciidoc-color-gray-70);
+  --asciidoc-caption-font-style: italic;
+  --asciidoc-caption-font-weight: var(--asciidoc-body-font-weight-bold);
+  --asciidoc-code-background: var(--asciidoc-panel-background);
+  --asciidoc-code-font-color: var(--asciidoc-body-font-color);
+  --asciidoc-example-background: var(--asciidoc-color-white);
+  --asciidoc-example-border-color: var(--asciidoc-color-gray-70);
+  --asciidoc-kbd-background: var(--asciidoc-panel-background);
+  --asciidoc-kbd-border-color: var(--asciidoc-color-gray-10);
+  --asciidoc-pre-background: var(--asciidoc-panel-background);
+  --asciidoc-pre-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-pre-annotation-font-color: var(--asciidoc-color-gray-50);
+  --asciidoc-pre-annotation-icon-filter: invert(50.2%); /* matches --asciidoc-color-gray-50 */
+  --asciidoc-quote-background: var(--asciidoc-panel-background);
+  --asciidoc-quote-border-color: var(--asciidoc-color-gray-70);
+  --asciidoc-quote-font-color: var(--asciidoc-color-gray-70);
+  --asciidoc-quote-attribution-font-color: var(--asciidoc-color-gray-30);
+  --asciidoc-sidebar-background: var(--asciidoc-color-smoke-90);
+  --asciidoc-table-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-table-stripe-background: var(--asciidoc-panel-background);
+  --asciidoc-table-footer-background: linear-gradient(to bottom, var(--asciidoc-color-smoke-70) 0%, var(--asciidoc-color-white) 100%);
+  /* toc */
+  --asciidoc-toc-font-color: var(--asciidoc-nav-muted-color);
+  --asciidoc-toc-heading-font-color: var(--asciidoc-doc-font-color);
+  --asciidoc-toc-border-color: var(--asciidoc-panel-border-color);
+  --asciidoc-toc-line-height: 1.2;
+  /* footer */
+  --asciidoc-footer-line-height: var(--asciidoc-doc-line-height);
+  --asciidoc-footer-background: var(--asciidoc-color-jet-80);
+  --asciidoc-footer-font-color: var(--asciidoc-color-gray-15);
+  --asciidoc-footer-link-font-color: var(--asciidoc-color-white);
+  /* dimensions and positioning */
+  --asciidoc-navbar-height: calc(63 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-toolbar-height: calc(45 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-drawer-height: var(--asciidoc-toolbar-height);
+  --asciidoc-body-top: var(--asciidoc-navbar-height);
+  --asciidoc-body-min-height: calc(var(--asciidoc-viewport-height) - var(--asciidoc-body-top));
+  --asciidoc-nav-height: calc(var(--asciidoc-body-min-height) - var(--asciidoc-toolbar-height));
+  --asciidoc-nav-height--asciidoc-desktop: var(--asciidoc-body-min-height);
+  --asciidoc-nav-panel-menu-height: calc(100% - var(--asciidoc-drawer-height));
+  --asciidoc-nav-panel-explore-height: calc(50% + var(--asciidoc-drawer-height));
+  --asciidoc-nav-width: calc(270 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-toc-top: calc(var(--asciidoc-body-top) + var(--asciidoc-toolbar-height));
+  --asciidoc-toc-height: calc(var(--asciidoc-viewport-height) - var(--asciidoc-toc-top) - 2.5rem);
+  --asciidoc-toc-width: calc(162 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-toc-width--asciidoc-widescreen: calc(216 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-doc-max-width: calc(720 / var(--asciidoc-rem-base) * 1rem);
+  --asciidoc-doc-max-width--asciidoc-desktop: calc(1500 / var(--asciidoc-rem-base) * 1rem);
+  /* stacking */
+  --asciidoc-z-index-doc: 1;
+  --asciidoc-z-index-nav: 2;
+  --asciidoc-z-index-toolbar: 3;
+  --asciidoc-z-index-page-version-menu: 4;
+  --asciidoc-z-index-footer: 5;
+  --asciidoc-z-index-navbar: 6;
+}
