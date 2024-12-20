@@ -1,15 +1,15 @@
 
 1. 👉 *Install* the https://quarkus.io/guides/cli-tooling[Quarkus CLI,window=_blank].
-2. 🚀 **Generate the starter ap**p using the CLI (you can change the name), or via https://code.quarkus.io/?a=roq-with-blog&e=io.quarkiverse.roq%3Aquarkus-roq[code.quarkus.io,window=_blank]
+2. 🚀 **Generate the starter app** using the CLI (you can change the name), or via https://code.quarkus.io/?a=roq-with-blog&e=io.quarkiverse.roq%3Aquarkus-roq[code.quarkus.io,window=_blank]
 +
-[source,console]
+[source,shell]
 ----
 quarkus create app roq-with-blog -x=io.quarkiverse.roq:quarkus-roq
 ----
 
 3. 🎮 *start dev-mode*:
 +
-[source,console]
+[source,shell]
 ----
 cd roq-with-blog
 quarkus dev

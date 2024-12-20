@@ -30,19 +30,19 @@ Manually::
 ----
 
 Using the Quarkus cli::
-[source,console]
+[source,shell]
 ----
 quarkus extension add io.quarkiverse.roq:quarkus-roq-plugin-asciidoc
 ----
 
 Using the Maven::
-[source,console]
+[source,shell]
 ----
 ./mvnw quarkus:add-extension -Dextensions="io.quarkiverse.roq:quarkus-roq-plugin-asciidoc"
 ----
 
 Using the Gradle::
-[source,console]
+[source,shell]
 ----
 ./gradlew addExtension --extensions="io.quarkiverse.roq:quarkus-roq-plugin-asciidoc"
 ----

@@ -3,7 +3,7 @@ package io.quarkiverse.roq.plugin.asciidoctorj.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
@@ -17,29 +17,15 @@ public class QuarkusAsciidoctorJTest {
 
     public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
             new AsciidoctorJConverter(new AsciidoctorJConfig() {
-                @Override
-                public Optional<String> icons() {
-                    return Optional.empty();
-                }
 
                 @Override
-                public Optional<String> sourceHighlighter() {
-                    return Optional.empty();
+                public Map<String, String> attributes() {
+                    return Map.of();
                 }
 
                 @Override
                 public String templatesDir() {
                     return "src/main/asciidoc-templates";
-                }
-
-                @Override
-                public Optional<String> outputImageDir() {
-                    return Optional.empty();
-                }
-
-                @Override
-                public Optional<String> imageDir() {
-                    return Optional.empty();
                 }
 
             }));

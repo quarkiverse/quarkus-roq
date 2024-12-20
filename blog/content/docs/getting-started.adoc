@@ -1,6 +1,8 @@
 ---
 layout: doc
 title: Getting Started
+aliases:
+  - /docs
 description: Getting started with Quarkus Roq
 ---
 

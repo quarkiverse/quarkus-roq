@@ -35,16 +35,9 @@ Now, let’s configure Highlight.js. In your `src/main/resources/web/app/main.js
 
 ```javascript
 import hljs from 'highlight.js';
+import 'highlight.js/scss/default.scss';
 
 hljs.highlightAll();
-```
-
-### Step 3: Style Your Syntax Highlighting
-
-To style the code blocks, import the Highlight.js default theme into your SCSS file. Add this to your `src/main/resources/web/app/main.scss`:
-
-```scss
-@import 'highlight.js/scss/default.scss';
 ```
 
 And that's it! Now your code blocks will be beautifully highlighted, adding a more polished and professional look to your content.

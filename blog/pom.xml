@@ -13,7 +13,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.17.3</quarkus.platform.version>
+        <quarkus.platform.version>3.17.5</quarkus.platform.version>
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>
-            <version>11.10.0</version>
+            <version>11.11.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -197,18 +197,6 @@
         </plugins>
     </build>
     <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <skipITs>false</skipITs>
-                <quarkus.native.enabled>true</quarkus.native.enabled>
-            </properties>
-        </profile>
         <profile>
             <id>standalone</id>
             <activation>

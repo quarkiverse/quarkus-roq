@@ -16,13 +16,13 @@ First let me thanks the Roq [contributors]({site.url('about')}), they have been 
 [Click here](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=Click%20here%20to,roq%0Aquarkus%20dev) to generate your Roq Starter App.
 
 or use the [Quarkus CLI](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=or%20use%20the-,Quarkus%20CLI,-%3A):
-```console
+```shell
 quarkus create app blog-with-roq -x=io.quarkiverse.roq:quarkus-roq
 ```
 
 Then
 
-```console
+```shell
 cd blog-with-roq
 quarkus dev
 ```

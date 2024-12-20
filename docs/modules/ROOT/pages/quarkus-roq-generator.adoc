@@ -10,7 +10,7 @@ CAUTION: Roq Generator is already included as part of the Roq Static Site Genera
 
 You can generate your static site using:
 
-[source,console]
+[source,shell]
 ----
 QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run -DskipTests
 ----
@@ -21,7 +21,7 @@ TIP: When used within the Roq Static Site Generator extension, it is already pre
 
 
 You can now try or deploy your static website with any static file server. We provide a small tool to try it:
-[source,console]
+[source,shell]
 ----
 $ jbang app install --verbose --fresh --force roq@quarkiverse/quarkus-roq
 $ roq                                                                                                                         decks->!+(ia3andy/decks)

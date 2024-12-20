@@ -2,9 +2,7 @@
 title: Basics
 layout: doc
 ---
-
 {#include partials/doc/doc-attributes.adoc/}
-
 = Roq the basics
 
 By default, your site files should be located in the **project root directory**.
@@ -78,7 +76,7 @@ Your site index template is required and should be located in `content/index.htm
 
 title: Hello Roqers // <1>
 description: It is time to start Roqing 🎸!
-layout: :theme/main //<2>
+layout: :theme/index //<2>
 
 ---
 
@@ -92,7 +90,7 @@ layout: :theme/main //<2>
 ----
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
-<2> The layout to use (in this case `:theme/main` which refers to the `main` layout from the theme).
+<2> The layout to use (in this case `:theme/index` which refers to the `index` layout from the theme).
 <3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
 
 |}
@@ -247,6 +245,11 @@ __{page.data.the-rope}!__ <3>
 <1> you can use `link` to give this page a custom link (by default it will use the file-name).
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
+
+=== Global data
+
+It is possible to 
+
 
 === Collections
 

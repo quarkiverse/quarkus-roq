@@ -1,44 +1,25 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
-import java.util.Optional;
+import java.util.Map;
 
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
-@ConfigMapping(prefix = "quarkus.qute.asciidoctorj")
+@ConfigMapping(prefix = "quarkus.asciidoctorj")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface AsciidoctorJConfig {
 
     /**
-     * To enable image-based icons, you set this config to the value font.
+     * Set Asciidoctorj attributes
      */
-    Optional<String> icons();
+    Map<String, String> attributes();
 
     /**
-     * Source highlighting is applied to text that’s assigned the source block style (either explicitly or implicitly) and a
-     * source language.
-     */
-    Optional<String> sourceHighlighter();
-
-    /**
-     * Where images will be rendered
+     * Templates directory for Asciidoctorj
      */
     @WithDefault("src/main/asciidoc-templates")
     String templatesDir();
-
-    /**
-     * Where images will be rendered
-     */
-    @WithDefault("target/images/")
-    Optional<String> outputImageDir();
-
-    /**
-     * Where images will linked to.oq
-     *
-     */
-    @WithDefault("/public")
-    Optional<String> imageDir();
 
 }

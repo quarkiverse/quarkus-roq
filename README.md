@@ -27,7 +27,7 @@
 
 The Roq Static Site Generator extension allows to easily create a static website or blog (such as [Roq's blog](https://pages.quarkiverse.io/quarkus-roq/)) using Quarkus super-powers.
 
-Get started [here](https://pages.quarkiverse.io/quarkus-roq/docs/getting-started)!
+Get started [here](https://pages.quarkiverse.io/quarkus-roq/docs/)!
 
 For those looking for the Roq Quarkus extensions (which can also be used standalone):
 - [Roq Data](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html): Use json/yaml files content from your templates and articles with type safety.

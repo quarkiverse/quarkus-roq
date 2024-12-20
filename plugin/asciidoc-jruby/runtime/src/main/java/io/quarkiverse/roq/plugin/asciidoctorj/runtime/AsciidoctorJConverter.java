@@ -29,23 +29,25 @@ public class AsciidoctorJConverter {
         this.asciidoctor = Asciidoctor.Factory.create();
         this.config = config;
         asciidoctor.requireLibrary("asciidoctor-diagram");
-        final AttributesBuilder attributes = Attributes.builder().showTitle(true).attribute("noheader", true);
-        config.icons().ifPresent(attributes::icons);
-        config.sourceHighlighter().ifPresent(attributes::sourceHighlighter);
-        config.imageDir().ifPresent(attributes::imagesDir);
-        config.outputImageDir().ifPresent(d -> attributes.attribute("imagesoutdir", d));
+        final AttributesBuilder attributes = Attributes.builder()
+                .showTitle(true)
+                .attribute("noheader", true);
+        config.attributes().forEach(attributes::attribute);
         final Path templateDir = Paths.get(config.templatesDir());
         final OptionsBuilder optionsBuilder = Options.builder();
         if (Files.isDirectory(templateDir)) {
-            optionsBuilder.templateDirs(templateDir.toFile());
+            optionsBuilder.templateDirs(templateDir.toAbsolutePath().toFile());
             optionsBuilder.standalone(true);
         } else {
             optionsBuilder.standalone(false);
         }
+        final Path workingDir = Paths.get("");
+        if (Files.isDirectory(workingDir)) {
+            optionsBuilder.baseDir(workingDir.toAbsolutePath().toFile());
+        }
         options = optionsBuilder
                 .safe(SafeMode.SAFE)
                 .backend("html5")
-                .baseDir(Paths.get("").toFile())
                 .attributes(attributes.build())
                 .build();
         LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
