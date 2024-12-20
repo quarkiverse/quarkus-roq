@@ -3,6 +3,7 @@ title: Basics
 layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
+
 = Roq the basics
 
 By default, your site files should be located in the **project root directory**.
@@ -12,8 +13,7 @@ TIP: you may also put it in the Java resources (i.e. `src/main/resources/`).
 
 {#include partials/doc/directory-structure.adoc /}
 
-
-=== Qute and FrontMatter
+== Qute and FrontMatter
 
 All templates can use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
 
@@ -27,7 +27,7 @@ This header contains yaml data used to configure many things such as:
 * Content generation
 * Pagination
 
-=== Layouts and Partials
+== Layouts and Partials
 
 For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
@@ -48,7 +48,7 @@ You can also prepare partial templates. They are located by default in `template
 NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/templates[example templates]).
 
 [#install-theme]
-=== Install a theme
+== Install a theme
 
 To install a theme, simply add the dependency to your pom.xml. Example with Roq's default theme:
 [source,xml]
@@ -64,7 +64,7 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the link:{site.url('docs/advanced')}#themes[*Theme section*].
 
 
-=== Site index template
+== Site index template
 
 Your site index template is required and should be located in `content/index.html`.
 
@@ -97,7 +97,7 @@ layout: :theme/index //<2>
 
 TIP: There are different ways to link your pages as explained in the  link:{site.url('docs/advanced')}#links[Links & Urls] section.
 
-=== Variables
+== Variables
 
 {|
 
@@ -215,7 +215,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-=== Pages
+== Pages
 
 Any directory without the `_` prefix in the site directory will be scanned for pages content.
 
@@ -246,12 +246,22 @@ __{page.data.the-rope}!__ <3>
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
 
-=== Global data
+== Global data
 
-It is possible to 
+It is possible to declare global data as yaml or json in `data/` directory.
+
+For example:
+
+[source,markdown]
+.data/foo.yml
+----
+bar: Roq
+----
+
+Can be access with `{cdi:foo.bar}` in any template.
 
 
-=== Collections
+== Collections
 
 Collections are a great way to group related content such as blog posts, recipes, member of a team or talks at a conference.
 Once created you can easily iterate and link to them.
@@ -338,11 +348,11 @@ layout: main
 
 {|
 
-=== Static files
+== Static files
 
 By default, all files in `static/` are treated as static..
 
-=== Styles and Javascript
+== Styles and Javascript
 
 NOTE: The Quarkus Web Bundler is included by default with the Roq extension.
 
@@ -364,7 +374,7 @@ You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
 
 
-=== Asciidoc support
+== Asciidoc support
 
 |}
 Asciidoc is supported by Roq using link:{site.url('docs/plugins')}#plugin-asciidoc[plugins].
@@ -373,14 +383,14 @@ Asciidoc is supported by Roq using link:{site.url('docs/plugins')}#plugin-asciid
 Using `{something}` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `\\{something}`, or wrap more content inside `{|` and `|&#125;`.
 
 
-==== Includes
+=== Includes
 
 The standard Asciidoc include is not supported, but you can use Qute includes instead:
 
 . Place your file in a folder under the `template` directory (for example `partials`)
 . Use Qute include directive `{# partials/your_included_file.adoc /}` to include it
 
-==== Images
+=== Images
 
 You should place your images under the `static/assets/images` folder, and reference them with the image macro :
 
