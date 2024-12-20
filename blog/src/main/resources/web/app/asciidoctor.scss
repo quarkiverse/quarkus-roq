@@ -439,6 +439,40 @@
   transform: translate(-0.5rem, -50%);
 }
 
+.doc {
+
+  .admonitionblock td.icon [class^="fa icon-"] {
+    font-size: 1em;
+    cursor: default;
+    line-height: 1.5em;
+  }
+
+  .admonitionblock td.icon .icon-note::before {
+    content: "\f05a";
+    color: white;
+  }
+
+  .admonitionblock td.icon .icon-tip::before {
+    content: "\f0eb";
+    color: white;
+  }
+
+  .admonitionblock td.icon .icon-warning::before {
+    content: "\f071";
+    color: #bf6900;
+  }
+
+  .admonitionblock td.icon .icon-caution::before {
+    content: "\f06d";
+    color: #bf3400;
+  }
+
+  .admonitionblock td.icon .icon-important::before {
+    content: "\f06a";
+    color: #bf0000;
+  }
+}
+
 .doc .admonitionblock td.icon i {
   align-items: center;
   background: linear-gradient(to right, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%) no-repeat left center / 2.05em 100%;
@@ -454,7 +488,6 @@
 .doc .admonitionblock td.icon i::before {
   background: no-repeat 0.05em center / 1em 1em;
   content: "";
-  filter: invert(100%);
   height: inherit;
   width: 1.5em;
 }
@@ -467,17 +500,9 @@
   text-transform: uppercase;
 }
 
-.doc .admonitionblock td.icon i.icon-caution::before {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-flame);
-}
-
 .doc .admonitionblock td.icon i.icon-caution {
   background-color: var(--asciidoc-caution-color);
   color: var(--asciidoc-caution-on-color);
-}
-
-.doc .admonitionblock td.icon i.icon-important::before {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-stop);
 }
 
 .doc .admonitionblock td.icon i.icon-important {
@@ -485,17 +510,9 @@
   color: var(--asciidoc-important-on-color);
 }
 
-.doc .admonitionblock td.icon i.icon-note::before {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-info);
-}
-
 .doc .admonitionblock td.icon i.icon-note {
   background-color: var(--asciidoc-note-color);
   color: var(--asciidoc-note-on-color);
-}
-
-.doc .admonitionblock td.icon i.icon-tip::before {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-light-bulb);
 }
 
 .doc .admonitionblock td.icon i.icon-tip {
@@ -503,9 +520,6 @@
   color: var(--asciidoc-tip-on-color);
 }
 
-.doc .admonitionblock td.icon i.icon-warning::before {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-alert);
-}
 
 .doc .admonitionblock td.icon i.icon-warning {
   background-color: var(--asciidoc-warning-color);
@@ -693,13 +707,6 @@
   margin-left: -1.25rem;
 }
 
-.doc ul.checklist > li > * > i.fa-check-square-o:first-child {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-tasklist);
-}
-
-.doc ul.checklist > li > * > i.fa-square-o:first-child {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-tasklist-unchecked);
-}
 
 .doc .dlist .dlist,
 .doc .dlist .olist,
@@ -1104,7 +1111,6 @@
 }
 
 .doc .menuseq i.caret {
-  background-image: url(/static/assets/images/doc/octicons-16.svg#view-chevron-right);
   margin: 0 -0.25em;
 }
 
