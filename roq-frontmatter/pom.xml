@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-project-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>1.0.8</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>quarkus-roq-frontmatter-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>1.0.8</version>
     <packaging>pom</packaging>
     <name>Quarkus Roq - FrontMatter</name>
 
