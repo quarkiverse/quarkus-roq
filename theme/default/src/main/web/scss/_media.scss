@@ -24,7 +24,7 @@
 
 /* Small Devices, Tablets */
 @media only screen and (max-width : 768px) {
-  .sidebar {
+  aside.sidebar.main {
     position: relative;
     display: flex;
     flex-direction: column;
