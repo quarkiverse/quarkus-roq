@@ -77,6 +77,23 @@ endif::add-copy-button-to-env-var[]
 |list of string
 |`**/_**,_**,.**`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-page-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-page-layout[`site.page-layout`]##
+
+[.description]
+--
+The layout to use for normal pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme is defined.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_PAGE_LAYOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_PAGE_LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`:theme/page`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`site.content-dir`]##
 
 [.description]
@@ -280,6 +297,23 @@ endif::add-copy-button-to-env-var[]
 --
 |boolean
 |`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-layout[`site.collections."collections-map".layout`]##
+
+[.description]
+--
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme defined.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__LAYOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
 
 |===
 
