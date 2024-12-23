@@ -21,7 +21,7 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String IGNORED_FILES = "**/_**,_**,.**";
-    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false, false));
+    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false, false, ":theme/post"));
 
     /**
      * The root path of your site (e.g. /blog) relative the quarkus http root path.
@@ -53,6 +53,15 @@ public interface RoqSiteConfig {
      */
     @WithDefault(IGNORED_FILES)
     List<String> ignoredFiles();
+
+    /**
+     * The layout to use for normal pages if not specified in FM.
+     * When empty, the page will not use a layout when it doesn't specify it in FM.
+     *
+     * ":theme/" is removed if no theme is defined.
+     */
+    @WithDefault(":theme/page")
+    Optional<String> pageLayout();
 
     /**
      * The directory which contains content (pages and collections) in the Roq site directory.
@@ -122,7 +131,9 @@ public interface RoqSiteConfig {
             return DEFAULT_COLLECTIONS;
         }
         return collectionsMap().entrySet().stream().filter(e -> e.getValue().enabled())
-                .map(e -> new ConfiguredCollection(e.getKey(), e.getValue().hidden(), e.getValue().future())).toList();
+                .map(e -> new ConfiguredCollection(e.getKey(), e.getValue().hidden(), e.getValue().future(),
+                        e.getValue().layout().orElse(null)))
+                .toList();
     }
 
     interface CollectionConfig {
@@ -144,5 +155,13 @@ public interface RoqSiteConfig {
          */
         @WithDefault("false")
         boolean hidden();
+
+        /**
+         * The layout to use if not specified in FM data.
+         * When empty, the document will not use a layout when it doesn't specify it in FM.
+         *
+         * ":theme/" is removed if no theme defined.
+         */
+        Optional<String> layout();
     }
 }

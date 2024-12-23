@@ -7,6 +7,7 @@ import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
@@ -60,6 +62,7 @@ public class RoqFrontMatterScanProcessor {
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
+    public static final Pattern NON_PATH_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9_\\\\/.\\-]");
 
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
@@ -292,7 +295,7 @@ public class RoqFrontMatterScanProcessor {
                     .filter(RoqFrontMatterScanProcessor::isExtensionSupportedForLayout)
                     .forEach(layoutsConsumer);
         } catch (IOException e) {
-            throw new RuntimeException("Was not possible to scan templates dir %s".formatted(templatesRoot), e);
+            throw new RuntimeException("Error while scanning templates dir %s".formatted(templatesRoot), e);
         }
     }
 
@@ -336,7 +339,7 @@ public class RoqFrontMatterScanProcessor {
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
                                     .build());
                         } catch (IOException e) {
-                            throw new RuntimeException("Error while reading the FrontMatter file %s"
+                            throw new RuntimeException("Error while reading the file %s"
                                     .formatted(p), e);
                         }
                     });
@@ -356,54 +359,74 @@ public class RoqFrontMatterScanProcessor {
             TemplateType type) {
         return file -> {
             String sourcePath = toUnixPath(root.relativize(file).toString());
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(sourcePath)
-                    + resolveOutputExtension(markups, sourcePath);
+            String normalizedPath = normalizePath(sourcePath);
+            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(normalizedPath)
+                    + resolveOutputExtension(markups, normalizedPath);
             boolean published = type.isPage();
-            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
+            String id = type.isPage() ? normalizedPath : removeExtension(normalizedPath);
+            final String fullContent;
             try {
-                final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
-                if (hasFrontMatter(fullContent)) {
-                    JsonNode rootNode = mapper.readTree(getFrontMatter(fullContent));
-                    final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
-                    JsonObject fm = new JsonObject(map);
-
-                    for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                        fm = modification.modifier().modify(sourcePath, fm);
-                    }
-                    final boolean draft = fm.getBoolean(DRAFT_KEY, false);
-                    if (!config.draft() && draft) {
-                        return;
-                    }
-
-                    final String layoutId = normalizedLayout(config.theme(),
-                            fm.getString(LAYOUT_KEY));
-                    final String content = stripFrontMatter(fullContent);
-                    ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
-                    final boolean noFuture = !config.future() && (collection == null || !collection.future());
-                    if (date != null && noFuture && date.isAfter(ZonedDateTime.now())) {
-                        return;
-                    }
-                    String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-                    PageInfo info = PageInfo.create(id, draft, config.imagesPath(), dateString, content,
-                            sourcePath, quteTemplatePath);
-                    final String layoutTemplate = ROQ_GENERATED_QUTE_PREFIX + layoutId;
-                    final String generatedTemplate = generateTemplate(markups, sourcePath, layoutTemplate, content);
-                    items.add(
-                            new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, generatedTemplate,
-                                    published));
-                } else {
-                    PageInfo info = PageInfo.create(id, false, config.imagesPath(), null, fullContent, sourcePath,
-                            quteTemplatePath);
-                    items.add(
-                            new RoqFrontMatterRawTemplateBuildItem(info, null, type, new JsonObject(), collection,
-                                    fullContent,
-                                    published));
-                }
+                fullContent = Files.readString(file, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                throw new RuntimeException("Error while reading the FrontMatter file %s"
-                        .formatted(sourcePath), e);
+                throw new UncheckedIOException("Error while reading file: " + sourcePath, e);
             }
+            JsonObject fm;
+            String content = fullContent;
+            if (hasFrontMatter(fullContent)) {
+                try {
+                    fm = readFM(mapper, fullContent);
+                } catch (JsonProcessingException | IllegalArgumentException e) {
+                    throw new RuntimeException("FrontMatter parsing error for file: " + sourcePath, e);
+                }
+                content = stripFrontMatter(fullContent);
+            } else {
+                fm = new JsonObject();
+            }
+            ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
+            final boolean noFuture = !config.future() && (collection == null || !collection.future());
+            if (date != null && noFuture && date.isAfter(ZonedDateTime.now())) {
+                return;
+            }
+            String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            final String defaultLayout = type.isPage()
+                    ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
+                    : null;
+            final String layoutId = normalizedLayout(config.theme(),
+                    fm.getString(LAYOUT_KEY),
+                    defaultLayout);
+
+            for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
+                fm = modification.modifier().modify(sourcePath, fm);
+            }
+            final boolean draft = fm.getBoolean(DRAFT_KEY, false);
+            if (!config.draft() && draft) {
+                return;
+            }
+
+            PageInfo info = PageInfo.create(id, draft, config.imagesPath(), dateString, content,
+                    sourcePath, quteTemplatePath);
+            final String generatedTemplate = generateTemplate(markups, sourcePath, layoutId, content);
+            items.add(
+                    new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, generatedTemplate,
+                            published));
+
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static JsonObject readFM(YAMLMapper mapper, String fullContent)
+            throws JsonProcessingException, IllegalArgumentException {
+        final String frontMatter = getFrontMatter(fullContent);
+        if (frontMatter.isBlank()) {
+            return new JsonObject();
+        }
+        JsonNode rootNode = mapper.readTree(frontMatter);
+        final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
+        return new JsonObject(map);
+    }
+
+    private static String normalizePath(String sourcePath) {
+        return NON_PATH_CHAR_PATTERN.matcher(sourcePath).replaceAll("-");
     }
 
     protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
@@ -433,25 +456,37 @@ public class RoqFrontMatterScanProcessor {
     private static String generateTemplate(Map<String, QuteMarkupSection> markups, String fileName, String layout,
             String content) {
         StringBuilder template = new StringBuilder();
+
         if (layout != null) {
-            template.append("{#include ").append(layout).append("}\n");
+            template.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
         }
         template.append(find(markups, fileName, Function.identity()).apply(content));
-        template.append("\n{/include}");
+        if (layout != null) {
+            template.append("\n{/include}");
+        }
         return template.toString();
     }
 
-    private static String normalizedLayout(Optional<String> theme, String layout) {
-        if (layout == null) {
-            return null;
-        }
+    private static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
         String normalized = layout;
+        if (normalized == null) {
+            normalized = defaultLayout;
+            if (normalized == null || normalized.isBlank() || "none".equalsIgnoreCase(normalized)) {
+                return null;
+            }
+            normalized = defaultLayout;
+            if (normalized.contains(":theme/") && theme.isEmpty()) {
+                normalized = normalized.replace(":theme/", "");
+            }
+        }
+
         if (normalized.contains(":theme")) {
             if (theme.isPresent()) {
                 normalized = normalized.replace(":theme", theme.get());
             } else {
                 throw new ConfigurationException(
-                        "No theme detected! Using :theme in 'layout: " + layout + " is only possible with a theme installed.");
+                        "No theme detected! Using :theme in 'layout: " + layout
+                                + " is only possible with a theme installed.");
             }
         }
 

@@ -15,11 +15,11 @@ TIP: you may also put it in the Java resources (i.e. `src/main/resources/`).
 
 == Qute and FrontMatter
 
-All templates can use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
+All templates may use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
 
 TIP: Type-safety doesn't make it more complex, it just means that using wrong variables and such will result in build error. This way it won't leak in production.
 
-Templates for layout, documents and pages can declare a FrontMatter (referred as FM data) header delimited by  two `---`.
+Templates for layout, documents and pages may also declare a FrontMatter (referred as FM data) header delimited by  two `---`.
 This header contains yaml data used to configure many things such as:
 
 * Routing
@@ -36,7 +36,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 * `post`: the layout for blog posts
 * `recipe`: the layout for recipes or whatever
 
-A layout can be included in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`).
+A layout may be specified in pages and documents through the `layout` FrontMatter key (e.g. `layout: page`). By default, `posts` will use the `post` layout and normal pages the `page` layout (this can be configured through link:{site.url('docs/advanced/')}#quarkus-roq-frontmatter_site-page-layout[site configuration]).
 
 TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike partials, layouts can also define Frontmatter data, which is inherited along with the template structure.
 

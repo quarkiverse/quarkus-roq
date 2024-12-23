@@ -71,7 +71,7 @@ public interface Page {
      * The page title (from FM data)
      */
     default String title() {
-        return data().getString(FM_TITLE);
+        return data().getString(FM_TITLE, sourcePath());
     }
 
     /**
