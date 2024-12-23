@@ -46,31 +46,38 @@ public record PageInfo(
         /**
          * The generated template path for Qute (e.g posts/my-favorite-beer.html)
          */
-        String generatedTemplateId) {
+        String generatedTemplateId,
 
-    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "asciidoc", "adoc");
+        /**
+         * Is this a html page or something else (json, yml, ...)
+         */
+        boolean isHtml) {
+
+    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
+            "adoc");
 
     public static PageInfo create(String id, boolean draft, String imagesDirPath, String dateString,
             String rawContent,
             String sourcePath,
-            String quteTemplateId) {
-        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId);
+            String quteTemplateId,
+            boolean isHtml) {
+        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId, isHtml);
     }
 
     public PageInfo changeId(String id) {
         return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId());
+                generatedTemplateId(), isHtml());
     }
 
     public PageInfo changeIds(Function<String, String> function) {
         return new PageInfo(function.apply(id()), draft(), imagesDirPath(), dateString(), rawContent(),
                 sourceFilePath(),
-                function.apply(generatedTemplateId()));
+                function.apply(generatedTemplateId()), isHtml());
     }
 
     public PageInfo changeIdAndGeneratedTemplateId(String id) {
         return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId());
+                generatedTemplateId(), isHtml());
     }
 
     public ZonedDateTime date() {
@@ -91,12 +98,16 @@ public record PageInfo(
         return PathUtils.removeExtension(sourceFileName());
     }
 
-    public String getSourceFileExtension() {
+    public String sourceFileExtension() {
         return PathUtils.getExtension(sourceFileName());
     }
 
-    public boolean isHtml() {
-        return HTML_OUTPUT_EXTENSIONS.contains(getSourceFileExtension());
+    public boolean isSiteIndex() {
+        return isHtml && id().startsWith("index.");
+    }
+
+    public boolean isIndex() {
+        return isHtml && "index".equals(sourceBaseFileName());
     }
 
 }
