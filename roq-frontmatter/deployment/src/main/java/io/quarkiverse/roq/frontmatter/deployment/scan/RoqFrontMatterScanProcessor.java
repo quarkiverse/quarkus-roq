@@ -60,6 +60,7 @@ public class RoqFrontMatterScanProcessor {
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
+    public static final Pattern NON_PATH_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9_\\\\/.\\-]");
 
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
@@ -356,10 +357,11 @@ public class RoqFrontMatterScanProcessor {
             TemplateType type) {
         return file -> {
             String sourcePath = toUnixPath(root.relativize(file).toString());
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(sourcePath)
-                    + resolveOutputExtension(markups, sourcePath);
+            String normalizedPath = normalizePath(sourcePath);
+            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(normalizedPath)
+                    + resolveOutputExtension(markups, normalizedPath);
             boolean published = type.isPage();
-            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
+            String id = type.isPage() ? normalizedPath : removeExtension(normalizedPath);
             try {
                 final String fullContent = Files.readString(file, StandardCharsets.UTF_8);
                 if (hasFrontMatter(fullContent)) {
@@ -404,6 +406,10 @@ public class RoqFrontMatterScanProcessor {
                         .formatted(sourcePath), e);
             }
         };
+    }
+
+    private static String normalizePath(String sourcePath) {
+        return NON_PATH_CHAR_PATTERN.matcher(sourcePath).replaceAll("-");
     }
 
     protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
