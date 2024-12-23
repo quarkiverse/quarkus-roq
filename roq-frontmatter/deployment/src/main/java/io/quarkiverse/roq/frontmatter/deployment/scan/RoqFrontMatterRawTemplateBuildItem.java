@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
@@ -46,10 +49,15 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final boolean published;
 
+    /**
+     * Static files attached to this template
+     */
+    private final List<Attachment> attachments;
+
     public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, TemplateType type, JsonObject data,
             ConfiguredCollection collection,
             String generatedTemplate,
-            boolean published) {
+            boolean published, List<Attachment> attachments) {
         this.info = info;
         this.layout = layout;
         this.type = type;
@@ -57,6 +65,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
         this.published = published;
+        this.attachments = attachments;
     }
 
     public boolean isPage() {
@@ -103,6 +112,10 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return published;
     }
 
+    public List<Attachment> attachments() {
+        return attachments;
+    }
+
     public enum TemplateType {
         DOCUMENT_PAGE,
         NORMAL_PAGE,
@@ -121,5 +134,8 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
             return this == THEME_LAYOUT;
         }
 
+    }
+
+    public record Attachment(String name, Path path) {
     }
 }

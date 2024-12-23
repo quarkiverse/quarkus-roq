@@ -49,14 +49,28 @@ public class TemplateLink {
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
                 Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true)),
-                Map.entry(":ext", () -> data.pageInfo().isHtml() ? "" : "." + data.pageInfo().getSourceFileExtension()),
-                Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().getSourceFileExtension()),
-                Map.entry(":slug", () -> slugify(data.data().getString("slug",
-                        data.data().getString("title", data.pageInfo().sourceBaseFileName()))))));
+                Map.entry(":ext", () -> data.pageInfo().isHtml() ? "" : "." + data.pageInfo().sourceFileExtension()),
+                Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().sourceFileExtension()),
+                Map.entry(":slug", () -> resolveSlug(data))));
         if (other != null) {
             result.putAll(other);
         }
         return result;
+    }
+
+    public static String resolveSlug(LinkData data) {
+        String title = data.data().getString("slug",
+                data.data().getString("title"));
+        if (title == null || title.isBlank()) {
+            final String baseFileName = data.pageInfo().sourceBaseFileName();
+            if ("index".equalsIgnoreCase(baseFileName)) {
+                // in this case we take the parent dir name
+                title = PathUtils.fileName(data.pageInfo().sourceFilePath().replaceAll("/index\\..+", ""));
+            } else {
+                title = baseFileName;
+            }
+        }
+        return slugify(title);
     }
 
     public static String pageLink(String rootPath, String template, PageLinkData data) {

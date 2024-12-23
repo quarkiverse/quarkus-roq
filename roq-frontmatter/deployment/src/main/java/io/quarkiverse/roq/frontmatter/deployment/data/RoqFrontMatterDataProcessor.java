@@ -10,7 +10,9 @@ import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -55,6 +57,7 @@ public class RoqFrontMatterDataProcessor {
     void dispatchByType(BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer,
             BuildProducer<RoqFrontMatterDocumentTemplateBuildItem> documentTemplatesProducer,
             BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
+            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFileProducer,
             List<RoqFrontMatterTemplateBuildItem> templates) {
         if (templates.isEmpty()) {
             return;
@@ -64,6 +67,12 @@ public class RoqFrontMatterDataProcessor {
             if (!item.published()) {
                 continue;
             }
+            // Publish static assets
+            for (Attachment attachment : item.raw().attachments()) {
+                staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(
+                        item.url().resolve(attachment.name()).path(), attachment.path()));
+            }
+            // Publish Pages
             if (item.raw().collection() != null) {
                 documentTemplatesProducer
                         .produce(new RoqFrontMatterDocumentTemplateBuildItem(item.raw(), item.url(), item.raw().collection(),

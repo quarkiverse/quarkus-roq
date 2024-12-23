@@ -49,7 +49,7 @@ public interface RoqSiteConfig {
     int routeOrder();
 
     /**
-     * The ignored files in the different Roq site directories (you can use glob expressions).
+     * The ignored files in the site directory (you can use glob expressions).
      */
     @WithDefault(IGNORED_FILES)
     List<String> ignoredFiles();
