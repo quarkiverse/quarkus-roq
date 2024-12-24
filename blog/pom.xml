@@ -16,6 +16,7 @@
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <quarkus.qute.web.version>3.2.2</quarkus.qute.web.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -76,7 +77,12 @@
         <dependency>
             <groupId>io.quarkiverse.qute.web</groupId>
             <artifactId>quarkus-qute-web-markdown-autolink</artifactId>
-            <version>3.2.2</version>
+            <version>${quarkus.qute.web.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.qute.web</groupId>
+            <artifactId>quarkus-qute-web-markdown-heading-anchor</artifactId>
+            <version>${quarkus.qute.web.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mvnpm</groupId>
