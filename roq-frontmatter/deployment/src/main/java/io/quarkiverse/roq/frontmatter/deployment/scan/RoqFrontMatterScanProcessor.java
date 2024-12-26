@@ -475,7 +475,7 @@ public class RoqFrontMatterScanProcessor {
         if (frontMatter.containsKey(DATE_KEY)) {
             dateString = frontMatter.getString(DATE_KEY);
         } else {
-            Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.getFileName().toString());
+            Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.toString());
             if (!matcher.find()) {
                 // Lets fallback on using today's date if not specified
                 return ZonedDateTime.now();
