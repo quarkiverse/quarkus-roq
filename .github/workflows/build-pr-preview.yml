@@ -39,7 +39,8 @@ jobs:
       - name: Build blog
         uses: ./
         with:
-          github-pages: false
+          setup-java: 'false'
+          github-pages: 'false'
           site-directory: 'blog'
           site-future: 'true'
           maven-executable: 'mvn'

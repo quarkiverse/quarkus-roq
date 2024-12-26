@@ -60,7 +60,7 @@ runs:
   steps:
     # Step 1: Set up Java
     - name: Set up Java
-      if: ${{ inputs.setup-java }}
+      if: ${{ inputs.setup-java == 'true' }}
       uses: actions/setup-java@v4
       with:
         java-version: ${{ inputs.java-version }}
