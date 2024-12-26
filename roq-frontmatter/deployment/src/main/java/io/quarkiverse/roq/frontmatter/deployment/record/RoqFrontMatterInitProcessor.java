@@ -86,7 +86,7 @@ class RoqFrontMatterInitProcessor {
             List<RoqFrontMatterPublishPageBuildItem> pages,
             BuildProducer<RoqFrontMatterNormalPageBuildItem> normalPagesProducer,
             BuildProducer<RoqFrontMatterPageBuildItem> pagesProducer,
-            BuildProducer<RoqFrontMatterIndexPageBuildItem> indexPageProducer,
+            BuildProducer<RoqFrontMatterSiteIndexBuildItem> indexPageProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
             return;
@@ -97,8 +97,8 @@ class RoqFrontMatterInitProcessor {
             pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), false, recordedPage));
             normalPagesProducer
                     .produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
-            if (page.info().id().startsWith("index.")) {
-                indexPageProducer.produce(new RoqFrontMatterIndexPageBuildItem(recordedPage));
+            if (page.info().isSiteIndex()) {
+                indexPageProducer.produce(new RoqFrontMatterSiteIndexBuildItem(recordedPage));
             }
         }
     }
@@ -108,7 +108,7 @@ class RoqFrontMatterInitProcessor {
     RoqFrontMatterOutputBuildItem bindSite(
             LaunchModeBuildItem launchMode,
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
-            RoqFrontMatterIndexPageBuildItem indexPageItem,
+            RoqFrontMatterSiteIndexBuildItem indexPageItem,
             List<RoqFrontMatterCollectionBuildItem> collectionItems,
             List<RoqFrontMatterPageBuildItem> pageItems,
             List<RoqFrontMatterNormalPageBuildItem> normalPageItems,
@@ -119,7 +119,8 @@ class RoqFrontMatterInitProcessor {
         }
         // Create Site bean
         if (indexPageItem == null) {
-            throw new RuntimeException("Roq site must declare an index.html page");
+            throw new RuntimeException(
+                    "Site index page (index.html,md,...) not found. A site index is required by Roq, please create one to continue...");
         }
         final Map<String, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
                 Collectors.toMap(RoqFrontMatterCollectionBuildItem::name, RoqFrontMatterCollectionBuildItem::documents));
@@ -139,7 +140,7 @@ class RoqFrontMatterInitProcessor {
         Map<String, Supplier<? extends Page>> allPagesByPath = new HashMap<>();
         for (RoqFrontMatterPageBuildItem i : pageItems) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debugf("Published %s page '%s' on '%s'", i.hidden() ? "hidden" : "", i.id(), i.url().toString());
+                LOGGER.debugf("Published %spage '%s' on '%s'", i.hidden() ? "hidden " : "", i.id(), i.url().toString());
             }
             if (i.hidden()) {
                 continue;

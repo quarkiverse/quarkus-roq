@@ -1,9 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import jakarta.enterprise.inject.Vetoed;
 
@@ -70,6 +71,7 @@ public record RoqUrl(
      * @return true is it's a full path url
      */
     public static boolean isFullPath(String path) {
+        Objects.requireNonNull(path, "path is required");
         return path.startsWith("http://") || path.startsWith("https://");
     }
 
@@ -84,7 +86,7 @@ public record RoqUrl(
         if (isFullPath(other.toString())) {
             return new RoqUrl(null, other.toString());
         }
-        return new RoqUrl(root(), PathUtils.join(path(), removeTrailingSlash(other.toString())));
+        return new RoqUrl(root(), PathUtils.join(path(), addTrailingSlashIfNoExt(other.toString())));
     }
 
     /**
@@ -128,7 +130,7 @@ public record RoqUrl(
         if (isFullPath(path)) {
             return new RoqUrl(null, path);
         }
-        return new RoqUrl(root, removeTrailingSlash(path));
+        return new RoqUrl(root, addTrailingSlashIfNoExt(path));
     }
 
 }

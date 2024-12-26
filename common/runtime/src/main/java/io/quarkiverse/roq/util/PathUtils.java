@@ -23,6 +23,14 @@ public final class PathUtils {
         return path.endsWith("/") ? path : path + "/";
     }
 
+    public static String addTrailingSlashIfNoExt(String path) {
+        Objects.requireNonNull(path, "path is required");
+        if (path.contains(".")) {
+            return path;
+        }
+        return path.endsWith("/") ? path : path + "/";
+    }
+
     public static String join(String path1, String path2) {
         Objects.requireNonNull(path1, "path1 is required");
         if (path2 == null) {

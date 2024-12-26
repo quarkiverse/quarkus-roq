@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,14 +16,13 @@ class TemplateLinkTest {
 
     @Test
     void testLink() {
-
         JsonObject frontMatter = new JsonObject()
                 .put("title", "My First Blog Post");
         final PageInfo pageInfo = PageInfo.create("_posts/my-first-blog-post.md", false, "images",
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-                "", "_posts/my-first-blog-post.md", "");
+                "", "_posts/my-first-blog-post.md", "", List.of(), true, false, false);
         String generatedLink = pageLink("/", ":year/:month/:day/:slug", new PageLinkData(pageInfo, null, frontMatter));
-        assertEquals("2024/08/27/my-first-blog-post", generatedLink);
+        assertEquals("2024/08/27/my-first-blog-post/", generatedLink);
     }
 
     @Test
@@ -32,11 +32,11 @@ class TemplateLinkTest {
                 .put("title", "My First Blog Post");
         final PageInfo pageInfo = PageInfo.create("posts/my-first-blog-post.md", false, "images",
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-                "", "_posts/my-first-blog-post.md", "");
+                "", "_posts/my-first-blog-post.md", "", List.of(), true, false, false);
         String generatedLink = pageLink("/", ":year/:month/:day/:slug:ext!", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post.html", generatedLink);
         String generatedLink2 = pageLink("/", ":year/:month/:day/:slug:ext", new PageLinkData(pageInfo, null, frontMatter));
-        assertEquals("2024/08/27/my-first-blog-post", generatedLink2);
+        assertEquals("2024/08/27/my-first-blog-post/", generatedLink2);
     }
 
     @Test
@@ -45,7 +45,7 @@ class TemplateLinkTest {
         JsonObject frontMatter = new JsonObject();
         final PageInfo pageInfo = PageInfo.create("foo.json", false, "images",
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-                "", "bar/foo.json", "");
+                "", "bar/foo.json", "", List.of(), false, false, false);
         String generatedLink = pageLink("/", ":path:ext", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("bar/foo.json", generatedLink);
     }
@@ -57,9 +57,9 @@ class TemplateLinkTest {
 
         final PageInfo pageInfo = PageInfo.create("posts/my-first-blog-post.html", false, "images",
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-                "", "", "_posts/my-first-blog-post.md");
+                "", "", "_posts/my-first-blog-post.md", List.of(), true, false, false);
         String generatedLink = paginateLink("/", null,
                 new PaginateLinkData(pageInfo, "posts", "3", frontMatter));
-        assertEquals("posts/page3", generatedLink);
+        assertEquals("posts/page3/", generatedLink);
     }
 }

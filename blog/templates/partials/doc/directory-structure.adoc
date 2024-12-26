@@ -10,7 +10,9 @@ my-site/
 │
 ├── content/                             // <2>
 │   ├── posts/                           // <3>
-│   │   ├── 2024-10-14-roq-ssg.md
+│   │   ├── 2024-10-14-roq-ssg/
+│   │   │   ├── index.md
+│   │   │   └── image.jpg
 │   │   └── 2024-10-20-heart-roq.md
 │   │
 │   ├── roq-bottom.md                    // <4>
@@ -40,8 +42,8 @@ The `content/` directory is where all content of the site that will be generated
 <3> **Collections**
 The `posts/` directory is the default collection in Roq, it is optional. It holds content files for blog posts or similar structured documents. You can configure multiples collections (recipes, events, ...).
 
-<4> **Additional Files**
-Content files like `roq-bottom.md` outside a collection will be treated as pages.
+<4> **Additional pages**
+You may provide additional pages files like `roq-bottom.md` outside a collection. You can also use sub-directories which will be part of the resulting path.
 
 <5> **Index File**
 The `index.html` file is required and serves as the homepage. It provides site-wide data using FrontMatter.

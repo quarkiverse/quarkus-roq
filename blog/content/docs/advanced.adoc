@@ -303,8 +303,8 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 Default link value:
 
 * for pages: `/:path:ext`.
-* for documents: `/:collection/:slug`.
-* for paginated page: `/:collection/page:page`.
+* for documents: `/:collection/:slug/`.
+* for paginated page: `/:collection/page:page/`.
 
 TIP: You can define `link` in a layout to affect all the pages using that layout.
 
@@ -340,70 +340,6 @@ TIP: By default, url will be rendered as relative from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
-
-=== Images url resolution
-
-By default, pages and documents images should be located in `/static/assets/images` (you can choose another path in the config). To define an image for a page or document, you can use the FrontMatter `image` (or `img` or `picture`) key. It should contain the path to your page image relative to the configured images location (e.g. `image: foo.webp` will refer to `/static/assets/images/foo.webp`), or an absolute path starting with `http(s)://`.
-
-Roq will automatically resolve the url for the image in `page.image` (or `site.image`). This makes showing images very easy:
-[source,html]
-----
-<img src="{site.image.absolute}" title="{site.title}" /> // <1>
-<img src="{site.image('something.png')}" title="{site.title}" /> // <2>
-----
-<1> Will print the site image absolute url.
-<2> Will print `/static/assets/images/something.png`.
-
-or
-
-[source,html]
-----
----
-layout: :theme/page
-title: Foo
-image: foo.webp // <1>
----
-
-<img src="{page.image}" title="{page.title}" /> // <2>
-----
-<1> The path to your page image relative to the configured images location (or an absolute path starting with `http(s)://`).
-<2> `page.image` will be resolved to `/static/assets/images/foo.webp`.
-
-TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{page.image.absolute}`).
-
-You can have other FrontMatter data with images, to convert them to url, use `page.dataAsImage('foo')`.
-
-[source,html]
-----
----
-layout: :theme/page
-title: Foo
-image: foo.webp
-other-image: other-foo.webp
-list-of-images:
-  - https://my-picture.io/foo-1.webp <1>
-  - foo-2.webp
-images-with-titles:
-  - title: Foo 1
-    path: foo-1.webp
-  - title: Foo 2
-    path: foo-2.webp
----
-
-<img src="{page.dataAsImage('other-image')}" title="Another image" /> <2>
-
-{#for image in page.dataAsImages('list-of-images')} <3>
-  <img src="{image}" />
-{/for}
-
-{#for image in page.data('images-with-titles')}
-  <img src="{page.image(image.path)}" title="{image.title}" /> <4>
-{/for}
-----
-<1> The resolution is smart and also allows using absolute urls (they won't be changed).
-<2> `page.dataAsImage` will resolve the data from `other-image` and resolve the image url from its value.
-<3> It also works with arrays using `page.dataAsImages`.
-<4> If you want to resolve any image path use `page.image(path)`.
 
 == Site Configuration
 |}

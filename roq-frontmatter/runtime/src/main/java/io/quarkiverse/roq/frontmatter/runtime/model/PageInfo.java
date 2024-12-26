@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -24,7 +25,7 @@ public record PageInfo(
         boolean draft,
 
         /**
-         * Where all the images for this page are based relative to the site path (e.g. {site-path}/static/images)
+         * Where all the images for this page are based (e.g./static/assets/images), empty if it is in the current dir.
          */
         String imagesDirPath,
 
@@ -46,31 +47,52 @@ public record PageInfo(
         /**
          * The generated template path for Qute (e.g posts/my-favorite-beer.html)
          */
-        String generatedTemplateId) {
+        String generatedTemplateId,
 
-    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "asciidoc", "adoc");
+        /**
+         * List of attachments
+         */
+        List<String> attachments,
 
-    public static PageInfo create(String id, boolean draft, String imagesDirPath, String dateString,
+        /**
+         * Is this a html page or something else (json, yml, ...)
+         */
+        boolean isHtml,
+        boolean isIndex,
+        boolean isSiteIndex) {
+
+    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
+            "adoc");
+
+    public static PageInfo create(String id,
+            boolean draft,
+            String imagesDirPath,
+            String dateString,
             String rawContent,
             String sourcePath,
-            String quteTemplateId) {
-        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId);
+            String quteTemplateId,
+            List<String> attachments,
+            boolean isHtml,
+            boolean isIndex,
+            boolean isSiteIndex) {
+        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId, attachments, isHtml,
+                isIndex, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
         return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId());
+                generatedTemplateId(), attachments(), isHtml(), isIndex(), isSiteIndex());
     }
 
     public PageInfo changeIds(Function<String, String> function) {
         return new PageInfo(function.apply(id()), draft(), imagesDirPath(), dateString(), rawContent(),
                 sourceFilePath(),
-                function.apply(generatedTemplateId()));
+                function.apply(generatedTemplateId()), attachments(), isHtml(), isIndex(), isSiteIndex());
     }
 
     public PageInfo changeIdAndGeneratedTemplateId(String id) {
         return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId());
+                generatedTemplateId(), attachments(), isHtml(), isIndex(), isSiteIndex());
     }
 
     public ZonedDateTime date() {
@@ -91,12 +113,19 @@ public record PageInfo(
         return PathUtils.removeExtension(sourceFileName());
     }
 
-    public String getSourceFileExtension() {
+    public String sourceFileExtension() {
         return PathUtils.getExtension(sourceFileName());
     }
 
-    public boolean isHtml() {
-        return HTML_OUTPUT_EXTENSIONS.contains(getSourceFileExtension());
+    public boolean isSiteIndex() {
+        return isHtml && id().startsWith("index.");
     }
 
+    public boolean isIndex() {
+        return isHtml && "index".equals(sourceBaseFileName());
+    }
+
+    public boolean hasAttachments() {
+        return !attachments.isEmpty();
+    }
 }

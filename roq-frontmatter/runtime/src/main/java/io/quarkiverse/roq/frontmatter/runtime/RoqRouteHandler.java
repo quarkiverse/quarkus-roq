@@ -197,7 +197,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             path = removeLeadingSlash(path);
 
             // Check if we have a matching linked template
-            final String link = removeTrailingSlash(path);
+            final String link = addTrailingSlashIfNoExt(path);
             if (pages.containsKey(link)) {
                 return pages.get(link).get();
             }
