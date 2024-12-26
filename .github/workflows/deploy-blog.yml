@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Build Roq
-        run: mvn -B clean install -DskipTests
+        run: mvn -B clean install -DskipTests -Dno-format
       ####
 
       - name: Generate Blog

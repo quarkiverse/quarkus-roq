@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.it;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.ValidatableResponse;
@@ -51,7 +51,14 @@ public class RoqBlogTest {
 
     @Test
     public void testAlias() {
-        given().when().get("/first-roq-article-ever").then().statusCode(200)
-                .body(containsString("url=\"/posts/welcome-to-roq\""));
+        given().when().get("/first-roq-article-ever/").then().statusCode(200)
+                .body(containsString("url=\"/posts/welcome-to-roq/\""));
+    }
+
+    @Test
+    public void testRss() {
+        given().when().get("/rss.xml").then().statusCode(200)
+                .body(startsWith("<rss xmlns:dc="))
+                .body(endsWith("</rss>\n"));
     }
 }

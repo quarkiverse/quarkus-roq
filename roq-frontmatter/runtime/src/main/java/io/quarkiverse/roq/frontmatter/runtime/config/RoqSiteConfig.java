@@ -55,7 +55,7 @@ public interface RoqSiteConfig {
     List<String> ignoredFiles();
 
     /**
-     * The layout to use for normal pages if not specified in FM.
+     * The layout to use for normal html pages if not specified in FM.
      * When empty, the page will not use a layout when it doesn't specify it in FM.
      *
      * ":theme/" is removed if no theme is defined.
@@ -90,7 +90,7 @@ public interface RoqSiteConfig {
     boolean future();
 
     /**
-     * The public path containing pages and documents images (relative to the site path)
+     * The path containing static images
      */
     @WithDefault("static/assets/images")
     String imagesPath();

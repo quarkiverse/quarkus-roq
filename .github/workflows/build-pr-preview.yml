@@ -23,7 +23,7 @@ jobs:
           cache: 'maven'
 
       - name: Build Roq
-        run: mvn -B install --file pom.xml -DskipTests
+        run: mvn -B clean install --file pom.xml -DskipTests -Dno-format
 
       - name: Store PR id
         run: |

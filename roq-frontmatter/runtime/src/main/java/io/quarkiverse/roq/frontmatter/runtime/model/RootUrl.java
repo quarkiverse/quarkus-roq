@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
+import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+
 import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkiverse.roq.util.PathUtils;
@@ -22,7 +25,7 @@ public record RootUrl(
         String rootPath) {
     public RootUrl(String url, String rootPath) {
         this.url = url;
-        this.rootPath = PathUtils.prefixWithSlash(PathUtils.removeTrailingSlash(rootPath));
+        this.rootPath = prefixWithSlash(addTrailingSlashIfNoExt(rootPath));
     }
 
     /**

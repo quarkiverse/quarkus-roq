@@ -21,12 +21,38 @@ public class RoqFrontMatterTest {
     public void testHtmlPost() {
         RestAssured.when().get("/bar/posts/awesome-post-1").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Post"))
-                .body("html.head.base.@href", equalTo("/foo"))
-                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content", equalTo("https://mywebsite.com/foo/bar"))
+                .body("html.head.base.@href", equalTo("/foo/"))
+                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content",
+                        equalTo("https://mywebsite.com/foo/bar/"))
                 .body("html.body.article.h1", equalTo("A cool blog post"))
                 .body("html.body.article.p", equalTo("bar hello"))
                 .body("html.body.div.h2", equalTo("My Cool Post"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
+    }
+
+    @Test
+    public void testDirPage() {
+        RestAssured.when().get("/bar/my-dir-page").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("My dir page"))
+                .body("html.head.base.@href", equalTo("/foo/"))
+                .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content",
+                        equalTo("https://mywebsite.com/foo/bar/"))
+                .body("html.body.article.h1", equalTo("Hello!"));
+        RestAssured.when().get("/bar/my-dir-page/beer.doc").then().statusCode(200);
+    }
+
+    @Test
+    public void testDirPost() {
+        RestAssured.when().get("/bar/posts/2024-03-10-dir-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("posts/2024-03-10-dir-post/index.html"))
+                .body("html.head.base.@href", equalTo("/foo/"))
+                .body("html.body.article.h1", equalTo("Hello!"));
+        RestAssured.when().get("/bar/posts/2024-03-10-dir-post/beer.svg").then().statusCode(200);
+    }
+
+    @Test
+    public void testStatic() {
+        RestAssured.when().get("/bar/static/assets/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
     }
 
     @Test
@@ -43,8 +69,8 @@ public class RoqFrontMatterTest {
     public void testIndex() {
         RestAssured.when().get("/bar").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
-                .body("html.body.div.h1[0]", containsString("posts/awesome-post.html"))
-                .body("html.body.div.h1[1]", containsString("posts/2020-10-24-old-post.html"))
+                .body("html.body.div.h1[1]", containsString("posts/awesome-post.html"))
+                .body("html.body.div.h1[2]", containsString("posts/2020-10-24-old-post.html"))
                 .body("html.body.div.h2", equalTo("Hello, world! I'm Roq"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }

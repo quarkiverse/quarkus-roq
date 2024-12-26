@@ -117,11 +117,6 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The Roq site URL
 | `http://example.com/my-roq-site/`
 
-| `site.imagesUrl`
-| `RoqUrl`
-| Directory to resolve images URL (e.g. /static/images)
-| `http://example.com/static/images`
-
 | `site.data`
 | `JsonObject`
 | The site FM data (declared in the index.html)
@@ -193,19 +188,19 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The collection id if this a document
 | `posts`
 
-| `page.title()`
+| `page.title`
 | `String`
 | The title of the page (shortcut from FM)
 | `About Us`
 
-| `page.description()`
+| `page.description`
 | `String`
 | The description of the page (shortcut from FM)
 | `This is the about us page.`
 
 | `page.image()`
 | `RoqUrl`
-| The image URL of the page if present
+| The cover image URL of the page (with disk check)
 | `http://example.com/static/images/about.png`
 
 | `page.date()`
@@ -309,55 +304,182 @@ Here is a list of puns suggested by Chat GPT:
 <3> You have shortcut on the `page` to access `title` and `description`.
 {|
 
-Then let's edit our index page to show the list of posts:
+Ok, to dive a bit deeper, we could create a json listing all posts with some info:
 
 [source,html]
-.content/index.html
+.content/posts.json
 ----
----
-title: Hello Roqers
-description: It is time to start Roqing 🎸!
-layout: main
----
-
-<h1>Hello fellow Roqers 🤘</h1>
-
-
+[
 {#for post in site.collections.posts} // <1>
-<article class="post">
-  {#if post.image}
-  <a class="post-thumbnail" style="background-image: url({post.image})" href="{post.url}"></a> // <2> <3>
-  {/if}
-  <div class="post-content">
-    <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>
-    <p>{post.description}</p>
-    <span class="post-date">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span> // <4>
-    <span class="post-words">
-      {post.readTime} minute(s) read <5>
-    </span>
-  </div>
-</article>
+  {
+    "title": "{post.title}",
+    "url": "{post.url.absolute}", // <2>
+    "image": "{post.image.absolute}", // <3>
+    "date": "{post.date}", // <4>
+    "read-time": "{post.readTime}" // <5>
+  }{#if !post_isLast},{/if}
 {/for}
+]
 ----
 |}
-<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  link:{site.url('docs/advanced')}#pagination[paginate]).
-<2> `post.image` is smart and is already resolved to the image url (as a RoqUrl).
-<3> `post.url` contains the post url (as a RoqUrl), you could also use `post.url.absolute` to get the absolute url.
+
+<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  link:{site.url('docs/advanced/')}#pagination[paginate]).
+<2> `post.image` is smart and is already resolved to the image url (as a RoqUrl), `absolute` to get the absolute url.
+<3> `post.url` contains the post url (as a RoqUrl), you could also use `absolute` to get the absolute url.
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
 
 {|
 
-== Static files
+[#site-static]
+== Site static files
+[source]
+----
+static/
+├── image.jpg
+└── presentation.pdf
+----
 
-By default, all files in `static/` are treated as static..
+By default, all files in `static/` are scanned.
+
+Site static files url can be accessed through `site.staticFile('/static/presentation.pdf')`.
+
+TIP: `site.staticFile(path)` also checks that the file exists on disk and will adapt on site configuration (e.g. root path change)
+
+
+[#attachments]
+== Page and Documents attachments files
+
+Pages and documents may have attachments files (image, pdf, slides, ...). For this, instead of creating a file page/document, create a directory with an index page:
+
+[source]
+----
+content/my-page/
+        ├── image.jpg // <1>
+        ├── slide.pdf // <1>
+        └── index.md  // <2>
+----
+
+<1> Every non page files in the directory are treated as attachments
+<2> Use an index.(html,md,...) for the page or document content
+
+In that case, attachments will be served under the same path as the page or document and can be accessed via a relative link:
+[source,markdown]
+----
+[slide](./slide.pdf)
+----
+
+The resulting link for a page can be different from its directory name, attachments will be relative to the resulting link. This way it works both in IDEs preview and in the browser.
+
+Let's imagine for a minute that the page link is `https://my-site.org/awesome-page/`, then the slide will be served on `https://my-site.org/awesome-page/slide.pdf`.
+
+You can use `{page.attachment("slide.pdf")}` to resolve the attachment url *and check that the file exists*. This is useful from another page or if you want the absolute url (i.e. `{page.attachment("slide.pdf").absolute}`):
+
+TIP: If you want to iterate over attachments, they can be listed using `{page.attachments}`.
+
+
+=== Images
+
+==== Site image
+
+The site image should be added as a static site file (e.g. `my-site/static/assets/images/my-site.png`) and referenced in the site index FM `image` data.
+
+[source,yaml]
+.index.html
+----
+---
+image: my-site.png
+---
+----
+
+It can be accessed in any template through `{site.image}`.
+
+==== Page/Document cover image
+
+Page/Document cover image can be added as an attachment (or as a static site file) and referenced in the page FM `image` data.
+[source,yaml]
+.some-page.md
+----
+---
+image: my-page.png
+---
+----
+
+
+It can be accessed through `{page.image}`.
+
+NOTE: `page.image` is smart and falls back to the static site files if the image is not an attachment.
+
+==== Content images
+
+You also need images in your pages and articles content. Let's take this example structure:
+
+[source]
+----
+my-site/
+├── content/
+│   └── posts/
+│       └── article-with-attachments/
+│           ├── surf.jpg                <1>
+│           └── index.html
+└── static/
+    └── assets/
+        └── images/                     <2>
+            ├── basketball.png
+            └── football.jpg
+----
+
+<1> Accessible via `page.image('surf.jpg')` or via a simple relative link from the page.
+<2> Accessible via `site.image('basketball.png')` or `page.image('basketball.png')` (it falls back to site).
+
+Here is how to access those images from the article:
+
+[source,html]
+.article-with-attachments/index.html
+----
+
+<h2>👍</h2>
+<img src="surf.jpg" /> <1>
+<img src="{page.image('surf.jpg')}" /> <2>
+<img src="{site.image('basketball.jpg')}" /> <3>
+<img src="{page.image('basketball.png')}" /> <4>
+<img src="{page.image('basketball.png').absolute}" /> <5>
+
+
+<h2>👎</h2>
+<img src="{site.image('surf.jpg')}" /> <6>
+<img src="{page.image('soccer.jpg')}" /> <6>
+----
+
+<1> Relative links are working when using <<attachments>>.
+<2> The `image()` method also checks that the file exists on disk.
+<3> `site.image(path)` looks into `/static/assets/images/` by default (with disk checking).
+<4> Same as _3._ because `page.image(path)` fall backs to `site.image(path)`.
+<5> render the absolute url (e.g. `https://my-site.org/static/assets/images/basketball.png`)
+<6> this would throw an error!
 
 == Styles and Javascript
 
-NOTE: The Quarkus Web Bundler is included by default with the Roq extension.
 
-You can add css and scripts in your static directory or bundle them.
-To use bundling scripts (js, ts) and styles (css, scss) should be located in `src/main/web/app/`. To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
+Here are two options to consume scripts and styles:
+
+* Add css and scripts in your site static directory, see <<site-static>> section.
+* Use the Quarkus Web Bundler to bundle your script and styles 👇.
+
+NOTE: The Quarkus Web Bundler is included by default in Roq.
+
+To use bundling scripts (js, ts) and styles (css, scss), locate them in `src/main/resources/web/app/`.
+
+[source]
+----
+my-site/
+├── src/main/resources/web/app/
+│                           ├── scripts.js
+│                           └── styles.scss
+----
+
+
+To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
 
 [source,html]
 .layouts/head.html
@@ -370,14 +492,14 @@ To use bundling scripts (js, ts) and styles (css, scss) should be located in `sr
 
 It will be rendered with the relevant `<script>` and `<style>` tags to include your bundle.
 
-You may also consume and bundle npm dependencies among other cool things.
+TIP: You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
 
 
 == Asciidoc support
 
 |}
-Asciidoc is supported by Roq using link:{site.url('docs/plugins')}#plugin-asciidoc[plugins].
+Asciidoc is supported by Roq using link:{site.url('docs/plugins/')}#plugin-asciidoc[plugins].
 
 {|
 Using `{something}` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `\\{something}`, or wrap more content inside `{|` and `|&#125;`.
@@ -392,9 +514,17 @@ The standard Asciidoc include is not supported, but you can use Qute includes in
 
 === Images
 
-You should place your images under the `static/assets/images` folder, and reference them with the image macro :
+If you placed your images under the `static/assets/images` folder, you may reference them with the image macro :
 
- image::{site.imagesDirUrl.resolve('your_image.png')}[Image description]
+[source,asciidoc]
+----
+ image::{site.image('your_image.png')}[Image description]
+----
 
+If you are using attachments, you can reference them directly:
+[source,asciidoc]
+----
+ image::./foo.png[Image description]
+----
 
 |}

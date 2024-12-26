@@ -36,8 +36,8 @@ public class RoqTemplateExtension {
         if (text == null) {
             throw new IllegalArgumentException("Link input cannot be null");
         }
-        return text.toLowerCase()
-                .replaceAll(allowSlashes ? "[^a-z0-9\\-/]" : "[^a-z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
+        return text
+                .replaceAll(allowSlashes ? "[^a-zA-Z0-9\\-/]" : "[^a-zA-Z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
                 .replaceAll("-+", "-") // Replace multiple hyphens with a single one
                 .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
     }

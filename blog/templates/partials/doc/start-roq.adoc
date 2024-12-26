@@ -16,7 +16,7 @@ quarkus dev
 ----
 
 4. 💻 Your site is available on *link:http://localhost:8080[localhost,window=_blank]* for dev
-5. 🍾 Time to **link:{site.url('docs/basics')}[Roq the basics]**!
+5. 🍾 Time to **link:{site.url('docs/basics/')}[Roq the basics]**!
 6. ☀️ If you found some happiness with Roq, please support us:
 +
 ++++

@@ -140,7 +140,7 @@ class RoqFrontMatterInitProcessor {
         Map<String, Supplier<? extends Page>> allPagesByPath = new HashMap<>();
         for (RoqFrontMatterPageBuildItem i : pageItems) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debugf("Published %s page '%s' on '%s'", i.hidden() ? "hidden" : "", i.id(), i.url().toString());
+                LOGGER.debugf("Published %spage '%s' on '%s'", i.hidden() ? "hidden " : "", i.id(), i.url().toString());
             }
             if (i.hidden()) {
                 continue;

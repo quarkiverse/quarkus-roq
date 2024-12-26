@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
@@ -14,7 +16,6 @@ import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
-import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -25,7 +26,7 @@ import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointB
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
 public class RoqFrontMatterProcessor {
-
+    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterProcessor.class);
     public static final String FEATURE = "roq-frontmatter";
 
     @BuildStep
@@ -123,11 +124,15 @@ public class RoqFrontMatterProcessor {
     @BuildStep
     void bindStaticFiles(
             RoqSiteConfig config,
+            BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             List<RoqFrontMatterStaticFileBuildItem> staticFiles,
             BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
         for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
+            final String endpoint = prefixWithSlash(staticFile.link());
+            LOGGER.debugf("Published static file: '%s'", endpoint);
+            selectedPathProducer.produce(new SelectedPathBuildItem(endpoint, null));
             staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(
-                    PathUtils.join(config.rootPath(), staticFile.link()), staticFile.filePath()));
+                    endpoint, staticFile.filePath()));
         }
     }
 

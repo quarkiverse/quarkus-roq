@@ -5,9 +5,9 @@ import java.util.List;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -82,55 +82,75 @@ public interface Page {
     }
 
     /**
-     * The page image resolved url
+     * The page image resolved url.
+     * If it's a page with attachments, it will return from it else from the default image directory.
      */
     default RoqUrl image() {
         final String img = Page.getImgFromData(data());
         if (img == null) {
             return null;
         }
-        return Arc.container().beanInstanceSupplier(Site.class).get().get().image(img);
+        return image(img);
     }
 
     /**
-     * Resolve an image url
+     * Resolve an image url as an attachment or from the static image dir as a fallback
      *
-     * @param imageRelativePath the image relative path from the configured image dir
+     * @param imageRelativePath the image relative path as an attachment or from the configured image dir
      */
     default RoqUrl image(Object imageRelativePath) {
-        return Arc.container().beanInstanceSupplier(Site.class).get().get().image(String.valueOf(imageRelativePath));
-    }
-
-    /**
-     * The page image resolved url from a given key
-     *
-     * @param key the data key containing the image relative path
-     * @return the url
-     */
-    default Object dataAsImage(Object key) {
-        final Object img = data().getValue(String.valueOf(key));
-        if (img == null) {
+        if (imageRelativePath == null) {
             return null;
         }
-        final Site site = Arc.container().beanInstanceSupplier(Site.class).get().get();
-        if (img instanceof String imgString) {
-            return site.image(imgString);
+        String path = String.valueOf(imageRelativePath);
+        if (RoqUrl.isFullPath(path)) {
+            return RoqUrl.fromRoot(null, path);
         }
-        return null;
+        path = PathUtils.join(info().imagesDirPath(), path.replace("./", ""));
+        if (hasAttachment(path)) {
+            return attachment(path);
+        }
+        return Arc.container().beanInstanceSupplier(Site.class).get().get().url(path);
     }
 
     /**
-     * The page image resolved url from a given key
-     *
-     * @param key the data key containing the image array of relative path
-     * @return the list of urls
+     * The page attachments files
      */
-    default List<RoqUrl> dataAsImages(Object key) {
-        final Object img = data().getValue(String.valueOf(key));
-        if (img instanceof JsonArray list) {
-            return list.stream().filter(s -> s instanceof String).map(String::valueOf).map(this::image).toList();
+    default List<String> attachments() {
+        return info().attachments();
+    }
+
+    /**
+     * Check if an attachment exists
+     */
+    default boolean hasAttachment(Object name) {
+        if (name == null) {
+            return false;
         }
-        return null;
+        if (!info().hasAttachments()) {
+            return false;
+        }
+        final String clean = String.valueOf(name).replace("./", "");
+        return info().hasAttachments() && attachments().contains(clean);
+    }
+
+    /**
+     * Get a page attachment url and check if it exists
+     */
+    default RoqUrl attachment(Object name) {
+        if (name == null) {
+            return null;
+        }
+        if (!info().hasAttachments()) {
+            throw new RuntimeException("Can't find '%s' in '%s' which has no attachment.".formatted(name, sourcePath()));
+        }
+        final String clean = ((String) name).replace("./", "");
+        if (info().hasAttachments() && attachments().contains(clean)) {
+            return url().resolve(clean);
+        } else {
+            throw new RuntimeException("Attachment '%s' was not found for `%s` (%s)".formatted(name, sourcePath(),
+                    String.join(",", attachments())));
+        }
     }
 
     /**

@@ -161,12 +161,6 @@ public class RoqFrontMatterScanProcessor {
                     scanContent(mapper, quteConfig, config, markups, watch, dataModifications, items, l.getPath());
                 });
 
-        // Scan for static files in the classpath in the resource roq dir (could be classpath root)
-        roqProject.consumePathFromRoqResourceDir(config.staticDir(), l -> {
-            watchResourceDir(watch, l);
-            scanStatic(config, staticFilesProducer, l.getPath());
-        });
-
         // When the resource roq dir is not the classpath root
         if (!roqProject.isRoqResourcesInRoot()) {
             // We need to produce the template root so Qute looks for templates
@@ -200,34 +194,7 @@ public class RoqFrontMatterScanProcessor {
             final Path contentDir = root.resolve(config.contentDir());
             watchDirectory(contentDir, watch);
             scanContent(mapper, quteConfig, config, markups, watch, dataModifications, items, contentDir);
-            final Path staticDir = root.resolve(config.staticDir());
-            watchDirectory(staticDir, watch);
-            scanStatic(config, staticFilesProducer, staticDir);
         };
-    }
-
-    private static void scanStatic(RoqSiteConfig config, BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
-            Path staticDir) {
-        // scan static
-        if (Files.isDirectory(staticDir)) {
-            try (Stream<Path> stream = Files.walk(staticDir)) {
-                stream
-                        .filter(Files::isRegularFile)
-                        .filter(not(isFileExcluded(staticDir.getParent(), config)))
-                        .forEach(p -> {
-                            final String link = toUnixPath(staticDir.getParent().relativize(p).toString());
-                            getProduce(staticFilesProducer, p, link);
-                        });
-            } catch (IOException e) {
-                throw new RuntimeException("Was not possible to scan static files on location %s".formatted(staticDir),
-                        e);
-            }
-
-        }
-    }
-
-    private static void getProduce(BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer, Path p, String link) {
-        staticFilesProducer.produce(new RoqFrontMatterStaticFileBuildItem(link, p));
     }
 
     private static void scanContent(YAMLMapper mapper, QuteConfig quteConfig, RoqSiteConfig config,
@@ -376,7 +343,7 @@ public class RoqFrontMatterScanProcessor {
     public static Predicate<Path> isTemplate(QuteConfig config) {
         HashSet suffixes = new HashSet<>(config.suffixes);
         suffixes.addAll(HTML_OUTPUT_EXTENSIONS);
-        return path -> suffixes.contains(PathUtils.getExtension(path.toString()));
+        return path -> suffixes.contains(getExtension(path.toString()));
     }
 
     @SuppressWarnings("unchecked")
@@ -397,6 +364,9 @@ public class RoqFrontMatterScanProcessor {
                     + resolveOutputExtension(markups, normalizedPath);
             boolean published = type.isPage();
             String id = type.isPage() ? normalizedPath : removeExtension(normalizedPath);
+            final boolean isHtml = isPageTargetHtml(file);
+            var isIndex = isHtml && "index".equals(PathUtils.removeExtension(PathUtils.fileName(sourcePath)));
+            var isSiteIndex = isHtml && id.startsWith("index");
             final String fullContent;
             try {
                 fullContent = Files.readString(file, StandardCharsets.UTF_8);
@@ -421,7 +391,7 @@ public class RoqFrontMatterScanProcessor {
                 return;
             }
             String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-            final String defaultLayout = type.isPage()
+            final String defaultLayout = type.isPage() && isHtml
                     ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
                     : null;
             final String layoutId = normalizedLayout(config.theme(),
@@ -436,30 +406,51 @@ public class RoqFrontMatterScanProcessor {
                 return;
             }
 
-            PageInfo info = PageInfo.create(id, draft, config.imagesPath(), dateString, content,
-                    sourcePath, quteTemplatePath, isPageTargetHtml(file));
             final String generatedTemplate = generateTemplate(markups, sourcePath, layoutId, content);
             List<Attachment> attachments = new ArrayList<>();
             // Scan for attachments
-            if (info.isIndex() && !info.isSiteIndex()) {
-                final Path pageDir = file.getParent();
-                watchDirectory(pageDir, watch);
-                try (Stream<Path> stream = Files.walk(pageDir)) {
-                    stream.filter(Files::isRegularFile)
-                            .filter(not(isFileExcluded(root.getParent(), config)))
-                            .filter(not(isTemplate(quteConfig)))
-                            .forEach(p -> attachments
-                                    .add(new Attachment(slugify(toUnixPath(pageDir.relativize(p).toString()), true), p)));
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Error while scanning pages static attachments files in " + pageDir,
-                            e);
+            if (isIndex) {
+                final Path refDir;
+                final Path attachmentDir;
+                if (isSiteIndex) {
+                    refDir = file.getParent().getParent();
+                    attachmentDir = refDir.resolve(config.staticDir());
+                } else {
+                    refDir = file.getParent();
+                    attachmentDir = refDir;
+                }
+                if (Files.isDirectory(attachmentDir)) {
+                    watchDirectory(attachmentDir, watch);
+                    try (Stream<Path> stream = Files.walk(attachmentDir)) {
+                        stream.filter(Files::isRegularFile)
+                                .filter(not(isFileExcluded(root.getParent(), config)))
+                                .filter(not(isTemplate(quteConfig)))
+                                .forEach(p -> attachments
+                                        .add(new Attachment(resolveAttachmentLink(p, refDir), p)));
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(
+                                "Error while scanning pages static attachments files in " + attachmentDir,
+                                e);
+                    }
                 }
             }
+            // For site index and pages without attachment, we use the configured image dir
+            final String imagesDirPath = (isSiteIndex || attachments.isEmpty()) ? config.imagesPath() : "";
+            PageInfo info = PageInfo.create(id, draft, imagesDirPath, dateString, content,
+                    sourcePath, quteTemplatePath, attachments.stream().map(Attachment::name).toList(), isHtml, isIndex,
+                    isSiteIndex);
             items.add(
                     new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, generatedTemplate,
                             published, attachments));
 
         };
+    }
+
+    private static String resolveAttachmentLink(Path p, Path pageDir) {
+        final String relative = toUnixPath(pageDir.relativize(p).toString());
+        final String extension = getExtension(relative);
+        removeExtension(relative);
+        return slugify(removeExtension(relative), true) + "." + extension;
     }
 
     @SuppressWarnings("unchecked")

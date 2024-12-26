@@ -17,8 +17,8 @@ import io.vertx.core.json.JsonObject;
 
 public class TemplateLink {
     public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:path:ext";
-    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug";
-    public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page";
+    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug/";
+    public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page/";
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
@@ -48,8 +48,10 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true)),
-                Map.entry(":ext", () -> data.pageInfo().isHtml() ? "" : "." + data.pageInfo().sourceFileExtension()),
+                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true).toLowerCase()),
+                Map.entry(":ext",
+                        () -> data.pageInfo().isHtml() ? ""
+                                : "." + data.pageInfo().sourceFileExtension()),
                 Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().sourceFileExtension()),
                 Map.entry(":slug", () -> resolveSlug(data))));
         if (other != null) {
@@ -70,7 +72,7 @@ public class TemplateLink {
                 title = baseFileName;
             }
         }
-        return slugify(title);
+        return slugify(title).toLowerCase();
     }
 
     public static String pageLink(String rootPath, String template, PageLinkData data) {
@@ -102,7 +104,7 @@ public class TemplateLink {
         if (link.endsWith("index") || link.endsWith("index.html")) {
             link = link.replaceAll("index(\\.html)?", "");
         }
-        return removeTrailingSlash(removeLeadingSlash(PathUtils.join(rootPath, link)));
+        return addTrailingSlashIfNoExt(removeLeadingSlash(PathUtils.join(rootPath, link)));
     }
 
 }

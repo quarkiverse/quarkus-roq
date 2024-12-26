@@ -29,7 +29,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqPluginTaggingProcessor {
 
     private static final String FEATURE = "roq-plugin-tagging";
-    public static final String DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE = "/:collection";
+    public static final String DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE = "/:collection/";
 
     @BuildStep
     FeatureBuildItem feature() {
