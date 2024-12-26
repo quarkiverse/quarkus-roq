@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-project-parent</artifactId>
-    <version>1.1.0</version>
+    <version>999-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus Roq - Project - Parent</name>
     <description>Generate static websites out of your Quarkus web application.</description>
@@ -28,7 +28,7 @@
         <connection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</connection>
         <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-roq.git</developerConnection>
         <url>https://github.com/quarkiverse/quarkus-roq</url>
-        <tag>1.1.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
