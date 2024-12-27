@@ -69,7 +69,8 @@ public class RoqFrontMatterTest {
     public void testIndex() {
         RestAssured.when().get("/bar").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
-                .body("html.body.div.h1[1]", containsString("posts/awesome-post.html"))
+                .body("html.body.div.h1[0]", containsString("posts/awesome-post.html"))
+                .body("html.body.div.h1[1]", containsString("posts/2024-03-10-dir-post/index.html"))
                 .body("html.body.div.h1[2]", containsString("posts/2020-10-24-old-post.html"))
                 .body("html.body.div.h2", equalTo("Hello, world! I'm Roq"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
