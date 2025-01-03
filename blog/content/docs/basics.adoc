@@ -331,6 +331,47 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 
 {|
 
+=== How to create custom collections?
+
+You can easily create your own collection, such as documentation, recipes, team members, or conference talks. To do this, simply create a new folder under the `content` directory. For example, if you're adding `docs`, it would look like this:
+
+[source]
+----
+content/
+├── docs
+│   ├── 01-chap
+│   │   ├── image1.png
+│   │   └── index.adoc
+│   ├── 02-chap
+│   │   ├── image2.png
+│   │   ├── index.adoc
+└── posts
+    └── 2025-01-02-my-first-blog
+        └── index.md
+----
+
+In this example, we have two collections: `posts` and `docs`. Finally, you need to define the new collection in the `config/application.properties` file using the following properties:
+
+[source]
+----
+site.collections.docs=true
+site.collections.docs.layout=":theme/post"
+
+site.collections.posts=true
+site.collections.posts.layout=":theme/post"
+----
+
+Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
+
+Now, we can access the new collection `docs` as follows:
+
+[source]
+----
+{#for doc in site.collections.docs}
+{doc.title}
+{/for}
+----
+
 [#site-static]
 == Site static files
 [source]
