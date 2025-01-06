@@ -19,7 +19,7 @@ public class RoqDataBindingEnforceBeanDataFileSideTest {
             .assertException(e -> {
                 assertThat(e).isInstanceOf(RuntimeException.class)
                         .hasMessageContaining(
-                                "Roq data is configured to enforce beans for data. Some data mapping and data files are not matching:")
+                                "Some data mappings and data files do not match:")
                         .hasMessageContaining("The data file 'bar' does not match with any @DataMapping class");
             });
 

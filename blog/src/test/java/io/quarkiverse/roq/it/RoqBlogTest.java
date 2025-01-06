@@ -15,7 +15,7 @@ public class RoqBlogTest {
         given().when().get("/").then().statusCode(200).body(containsString(
                         "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("Hello, world! I&#39;m Roq")).body(containsString("minute(s) read"))
-                .body(containsString("Page 1 of")).body(containsString("2024 &copy; ROQ"));
+                .body(containsString("Page 1 of")).body(containsString("&copy; ROQ"));
     }
 
     @Test
@@ -29,7 +29,7 @@ public class RoqBlogTest {
                         "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("<p>Hello folks,</p>"))
                 .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
-                .body(containsString("2024 &copy; ROQ"));
+                .body(containsString("&copy; ROQ"));
     }
 
     @Test
@@ -37,7 +37,7 @@ public class RoqBlogTest {
         ValidatableResponse body = given().when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
                         "Writing content is AsciiDoc format is an absolut no brainer"))
                 .body(containsString("<pre class=\"highlightjs highlight\"><code class=\"language-shell hljs\" data-lang=\"shell\">quarkus extension add io.quarkiverse.roq:quarkus-roq-plugin-asciidoc</code></pre>"))
-                .body(containsString("2024 &copy; ROQ"));
+                .body(containsString("&copy; ROQ"));
         System.out.println(body.extract().body().asString());
     }
 
@@ -46,7 +46,7 @@ public class RoqBlogTest {
         given().when().get("/events").then().statusCode(200).body(containsString(
                         "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."))
                 .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
-                .body(containsString("2024 &copy; ROQ"));
+                .body(containsString("&copy; ROQ"));
     }
 
     @Test
