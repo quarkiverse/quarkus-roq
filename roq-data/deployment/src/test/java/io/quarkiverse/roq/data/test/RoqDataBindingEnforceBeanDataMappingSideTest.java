@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
 import io.quarkiverse.roq.data.test.util.Bar;
 import io.quarkus.test.QuarkusUnitTest;
 
@@ -19,9 +20,9 @@ public class RoqDataBindingEnforceBeanDataMappingSideTest {
                     .add(new StringAsset("quarkus.roq.dir=src/test/site\nquarkus.roq.data.enforce-bean=true"),
                             "application.properties"))
             .assertException(e -> {
-                assertThat(e).isInstanceOf(RuntimeException.class)
+                assertThat(e).isInstanceOf(DataMappingMismatchException.class)
                         .hasMessageContaining(
-                                "Roq data is configured to enforce beans for data. Some data mapping and data files are not matching:")
+                                "Some data mappings and data files do not match:")
                         .hasMessageContaining("The @DataMapping#value('why') does not match with any data file");
             });
 

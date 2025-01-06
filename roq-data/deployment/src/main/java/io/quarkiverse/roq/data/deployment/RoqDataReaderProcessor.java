@@ -14,6 +14,10 @@ import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
+import io.quarkiverse.roq.data.deployment.exception.DataConflictException;
+import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
+import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
+import io.quarkiverse.roq.data.deployment.exception.DataScanningException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
@@ -49,7 +53,7 @@ public class RoqDataReaderProcessor {
                 }
 
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new DataScanningException("Unable to scan data files", e);
             }
         }
 
@@ -78,8 +82,8 @@ public class RoqDataReaderProcessor {
         if (config.enforceBean()) {
             List<String> dataMappingErrors = collectDataMappingErrors(annotationMap.keySet(), dataJsonMap.keySet());
             if (!dataMappingErrors.isEmpty()) {
-                throw new RuntimeException(
-                        "Roq data is configured to enforce beans for data. Some data mapping and data files are not matching: %n%s"
+                throw new DataMappingMismatchException(
+                        "Some data mappings and data files do not match: %n%s. Data mapping enforcement may be disabled in Roq."
                                 .formatted(String.join(System.lineSeparator(), dataMappingErrors)));
             }
         }
@@ -107,6 +111,7 @@ public class RoqDataReaderProcessor {
                     final DotName type = methodInfo.parameterType(0).asParameterizedType().arguments().get(0).name();
                     dataMappingProducer.produce(new DataMappingBuildItem(
                             name,
+                            item.sourceFile(),
                             className,
                             type, // need to get dynamically
                             item.getContent(),
@@ -116,6 +121,8 @@ public class RoqDataReaderProcessor {
 
                 final DataMappingBuildItem roqMapping = new DataMappingBuildItem(
                         name,
+                        item.sourceFile(),
+
                         null,
                         className,
                         item.getContent(),
@@ -126,10 +133,12 @@ public class RoqDataReaderProcessor {
             } else {
                 // Prepare mapping as JsonObject or JsonArray (we convert here to avoid one more step)
                 try {
+                    final Object converted = roqDataBuildItem.converter().convert(roqDataBuildItem.getContent());
                     dataJsonProducer.produce(new RoqDataJsonBuildItem(name,
-                            roqDataBuildItem.converter().convert(roqDataBuildItem.getContent())));
+                            converted));
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new DataConversionException(
+                            "Unable to convert data file %s as an Object".formatted(roqDataBuildItem.sourceFile()), e);
                 }
             }
         }
@@ -174,7 +183,8 @@ public class RoqDataReaderProcessor {
                         (p, a) -> Files.isRegularFile(p) && isExtensionSupported(p))) {
                     pathStream.forEach(addRoqDataBuildItem(converter, watchedFilesProducer, path, items));
                 } catch (IOException e) {
-                    throw new RuntimeException("Error while scanning data files on location %s".formatted(path.toString()), e);
+                    throw new DataScanningException(
+                            "Error while scanning data files on location: '%s'".formatted(path.toString()), e);
                 }
             }
         };
@@ -191,7 +201,7 @@ public class RoqDataReaderProcessor {
         return file -> {
             var name = rootDir.relativize(file).toString().replaceAll("\\..*", "").replaceAll("/", "_");
             if (items.containsKey(name)) {
-                throw new RuntimeException("Multiple data files found for name: " + name);
+                throw new DataConflictException("Multiple data files found for the name: '%s'.".formatted(name));
             }
             String filename = file.getFileName().toString();
             if (Path.of("").getFileSystem().equals(file.getFileSystem())) {
@@ -202,7 +212,7 @@ public class RoqDataReaderProcessor {
 
             if (dataConverter != null) {
                 try {
-                    items.put(name, new RoqDataBuildItem(name, Files.readAllBytes(file), dataConverter));
+                    items.put(name, new RoqDataBuildItem(name, file, Files.readAllBytes(file), dataConverter));
                 } catch (IOException e) {
                     throw new UncheckedIOException("Error while decoding using %s converter: %s "
                             .formatted(filename, converter.getClass()), e);

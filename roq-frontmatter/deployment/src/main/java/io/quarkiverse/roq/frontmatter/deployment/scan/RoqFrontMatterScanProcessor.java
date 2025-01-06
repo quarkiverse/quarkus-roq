@@ -7,7 +7,6 @@ import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +34,9 @@ import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType;
@@ -49,7 +51,6 @@ import io.quarkus.paths.PathVisit;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
-import io.quarkus.runtime.configuration.ConfigurationException;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonObject;
 
@@ -117,7 +118,7 @@ public class RoqFrontMatterScanProcessor {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RoqSiteScanningException("Unable to scan the Roq project", e);
         }
     }
 
@@ -225,8 +226,8 @@ public class RoqFrontMatterScanProcessor {
                         }
                     });
         } catch (IOException e) {
-            throw new RuntimeException(
-                    "Was not possible to scan content files on location %s".formatted(contentDir), e);
+            throw new RoqSiteScanningException(
+                    "Unable to scan content files at location: %s".formatted(contentDir), e);
         }
 
     }
@@ -243,7 +244,7 @@ public class RoqFrontMatterScanProcessor {
                 }
             });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RoqSiteScanningException("Unable to read directory: %s".formatted(dir), e);
         }
     }
 
@@ -285,7 +286,8 @@ public class RoqFrontMatterScanProcessor {
                     .filter(RoqFrontMatterScanProcessor::isPageTargetHtml)
                     .forEach(layoutsConsumer);
         } catch (IOException e) {
-            throw new RuntimeException("Error while scanning templates dir %s".formatted(templatesRoot), e);
+            throw new RoqSiteScanningException(
+                    "Error while scanning layouts directory: %s".formatted(templatesRoot), e);
         }
     }
 
@@ -321,7 +323,7 @@ public class RoqFrontMatterScanProcessor {
                             final String content = Files.readString(p, StandardCharsets.UTF_8);
                             if (content.length() > 65535) {
                                 LOGGER.warnf(
-                                        "Ignoring template '%s' because it is too large for recording, consider splitting it.",
+                                        "Template '%s' is too large for recording and will be ignored. Consider splitting it into smaller parts.",
                                         link);
                                 return;
                             }
@@ -331,12 +333,13 @@ public class RoqFrontMatterScanProcessor {
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
                                     .build());
                         } catch (IOException e) {
-                            throw new RuntimeException("Error while reading the file %s"
-                                    .formatted(p), e);
+                            throw new RoqSiteScanningException(
+                                    "Error while reading template file: %s".formatted(p), e);
                         }
                     });
         } catch (IOException e) {
-            throw new RuntimeException("Was not possible to scan templates dir %s".formatted(templatesRoot), e);
+            throw new RoqSiteScanningException(
+                    "Error while reading templates dir: %s".formatted(templatesRoot), e);
         }
     }
 
@@ -371,7 +374,8 @@ public class RoqFrontMatterScanProcessor {
             try {
                 fullContent = Files.readString(file, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                throw new UncheckedIOException("Error while reading file: " + sourcePath, e);
+                throw new RoqSiteScanningException(
+                        "Error while reading template file: %s".formatted(sourcePath), e);
             }
             JsonObject fm;
             String content = fullContent;
@@ -379,7 +383,8 @@ public class RoqFrontMatterScanProcessor {
                 try {
                     fm = readFM(mapper, fullContent);
                 } catch (JsonProcessingException | IllegalArgumentException e) {
-                    throw new RuntimeException("FrontMatter parsing error for file: " + sourcePath, e);
+                    throw new RoqFrontMatterReadingException(
+                            "Error reading YAML FrontMatter block (enclosed by '---') in file: %s".formatted(sourcePath));
                 }
                 content = stripFrontMatter(fullContent);
             } else {
@@ -428,9 +433,8 @@ public class RoqFrontMatterScanProcessor {
                                 .forEach(p -> attachments
                                         .add(new Attachment(resolveAttachmentLink(p, refDir), p)));
                     } catch (IOException e) {
-                        throw new UncheckedIOException(
-                                "Error while scanning pages static attachments files in " + attachmentDir,
-                                e);
+                        throw new RoqSiteScanningException(
+                                "Error scanning static attachment files in directory: %s".formatted(attachmentDir), e);
                     }
                 }
             }
@@ -524,9 +528,9 @@ public class RoqFrontMatterScanProcessor {
             if (theme.isPresent()) {
                 normalized = normalized.replace(":theme", theme.get());
             } else {
-                throw new ConfigurationException(
-                        "No theme detected! Using :theme in 'layout: " + layout
-                                + " is only possible with a theme installed.");
+                throw new RoqThemeConfigurationException(
+                        "No theme detected! Using ':theme' in 'layout: %s' is only possible with a theme installed as a dependency."
+                                .formatted(layout));
             }
         }
 

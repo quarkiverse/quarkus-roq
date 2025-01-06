@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.data.deployment.items;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -18,6 +19,11 @@ public final class RoqDataBuildItem extends MultiBuildItem {
     private final String name;
 
     /**
+     * Represent the source file.
+     */
+    private final Path sourceFile;
+
+    /**
      * The content of the Roq data file.
      */
     private final byte[] content;
@@ -27,10 +33,15 @@ public final class RoqDataBuildItem extends MultiBuildItem {
      */
     private final DataConverter converter;
 
-    public RoqDataBuildItem(String name, byte[] content, DataConverter converter) {
+    public RoqDataBuildItem(String name, Path sourceFile, byte[] content, DataConverter converter) {
         this.name = name;
+        this.sourceFile = sourceFile;
         this.content = content;
         this.converter = converter;
+    }
+
+    public Path sourceFile() {
+        return sourceFile;
     }
 
     public String getName() {
@@ -50,20 +61,16 @@ public final class RoqDataBuildItem extends MultiBuildItem {
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (this == object)
-            return true;
-        if (object == null || getClass() != object.getClass())
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
             return false;
-        RoqDataBuildItem that = (RoqDataBuildItem) object;
-        return Objects.equals(name, that.name) && Arrays.equals(content, that.content)
-                && Objects.equals(converter, that.converter);
+        RoqDataBuildItem that = (RoqDataBuildItem) o;
+        return Objects.equals(name, that.name) && Objects.equals(sourceFile, that.sourceFile)
+                && Objects.deepEquals(content, that.content) && Objects.equals(converter, that.converter);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, converter);
-        result = 31 * result + Arrays.hashCode(content);
-        return result;
+        return Objects.hash(name, sourceFile, Arrays.hashCode(content), converter);
     }
 }

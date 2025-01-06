@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.data.deployment.items;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -14,6 +15,11 @@ public final class DataMappingBuildItem extends MultiBuildItem {
      * Represents the data file name without extension.
      */
     private final String name;
+
+    /**
+     * Represent the source file.
+     */
+    private final Path sourceFile;
 
     /**
      * Represents the {@link DotName} of parent type.
@@ -40,14 +46,24 @@ public final class DataMappingBuildItem extends MultiBuildItem {
      */
     private final boolean isRecord;
 
-    public DataMappingBuildItem(String name, DotName parentType, DotName className, byte[] content, DataConverter converter,
+    public DataMappingBuildItem(String name, Path sourceFile, DotName parentType, DotName className, byte[] content,
+            DataConverter converter,
             boolean isRecord) {
         this.name = name;
+        this.sourceFile = sourceFile;
         this.parentType = parentType;
         this.className = className;
         this.content = content;
         this.converter = converter;
         this.isRecord = isRecord;
+    }
+
+    public Path sourceFile() {
+        return sourceFile;
+    }
+
+    public String name() {
+        return name;
     }
 
     public String getName() {
@@ -79,20 +95,17 @@ public final class DataMappingBuildItem extends MultiBuildItem {
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (this == object)
-            return true;
-        if (object == null || getClass() != object.getClass())
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
             return false;
-        DataMappingBuildItem that = (DataMappingBuildItem) object;
-        return isRecord == that.isRecord && Objects.equals(name, that.name) && Objects.equals(className, that.className)
-                && Arrays.equals(content, that.content) && Objects.equals(converter, that.converter);
+        DataMappingBuildItem that = (DataMappingBuildItem) o;
+        return isRecord == that.isRecord && Objects.equals(name, that.name) && Objects.equals(sourceFile, that.sourceFile)
+                && Objects.equals(parentType, that.parentType) && Objects.equals(className, that.className)
+                && Objects.deepEquals(content, that.content) && Objects.equals(converter, that.converter);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, className, converter, isRecord);
-        result = 31 * result + Arrays.hashCode(content);
-        return result;
+        return Objects.hash(name, sourceFile, parentType, className, Arrays.hashCode(content), converter, isRecord);
     }
 }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
@@ -100,9 +101,9 @@ public class RoqFrontMatterDataProcessor {
         while (parent != null) {
             if (!byId.containsKey(parent)) {
                 final String layoutKey = RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), parent);
-                throw new RuntimeException(
-                        "Layout '%s' not found for file: '%s'. Available layouts: %s.".formatted(layoutKey,
-                                item.info().sourceFileName(), getAvailableLayouts(config, byId)));
+                throw new RoqLayoutNotFoundException(
+                        "Layout '%s' not found for file '%s'. Available layouts are: %s."
+                                .formatted(layoutKey, item.info().sourceFileName(), getAvailableLayouts(config, byId)));
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();

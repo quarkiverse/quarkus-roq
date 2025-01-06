@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqAttachmentException;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
@@ -142,13 +143,13 @@ public interface Page {
             return null;
         }
         if (!info().hasAttachments()) {
-            throw new RuntimeException("Can't find '%s' in '%s' which has no attachment.".formatted(name, sourcePath()));
+            throw new RoqAttachmentException("Can't find '%s' in '%s' which has no attachment.".formatted(name, sourcePath()));
         }
         final String clean = ((String) name).replace("./", "");
         if (info().hasAttachments() && attachments().contains(clean)) {
             return url().resolve(clean);
         } else {
-            throw new RuntimeException("Attachment '%s' was not found for `%s` (%s)".formatted(name, sourcePath(),
+            throw new RoqAttachmentException("Attachment '%s' was not found for `%s` (%s)".formatted(name, sourcePath(),
                     String.join(",", attachments())));
         }
     }

@@ -15,6 +15,8 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
@@ -26,6 +28,7 @@ import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
@@ -119,8 +122,8 @@ class RoqFrontMatterInitProcessor {
         }
         // Create Site bean
         if (indexPageItem == null) {
-            throw new RuntimeException(
-                    "Site index page (index.html,md,...) not found. A site index is required by Roq, please create one to continue...");
+            throw new RoqSiteIndexNotFoundException(
+                    "Site index page (index.html, index.md, etc.) not found. A site index is required by Roq. Please create one to continue.");
         }
         final Map<String, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
                 Collectors.toMap(RoqFrontMatterCollectionBuildItem::name, RoqFrontMatterCollectionBuildItem::documents));
@@ -148,12 +151,14 @@ class RoqFrontMatterInitProcessor {
             final RoqFrontMatterPageBuildItem prev = itemsMap.put(i.url().path(), i);
             allPagesByPath.put(i.url().path(), i.page());
             if (prev != null) {
-                if (launchMode.getLaunchMode().isDevOrTest()) {
-                    LOGGER.warnf("The same url (%s) has been found more than once in %s and %s", i.url().path(), prev.id(),
-                            i.id());
+                if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
+                    LOGGER.warnf(
+                            "Conflict detected: Duplicate path (%s) found in %s and %s. In development, the first occurrence will be kept, but this will cause an exception in normal mode.",
+                            i.url().path(), prev.id(), i.id());
                 } else {
-                    throw new RuntimeException("The same url (%s) has been found more than once in %s and %s"
-                            .formatted(i.url().path(), prev.id(), i.id()));
+                    throw new RoqPathConflictException(
+                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(i.url().path(), prev.id(),
+                                    i.id()));
                 }
             }
         }

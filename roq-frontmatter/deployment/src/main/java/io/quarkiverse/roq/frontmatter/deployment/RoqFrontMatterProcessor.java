@@ -2,12 +2,11 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.util.PathUtils.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
@@ -20,8 +19,10 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
@@ -124,11 +125,27 @@ public class RoqFrontMatterProcessor {
     @BuildStep
     void bindStaticFiles(
             RoqSiteConfig config,
+            LaunchModeBuildItem launchMode,
             BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             List<RoqFrontMatterStaticFileBuildItem> staticFiles,
             BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
+        Map<String, String> paths = new HashMap<>();
         for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
             final String endpoint = prefixWithSlash(staticFile.link());
+            final String prev = paths.put(endpoint, staticFile.filePath().toString());
+            if (prev != null) {
+                if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
+                    LOGGER.warnf(
+                            "Conflict detected: Duplicate path (%s) found in %s and %s. In development, the first occurrence will be kept, but this will cause an exception in normal mode.",
+                            endpoint, prev, staticFile.filePath());
+                    continue;
+                } else {
+                    throw new RoqPathConflictException(
+                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(endpoint, prev,
+                                    staticFile.filePath()));
+                }
+            }
+
             LOGGER.debugf("Published static file: '%s'", endpoint);
             selectedPathProducer.produce(new SelectedPathBuildItem(endpoint, null));
             staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(

@@ -30,7 +30,7 @@ public class YamlConverter implements DataConverter {
         } else if (rootNode.isArray()) {
             return new JsonArray(mapper.convertValue(rootNode, List.class));
         } else {
-            throw new IOException("Unsupported YAML root element type: " + rootNode.getNodeType());
+            throw new IllegalStateException("Unsupported YAML root element type: " + rootNode.getNodeType());
         }
 
     }
