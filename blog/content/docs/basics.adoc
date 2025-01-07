@@ -331,6 +331,54 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 
 {|
 
+=== How to create custom collections?
+
+You can easily create your own collection, such as documentation, recipes, team members, or conference talks. To do this, simply create a new folder under the `content` directory. For example, if you're adding `docs`, it would look like this:
+
+[source]
+----
+content/
+├── docs
+│   ├── 01-chap
+│   │   ├── image1.png
+│   │   └── index.adoc
+│   ├── 02-chap
+│   │   ├── image2.png
+│   │   ├── index.adoc
+└── posts
+    └── 2025-01-02-my-first-blog
+        └── index.md
+----
+
+In this example, we have two collections: `posts` and `docs`. Finally, you need to define the new collection in the `config/application.properties` file using the following properties:
+
+[source]
+----
+site.collections.docs=true // <1>
+site.collections.docs.layout=":theme/post" //<2>
+site.collections.docs.future=true // <3>
+
+site.collections.posts=true
+site.collections.posts.layout=":theme/post"
+----
+
+NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
+
+1. We are adding the new collection `docs`;
+2. Here, we are declaring the `docs` layout;
+3. Finally, since the new collection is not a time-based collection, we need to set `future` as true to show all files.
+
+Now, we can access all the new collection `docs` data as follows:
+
+[source]
+----
+{#for doc in site.collections.docs}
+- [{doc.title}]({doc.url})
+{/for}
+----
+
+Since the new collection is also a normal page, we can use all variables described in the link:#_variables[variable section].
+
 [#site-static]
 == Site static files
 [source]
