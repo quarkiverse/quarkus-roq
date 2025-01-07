@@ -119,6 +119,16 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "pedro-hos",
+      "name": "Pedro Hos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8390247?v=4",
+      "profile": "https://pedrohosilva.wordpress.com",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
