@@ -107,3 +107,55 @@ Using the command above should be easy to configure on any CI.
 
 TIP: if you created a configuration for a given CI which could help others, please share it here 🙏
 
+== Gitlab CI
+
+Add this file at the root of your Gitlab repository
+
+..gitlab-ci.yml
+[source,yaml]
+----
+stages:
+  - build
+  - deploy
+
+build_roq:
+  # Look for appropriate maven docker images in https://hub.docker.com/_/maven/tags
+  image: "maven:3.9.9-eclipse-temurin-23-alpine"
+  stage: build
+  # Generate the static site on merge request events and on the main branch
+  script:
+    - QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B -q package quarkus:run
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  artifacts:
+    reports:
+      junit: target/surefire-reports/*.xml
+    paths:
+      - target/roq
+      - target/surefire-reports
+
+deploy_roq:
+  image: alpine
+  pages: true
+  stage: deploy
+  # For main branch take the artifacts from `build_roq` and deploy them.
+  needs:
+    - build_roq
+  script:
+    - cp -R target/roq public
+    - echo "Quarkus Roq static site deployed to Gitlab Pages at $CI_PAGES_URL"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  artifacts:
+    paths:
+      - public
+----
+
+If everything goes well the pipeline will deploy, the url of the deployment is found via these options:
+
+* Console output of `deploy_roq` job.
+* Clicking `Deploy` => `Pages` on the project sidebar
+* Navigating to the url `\https://gitlab.example.com/user-or-organization/projectpath/project/pages`
+
+
