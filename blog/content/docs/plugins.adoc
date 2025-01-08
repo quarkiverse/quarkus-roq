@@ -207,3 +207,27 @@ series: My series Title // <1>
 <1> You should use the exact same title for all documents in the series.
 
 |}
+
+[#plugin-sitemap]
+== Roq Plugin Sitemap
+
+This plugin allows you to easily create a sitemap.xml for your site.
+
+To install it run:
+[source,shell]
+----
+quarkus ext add quarkus-roq-plugin-sitemap
+----
+
+Then create a new sitemap file:
+[source,xml]
+.content/sitemap.xml
+----
+{#include fm/sitemap.xml}
+----
+
+You are all set!
+
+To remove pages from the sitemap, use `sitemap: false` in the FM data.
+
+Browse `http://localhost:8080/sitemap.xml`.

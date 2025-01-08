@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkus.qute.TemplateData;
 
 /**
@@ -14,14 +15,31 @@ import io.quarkus.qute.TemplateData;
 @TemplateData
 @Vetoed
 public class RoqCollection extends ArrayList<DocumentPage> {
-
+    private final ConfiguredCollection collection;
     public static final Comparator<DocumentPage> BY_DATE = Comparator
             .comparing(DocumentPage::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
 
-    public RoqCollection(List<DocumentPage> documents) {
+    public RoqCollection(ConfiguredCollection collection, List<DocumentPage> documents) {
         super(documents.stream()
                 .sorted(BY_DATE)
                 .toList());
+        this.collection = collection;
+    }
+
+    public String id() {
+        return collection.id();
+    }
+
+    public boolean derived() {
+        return collection.derived();
+    }
+
+    public boolean hidden() {
+        return collection.hidden();
+    }
+
+    public ConfiguredCollection collection() {
+        return collection;
     }
 
     /**
@@ -73,6 +91,10 @@ public class RoqCollection extends ArrayList<DocumentPage> {
      */
     public List<DocumentPage> future() {
         return stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
+    }
+
+    public String layout() {
+        return collection.layout();
     }
 
     /**

@@ -23,14 +23,14 @@ public class RoqFrontMatterApiModificationTest {
 
                     @Override
                     public void execute(BuildContext context) {
-                        context.produce(new RoqFrontMatterDataModificationBuildItem((sourcePath, data) -> {
-                            if (sourcePath.equals("pages/some-page.html")) {
-                                final JsonObject newData = data.copy();
+                        context.produce(new RoqFrontMatterDataModificationBuildItem((sourceInfo) -> {
+                            if (sourceInfo.siteRelativePath().equals("pages/some-page.html")) {
+                                final JsonObject newData = sourceInfo.fm().copy();
                                 newData.put("some-text", "modified text");
                                 newData.put("link", "/somewhere-else");
                                 return newData;
                             }
-                            return data;
+                            return sourceInfo.fm();
                         }));
                     }
                 }).produces(RoqFrontMatterDataModificationBuildItem.class).build();

@@ -61,4 +61,15 @@ public class RoqBlogTest {
                 .body(startsWith("<rss xmlns:dc="))
                 .body(endsWith("</rss>\n"));
     }
+
+    @Test
+    public void testSitemap() {
+        given().when().get("/sitemap.xml").then().statusCode(200)
+                .body(containsString("<urlset"))
+                .body(containsString("<loc>/</loc>"))
+                .body(containsString("<loc>/posts/page2/</loc>"))
+                .body(containsString("<loc>/posts/tag/plugin/</loc>"))
+                .body(not(containsString("<loc>/404.html</loc>")))
+                .body(containsString("</urlset>"));
+    }
 }

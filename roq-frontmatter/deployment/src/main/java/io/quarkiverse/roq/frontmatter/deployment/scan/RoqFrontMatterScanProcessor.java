@@ -34,6 +34,7 @@ import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem.SourceData;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
@@ -404,7 +405,7 @@ public class RoqFrontMatterScanProcessor {
                     defaultLayout);
 
             for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                fm = modification.modifier().modify(sourcePath, fm);
+                fm = modification.modifier().modify(new SourceData(file, sourcePath, fm));
             }
             final boolean draft = fm.getBoolean(DRAFT_KEY, false);
             if (!config.draft() && draft) {

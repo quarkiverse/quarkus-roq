@@ -350,7 +350,7 @@ content/
         └── index.md
 ----
 
-In this example, we have two collections: `posts` and `docs`. Finally, you need to define the new collection in the `config/application.properties` file using the following properties:
+In this example, we have two collections: `posts` and `docs`. Finally, you need to define the new collection in the `config/application.properties` (or `src/main/resources/application.properties`) file using the following properties:
 
 [source]
 ----

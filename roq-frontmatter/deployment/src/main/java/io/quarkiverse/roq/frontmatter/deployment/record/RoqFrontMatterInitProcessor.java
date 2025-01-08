@@ -21,6 +21,7 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDe
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -50,10 +51,10 @@ class RoqFrontMatterInitProcessor {
         }
 
         // Published collections
-        final Map<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
-                .collect(Collectors.groupingBy(i -> i.collection().id()));
+        final Map<ConfiguredCollection, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
+                .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
         final Map<String, Supplier<DocumentPage>> documentsById = new HashMap<>();
-        for (Map.Entry<String, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
+        for (Map.Entry<ConfiguredCollection, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
             List<Supplier<DocumentPage>> docs = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
                 final RoqUrl url = item.url();
@@ -125,8 +126,8 @@ class RoqFrontMatterInitProcessor {
             throw new RoqSiteIndexNotFoundException(
                     "Site index page (index.html, index.md, etc.) not found. A site index is required by Roq. Please create one to continue.");
         }
-        final Map<String, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
-                Collectors.toMap(RoqFrontMatterCollectionBuildItem::name, RoqFrontMatterCollectionBuildItem::documents));
+        final Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
+                Collectors.toMap(RoqFrontMatterCollectionBuildItem::collection, RoqFrontMatterCollectionBuildItem::documents));
         final Supplier<RoqCollections> collectionsSupplier = recorder.createRoqCollections(collectionsMap);
         final List<Supplier<NormalPage>> pages = normalPageItems.stream()
                 .map(RoqFrontMatterNormalPageBuildItem::page)
