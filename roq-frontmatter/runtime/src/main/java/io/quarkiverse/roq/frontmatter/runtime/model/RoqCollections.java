@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.util.List;
 import java.util.Map;
 
 import jakarta.enterprise.inject.Vetoed;
@@ -16,6 +17,10 @@ import io.quarkus.qute.TemplateData;
 public record RoqCollections(Map<String, RoqCollection> collections) {
     public RoqCollection get(String name) {
         return collections.get(name);
+    }
+
+    public List<RoqCollection> list() {
+        return List.copyOf(collections.values());
     }
 
     /**

@@ -3,10 +3,7 @@ package io.quarkiverse.roq.plugin.tagging.deployment;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.LINK_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.PAGINATE_KEY;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
@@ -17,6 +14,7 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuil
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -52,15 +50,17 @@ public class RoqPluginTaggingProcessor {
                 .filter(i -> i.data().containsKey("tagging"))
                 .toList();
 
-        if (taggingTemplates.isEmpty()) {
+        if (taggingTemplates.isEmpty() || documents.isEmpty()) {
             return;
         }
-
+        final ConfiguredCollection collection = Objects
+                .requireNonNull(RoqFrontMatterDocumentTemplateBuildItem.getCollection(documents));
         for (RoqFrontMatterTemplateBuildItem item : taggingTemplates) {
 
             // Let's find the collection we want tagging from and iterate on the document from this collection
             final Tagging tagging = readTagging(item.raw().id(), item.data());
             final Map<String, List<String>> derived = new HashMap<>();
+
             for (RoqFrontMatterDocumentTemplateBuildItem document : documents.stream()
                     .filter(d -> d.collection().id().equals(tagging.collection())).toList()) {
                 final List<String> tags = resolveTags(document);
@@ -79,8 +79,11 @@ public class RoqPluginTaggingProcessor {
                         .mergeIn(item.data())
                         .put("tag", e.getKey())
                         .put("tagCollection", tagCollection);
+                final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,
+                        collection.hidden(),
+                        collection.future(), collection.layout());
                 derivedCollectionProducer
-                        .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(tagCollection, e.getValue(), data));
+                        .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 
                 final String link = TemplateLink.link(config.rootPath(),
                         tagging.link(),
@@ -94,9 +97,8 @@ public class RoqPluginTaggingProcessor {
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {
                     paginatedPagesProducer
-                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(url, info, data, tagCollection));
+                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(url, info, data, configuredCollection));
                 } else {
-
                     pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(url, info, data, null));
                 }
             }

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
@@ -29,15 +30,16 @@ public class RoqFrontMatterRecorder {
         this.config = config;
     }
 
-    public Supplier<RoqCollections> createRoqCollections(Map<String, List<Supplier<DocumentPage>>> collectionSuppliers) {
+    public Supplier<RoqCollections> createRoqCollections(
+            Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionSuppliers) {
         return () -> {
             final var c = new HashMap<String, RoqCollection>();
-            for (Map.Entry<String, List<Supplier<DocumentPage>>> e : collectionSuppliers.entrySet()) {
+            for (Map.Entry<ConfiguredCollection, List<Supplier<DocumentPage>>> e : collectionSuppliers.entrySet()) {
                 List<DocumentPage> docs = new ArrayList<>();
                 for (Supplier<DocumentPage> v : e.getValue()) {
                     docs.add(v.get());
                 }
-                c.put(e.getKey(), new RoqCollection(docs));
+                c.put(e.getKey().id(), new RoqCollection(e.getKey(), docs));
             }
             return new RoqCollections(Map.copyOf(c));
         };

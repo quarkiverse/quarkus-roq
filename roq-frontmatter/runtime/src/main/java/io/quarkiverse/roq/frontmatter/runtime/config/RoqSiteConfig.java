@@ -21,7 +21,8 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String IGNORED_FILES = "**/_**,_**,.**";
-    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List.of(new ConfiguredCollection("posts", false, false, ":theme/post"));
+    List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
+            .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
 
     /**
      * The root path of your site (e.g. /blog) relative the quarkus http root path.
@@ -131,7 +132,7 @@ public interface RoqSiteConfig {
             return DEFAULT_COLLECTIONS;
         }
         return collectionsMap().entrySet().stream().filter(e -> e.getValue().enabled())
-                .map(e -> new ConfiguredCollection(e.getKey(), e.getValue().hidden(), e.getValue().future(),
+                .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
                         e.getValue().layout().orElse(null)))
                 .toList();
     }

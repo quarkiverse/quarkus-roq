@@ -16,6 +16,7 @@ import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginateTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
@@ -58,7 +59,7 @@ class RoqFrontMatterPublishProcessor {
         }
 
         for (RoqFrontMatterPublishDerivedCollectionBuildItem derivedCollection : derivedCollections) {
-            sizeByCollection.computeIfAbsent(derivedCollection.collection(), k -> new AtomicInteger())
+            sizeByCollection.computeIfAbsent(derivedCollection.collection().id(), k -> new AtomicInteger())
                     .addAndGet(derivedCollection.documentIds().size());
         }
 
@@ -121,10 +122,11 @@ class RoqFrontMatterPublishProcessor {
 
     }
 
-    private static Paginate readPaginate(String name, JsonObject data, String defaultCollection) {
+    private static Paginate readPaginate(String name, JsonObject data, ConfiguredCollection defaultCollection) {
         final Object value = data.getValue(PAGINATE_KEY);
         if (value instanceof JsonObject paginate) {
-            final String collection = paginate.getString("collection", defaultCollection);
+            final String collection = paginate.getString("collection",
+                    defaultCollection == null ? null : defaultCollection.id());
             if (collection == null) {
                 throw new ConfigurationException("Invalid pagination configuration in " + name);
             }
@@ -138,7 +140,7 @@ class RoqFrontMatterPublishProcessor {
             if (defaultCollection == null) {
                 throw new ConfigurationException("Invalid pagination configuration in " + name);
             }
-            return new Paginate(5, DEFAULT_PAGINATE_LINK_TEMPLATE, defaultCollection);
+            return new Paginate(5, DEFAULT_PAGINATE_LINK_TEMPLATE, defaultCollection.id());
         }
         throw new ConfigurationException("Invalid pagination configuration in " + name);
     }

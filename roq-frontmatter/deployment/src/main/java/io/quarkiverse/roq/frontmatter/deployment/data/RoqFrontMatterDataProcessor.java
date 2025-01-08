@@ -80,7 +80,7 @@ public class RoqFrontMatterDataProcessor {
                                 item.data()));
             } else {
                 if (item.data().containsKey(PAGINATE_KEY)) {
-                    // Pagination is created needs collections size so it's produced after
+                    // Pagination needs collections size so it's produced after
                     paginatedPagesProducer
                             .produce(new RoqFrontMatterPaginateTemplateBuildItem(item.url(), item.raw().info(), item.data(),
                                     null));

@@ -3,7 +3,7 @@ layout: :theme/post
 title: Write your blog posts in AsciiDoc
 description: Automatically generate html from AsciiDoc content
 img: https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=3198&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-tags: plugin, frontmatter, guide, asciidoc
+tags: plugin, frontmatter, guide
 author: jtama
 aliases: [asciidoc]
 series: roq-plugins

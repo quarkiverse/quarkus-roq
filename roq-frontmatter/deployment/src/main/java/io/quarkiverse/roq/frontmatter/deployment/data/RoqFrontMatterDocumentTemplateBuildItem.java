@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
+import java.util.List;
+
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
@@ -46,5 +48,9 @@ public final class RoqFrontMatterDocumentTemplateBuildItem extends MultiBuildIte
 
     public boolean isPage() {
         return raw.isPage();
+    }
+
+    public static ConfiguredCollection getCollection(List<RoqFrontMatterDocumentTemplateBuildItem> items) {
+        return items.isEmpty() ? null : items.iterator().next().collection();
     }
 }
