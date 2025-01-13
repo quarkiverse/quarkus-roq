@@ -25,7 +25,7 @@
 </div>
 
 
-The Roq Static Site Generator extension allows to easily create a static website or blog (such as [Roq's blog](https://pages.quarkiverse.io/quarkus-roq/)) using Quarkus super-powers.
+The Roq Static Site Generator allows to easily create a static website or blog (such as [Roq's blog](https://pages.quarkiverse.io/quarkus-roq/)) using Quarkus super-powers.
 
 Get started [here](https://pages.quarkiverse.io/quarkus-roq/docs/)!
 
