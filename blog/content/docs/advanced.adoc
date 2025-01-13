@@ -340,7 +340,6 @@ TIP: By default, url will be rendered as relative from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
-
 == Site Configuration
 |}
 

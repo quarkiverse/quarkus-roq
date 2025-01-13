@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.model.Page.normaliseName;
+import static io.quarkiverse.roq.frontmatter.runtime.model.Page.resolvePublicFile;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -92,29 +95,33 @@ public final class Site {
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
-        path = path.replace("./", "");
-        return staticFile(PathUtils.join(imagesDir, path));
+        path = normaliseName(path);
+        // Legacy images dir support
+        if (hasFile(PathUtils.join("static/assets/images", path))) {
+            return file(PathUtils.join("static/assets/images", path));
+        }
+        return file(PathUtils.join(imagesDir, path));
     }
 
     /**
      * The site static files
      */
-    public List<String> staticFiles() {
-        return page.attachments();
+    public List<String> files() {
+        return page.info().files();
     }
 
     /**
      * Check if a static file
      */
-    public boolean hasStaticFile(Object name) {
-        return page.hasAttachment(name);
+    public boolean hasFile(Object name) {
+        return page.info().hasFile(name);
     }
 
     /**
      * Get a static file url and check if it exists
      */
-    public RoqUrl staticFile(Object name) {
-        return page.attachment(name);
+    public RoqUrl file(Object name) {
+        return resolvePublicFile(page, name);
     }
 
     /**

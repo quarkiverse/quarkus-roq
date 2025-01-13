@@ -17,3 +17,7 @@ kind: Pod
 ```
 
 Hello!
+
+This is an attached file: {site.file("hello.txt")}
+
+Legacy: {page.image('legacy.png')}
