@@ -25,11 +25,6 @@ public record PageInfo(
         boolean draft,
 
         /**
-         * Where all the images for this page are based (e.g./static/assets/images), empty if it is in the current dir.
-         */
-        String imagesDirPath,
-
-        /**
          * This page zoned date
          */
         String dateString,
@@ -50,15 +45,14 @@ public record PageInfo(
         String generatedTemplateId,
 
         /**
-         * List of attachments
+         * List of attached static files (null when public files should be used instead)
          */
-        List<String> attachments,
+        List<String> files,
 
         /**
          * Is this a html page or something else (json, yml, ...)
          */
         boolean isHtml,
-        boolean isIndex,
         boolean isSiteIndex) {
 
     public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
@@ -66,37 +60,35 @@ public record PageInfo(
 
     public static PageInfo create(String id,
             boolean draft,
-            String imagesDirPath,
             String dateString,
             String rawContent,
             String sourcePath,
             String quteTemplateId,
-            List<String> attachments,
+            List<String> files,
             boolean isHtml,
-            boolean isIndex,
             boolean isSiteIndex) {
-        return new PageInfo(id, draft, imagesDirPath, dateString, rawContent, sourcePath, quteTemplateId, attachments, isHtml,
-                isIndex, isSiteIndex);
+        return new PageInfo(id, draft, dateString, rawContent, sourcePath, quteTemplateId, files,
+                isHtml, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
-        return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId(), attachments(), isHtml(), isIndex(), isSiteIndex());
+        // We don't copy the site index files
+        return new PageInfo(id, draft(), dateString(), rawContent(), sourceFilePath(),
+                generatedTemplateId(), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public PageInfo changeIds(Function<String, String> function) {
-        return new PageInfo(function.apply(id()), draft(), imagesDirPath(), dateString(), rawContent(),
+        return new PageInfo(function.apply(id()), draft(), dateString(), rawContent(),
                 sourceFilePath(),
-                function.apply(generatedTemplateId()), attachments(), isHtml(), isIndex(), isSiteIndex());
-    }
-
-    public PageInfo changeIdAndGeneratedTemplateId(String id) {
-        return new PageInfo(id, draft(), imagesDirPath(), dateString(), rawContent(), sourceFilePath(),
-                generatedTemplateId(), attachments(), isHtml(), isIndex(), isSiteIndex());
+                function.apply(generatedTemplateId()), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public ZonedDateTime date() {
         return dateString != null ? ZonedDateTime.parse(dateString) : null;
+    }
+
+    public boolean usePublicFiles() {
+        return isSiteIndex || files() == null;
     }
 
     /**
@@ -117,15 +109,22 @@ public record PageInfo(
         return PathUtils.getExtension(sourceFileName());
     }
 
-    public boolean isSiteIndex() {
-        return isHtml && id().startsWith("index.");
-    }
-
     public boolean isIndex() {
         return isHtml && "index".equals(sourceBaseFileName());
     }
 
-    public boolean hasAttachments() {
-        return !attachments.isEmpty();
+    public boolean hasFiles() {
+        return !files.isEmpty();
     }
+
+    public boolean hasFile(Object name) {
+        if (name == null) {
+            return false;
+        }
+        if (!hasFiles()) {
+            return false;
+        }
+        return files().contains(name);
+    }
+
 }

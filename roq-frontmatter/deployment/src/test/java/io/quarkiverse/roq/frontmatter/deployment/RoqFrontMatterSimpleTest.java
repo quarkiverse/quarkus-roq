@@ -44,7 +44,7 @@ public class RoqFrontMatterSimpleTest {
 
     @Test
     public void testStatic() {
-        RestAssured.when().get("/static/assets/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
+        RestAssured.when().get("/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
     }
 
 }

@@ -115,7 +115,7 @@ a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-static-dir
 
 [.description]
 --
-The directory which contains static files to be served (dir name)
+The directory (dir name) which contains static files to be served (with 'static/' prefix).
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -127,6 +127,40 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |`static`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-public-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-public-dir[`site.public-dir`]##
+
+[.description]
+--
+The directory which contains public static files to be served without processing (dir name)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_PUBLIC_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_PUBLIC_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`public`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-images-path[`site.images-path`]##
+
+[.description]
+--
+The path containing static images (in the public directory)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_IMAGES_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_IMAGES_PATH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`images/`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_site-generator[`site.generator`]##
 
@@ -161,23 +195,6 @@ endif::add-copy-button-to-env-var[]
 --
 |boolean
 |`false`
-
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-images-path[`site.images-path`]##
-
-[.description]
---
-The path containing static images
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_IMAGES_PATH+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_IMAGES_PATH+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|`static/assets/images`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-theme]] [.property-path]##link:#quarkus-roq-frontmatter_site-theme[`site.theme`]##
 

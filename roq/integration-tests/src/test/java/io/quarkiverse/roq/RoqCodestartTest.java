@@ -28,7 +28,7 @@ public class RoqCodestartTest {
         codestartTest.assertThatGeneratedFile(language, "data/menu.yml")
                 .content()
                 .contains("fa-regular fa-newspaper");
-        codestartTest.assertThatGeneratedFile(language, "static/assets/images/iamroq.png")
+        codestartTest.assertThatGeneratedFile(language, "public/images/iamroq.png")
                 .exists();
     }
 

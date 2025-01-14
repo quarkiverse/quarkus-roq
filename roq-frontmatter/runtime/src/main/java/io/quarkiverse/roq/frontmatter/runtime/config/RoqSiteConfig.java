@@ -20,6 +20,7 @@ public interface RoqSiteConfig {
     String DIR_NAME_PATTERN = "^[a-zA-Z0-9._-]{1,255}$";
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
+    String PUBLIC_DIR = "public";
     String IGNORED_FILES = "**/_**,_**,.**";
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
             .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
@@ -72,11 +73,26 @@ public interface RoqSiteConfig {
     String contentDir();
 
     /**
-     * The directory which contains static files to be served (dir name)
+     * The directory (dir name) which contains static files to be served (with 'static/' prefix).
+     *
+     * @deprecated Use publicDir instead (Use 'public/static/...' to reproduce the same behaviour)
      */
     @WithDefault(STATIC_DIR)
     @Pattern(regexp = DIR_NAME_PATTERN)
     String staticDir();
+
+    /**
+     * The directory which contains public static files to be served without processing (dir name)
+     */
+    @WithDefault(PUBLIC_DIR)
+    @Pattern(regexp = DIR_NAME_PATTERN)
+    String publicDir();
+
+    /**
+     * The path containing static images (in the public directory)
+     */
+    @WithDefault("images/")
+    String imagesPath();
 
     /**
      * When enabled it will select all FrontMatter pages in Roq Generator
@@ -89,12 +105,6 @@ public interface RoqSiteConfig {
      */
     @WithDefault("false")
     boolean future();
-
-    /**
-     * The path containing static images
-     */
-    @WithDefault("static/assets/images")
-    String imagesPath();
 
     /**
      * This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)

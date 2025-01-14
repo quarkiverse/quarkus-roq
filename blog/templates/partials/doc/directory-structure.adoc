@@ -18,8 +18,8 @@ my-site/
 │   ├── roq-bottom.md                    // <4>
 │   └── index.html                       // <5>
 │
-├── static/                              // <6>
-│   └── assets/
+├── public/                              // <6>
+│   └── style.css
 │
 └── templates/                           // <7>
     ├── partials/                        // <8>
@@ -48,8 +48,8 @@ You may provide additional pages files like `roq-bottom.md` outside a collection
 <5> **Index File**
 The `index.html` file is required and serves as the homepage. It provides site-wide data using FrontMatter.
 
-<6> **Static Assets**
-The `static/` directory holds static assets, such as images, CSS, or JavaScript files. These files are configurable and will not be processed.
+<6> **Static Files**
+The `public/` directory holds static files, such as images, CSS, or JavaScript files. These files will not be processed.
 
 <7> **Templates**
 The `templates/` directory is optional as templates can be provided by a theme. It contains Qute templates for partials and layouts.

@@ -58,7 +58,7 @@ At this point, I thought back on what my wife had said... maybe it was time to r
 
 🗓️ **May 7, 2024:**
 
-![Discussion with Max](./generator-runtime-discussion.png)
+![Discussion with Max]({page.image('generator-runtime-discussion.png')})
 
 My idea was to generate static pages at runtime… because then all of Quarkus could become static without any changes 😍.
 

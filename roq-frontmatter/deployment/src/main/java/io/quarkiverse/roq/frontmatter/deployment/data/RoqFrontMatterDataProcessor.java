@@ -68,10 +68,12 @@ public class RoqFrontMatterDataProcessor {
             if (!item.published()) {
                 continue;
             }
-            // Publish static assets
-            for (Attachment attachment : item.raw().attachments()) {
-                staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(
-                        item.url().resolve(attachment.name()).path(), attachment.path()));
+            if (item.raw().attachments() != null) {
+                // Publish static assets
+                for (Attachment attachment : item.raw().attachments()) {
+                    staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(
+                            item.url().resolve(attachment.name()).path(), attachment.path()));
+                }
             }
             // Publish Pages
             if (item.raw().collection() != null) {

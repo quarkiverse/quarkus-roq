@@ -1,0 +1,1 @@
+error image {site.image('not-found.png')}

@@ -1,12 +1,14 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqAttachmentException;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
@@ -84,7 +86,7 @@ public interface Page {
 
     /**
      * The page image resolved url.
-     * If it's a page with attachments, it will return from it else from the default image directory.
+     * If it's a page with files, it will return from it else from the default image directory.
      */
     default RoqUrl image() {
         final String img = Page.getImgFromData(data());
@@ -103,55 +105,82 @@ public interface Page {
         if (imageRelativePath == null) {
             return null;
         }
+        if (info().usePublicFiles()) {
+            // Use site static files
+            return Arc.container().beanInstanceSupplier(Site.class).get().get().image(imageRelativePath);
+        }
         String path = String.valueOf(imageRelativePath);
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
-        path = PathUtils.join(info().imagesDirPath(), path.replace("./", ""));
-        if (hasAttachment(path)) {
-            return attachment(path);
-        }
-        return Arc.container().beanInstanceSupplier(Site.class).get().get().url(path);
+        path = normaliseName(path);
+        return file(path);
     }
 
     /**
-     * The page attachments files
+     * The page files files
      */
-    default List<String> attachments() {
-        return info().attachments();
+    default List<String> files() {
+        if (info().usePublicFiles()) {
+            throw new RoqStaticFileException(
+                    "Can't list attached files. Convert page '%s' to a directory (with an index) to allow attaching files."
+                            .formatted(this.sourcePath()));
+        }
+        return info().files();
     }
 
     /**
-     * Check if an attachment exists
+     * Check if a file is attached to this page
      */
-    default boolean hasAttachment(Object name) {
-        if (name == null) {
-            return false;
+    default boolean hasFile(Object name) {
+        if (info().usePublicFiles()) {
+            throw new RoqStaticFileException(
+                    "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
+                            .formatted(name, this.sourcePath()));
         }
-        if (!info().hasAttachments()) {
-            return false;
-        }
-        final String clean = String.valueOf(name).replace("./", "");
-        return info().hasAttachments() && attachments().contains(clean);
+        var f = normaliseName(name);
+        return info().hasFile(f);
     }
 
     /**
-     * Get a page attachment url and check if it exists
+     * Get a page attached static file url and check if it exists
      */
-    default RoqUrl attachment(Object name) {
+    default RoqUrl file(Object name) {
+        if (info().usePublicFiles()) {
+            throw new RoqStaticFileException(
+                    "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
+                            .formatted(name, this.sourcePath()));
+        }
+        final String dir = toUnixPath(Path.of(this.sourcePath()).getParent().toString());
+        return resolveFile(this, name, "Can't find '%s' in  '" + dir + "' which has no attached static file.",
+                "File '%s' not found in '" + dir + "' directory (found: %s).");
+    }
+
+    static RoqUrl resolvePublicFile(Page page, Object name) {
+        return resolveFile(page, name, "No file found in the public dir.",
+                "File '%s' not found in public dir (found: %s).");
+    }
+
+    static RoqUrl resolveFile(Page page, Object name, String missingResourceMessage,
+            String notFoundMessage) {
         if (name == null) {
             return null;
         }
-        if (!info().hasAttachments()) {
-            throw new RoqAttachmentException("Can't find '%s' in '%s' which has no attachment.".formatted(name, sourcePath()));
+        if (!page.info().hasFiles()) {
+            throw new RoqStaticFileException(missingResourceMessage.formatted(name));
         }
-        final String clean = ((String) name).replace("./", "");
-        if (info().hasAttachments() && attachments().contains(clean)) {
-            return url().resolve(clean);
+        final String f = normaliseName(name);
+        if (page.info().hasFile(f)) {
+            return page.url().resolve(f);
         } else {
-            throw new RoqAttachmentException("Attachment '%s' was not found for `%s` (%s)".formatted(name, sourcePath(),
-                    String.join(",", attachments())));
+            throw new RoqStaticFileException(notFoundMessage.formatted(name,
+                    String.join(", ", page.info().files())));
         }
+    }
+
+    static String normaliseName(Object name) {
+        final String clean = String.valueOf(name).replace("./", "");
+        return clean;
     }
 
     /**
