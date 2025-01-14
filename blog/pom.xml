@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>roq-blog</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>1.2.0</version>
     <name>Quarkus Roq - Blog</name>
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
@@ -13,7 +13,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.17.6</quarkus.platform.version>
-        <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
+        <quarkus-roq.version>1.2.0</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
     </properties>
