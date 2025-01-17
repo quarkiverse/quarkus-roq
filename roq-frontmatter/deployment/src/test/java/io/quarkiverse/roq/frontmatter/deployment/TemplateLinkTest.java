@@ -16,7 +16,7 @@ class TemplateLinkTest {
     @Test
     void testLink() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageInfo pageInfo = createPageInfo("_posts/my-first-blog-post.md", "_posts/my-first-blog-post.md", true, true);
+        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "posts/my-first-blog-post.md", true, true);
 
         String generatedLink = pageLink("/", ":year/:month/:day/:slug", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post/", generatedLink);
@@ -25,7 +25,7 @@ class TemplateLinkTest {
     @Test
     void testLinkExt() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "_posts/my-first-blog-post.md", true, true);
+        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "posts/my-first-blog-post.md", true, true);
 
         String generatedLink = pageLink("/", ":year/:month/:day/:slug:ext!", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post.html", generatedLink);
@@ -46,7 +46,7 @@ class TemplateLinkTest {
     @Test
     void testPaginateLink() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.html", "_posts/my-first-blog-post.md", true, true);
+        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.html", "posts/my-first-blog-post.md", true, true);
 
         String generatedLink = paginateLink("/", null, new PaginateLinkData(pageInfo, "posts", "3", frontMatter));
         assertEquals("posts/page3/", generatedLink);

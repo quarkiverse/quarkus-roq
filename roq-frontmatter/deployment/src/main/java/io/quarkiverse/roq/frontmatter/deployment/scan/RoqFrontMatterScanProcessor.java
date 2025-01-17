@@ -381,7 +381,7 @@ public class RoqFrontMatterScanProcessor {
             String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(normalizedPath)
                     + resolveOutputExtension(markups, normalizedPath);
             boolean published = type.isPage();
-            String id = type.isPage() ? normalizedPath : removeExtension(normalizedPath);
+            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
             final boolean isHtml = isPageTargetHtml(file);
             var isIndex = isHtml && "index".equals(PathUtils.removeExtension(PathUtils.fileName(sourcePath)));
             var isSiteIndex = isHtml && id.startsWith("index.");

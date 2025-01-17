@@ -29,7 +29,8 @@ public interface Page {
     PageInfo info();
 
     /**
-     * The page unique id, it is either the source file name (e.g. _posts/my-post.md or a generated id for dynamic pages).
+     * The page unique identifier, it is either the source file relative path (e.g. posts/my-post.md or a generated source path
+     * for dynamic pages).
      */
     default String id() {
         return info().id();

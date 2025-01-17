@@ -149,13 +149,29 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 
 | `site.image`
 | `RoqUrl`
-| The site image URL if present
+| The cover image URL of the page with disk check
 | `http://example.com/static/images/site.png`
 
-| `site.url(Object path, Object... others)`
+| `site.image(String relativePath)`
+| `RoqUrl`
+| The image from the public images directory with disk check
+| `site.image('foo.jpg') => http://example.com/images/foo.jpg`
+
+| `site.file(String relativePath)`
+| `RoqUrl`
+| The file from the public directory with disk check
+| `site.file('foo.pdf') => http://example.com/foo.pdf`
+
+| `site.url(String path, String... others)`
 | `RoqUrl`
 | Shortcut for site.url.resolve(path)
-| `site.url.resolve("/about") => http://example.com/my-roq-site/about`
+| `site.url("/about") => http://example.com/my-roq-site/about`
+
+| `site.page(String sourcePath)`
+| `Page`
+|  Get a page or document page by source path (e.g. pages/first-page.html)
+| `site.page('foo.html').url.absolute => http://example.com/the-foo-page`
+
 |===
 ====
 
@@ -203,12 +219,22 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The description of the page (shortcut from FM)
 | `This is the about us page.`
 
-| `page.image()`
+| `page.image`
 | `RoqUrl`
-| The cover image URL of the page (with disk check)
+| The cover image URL of the page with disk check
 | `http://example.com/static/images/about.png`
 
-| `page.date()`
+| `page.image(String relativePath)`
+| `RoqUrl`
+| The image from the attached files (for index pages) or from the public image directory with disk check (for other pages)
+| `page.image('foo.jpg') => http://example.com/foo-page/foo.jpg`
+
+| `site.file(String relativePath)`
+| `RoqUrl`
+| The file from the attached files with disk check
+| `page.file('foo.pdf') => http://example.com/foo-page/foo.pdf`
+
+| `page.date`
 | `ZonedDateTime`
 | The publication date of the page
 | `2023-10-01T12:00:00Z`
@@ -431,7 +457,7 @@ The resulting link for a page can be different from its directory name, attached
 
 Let's imagine for a minute that the page link is `https://my-site.org/awesome-page/`, then the slide will be served on `https://my-site.org/awesome-page/slide.pdf`.
 
-You can use `{page.file("slide.pdf")}` to resolve the file url *and check that the file exists*. This is useful from another page or if you want the absolute url (i.e. `{page.file("slide.pdf").absolute}`):
+You can use `{page.file("slide.pdf")}` to resolve the file url *and check that the file exists*. This is also useful in other cases, for example from another page (e.g. `{site.page("my-page/index.md").file("slide.pdf")}`) or if you want the absolute url (e.g. `{page.file("slide.pdf").absolute}`):
 
 TIP: If you want to iterate over page files, they can be listed using `{page.files}`.
 

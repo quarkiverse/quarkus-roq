@@ -14,8 +14,8 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public record PageInfo(
         /**
-         * The page unique id, it is either the source file name (e.g. _posts/my-favorite-beer.md or a generated id for dynamic
-         * pages).
+         * The page unique identifier, it is either the source file relative path (e.g. posts/my-post.md or a generated source
+         * path for dynamic pages).
          */
         String id,
 
@@ -35,7 +35,7 @@ public record PageInfo(
         String rawContent,
 
         /**
-         * The path of the source file (e.g _posts/my-favorite-beer.md)
+         * The path of the source file (e.g posts/my-favorite-beer.md)
          */
         String sourceFilePath,
 

@@ -318,14 +318,14 @@ The pages links are automatically converted to urls by Roq, they are available i
 <a href="{site.url}">Back to main page</a>
 ----
 
-or
+or to get the next page url in a document:
 
 [source,html]
 ----
-<a href="{page.nextPage.url}">{page.nextPage.title}</a>
+<a href="{page.next.url}">{page.next.title}</a>
 ----
 
-or
+or when iterating on documents:
 
 [source,html]
 ----
@@ -333,6 +333,15 @@ or
   <a href="{post.url}">{post.title}</a>
 {/for}
 ----
+
+or also to manually retrieve a page url with `site.page(sourcePath)`:
+
+[source,html]
+----
+<a href="{site.page('foo.html').url}">{site.page('foo.html').title}</a>
+----
+
+
 
 TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{site.url.absolute}`).
 
