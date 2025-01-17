@@ -58,6 +58,19 @@ public class RoqTest {
     }
 
     @Test
+    public void testPageDir() {
+        RestAssured.when().get("/posts/2010-08-05-hello-world").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("posts/2010-08-05-hello-world/index.md - Hello, world! I'm Roq"))
+                .body(containsString("<h1 class=\"page-title\">posts/2010-08-05-hello-world/index.md"))
+                .body(containsString(
+                        "Here are the links: /posts/2010-08-05-hello-world/hello.pdf and /posts/2010-08-05-hello-world/hello.pdf"))
+                .body(containsString(
+                        "and an images: /images/hello.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"))
+                .body(containsString("page by path: /lo-you/"))
+                .body(containsString("document by path: /posts/k8s-post/"));
+    }
+
+    @Test
     public void testCodestartPost() {
         RestAssured.when().get("/posts/the-first-roq").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("The First Roq! - Hello, world! I'm Roq"))

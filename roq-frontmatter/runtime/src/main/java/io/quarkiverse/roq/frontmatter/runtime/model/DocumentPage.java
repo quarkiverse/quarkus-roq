@@ -36,6 +36,27 @@ public record DocumentPage(
     }
 
     /**
+     * Resolve the next document page in the collection or null if none
+     */
+    public DocumentPage next() {
+        return nextPage();
+    }
+
+    /**
+     * Resolve the previous document page in the collection or null if none
+     */
+    public DocumentPage previous() {
+        return previousPage();
+    }
+
+    /**
+     * Resolve the previous document page in the collection or null if none
+     */
+    public DocumentPage prev() {
+        return previousPage();
+    }
+
+    /**
      * Resolve the previous document page in the collection or null if none
      */
     public DocumentPage previousPage() {

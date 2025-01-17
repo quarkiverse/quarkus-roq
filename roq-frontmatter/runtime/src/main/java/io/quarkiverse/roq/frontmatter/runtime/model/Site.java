@@ -146,23 +146,36 @@ public final class Site {
     }
 
     /**
-     * Find a page by id
+     * Find a page or document page by source path
      *
-     * @param id the page id (e.g. pages/first-page.html)
+     * @param sourcePath the page source path (e.g. pages/first-page.html) or the generated source path for generated pages (e.g
+     *        /index_p2.html).
      * @return the page or null
      */
-    public NormalPage page(String id) {
-        return pagesById.get().get(id);
+    public Page page(String sourcePath) {
+        return pagesById.get().containsKey(sourcePath) ? pagesById.get().get(sourcePath) : documentsById.get().get(sourcePath);
     }
 
     /**
-     * Find a document by id
+     * Find a normal page (documents not included) by source path
      *
-     * @param id the document page id (e.g. _posts/first-post)
+     * @param sourcePath the page source path (e.g. pages/first-page.html) or the generated source path for generated pages (e.g
+     *        /index_p2.html).
+     * @return the page or null
+     */
+    public NormalPage normalPage(String sourcePath) {
+        return pagesById.get().get(sourcePath);
+    }
+
+    /**
+     * Find a document by sourcePath
+     *
+     * @param sourcePath the document source path (e.g. pages/first-page.html) or the generated source path for generated
+     *        documents.
      * @return the document page or null
      */
-    public DocumentPage document(String id) {
-        return documentsById.get().get(id);
+    public DocumentPage document(String sourcePath) {
+        return documentsById.get().get(sourcePath);
     }
 
     public RoqUrl url() {

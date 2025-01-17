@@ -92,7 +92,7 @@ public class RoqPluginTaggingProcessor {
                         Map.of(":tag", e::getKey));
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
 
-                PageInfo info = item.raw().info().changeId(tagCollection);
+                PageInfo info = item.raw().info().changeId(tagCollection + "." + item.raw().info().sourceFileExtension());
 
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {
