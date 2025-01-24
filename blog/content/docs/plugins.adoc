@@ -9,7 +9,11 @@ layout: doc
 [#plugin-tagging]
 == Roq Plugin Tagging
 
+
+
 This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
+For example, let's consider the posts collection, if multiple posts have `tags: guide`, then we would generate a `/posts/tag/guide` page for all the posts containing the `guide` tag. This works for any collection.
+
 
 To install it:
 [source,shell]
@@ -17,10 +21,14 @@ To install it:
 quarkus ext add quarkus-roq-plugin-tagging
 ----
 
-For example, let's consider the posts collection, if multiple posts have `tags: guide`, then we would generate a `/posts/tag/guide` page for all the posts containing the `guide` tag. This works for any collection.
 
+If you are using a theme that supports it (includes a tagging layout), you should now have tags pages available for all the tags in your posts!
 
-To enable tagging, create a layout template, add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`. It is available through `site.collections.get(page.data.tagCollection)`:
+|}
+TIP: You can use  link:{site.url('docs/advanced')}#_overriding_theme_layouts[theme override] to customize the theme tagging layout.
+{|
+
+To enable tagging without a theme, create a layout template and add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`. It is available through `site.collections.get(page.data.tagCollection)`:
 
 
 [source,html]
