@@ -1,0 +1,67 @@
+:summaryTableId: quarkus-roq-frontmatter_quarkus-roq
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-roq-site-root-path]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-roq-site-root-path[`quarkus.roq.site.root-path`]##
+
+[.description]
+--
+The root path of your site (e.g. /blog) relative the quarkus http root path. This is to be used only when the site is living next to a Quarkus application. Use `quarkus.http.root-path` for GitHub Pages relative url.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_SITE_ROOT_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_SITE_ROOT_PATH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`/`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-roq-site-url]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-roq-site-url[`quarkus.roq.site.url`]##
+
+[.description]
+--
+the base hostname & protocol for your site, e.g. http://example.com
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_SITE_URL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_SITE_URL+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-roq-site-route-order]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-roq-site-route-order[`quarkus.roq.site.route-order`]##
+
+[.description]
+--
+The order of the route which handles the templates.
+<p>
+By default, the route is executed before the default routes (static resources, etc.).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_SITE_ROUTE_ORDER+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_SITE_ROUTE_ORDER+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`1100`
+
+|===
+
+
+:!summaryTableId:

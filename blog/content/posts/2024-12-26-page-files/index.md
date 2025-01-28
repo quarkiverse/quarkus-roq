@@ -1,5 +1,4 @@
 ---
-layout: :theme/post
 title: Static attached files for posts and pages
 image: dina-badamshina-j7vbBmTHmjY-unsplash.jpg
 description: |

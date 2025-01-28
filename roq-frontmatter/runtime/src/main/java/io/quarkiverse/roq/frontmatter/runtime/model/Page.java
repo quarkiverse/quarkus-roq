@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.model.PageFiles.slugifyFile;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 
 import java.nio.file.Path;
@@ -114,7 +115,7 @@ public interface Page {
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
-        path = normaliseName(path);
+        path = normaliseName(path, info().files().slugified());
         return file(path);
     }
 
@@ -127,7 +128,7 @@ public interface Page {
                     "Can't list attached files. Convert page '%s' to a directory (with an index) to allow attaching files."
                             .formatted(this.sourcePath()));
         }
-        return info().files();
+        return info().files().names();
     }
 
     /**
@@ -139,7 +140,7 @@ public interface Page {
                     "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
                             .formatted(name, this.sourcePath()));
         }
-        var f = normaliseName(name);
+        var f = normaliseName(name, info().files().slugified());
         return info().hasFile(f);
     }
 
@@ -170,18 +171,23 @@ public interface Page {
         if (!page.info().hasFiles()) {
             throw new RoqStaticFileException(missingResourceMessage.formatted(name));
         }
-        final String f = normaliseName(name);
+        final String f = normaliseName(name, page.info().files().slugified());
         if (page.info().hasFile(f)) {
             return page.url().resolve(f);
         } else {
             throw new RoqStaticFileException(notFoundMessage.formatted(name,
-                    String.join(", ", page.info().files())));
+                    String.join(", ", page.info().files().names())));
         }
     }
 
-    static String normaliseName(Object name) {
+    static String normaliseName(Object name, boolean slugify) {
         final String clean = String.valueOf(name).replace("./", "");
-        return clean;
+        if (slugify) {
+            return slugifyFile(clean);
+        } else {
+            return clean;
+        }
+
     }
 
     /**

@@ -1,15 +1,18 @@
 package io.quarkiverse.roq.generator.runtime;
 
 import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
 
 import java.util.regex.Pattern;
 
 public record SelectedPath(String path, String outputPath, PageSource source) {
 
-    private static final Pattern NON_FILE_CHARS = Pattern.compile("[^a-zA-Z0-9_\\\\/.\\-]");
-
     private SelectedPath(SelectedPathBuilder builder) {
-        this(builder.path, builder.outputPath, builder.source);
+        this(prefixWithSlash(builder.path), builder.outputPath, builder.source);
+    }
+
+    public SelectedPath clean(PathReplaceConfig config) {
+        return new SelectedPath(path, cleanOutputPath(config, outputPath), source);
     }
 
     public static SelectedPathBuilder builder() {
@@ -17,17 +20,15 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
     }
 
     public static String defaultOutputPath(String path) {
-        String staticPath = path;
-        if (staticPath.endsWith("/")) {
-            staticPath = cleanPath(staticPath) + "index.html";
-        } else if (NON_FILE_CHARS.matcher(path).find()) {
-            staticPath = cleanPath(staticPath);
+        if (path.endsWith("/")) {
+            return path + "index.html";
         }
-        return staticPath;
+        return path;
     }
 
-    private static String cleanPath(String staticPath) {
-        return NON_FILE_CHARS.matcher(staticPath).replaceAll("-");
+    static String cleanOutputPath(PathReplaceConfig options, String staticPath) {
+        return (options.enabled()) ? Pattern.compile(options.allowedRegex())
+                .matcher(staticPath).replaceAll(options.replaceWith()) : staticPath;
     }
 
     public static class SelectedPathBuilder {
@@ -40,13 +41,8 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
             return this;
         }
 
-        SelectedPathBuilder sourceConfig() {
-            this.source = PageSource.CONFIG;
-            return this;
-        }
-
-        SelectedPathBuilder sourceBuildItem() {
-            this.source = PageSource.BUILD_ITEM;
+        public SelectedPathBuilder source(PageSource source) {
+            this.source = source;
             return this;
         }
 

@@ -1,9 +1,17 @@
 package io.quarkiverse.roq.generator.runtime;
 
+import static io.quarkiverse.roq.generator.runtime.RoqSelection.prepare;
+import static io.quarkiverse.roq.generator.runtime.StaticFile.FetchType.CLASSPATH;
+import static io.quarkiverse.roq.generator.runtime.StaticFile.FetchType.FILE;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletionStage;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -14,19 +22,20 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.All;
-import io.quarkus.logging.Log;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.HttpConfiguration;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpResponseExpectation;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -41,35 +50,41 @@ public class RoqGenerator implements Handler<RoutingContext> {
     private final HttpConfiguration httpConfiguration;
 
     private final HttpBuildTimeConfig httpBuildTimeConfig;
+    private final Map<String, StaticFile> staticFiles;
     private WebClient client;
     private final List<SelectedPath> selectedPaths;
 
     @Inject
-    public RoqGenerator(final Instance<Vertx> vertx, final RoqGeneratorConfig config, HttpConfiguration httpConfiguration,
+    public RoqGenerator(final Instance<Vertx> vertx,
+            final RoqGeneratorConfig config,
+            HttpConfiguration httpConfiguration,
             HttpBuildTimeConfig httpBuildTimeConfig,
             @All final List<RoqSelection> selection) {
         this.vertx = vertx;
         this.config = config;
         this.httpConfiguration = httpConfiguration;
         this.httpBuildTimeConfig = httpBuildTimeConfig;
-        this.selectedPaths = selection.stream().map(RoqSelection::paths).flatMap(List::stream)
-                .sorted(Comparator.comparing(SelectedPath::outputPath)).toList();
+        this.staticFiles = ConfiguredPathsProvider.staticFiles();
+        selectedPaths = prepare(config, selection);
     }
 
-    void onStart(@Observes StartupEvent ev) {
+    void onStart(@Observes Router router) {
+        router.route("/roq/ping").method(HttpMethod.GET).handler(routingContext -> {
+            routingContext.response().end("pong");
+        });
         if (config.batch()) {
             generate().subscribe().with(t -> {
                 LOGGER.info("Roq generation succeeded in directory: " + outputDir());
-                Quarkus.asyncExit();
-            }, message -> {
-                Log.error(message);
-                Quarkus.asyncExit();
+                Quarkus.asyncExit(0);
+            }, throwable -> {
+                LOGGER.error("Roq generation failed");
+                Quarkus.asyncExit(1);
             });
         }
     }
 
     public String outputDir() {
-        return PathUtils.join(ConfiguredPathsProvider.targetDir(), config.outputDir());
+        return toUnixPath(PathUtils.join(ConfiguredPathsProvider.targetDir(), config.outputDir()));
     }
 
     private WebClient client() {
@@ -83,44 +98,89 @@ public class RoqGenerator implements Handler<RoutingContext> {
     public void handle(RoutingContext event) {
         generate().subscribe().with(t -> {
             event.response().setStatusCode(200);
-            event.response().end("Generated in: " + outputDir());
+            event.response().end("Exported in: " + outputDir());
         }, event::fail);
     }
 
-    public Uni<List<Void>> generate() {
+    public Path generateBlocking() {
+        return generate().await().atMost(Duration.ofSeconds(10));
+    }
+
+    public Uni<Path> generate() {
         final FileSystem fs = vertx.get().fileSystem();
         final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(outputDir()).toAbsolutePath();
         for (SelectedPath path : this.selectedPaths) {
-            all.add(Uni.createFrom().completionStage(() -> fetchContent(path.path())).onFailure()
-                    .retry().atMost(5)
+            all.add(fetchContent(path.path())
+                    .onFailure()
+                    .retry().atMost(config.requestRetry())
                     .chain(r -> {
                         final Path targetPath = outputDir.resolve(path.outputPath());
                         return Uni.createFrom()
                                 .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
-                                .chain(() -> {
-                                    LOGGER.debugf("Roq is writing %s", targetPath.toString());
-                                    return Uni.createFrom().completionStage(fs
-                                            .writeFile(targetPath.toString(), r.bodyAsBuffer()).toCompletionStage());
-                                });
+                                .chain(() -> Uni.createFrom().completionStage(fs
+                                        .writeFile(targetPath.toString(), r).toCompletionStage()))
+                                .invoke(() -> LOGGER.infof("Roq generated file %s", path.outputPath()));
                     }));
 
         }
 
+        return clearOutputDir(fs, outputDir)
+                .chain(this::pollRoqPing)
+                .chain(() -> Uni.join().all(all).andFailFast().map(l -> outputDir))
+                .ifNoItem().after(Duration.ofSeconds(config.timeout()))
+                .fail();
+    }
+
+    private static Uni<Void> clearOutputDir(FileSystem fs, Path outputDir) {
         return Uni.createFrom().completionStage(() -> fs.exists(outputDir.toString()).compose(r -> {
             if (r) {
                 return fs.deleteRecursive(outputDir.toString(), true);
             } else {
                 return Future.succeededFuture();
             }
-        }).toCompletionStage())
-                .chain(() -> Uni.join().all(all).andFailFast())
-                .ifNoItem().after(Duration.ofSeconds(config.timeout()))
-                .fail();
+        }).toCompletionStage());
     }
 
-    private CompletionStage<HttpResponse<Buffer>> fetchContent(String path) {
-        LOGGER.debugf("Roq is fetching %s", path);
+    private Uni<Void> pollRoqPing() {
+        return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
+                .onItem().transformToUniAndMerge(tick -> getSend("/roq/ping")
+                        .map(r -> true)
+                        .onFailure().recoverWithItem(false))
+                .filter(success -> success)
+                .toUni()
+                .replaceWithVoid()
+                .ifNoItem().after(Duration.ofSeconds(30))
+                .failWith(() -> new RuntimeException("Quarkus didn't start after 30 seconds"));
+    }
+
+    private Uni<Buffer> fetchContent(String path) {
+        if (staticFiles.containsKey(path)) {
+            final StaticFile staticFile = staticFiles.get(path);
+            if (staticFile.type().equals(FILE)) {
+                LOGGER.debugf("Roq is reading %s from file", path);
+                return Uni.createFrom().completionStage(() -> vertx.get().fileSystem().readFile(staticFile.path())
+                        .onComplete(r -> LOGGER.debugf("Roq successfully read file %s", path))
+                        .toCompletionStage());
+            } else if (staticFile.type().equals(CLASSPATH)) {
+                LOGGER.debugf("Roq is reading %s from classpath", path);
+                return Uni.createFrom().completionStage(
+                        () -> vertx.get().executeBlocking(() -> getClasspathResourceContent(staticFile.path()), false)
+                                .map(Buffer::buffer)
+                                .onComplete(r -> LOGGER.debugf("Roq successfully read %s on classpath", path))
+                                .toCompletionStage());
+            }
+        }
+
+        final String fullPath = encode(PathUtils.join(httpBuildTimeConfig.rootPath, path));
+        LOGGER.debugf("Roq is reading %s from http", fullPath);
+        return getSend(fullPath)
+                .onFailure().invoke(t -> LOGGER.errorf(t, "Roq request failed %s", fullPath))
+                .invoke(r -> LOGGER.debugf("Roq request completed %s", fullPath))
+                .map(HttpResponse::bodyAsBuffer);
+    }
+
+    private Uni<HttpResponse<Buffer>> getSend(String path) {
         final String host;
         final int port;
         if (LaunchMode.current() == LaunchMode.TEST) {
@@ -130,13 +190,50 @@ public class RoqGenerator implements Handler<RoutingContext> {
             host = httpConfiguration.host;
             port = httpConfiguration.port;
         }
-        final String fullPath = PathUtils.join(httpBuildTimeConfig.rootPath, path);
-        return client().get(port, host, fullPath)
+        return Uni.createFrom().completionStage(() -> client().get(port, host, path)
                 .send()
                 .expecting(HttpResponseExpectation.status(200))
-                .onSuccess(r -> LOGGER.debugf("Roq request completed %s", fullPath))
-                .onFailure(t -> LOGGER.errorf("Roq request failed %s", fullPath, t))
-                .toCompletionStage();
+                .toCompletionStage());
+    }
+
+    public static String encode(String p) {
+        int queryIndex = p.indexOf('?');
+        String path = queryIndex >= 0 ? p.substring(0, queryIndex) : p;
+        String query = queryIndex >= 0 ? p.substring(queryIndex + 1) : null;
+
+        URI uri = URI.create(path);
+        if (query != null) {
+            // We assume query is already encoded when it's there
+            return uri.getPath() + "?" + query;
+        }
+        return uri.getPath();
+    }
+
+    private byte[] getClasspathResourceContent(String resourceName) {
+        URL resource = getClassLoader().getResource(resourceName);
+        if (resource == null) {
+            LOGGER.warnf("The resource '%s' does not exist on classpath", resourceName);
+            return null;
+        }
+        try {
+            try (InputStream inputStream = resource.openStream()) {
+                return inputStream.readAllBytes();
+            }
+        } catch (IOException e) {
+            LOGGER.error("Error while reading file from Classpath for path " + resourceName, e);
+            return null;
+        }
+    }
+
+    private ClassLoader getClassLoader() {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null) {
+            cl = getClass().getClassLoader();
+        }
+        if (cl == null) {
+            cl = Object.class.getClassLoader();
+        }
+        return cl;
     }
 
 }

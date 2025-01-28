@@ -1,0 +1,66 @@
+---
+layout: roq-default/main
+---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+{#insert before-article /}
+
+<article class="article-page">
+  {#insert article-start /}
+  <div class="page-content">
+    {#if page.image}
+    <div class="page-cover-image">
+      <figure>
+        <img class="page-image" src="{page.image}" alt="{page.title}">
+        {#if page.data.figCaption??}
+        <figcaption>{page.data.figCaption}</figcaption>
+        {/if}
+      </figure>
+    </div> <!-- End Page Cover Image -->
+    {/if}
+    <div class="wrap-content">
+      <header class="header-page">
+        <h1 class="page-title">{page.title}</h1>
+        <div class="page-date"><span>{page.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+      </header>
+      {#insert /}
+      <div class="page-footer">
+        <div class="footer-links">
+          <div class="page-share">
+            <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.encoded}"
+               title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
+            <a href="https://facebook.com/sharer.php?u={page.url.encoded}" title="Share on Facebook"
+               rel="nofollow" target="_blank">Facebook</a>
+            <a href="https://plus.google.com/share?url={page.url.encoded}" title="Share on Google+"
+               rel="nofollow" target="_blank">Google+</a>
+          </div>
+          <div class="page-tag">
+            {#for tag in page.data.tags.asStrings}
+            {#let tagSlug = tag.slugify}
+            <a href="{site.url('/posts/tag', tagSlug)}" class="tag">&#35; {tagSlug}</a>
+            {/for}
+          </div>
+
+        </div>
+        {#if page.data.author??}
+        {#let author=cdi:authors.get(page.data.author)}
+        {#if author}
+        <div class="author">
+          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}"/>
+          <div class="author-data">
+            <a target="_blank" href="{author.profile}"
+               class="author-name">{author.name}</a>
+            <span class="author-job-title">{author.job}</span>
+          </div>
+        </div>
+        {/if}
+        {/let}
+        {/if}
+      </div>
+    </div> <!-- End Wrap Content -->
+  </div> <!-- End Page Content -->
+  {#insert article-end /}
+</article> <!-- End Article Page -->
+
+{#insert after-article /}

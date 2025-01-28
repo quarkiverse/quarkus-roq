@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import io.quarkiverse.roq.generator.runtime.RoqGenerator;
+import io.quarkiverse.roq.generator.runtime.RoqGeneratorConfig;
 import io.quarkiverse.roq.generator.runtime.RoqSelection;
 import io.quarkiverse.roq.generator.runtime.SelectedPath;
 import io.quarkus.arc.All;
@@ -18,19 +19,22 @@ public class RoqGeneratorJsonRPCService {
 
     @All
     @Inject
-    List<RoqSelection> staticPages;
+    List<RoqSelection> selection;
 
     @Inject
     RoqGenerator generator;
 
+    @Inject
+    RoqGeneratorConfig config;
+
     @Blocking
-    public List<SelectedPath> getStaticPages() {
-        return RoqSelection.merge(staticPages);
+    public List<SelectedPath> getSelection() {
+        return RoqSelection.prepare(config, selection);
     }
 
     @Blocking
-    public int getStaticCount() {
-        return getStaticPages().size();
+    public int getCount() {
+        return getSelection().size();
     }
 
     public Uni<String> generate() {

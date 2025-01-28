@@ -43,7 +43,7 @@ export class QwcRoqGenerator extends LitElement {
      */
     connectedCallback() {
         super.connectedCallback();
-        this.jsonRpc.getStaticPages().then(jsonRpcResponse => {
+        this.jsonRpc.getSelection().then(jsonRpcResponse => {
             this._pages = [];
             jsonRpcResponse.result.forEach(c => {
                 this._pages.push(c);

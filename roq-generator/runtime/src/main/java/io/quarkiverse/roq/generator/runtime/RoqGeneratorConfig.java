@@ -10,11 +10,13 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
 @ConfigMapping(prefix = "quarkus.roq.generator")
-@ConfigRoot(phase = ConfigPhase.RUN_TIME)
+@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface RoqGeneratorConfig {
 
     /**
-     * The selected paths to include in the static website
+     * The selected paths to include in the static website.
+     * The output path is generated automatically: paths ending with a slash are completed with index.html, while other paths
+     * remain unchanged.
      * Glob syntax is authorized for non-dynamic resources (without query or path params)
      * <p>
      * For dynamic paths selection, produce a {@link RoqSelection} in you app.
@@ -37,7 +39,12 @@ public interface RoqGeneratorConfig {
     Optional<List<String>> paths();
 
     /**
-     * You can configure the path to get content from and the output path that will be generated.
+     * Use ''path-replace'' to clean paths and only allow a given set of characters
+     */
+    PathReplaceConfig pathReplace();
+
+    /**
+     * With this config you can configure the path to get content from AND also the output path that will be generated for it.
      */
     @WithDefault("")
     Map<String, String> customPaths();
@@ -56,8 +63,14 @@ public interface RoqGeneratorConfig {
     boolean batch();
 
     /**
-     * Timeout for generation in seconds
+     * Timeout for full generation in seconds
      */
-    @WithDefault("30")
+    @WithDefault("60")
     long timeout();
+
+    /**
+     * How many times should a request be retried
+     */
+    @WithDefault("10")
+    int requestRetry();
 }

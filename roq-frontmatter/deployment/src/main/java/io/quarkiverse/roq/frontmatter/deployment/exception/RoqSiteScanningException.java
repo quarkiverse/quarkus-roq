@@ -1,10 +1,11 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-public class RoqSiteScanningException extends UncheckedIOException {
-    public RoqSiteScanningException(String message, IOException cause) {
+public class RoqSiteScanningException extends RuntimeException {
+    public RoqSiteScanningException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public RoqSiteScanningException(String message) {
+        super(message);
     }
 }

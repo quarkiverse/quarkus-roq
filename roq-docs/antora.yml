@@ -1,0 +1,5 @@
+name: quarkus-roq
+title: Roq
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

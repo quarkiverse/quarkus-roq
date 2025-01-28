@@ -1,0 +1,25 @@
+name: Roq Plugin - Aliases
+description: This plugin allows creating one or many aliases (redirections) for a page.
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - ssg
+    - aliases
+    - redirect
+    - plugin
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-aliases
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq"
+  status: "preview"

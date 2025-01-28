@@ -1,0 +1,25 @@
+name: Roq Plugin - Asciidoc Java
+description: This plugin enables Asciidoc support in Roq with a fast startup time and full compatibility with native builds. However, it has limited features and does not support Asciidoc extensions (such as diagram).
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - ssg
+    - asciidoc
+    - plugin
+    - asciidoctor
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-asciidoc
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq"
+  status: "preview"
