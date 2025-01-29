@@ -22,7 +22,7 @@ https://marsjug.org/ ([repo](https://github.com/marsjug/marsjug.github.com/))
 
 Jotak, a Red Hat developer working on the NetObserv project, used to lean more towards Vert.x than Quarkus—something we debated quite a bit back in the day. It’s a shame he had to step away from Java development due to project constraints a few years ago. **Still, he managed to convince his team (working with Go and React) to switch to Roq 🚀**.
 
-netobserv.io ([repo](https://github.com/netobserv/netobserv.github.io))
+https://netobserv.io ([repo](https://github.com/netobserv/netobserv.github.io))
 
 
 
