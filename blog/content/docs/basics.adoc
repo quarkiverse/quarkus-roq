@@ -53,6 +53,101 @@ You can also prepare partial templates. They are located by default in `template
 
 NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/templates[example templates]).
 
+=== How to create a layout page
+
+Layouts heavily rely on an inheritance system.
+
+In this sample we will create a simple 3 steps inheritance layout. All below files should be located in the `templates/layouts/` directory.
+
+To do so, you will first need a `default.html` file as followed:
+
+[source,html]
+.default.html
+----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>\{page.title}</title> <1>
+</head>
+<body>
+    \{#insert /} <2>
+</body>
+</html>
+----
+<1> Use the `title` page attribute that will be defined by the using page
+<2> Allows to insert arbitrary content from the page using the layout.
+
+Then you can create a `main.html` file as followed:
+
+[source,html]
+.main.html
+----
+---
+layout: :default <1>
+title: And now for something completely different <2>
+---
+<header> Head </header>
+\{#insert /}
+<footer> Toes </footer>
+----
+<1> Uses the `default` layout.
+<2> Defines a default `title` attribute value for all it's child.
+
+Finally, you can create a `content.html` file as followed:
+
+[source,html]
+.content.html
+----
+---
+layout: :main <1>
+---
+\{#include partials/image /} <2>
+knees
+----
+<1> Uses the `main` layout.
+<2> Includes a <<partials, partial>> template.
+
+Then it will be rendered as followed:
+
+[source,html]
+----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>And now for something completely different</title>
+</head>
+<body>
+    <header> Head </header>
+        <img src="https://supersimple.com/wp-content/uploads/head-shoulders-knees-and-toes-flashcards-726x1024.png" alt="Illustration" />
+        knees
+    <footer> toes </footer>
+</body>
+</html>
+----
+
+To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as mush as for the FrontMatter data.
+
+All this inheritence system can be <<_overriding_theme_layouts,overriden>> by the content pages.
+
+[#partials]
+=== What are `partials` ?
+
+Partials work the other way around. They are bits of qute template fragment that cannot live by there own. You can include in any other templates. Let's say I want to have a description for each of my images. I can create an image.html partial in the `templates/partials/` directory:
+
+[source,html]
+.title.html
+----
+<img src="https://supersimple.com/wp-content/uploads/head-shoulders-knees-and-toes-flashcards-726x1024.png" alt="Illustration" />
+----
+
+Then I can include it in my content page:
+
+`\{#include partials/image /}`
+
 [#install-theme]
 == Install a theme
 
