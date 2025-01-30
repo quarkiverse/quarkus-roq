@@ -78,7 +78,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
                 LOGGER.info("Roq generation succeeded in directory: " + outputDir());
                 Quarkus.asyncExit(0);
             }, throwable -> {
-                if(throwable instanceof ConnectException) {
+                if (throwable instanceof ConnectException) {
                     LOGGER.error("Roq generation failed");
                 } else {
                     LOGGER.error("Roq generation failed", throwable);
