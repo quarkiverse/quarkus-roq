@@ -1,12 +1,10 @@
 ---
-title: "Roq n Roll Your Tests"
+title: "Roq n Roll Your Tests 🎶"
 description: Testing the actual Roq generation has never been this cool! 🎸  
 image: "c'est de la poussière d'étoile.jpg"
 tags: cool-stuff
 author: ia3andy
 ---
-
-# Roq n Roll Your Tests 🎶
 
 Hello folks,
 
