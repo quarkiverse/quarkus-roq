@@ -102,6 +102,7 @@
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-testing</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
