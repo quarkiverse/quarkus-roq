@@ -55,7 +55,9 @@ NOTE: if you don't already have layouts and partials in your project, <<install-
 
 === How to create a layout page
 
-Layouts heavily rely on an inheritance system.
+If you’re using a theme, you can take advantage of its layouts, but you’re also free to add your own. Layouts are built on a powerful inheritance system, allowing flexibility and customization.
+
+Tip: When using a theme, you can create new layouts that extend the existing theme layouts or partially override them to better suit your needs. Learn more here: link:{site.url('docs/advanced/')}#overriding-theme[Overriding Theme].
 
 In this sample we will create a simple 3 steps inheritance layout. All below files should be located in the `templates/layouts/` directory.
 
@@ -131,7 +133,7 @@ Then it will be rendered as followed:
 
 To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as mush as for the FrontMatter data.
 
-All this inheritence system can be <<_overriding_theme_layouts,overriden>> by the content pages.
+
 
 [#partials]
 === What are `partials` ?
