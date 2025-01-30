@@ -16,19 +16,12 @@
  */
 package io.quarkiverse.roq.it;
 
-import java.util.List;
-
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Singleton;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-
-import io.quarkiverse.roq.generator.runtime.RoqSelection;
-import io.quarkiverse.roq.generator.runtime.SelectedPath;
 
 @Path("/roq")
 @ApplicationScoped
@@ -39,16 +32,6 @@ public class RoqResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String hello(@QueryParam("name") String name) {
         return "Hello " + name;
-    }
-
-    @Produces
-    @Singleton
-    @Transactional
-    RoqSelection produce() {
-        return new RoqSelection(List.of(
-                SelectedPath.builder().html("/roq?name=foo-html").build(),
-                SelectedPath.builder().path("/roq?name=foo").build(),
-                SelectedPath.builder().path("/roq?name=bar").build()));
     }
 
 }

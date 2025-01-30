@@ -2,7 +2,6 @@ package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.markups;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
 
@@ -14,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.function.Consumer;
@@ -43,6 +43,7 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateB
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -450,7 +451,9 @@ public class RoqFrontMatterScanProcessor {
                     content,
                     sourcePath,
                     quteTemplatePath,
-                    attachments != null ? attachments.stream().map(Attachment::name).toList() : null,
+                    attachments != null
+                            ? new PageFiles(attachments.stream().map(Attachment::name).toList(), config.slugifyFiles())
+                            : null,
                     isHtml,
                     isSiteIndex);
             items.add(
@@ -471,7 +474,7 @@ public class RoqFrontMatterScanProcessor {
                         .filter(not(isFileExcluded(siteDir, config)))
                         .filter(p -> !ignoreTemplates || !isTemplate(quteConfig).test(p))
                         .forEach(p -> attachments
-                                .add(new Attachment(resolveAttachmentLink(p, refDir), p)));
+                                .add(new Attachment(resolveAttachmentLink(config, p, refDir), p)));
             } catch (IOException e) {
                 throw new RoqSiteScanningException(
                         "Error scanning static attachment files in directory: %s".formatted(attachmentDir), e);
@@ -479,11 +482,12 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
-    private static String resolveAttachmentLink(Path p, Path pageDir) {
+    private static String resolveAttachmentLink(RoqSiteConfig config, Path p, Path pageDir) {
         final String relative = toUnixPath(pageDir.relativize(p).toString());
-        final String extension = getExtension(relative);
-        removeExtension(relative);
-        return slugify(removeExtension(relative), true) + "." + extension;
+        if (config.slugifyFiles()) {
+            return PageFiles.slugifyFile(relative);
+        }
+        return relative;
     }
 
     @SuppressWarnings("unchecked")
@@ -505,8 +509,10 @@ public class RoqFrontMatterScanProcessor {
     protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
             Optional<String> timeZone) {
         String dateString;
+        final boolean fromFileName;
         if (frontMatter.containsKey(DATE_KEY)) {
             dateString = frontMatter.getString(DATE_KEY);
+            fromFileName = false;
         } else {
             Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.toString());
             if (!matcher.find()) {
@@ -514,15 +520,27 @@ public class RoqFrontMatterScanProcessor {
                 return ZonedDateTime.now();
             }
             dateString = matcher.group(1);
+            fromFileName = true;
         }
-
-        return new DateTimeFormatterBuilder().appendPattern(dateFormat)
-                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
-                .toFormatter()
-                .withZone(timeZone.isPresent() ? ZoneId.of(timeZone.get()) : ZoneId.systemDefault())
-                .parse(dateString, ZonedDateTime::from);
+        try {
+            return new DateTimeFormatterBuilder().appendPattern(dateFormat)
+                    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                    .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+                    .toFormatter()
+                    .withZone(timeZone.isPresent() ? ZoneId.of(timeZone.get()) : ZoneId.systemDefault())
+                    .parse(dateString, ZonedDateTime::from);
+        } catch (DateTimeParseException e) {
+            if (fromFileName) {
+                throw new RoqSiteScanningException(
+                        "Error while reading date '%s' in file name: '%s'\nreason: %s".formatted(dateString, file,
+                                e.getLocalizedMessage()));
+            } else {
+                throw new RoqFrontMatterReadingException(
+                        "Error while reading FrontMatter 'date' ('%s') in file: '%s'\nreason: %s".formatted(dateString, file,
+                                e.getLocalizedMessage()));
+            }
+        }
 
     }
 

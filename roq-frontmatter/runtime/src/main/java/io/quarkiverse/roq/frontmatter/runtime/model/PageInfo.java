@@ -47,7 +47,7 @@ public record PageInfo(
         /**
          * List of attached static files (null when public files should be used instead)
          */
-        List<String> files,
+        PageFiles files,
 
         /**
          * Is this a html page or something else (json, yml, ...)
@@ -64,7 +64,7 @@ public record PageInfo(
             String rawContent,
             String sourcePath,
             String quteTemplateId,
-            List<String> files,
+            PageFiles files,
             boolean isHtml,
             boolean isSiteIndex) {
         return new PageInfo(id, draft, dateString, rawContent, sourcePath, quteTemplateId, files,

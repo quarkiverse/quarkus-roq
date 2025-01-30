@@ -1,0 +1,9 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+<div class="main">
+    <h1>Roq! Where's my page?</h1>
+    {#if page.image}
+    <img class="page-image" src="{page.image}" alt="{page.title}">
+    {/}
+    <p><b>Roq</b>: If you are lost, find yourself <a href="{site.url}">here</a>.</p>
+</div>

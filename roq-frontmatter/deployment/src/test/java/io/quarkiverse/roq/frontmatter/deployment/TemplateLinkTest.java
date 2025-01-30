@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.vertx.core.json.JsonObject;
 
@@ -60,7 +61,7 @@ class TemplateLinkTest {
                 "",
                 contentPath,
                 "",
-                List.of(),
+                new PageFiles(List.of(), true),
                 indexable,
                 draft);
     }

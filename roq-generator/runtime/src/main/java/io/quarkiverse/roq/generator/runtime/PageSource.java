@@ -12,7 +12,7 @@ public enum PageSource {
     BUILD_ITEM,
 
     /**
-     * This page has been provided at runtime through a
+     * This page has been @Provided at runtime through a RoqSelection
      */
     PROVIDED
 }

@@ -95,7 +95,7 @@ public final class Site {
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
-        path = normaliseName(path);
+        path = normaliseName(path, page.info().files().slugified());
         // Legacy images dir support
         if (hasFile(PathUtils.join("static/assets/images", path))) {
             return file(PathUtils.join("static/assets/images", path));
@@ -107,7 +107,7 @@ public final class Site {
      * The site static files
      */
     public List<String> files() {
-        return page.info().files();
+        return page.info().files().names();
     }
 
     /**

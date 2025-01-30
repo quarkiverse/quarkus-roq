@@ -130,6 +130,17 @@ public interface RoqSiteConfig {
     Optional<String> timeZone();
 
     /**
+     * Indicates whether file names in the public directory and files attached to pages should be slugified
+     * (converted to a URL-friendly format).
+     *
+     * When enabled, file names will automatically be transformed into a URL-safe format.
+     * Additionally, `page.file` and `site.file` references can use the original file names,
+     * as they will also be slugified during the process.
+     */
+    @WithDefault("true")
+    boolean slugifyFiles();
+
+    /**
      * The directory names (in the Roq site directory) containing collections as key
      * and the corresponding collection config as value
      */

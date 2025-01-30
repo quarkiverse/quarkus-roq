@@ -1,0 +1,34 @@
+include::./_includes/attributes.adoc[]
+
+= Quarkus Roq FrontMatter
+
+Quarkus Roq FrontMatter is a Quarkus extension that create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
+
+The documentation is available in the https://pages.quarkiverse.io/quarkus-roq/[Roq website].
+
+CAUTION: Roq FrontMatter is already included as part of the Roq Static Site Generator extension `io.quarkiverse.roq:quarkus-roq`, Follow <<standalone-installation>> section to use it standalone.
+
+[[standalone-installation]]
+== Standalone installation
+
+NOTE: It is included as part of the Roq Static Site Generator extension `io.quarkiverse.roq:quarkus-roq`. You can also use it standalone.
+
+If you want to use this extension standalone, you need to add the `io.quarkiverse.roq:quarkus-roq-frontmatter` extension first to your build file.
+
+For instance, with Maven, add the following dependency to your POM file:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-frontmatter</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[[extension-configuration-reference]]
+== Extension Configuration Reference
+
+include::_includes/quarkus-roq-frontmatter_quarkus.roq.adoc[leveloffset=+1, opts=optional]
+
+include::_includes/quarkus-roq-frontmatter_roq.site.adoc[leveloffset=+1, opts=optional]

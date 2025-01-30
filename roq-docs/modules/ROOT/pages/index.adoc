@@ -1,0 +1,20 @@
+include::./_includes/attributes.adoc[]
+
+= Quarkus Roq
+
+Roq allows to easily create a static website or blog using Quarkus super-powers.
+
+The documentation is available in the https://pages.quarkiverse.io/quarkus-roq/docs/[Roq website].
+
+Roq depends on a set of extensions which can also be used standalone:
+
+* xref:quarkus-roq-data.adoc[*Roq Data*]: Use json/yaml files content from your templates and articles with type safety.
+* xref:quarkus-roq-frontmatter.adoc[*Roq FrontMatter*]:  Create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
+* xref:quarkus-roq-generator.adoc[*Roq Generator*]: Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
+
+[[extension-configuration-reference]]
+== Extension Configuration Reference
+
+include::_includes/quarkus-roq-frontmatter_site.adoc[leveloffset=+1, opts=optional]
+
+include::_includes/quarkus-roq.adoc[leveloffset=+1, opts=optional]

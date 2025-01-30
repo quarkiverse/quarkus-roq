@@ -5,7 +5,7 @@ import io.quarkus.builder.item.MultiBuildItem;
 public final class SelectedPathBuildItem extends MultiBuildItem {
 
     /**
-     * The path to fetch content from.
+     * The path to fetch content from starting with / (without the root-path).
      */
     private final String path;
 
