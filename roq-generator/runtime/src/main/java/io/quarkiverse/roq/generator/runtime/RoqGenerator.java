@@ -149,15 +149,17 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     private Uni<Void> pollRoqPing() {
-        return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-                .onItem().transformToUniAndMerge(tick -> getSend("/roq/ping")
+        final String pingPath = PathUtils.join(httpBuildTimeConfig.rootPath, "/roq/ping");
+        return Multi.createFrom().ticks().every(Duration.ofMillis(500))
+                .onItem().transformToUniAndMerge(tick -> getSend(pingPath)
                         .map(r -> true)
                         .onFailure().recoverWithItem(false))
                 .filter(success -> success)
                 .toUni()
                 .replaceWithVoid()
                 .ifNoItem().after(Duration.ofSeconds(30))
-                .failWith(() -> new RuntimeException("Quarkus didn't start after 30 seconds"));
+                .failWith(() -> new RuntimeException(
+                        "Quarkus didn't start after 30 seconds (no response on '%s').".formatted(pingPath)));
     }
 
     private Uni<Buffer> fetchContent(String path) {
