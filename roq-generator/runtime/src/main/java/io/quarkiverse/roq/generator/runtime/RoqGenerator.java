@@ -7,6 +7,7 @@ import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
@@ -77,7 +78,12 @@ public class RoqGenerator implements Handler<RoutingContext> {
                 LOGGER.info("Roq generation succeeded in directory: " + outputDir());
                 Quarkus.asyncExit(0);
             }, throwable -> {
-                LOGGER.error("Roq generation failed");
+                if(throwable instanceof ConnectException) {
+                    LOGGER.error("Roq generation failed");
+                } else {
+                    LOGGER.error("Roq generation failed", throwable);
+                }
+
                 Quarkus.asyncExit(1);
             });
         }
