@@ -125,6 +125,7 @@ It will automatically utilize the Frontmatter data from all your blog posts to g
 
 == Themes
 
+[#overriding-theme]
 === Overriding theme layouts
 
 In Roq, you can override theme layouts by inserting an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
