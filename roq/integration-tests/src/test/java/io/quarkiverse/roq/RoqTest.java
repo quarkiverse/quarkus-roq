@@ -65,9 +65,10 @@ public class RoqTest {
                 .body(containsString(
                         "Here are the links: /posts/2010-08-05-hello-world/hello.pdf and /posts/2010-08-05-hello-world/hello.pdf"))
                 .body(containsString(
-                        "and an images: /images/hello.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"))
+                        "and an images: /images/hello.png, /images/hello-foo.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"))
                 .body(containsString("page by path: /lo-you/"))
                 .body(containsString("document by path: /posts/k8s-post/"));
+        RestAssured.when().get("/images/hello-foo.png").then().statusCode(200).log().ifValidationFails();
     }
 
     @Test
