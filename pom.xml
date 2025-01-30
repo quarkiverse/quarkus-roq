@@ -93,7 +93,7 @@
                 </property>
             </activation>
             <modules>
-                <module>roq-docs</module>
+                <module>docs</module>
             </modules>
         </profile>
         <profile>
