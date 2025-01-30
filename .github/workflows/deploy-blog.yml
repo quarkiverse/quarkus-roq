@@ -13,9 +13,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
     steps:
       - uses: actions/checkout@v4
 
@@ -32,15 +29,14 @@ jobs:
       ####
 
       - name: Generate Blog
-        uses: ./ # replace by quarkiverse/quarkus-roq@...
+        uses: ./ # replace with quarkiverse/quarkus-roq@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Those are not needed in most cases:
           setup-java: 'false'
-          site-directory: 'blog'
-          maven-executable: 'mvn'
+          site-directory: 'blog'  # needed if the site is located in a subdirectory
+          maven-executable: 'mvn' # needed if you don't have ./mvnw in your repository
           maven-build-args: '-DskipTests -Dquarkus.profile=gh-pages'
-
 
   # Deployment job
   deploy:
