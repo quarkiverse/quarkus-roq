@@ -2,6 +2,8 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -15,37 +17,61 @@ import io.quarkus.qute.TemplateData;
  * This represents a Roq url for pages, resources, ...
  *
  * @param root the site url with root path included (e.g. "https://example.com/my-root/")
- * @param path the path of the resource (e.g. "site/posts/hello-world/")
+ * @param resourcePath the path of the resource (e.g. "site/posts/hello-world/") without the root path
  */
 @TemplateData
 @Vetoed
 public record RoqUrl(
         RootUrl root,
-        String path) {
+        String resourcePath) {
 
-    public RoqUrl(RootUrl root, String path) {
-        this.path = path;
+    public RoqUrl(RootUrl root, String resourcePath) {
+        this.resourcePath = resourcePath;
         this.root = root;
     }
 
     /**
-     * Using a RootUrl as a String will print relative url
+     * Using a RootUrl as a String will print url path
      */
     @Override
     public String toString() {
-        return relative();
+        return path();
     }
 
     /**
-     * The relative url to this resource (including the root path).
-     * If it is external it will return the external full url.
-     * (e.g. /my-root/site/posts/hello-world/)
+     * Same as {@link #path(boolean)})} with encoded true
+     */
+    public String path() {
+        return path(true);
+    }
+
+    /**
+     * The url path to this resource including the root path (e.g. /my-root/site/posts/hello-world/).
+     * If it is external it will return the external absolute url.
+     *
+     * @param encoded if true, the path special characters will be encoded using %, else it's kept untouched
+     */
+    public String path(boolean encoded) {
+        if (isExternal()) {
+            return resourcePath();
+        }
+        final String path = PathUtils.join(root.rootPath(), resourcePath());
+        return encoded ? encode(path) : path;
+    }
+
+    private static String encode(String path) {
+        try {
+            return new URI(null, null, path, null).toASCIIString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @return same as {@link #path()} ()}
      */
     public String relative() {
-        if (isExternal()) {
-            return path();
-        }
-        return PathUtils.join(root.rootPath(), path());
+        return path();
     }
 
     /**
@@ -53,13 +79,13 @@ public record RoqUrl(
      */
     public String absolute() {
         if (isExternal()) {
-            return path();
+            return resourcePath();
         }
-        return PathUtils.join(root().absolute(), path());
+        return PathUtils.join(root().url(), path());
     }
 
     /**
-     * Encode this url to be used as a query parameter
+     * Encode this full url to be used as a query parameter
      */
     public String encoded() {
         return URLEncoder.encode(absolute(), StandardCharsets.UTF_8);
@@ -86,7 +112,7 @@ public record RoqUrl(
         if (isFullPath(other.toString())) {
             return new RoqUrl(null, other.toString());
         }
-        return new RoqUrl(root(), PathUtils.join(path(), addTrailingSlashIfNoExt(other.toString())));
+        return new RoqUrl(root(), PathUtils.join(resourcePath(), addTrailingSlashIfNoExt(other.toString())));
     }
 
     /**
@@ -106,7 +132,7 @@ public record RoqUrl(
      * @return the concatenated url
      */
     public RoqUrl append(Object other) {
-        return new RoqUrl(root(), path() + other.toString());
+        return new RoqUrl(root(), resourcePath() + other.toString());
     }
 
     /**
@@ -126,11 +152,11 @@ public record RoqUrl(
         return this.root.resolve(path);
     }
 
-    public static RoqUrl fromRoot(RootUrl root, String path) {
-        if (isFullPath(path)) {
-            return new RoqUrl(null, path);
+    public static RoqUrl fromRoot(RootUrl root, String resourcePath) {
+        if (isFullPath(resourcePath)) {
+            return new RoqUrl(null, resourcePath);
         }
-        return new RoqUrl(root, addTrailingSlashIfNoExt(path));
+        return new RoqUrl(root, addTrailingSlashIfNoExt(resourcePath));
     }
 
 }

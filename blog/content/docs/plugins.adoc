@@ -3,8 +3,10 @@ title: Plugins
 layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
-{|
+
 = Quarkus Roq Plugins
+
+{#include partials/doc/edit-contrib.adoc name="plugins" /}
 
 [#plugin-tagging]
 == Roq Plugin Tagging
@@ -24,13 +26,12 @@ quarkus ext add quarkus-roq-plugin-tagging
 
 If you are using a theme that supports it (includes a tagging layout), you should now have tags pages available for all the tags in your posts!
 
-|}
 TIP: You can use  link:{site.url('docs/advanced')}#_overriding_theme_layouts[theme override] to customize the theme tagging layout.
-{|
+
 
 To enable tagging without a theme, create a layout template and add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`. It is available through `site.collections.get(page.data.tagCollection)`:
 
-
+{|
 [source,html]
 .templates/layouts/tag.html
 ----
@@ -44,10 +45,11 @@ tagging: posts
 {/for}
 
 ----
-
+|}
 
 This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
 
+{|
 [source,html]
 .templates/layouts/tag.html
 ----
@@ -62,6 +64,7 @@ paginate: true
 {/for}
 
 ----
+|}
 
 [#plugin-aliases]
 == Roq Plugin Aliases
@@ -103,7 +106,6 @@ NOTE: you can use link templating in aliases
 
 This plugin allows to use asciidoc to produce content.
 
-
 [NOTE]
 ====
 There are two implementations of Asciidoc for Roq:
@@ -120,8 +122,6 @@ quarkus ext add quarkus-roq-plugin-asciidoc
 ----
 
 or
-
-To install it:
 
 [source,shell]
 ----
@@ -159,14 +159,14 @@ quarkus ext add quarkus-roq-plugin-qrcode
 ----
 
 
-Then create a template and add the `{#qrcode ...}` tag to it and style and size it as you want.
+Then create a template and add the `\{#qrcode ...}` tag to it and style and size it as you want.
 
 By default, the plugin produces HTML output compatible with both `HTML` and `MarkDown` templates. To use the plugin with `asciidoc`, set the `asciidoc` attribute to `true` (the default is `false`).
 
 [source,mixed]
 ----
-{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /} // Will generate HTML code
-{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
+\{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /} // Will generate HTML code
+\{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
 ----
 
 [#plugin-series]
@@ -183,6 +183,7 @@ quarkus ext add quarkus-roq-plugin-series
 
 Edit the layout for your posts, for example when using roq-default theme:
 
+{|
 [source,html]
 .templates/layouts/roq-default/post-series.html
 ----
@@ -197,6 +198,7 @@ layout: theme-layouts/roq-default/post
 ----
 <1> This will add the series partial before the post content, if it's declared.
 <2> This is the post content
+|}
 
 And finally, use this layout and add the `series` attribute in the Front Matter of the posts you want to join.
 
@@ -214,7 +216,6 @@ series: My series Title // <1>
 
 <1> You should use the exact same title for all documents in the series.
 
-|}
 
 [#plugin-sitemap]
 == Roq Plugin Sitemap
@@ -227,12 +228,14 @@ To install it run:
 quarkus ext add quarkus-roq-plugin-sitemap
 ----
 
+{|
 Then create a new sitemap file:
 [source,xml]
 .content/sitemap.xml
 ----
 {#include fm/sitemap.xml}
 ----
+|}
 
 You are all set!
 

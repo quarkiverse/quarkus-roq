@@ -55,6 +55,6 @@ series: My series Title <1>
 
 It will add the following at the head of your post:
 
-image::./series.png[Series header]
+image::{page.image('series.foo.png')}[Series header]
 
 A bit like what you see at the very begining of this post.

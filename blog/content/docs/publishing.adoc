@@ -3,8 +3,10 @@ title: Publishing
 layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
-{|
+
 = Publishing a Roq Site
+
+{#include partials/doc/edit-contrib.adoc name="publishing" /}
 
 == Roq GitHub Action
 
@@ -15,6 +17,7 @@ Roq provides a https://github.com/quarkiverse/quarkus-roq/blob/main/action.yml[G
 
 Check if you already have the `.github/workflows/deploy.yml` file, if you don't create it:
 
+{|
 ..github/workflows/deploy.yml
 [source,yaml]
 ----
@@ -49,6 +52,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 ----
+|}
 
 Then to enable GitHub Pages:
 

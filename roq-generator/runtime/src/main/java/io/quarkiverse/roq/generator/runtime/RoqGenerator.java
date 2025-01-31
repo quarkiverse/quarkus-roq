@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -209,12 +210,17 @@ public class RoqGenerator implements Handler<RoutingContext> {
         String path = queryIndex >= 0 ? p.substring(0, queryIndex) : p;
         String query = queryIndex >= 0 ? p.substring(queryIndex + 1) : null;
 
-        URI uri = URI.create(path);
-        if (query != null) {
-            // We assume query is already encoded when it's there
-            return uri.getPath() + "?" + query;
+        try {
+            URI uri = new URI(null, null, path, null);
+            if (query != null) {
+                // We assume query is already encoded when it's there
+                return uri.toASCIIString() + "?" + query;
+            }
+            return uri.toASCIIString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-        return uri.getPath();
+
     }
 
     private byte[] getClasspathResourceContent(String resourceName) {

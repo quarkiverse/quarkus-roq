@@ -5,9 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import io.quarkus.test.common.QuarkusTestResource;
-
-@QuarkusTestResource(RoqGeneratorTestManager.class)
 @Retention(RetentionPolicy.RUNTIME) // Annotation is retained at runtime for test setup.
 @Target(ElementType.TYPE) // Applied only at the class level.
 public @interface RoqAndRoll {

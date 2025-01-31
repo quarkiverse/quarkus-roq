@@ -34,18 +34,16 @@ That's it! This basic test already verifies that your site generation is error-f
 
 ### Step 3: Test the Generated Content
 
-To go even further, you can test the actual content of your generated site. Here's how:
+To go even further, you can test the actual content of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
 
 ```java
 @QuarkusTest
 @RoqAndRoll
 public class RoqSiteTest {
-    RoqServer roq; // Injected server info
 
     @Test
     public void testIndex() {
-        given().port(roq.port())
-                .when().get("/")
+        RestAssured.when().get("/")
                 .then()
                 .statusCode(200)
                 .body(containsString(

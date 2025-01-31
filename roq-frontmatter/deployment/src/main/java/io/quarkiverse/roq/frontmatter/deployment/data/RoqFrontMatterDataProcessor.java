@@ -72,7 +72,7 @@ public class RoqFrontMatterDataProcessor {
                 // Publish static assets
                 for (Attachment attachment : item.raw().attachments()) {
                     staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(
-                            item.url().resolve(attachment.name()).path(), attachment.path()));
+                            item.url().resolve(attachment.name()).resourcePath(), attachment.path()));
                 }
             }
             // Publish Pages

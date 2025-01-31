@@ -2,15 +2,20 @@ package io.quarkiverse.roq.it;
 
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @RoqAndRoll
-public class RoqBlogTest {
+@TestProfile(RoqBlogSlugifiedFilesTest.SlugifyFilesConfig.class)
+public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testIndex() {
@@ -28,9 +33,9 @@ public class RoqBlogTest {
     }
 
     @Test
-    public void testSpecialNameFile() {
-        RestAssured.when().get("/posts/roq-n-roll-your-tests/c'est de la poussière d'étoile.jpg").then().statusCode(200);
-        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.png").then().statusCode(200);
+    public void testSlugifyFile() {
+        RestAssured.when().get("/posts/roq-n-roll-your-tests/c-est-de-la-poussi-re-d-toile.jpg").then().statusCode(200);
+        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series-foo.png").then().statusCode(200);
     }
 
     @Test
@@ -82,4 +87,16 @@ public class RoqBlogTest {
                 .body(not(containsString("<loc>/404.html</loc>")))
                 .body(containsString("</urlset>"));
     }
+
+
+    public static class SlugifyFilesConfig implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("site.slugify-files", "true");
+        }
+    }
+
+
+
 }

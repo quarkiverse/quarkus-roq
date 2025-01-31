@@ -4,8 +4,9 @@ layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
 
-{|
 = Roq Advanced Stuff
+
+{#include partials/doc/edit-contrib.adoc name="advanced"/}
 
 [#pagination]
 == Pagination
@@ -26,6 +27,7 @@ paginate: posts
 
 Next, in your template, loop through the paginated posts using:
 
+{|
 [source,html]
 ----
 {#for post in site.collections.posts.paginated(page.paginator)} // <1>
@@ -37,11 +39,13 @@ Next, in your template, loop through the paginated posts using:
 {#include includes/pagination.html/}
 ----
 <1> Calling `.paginated(page.paginator)` will resolve to the posts for the computed page.
+|}
 
 === Step 2: Including Pagination Controls
 
 To add pagination controls, use the provided `fm/pagination.html` in your own `_includes/pagination.html`:
 
+{|
 [source,html]
 ----
 {#include fm/pagination.html}
@@ -49,6 +53,7 @@ To add pagination controls, use the provided `fm/pagination.html` in your own `_
 {#older}<i class="fa fa-long-arrow-right" aria-hidden="true"></i>{/older}
 {/include}
 ----
+|}
 
 NOTE: If you want to write your own controls, find inspiration in the FM sources https://github.com/quarkiverse/quarkus-roq/tree/main/roq-frontmatter/runtime/src/main/resources/templates/fm/pagination.html[fm/pagination.html].
 
@@ -77,12 +82,14 @@ With these steps, you can create a flexible pagination system to improve your si
 
 Incorporating search engine optimization (SEO) is as simple as inserting this tag into your `<head>` section:
 
+{|
 [source,html]
 ----
 <head>
 {#seo page site /}
 </head>
 ----
+|}
 
 It will automatically use the FrontMatter data to fill the tags.
 
@@ -102,12 +109,14 @@ It will automatically use the FrontMatter data to fill the tags.
 
 Incorporating and RSS feed of your posts is as simple as inserting this tag into your `<head>` section:
 
+{|
 [source,html]
 ----
 <head>
 {#rss site /}
 </head>
 ----
+|}
 
 It will automatically use the FrontMatter data generate an RSS feed link.
 
@@ -118,10 +127,13 @@ It will automatically use the FrontMatter data generate an RSS feed link.
 
 It will automatically utilize the Frontmatter data from all your blog posts to generate a valid Atom RSS feed link at `rss.xml`. Ensure you create an `rss.xml` file at the root of your site and include this single line of code:
 
+{|
 [source,html]
 ----
 {#include fm/rss.html}
 ----
+|}
+
 
 == Themes
 
@@ -134,6 +146,7 @@ TIP: Roq layouts are leveraging https://quarkus.io/guides/qute-reference#include
 
 For example, let’s override the `roq-default` theme's main layout so that our customizations apply everywhere it is used.
 
+{|
 .templates/layouts/roq-default/main.html
 [source,html]
 ----
@@ -156,6 +169,7 @@ And here the footer
 <1> *Inherits from the theme layout:* This layout uses the original theme layout (`roq-default/main`) as a base.
 <2> *Inheritance mechanism:* `{#insert /}` ensures that this layout will inherit sections defined in the theme layout.
 <3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
+|}
 
 Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
 
@@ -314,11 +328,11 @@ TIP: You can define `link` in a layout to affect all the pages using that layout
 
 The pages links are automatically converted to urls by Roq, they are available in the `site.url` and the `page.url` variables. This makes creating links very easy:
 
+{|
 [source,html]
 ----
 <a href="{site.url}">Back to main page</a>
 ----
-
 or to get the next page url in a document:
 
 [source,html]
@@ -341,17 +355,15 @@ or also to manually retrieve a page url with `site.page(sourcePath)`:
 ----
 <a href="{site.page('foo.html').url}">{site.page('foo.html').title}</a>
 ----
+|}
 
-
-
-TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{site.url.absolute}`).
+TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `\{site.url.absolute}`).
 
 === Manual linking
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
 == Site Configuration
-|}
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
 
