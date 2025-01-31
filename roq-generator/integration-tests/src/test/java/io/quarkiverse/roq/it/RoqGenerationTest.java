@@ -23,6 +23,7 @@ public class RoqGenerationTest {
         assertTrue(exists(Path.of("target/roq/static/logo.svg")));
         assertTrue(exists(Path.of("target/roq/static/logo.svg.svg")));
         assertTrue(exists(Path.of("target/roq/static/élo$ bar.txt")));
+        assertTrue(exists(Path.of("target/roq/roq/c'est de la poussière d'étoile/index.html")));
     }
 
 }

@@ -64,4 +64,3 @@ The `layouts/` directory defines the structure for pages and documents. For exam
 
 <10> **Build files**
 The build file such as a `pom.xml` is needed to configure the build. It contains dependencies for your site such as theme and plugins.
-

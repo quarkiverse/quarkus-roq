@@ -149,16 +149,17 @@ class RoqFrontMatterInitProcessor {
             if (i.hidden()) {
                 continue;
             }
-            final RoqFrontMatterPageBuildItem prev = itemsMap.put(i.url().path(), i);
-            allPagesByPath.put(i.url().path(), i.page());
+            final RoqFrontMatterPageBuildItem prev = itemsMap.put(i.url().resourcePath(), i);
+            allPagesByPath.put(i.url().resourcePath(), i.page());
             if (prev != null) {
                 if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
                     LOGGER.warnf(
                             "Conflict detected: Duplicate path (%s) found in %s and %s. In development, the first occurrence will be kept, but this will cause an exception in normal mode.",
-                            i.url().path(), prev.id(), i.id());
+                            i.url().resourcePath(), prev.id(), i.id());
                 } else {
                     throw new RoqPathConflictException(
-                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(i.url().path(), prev.id(),
+                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(i.url().resourcePath(),
+                                    prev.id(),
                                     i.id()));
                 }
             }

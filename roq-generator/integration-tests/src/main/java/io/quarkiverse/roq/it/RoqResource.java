@@ -34,4 +34,11 @@ public class RoqResource {
         return "Hello " + name;
     }
 
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    @Path("c'est%20de%20la%20poussi%C3%A8re%20d'%C3%A9toile/")
+    public String p() {
+        return "Poussière d'étoile";
+    }
+
 }

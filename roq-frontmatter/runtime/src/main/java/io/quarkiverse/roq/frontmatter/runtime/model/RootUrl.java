@@ -36,7 +36,14 @@ public record RootUrl(
     }
 
     /**
-     * @return the relative root path
+     * @return the url path (e.g. "/my-root" or "/")
+     */
+    public String path() {
+        return rootPath();
+    }
+
+    /**
+     * @return same as {@link RootUrl#path()}
      */
     public String relative() {
         return rootPath();

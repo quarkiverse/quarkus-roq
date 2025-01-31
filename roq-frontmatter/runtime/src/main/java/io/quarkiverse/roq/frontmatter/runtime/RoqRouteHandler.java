@@ -27,6 +27,7 @@ import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
+import io.quarkus.vertx.http.runtime.RoutingUtils;
 import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
@@ -108,7 +109,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     }
 
     private void handlePage(RoutingContext rc) {
-        String requestPath = rc.request().path();
+        String requestPath = RoutingUtils.resolvePath(rc);
         LOG.debugf("Handle page: %s", requestPath);
 
         // Extract the real template path, e.g. /item.html -> web/item
@@ -192,15 +193,12 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     }
 
     private Page extractTemplatePath(String path) {
-        if (path.length() >= rootPath.length()) {
-            path = path.substring(rootPath.length());
-            path = removeLeadingSlash(path);
+        path = removeLeadingSlash(path);
 
-            // Check if we have a matching linked template
-            final String link = addTrailingSlashIfNoExt(path);
-            if (pages.containsKey(link)) {
-                return pages.get(link).get();
-            }
+        // Check if we have a matching linked template
+        final String link = addTrailingSlashIfNoExt(path);
+        if (pages.containsKey(link)) {
+            return pages.get(link).get();
         }
         return null;
     }
