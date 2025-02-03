@@ -357,7 +357,7 @@ or also to manually retrieve a page url with `site.page(sourcePath)`:
 ----
 |}
 
-TIP: By default, url will be rendered as relative from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `\{site.url.absolute}`).
+TIP: By default, url will be rendered as the path from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `\{site.url.absolute}`).
 
 === Manual linking
 

@@ -20,7 +20,11 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundE
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.IgnoredTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateParserFilters;
+import io.quarkiverse.roq.frontmatter.runtime.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
@@ -105,6 +109,27 @@ class RoqFrontMatterInitProcessor {
                 indexPageProducer.produce(new RoqFrontMatterSiteIndexBuildItem(recordedPage));
             }
         }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void bindTemplatesFilter(List<RoqFrontMatterRawTemplateBuildItem> roqFrontMatterTemplates,
+            List<IgnoredTemplateBuildItem> ignored, BuildProducer<SyntheticBeanBuildItem> beansProducer,
+            RoqFrontMatterRecorder recorder) {
+        Map<String, WrapperFilter> filters = new HashMap<>();
+        for (RoqFrontMatterRawTemplateBuildItem t : roqFrontMatterTemplates) {
+            filters.put(t.info().generatedTemplateId(), t.filter());
+        }
+        for (IgnoredTemplateBuildItem i : ignored) {
+            filters.put(i.templateId(), new WrapperFilter("{|\n", "\n|}\n"));
+        }
+        final Supplier<RoqTemplateParserFilters> templateParserFilters = recorder.createTemplateParserFilters(filters);
+        beansProducer.produce(SyntheticBeanBuildItem.configure(RoqTemplateParserFilters.class)
+                .scope(Singleton.class)
+                .unremovable()
+                .supplier(templateParserFilters)
+                .done());
+
     }
 
     @BuildStep

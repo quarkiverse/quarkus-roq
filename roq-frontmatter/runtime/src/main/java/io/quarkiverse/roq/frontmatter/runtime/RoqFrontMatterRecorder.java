@@ -30,6 +30,10 @@ public class RoqFrontMatterRecorder {
         this.config = config;
     }
 
+    public Supplier<RoqTemplateParserFilters> createTemplateParserFilters(Map<String, WrapperFilter> filters) {
+        return () -> new RoqTemplateParserFilters(filters);
+    }
+
     public Supplier<RoqCollections> createRoqCollections(
             Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionSuppliers) {
         return () -> {
