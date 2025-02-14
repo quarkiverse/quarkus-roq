@@ -24,7 +24,11 @@ Once you've added the dependency, you can easily ensure all pages are generated 
 @QuarkusTest
 @RoqAndRoll
 public class RoqSiteTest {
-    // All pages will be validated during test setup
+    
+    @Test
+    public void testGen() {
+        // All pages will be generated/validated during test setup
+    }
 }
 ```
 

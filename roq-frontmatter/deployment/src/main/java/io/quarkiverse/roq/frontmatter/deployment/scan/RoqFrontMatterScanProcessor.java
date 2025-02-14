@@ -126,7 +126,7 @@ public class RoqFrontMatterScanProcessor {
 
     private static void produceRawTemplate(BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             RoqFrontMatterRawTemplateBuildItem item) {
-        LOGGER.debugf("Roq is producing a raw template '%s'", item.id());
+        LOGGER.debugf("Roq is producing a raw template '%s'", item.info().generatedTemplateId());
         dataProducer.produce(item);
     }
 
@@ -420,7 +420,7 @@ public class RoqFrontMatterScanProcessor {
                     defaultLayout);
 
             for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                fm = modification.modifier().modify(new SourceData(file, sourcePath, fm));
+                fm = modification.modifier().modify(new SourceData(file, sourcePath, collection, fm));
             }
             final boolean draft = fm.getBoolean(DRAFT_KEY, false);
             if (!config.draft() && draft) {
