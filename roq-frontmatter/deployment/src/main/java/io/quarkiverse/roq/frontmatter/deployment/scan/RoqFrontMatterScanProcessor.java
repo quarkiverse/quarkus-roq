@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.markups;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.toWrapperFilters;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
@@ -38,9 +38,9 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModifica
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType;
+import io.quarkiverse.roq.frontmatter.runtime.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
@@ -82,6 +82,7 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
+            BuildProducer<IgnoredTemplateBuildItem> ignored,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqSiteConfig siteConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
@@ -91,11 +92,12 @@ public class RoqFrontMatterScanProcessor {
                     jackson.getYamlMapper(),
                     quteConfig,
                     siteConfig,
-                    markups(markupList),
+                    toWrapperFilters(markupList),
                     watch,
                     dataModifications,
                     templatePathProducer,
                     templateRootProducer,
+                    ignored,
                     staticFilesProducer);
 
             Set<String> ids = items.stream().map(RoqFrontMatterRawTemplateBuildItem::id).collect(Collectors.toSet());
@@ -111,7 +113,8 @@ public class RoqFrontMatterScanProcessor {
                                 TemplateType.LAYOUT,
                                 item.data(),
                                 item.collection(),
-                                item.generatedTemplate(),
+                                item.content(),
+                                item.filter(),
                                 item.published(),
                                 item.attachments()));
                     }
@@ -138,11 +141,12 @@ public class RoqFrontMatterScanProcessor {
             YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, QuteMarkupSection> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
+            BuildProducer<IgnoredTemplateBuildItem> ignored,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(createRoqDirConsumer(mapper, quteConfig, config, markups, watch, dataModifications,
@@ -151,10 +155,12 @@ public class RoqFrontMatterScanProcessor {
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
                 t -> {
-                    scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items, t.getPath().getParent(),
+                    scanLayouts(mapper, quteConfig, config, markups, watch, ignored, dataModifications, items,
+                            t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.LAYOUT);
-                    scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items, t.getPath().getParent(),
+                    scanLayouts(mapper, quteConfig, config, markups, watch, ignored, dataModifications, items,
+                            t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.THEME_LAYOUT);
                 });
@@ -173,7 +179,7 @@ public class RoqFrontMatterScanProcessor {
             templateRootProducer.produce(new TemplateRootBuildItem(PathUtils.join(roqProject.roqResourceDir(), TEMPLATES_DIR)));
             // and scan for layouts in this directory
             roqProject.consumePathFromRoqResourceDir(TEMPLATES_DIR,
-                    l -> scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items,
+                    l -> scanLayouts(mapper, quteConfig, config, markups, watch, ignored, dataModifications, items,
                             l.getPath().getParent(), l.getPath(),
                             TemplateType.LAYOUT));
         }
@@ -184,7 +190,7 @@ public class RoqFrontMatterScanProcessor {
     private static Consumer<Path> createRoqDirConsumer(YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, QuteMarkupSection> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
@@ -199,7 +205,9 @@ public class RoqFrontMatterScanProcessor {
             final Path templatesDir = siteDir.resolve(TEMPLATES_DIR);
             watchDirectory(templatesDir, watch);
             scanTemplates(quteConfig, config, watch, templatePathProducer, templatesDir);
-            scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items, siteDir, templatesDir,
+            // No need to ignore the template as it's not a template root
+            scanLayouts(mapper, quteConfig, config, markups, watch, item -> {
+            }, dataModifications, items, siteDir, templatesDir,
                     TemplateType.LAYOUT);
             final Path contentDir = siteDir.resolve(config.contentDir());
             watchDirectory(contentDir, watch);
@@ -208,7 +216,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static void scanContent(YAMLMapper mapper, QuteConfig quteConfig, RoqSiteConfig config,
-            Map<String, QuteMarkupSection> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications, List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
@@ -271,8 +279,9 @@ public class RoqFrontMatterScanProcessor {
     private static void scanLayouts(YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, QuteMarkupSection> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            BuildProducer<IgnoredTemplateBuildItem> ignored,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
@@ -298,7 +307,10 @@ public class RoqFrontMatterScanProcessor {
                     .filter(not(isFileExcluded(templatesRoot.getParent(), config)))
                     .filter(isTemplate(quteConfig))
                     .filter(RoqFrontMatterScanProcessor::isPageTargetHtml)
+                    .peek(l -> ignored
+                            .produce(new IgnoredTemplateBuildItem(toUnixPath(templatesRoot.relativize(l).toString()))))
                     .forEach(layoutsConsumer);
+
         } catch (IOException e) {
             throw new RoqSiteScanningException(
                     "Error while scanning layouts directory: %s".formatted(templatesRoot), e);
@@ -372,7 +384,7 @@ public class RoqFrontMatterScanProcessor {
             QuteConfig quteConfig,
             RoqSiteConfig config,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            Map<String, QuteMarkupSection> markups,
+            Map<String, WrapperFilter> markups,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             ConfiguredCollection collection,
             TemplateType type) {
@@ -427,7 +439,7 @@ public class RoqFrontMatterScanProcessor {
                 return;
             }
 
-            final String generatedTemplate = generateTemplate(markups, sourcePath, layoutId, content);
+            final WrapperFilter filter = generateFilter(markups, sourcePath, layoutId);
             List<Attachment> attachments = null;
             // Scan for files
             if (isIndex) {
@@ -457,7 +469,7 @@ public class RoqFrontMatterScanProcessor {
                     isHtml,
                     isSiteIndex);
             items.add(
-                    new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, generatedTemplate,
+                    new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, content, filter,
                             published, attachments));
 
         };
@@ -544,18 +556,20 @@ public class RoqFrontMatterScanProcessor {
 
     }
 
-    private static String generateTemplate(Map<String, QuteMarkupSection> markups, String fileName, String layout,
-            String content) {
-        StringBuilder template = new StringBuilder();
-
+    private static WrapperFilter generateFilter(Map<String, WrapperFilter> markups, String fileName,
+            String layout) {
+        StringBuilder prefix = new StringBuilder();
+        StringBuilder suffix = new StringBuilder();
         if (layout != null) {
-            template.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
+            prefix.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
         }
-        template.append(find(markups, fileName, Function.identity()).apply(content));
+        final WrapperFilter filter = find(markups, fileName, WrapperFilter.EMPTY);
+        prefix.append(filter.prefix());
+        suffix.append(filter.suffix());
         if (layout != null) {
-            template.append("\n{/include}");
+            suffix.append("\n{/include}");
         }
-        return template.toString();
+        return new WrapperFilter(prefix.toString(), suffix.toString());
     }
 
     private static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
@@ -599,7 +613,7 @@ public class RoqFrontMatterScanProcessor {
         return result;
     }
 
-    private static String resolveOutputExtension(Map<String, QuteMarkupSection> markups, String fileName) {
+    private static String resolveOutputExtension(Map<String, WrapperFilter> markups, String fileName) {
         if (find(markups, fileName, null) != null) {
             return ".html";
         }

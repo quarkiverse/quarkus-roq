@@ -12,6 +12,7 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBu
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateWrapperParserHook;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
@@ -51,7 +52,7 @@ public class RoqFrontMatterProcessor {
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             templatePathProducer
                     .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplateId()).extensionInfo(FEATURE)
-                            .content(item.generatedTemplate()).build());
+                            .content(item.content()).build());
             if (item.published()) {
                 if (item.collection() != null) {
                     docTemplates.add(item.info().generatedTemplateId());
@@ -86,6 +87,7 @@ public class RoqFrontMatterProcessor {
         }
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(
+                        RoqTemplateWrapperParserHook.class,
                         RoqFrontMatterMessages.class,
                         RoqTemplateExtension.class,
                         RoqTemplateGlobal.class,

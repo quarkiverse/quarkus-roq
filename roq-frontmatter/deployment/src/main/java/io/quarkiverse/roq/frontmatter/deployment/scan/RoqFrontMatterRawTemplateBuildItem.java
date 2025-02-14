@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.deployment.scan;
 import java.nio.file.Path;
 import java.util.List;
 
+import io.quarkiverse.roq.frontmatter.runtime.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkus.builder.item.MultiBuildItem;
@@ -40,9 +41,11 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final ConfiguredCollection collection;
 
     /**
-     * The generated template content to be passed to be passed to Qute.
+     * The template content to be passed to be passed to Qute.
      */
-    private final String generatedTemplate;
+    private final String content;
+
+    private final WrapperFilter filter;
 
     /**
      * Should this template be published (published templates can be available in the data, but hidden from routing).
@@ -54,16 +57,22 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
      */
     private final List<Attachment> attachments;
 
-    public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, TemplateType type, JsonObject data,
+    public RoqFrontMatterRawTemplateBuildItem(PageInfo info,
+            String layout,
+            TemplateType type,
+            JsonObject data,
             ConfiguredCollection collection,
-            String generatedTemplate,
-            boolean published, List<Attachment> attachments) {
+            String content,
+            WrapperFilter filter,
+            boolean published,
+            List<Attachment> attachments) {
         this.info = info;
         this.layout = layout;
         this.type = type;
         this.data = data;
         this.collection = collection;
-        this.generatedTemplate = generatedTemplate;
+        this.content = content;
+        this.filter = filter;
         this.published = published;
         this.attachments = attachments;
     }
@@ -104,8 +113,12 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return collection != null ? collection.id() : null;
     }
 
-    public String generatedTemplate() {
-        return generatedTemplate;
+    public String content() {
+        return content;
+    }
+
+    public WrapperFilter filter() {
+        return filter;
     }
 
     public boolean published() {

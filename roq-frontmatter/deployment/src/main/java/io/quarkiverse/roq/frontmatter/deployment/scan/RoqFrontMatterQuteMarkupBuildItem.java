@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
+import io.quarkiverse.roq.frontmatter.runtime.WrapperFilter;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.builder.item.MultiBuildItem;
 
@@ -26,11 +26,11 @@ public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem {
         return markupSection;
     }
 
-    public static Map<String, QuteMarkupSection> markups(List<RoqFrontMatterQuteMarkupBuildItem> list) {
-        Map<String, QuteMarkupSection> markups = new HashMap<>();
+    public static Map<String, WrapperFilter> toWrapperFilters(List<RoqFrontMatterQuteMarkupBuildItem> list) {
+        Map<String, WrapperFilter> markups = new HashMap<>();
         for (RoqFrontMatterQuteMarkupBuildItem item : list) {
             for (String extension : item.extensions()) {
-                markups.put(extension, item.markupSection());
+                markups.put(extension, new WrapperFilter(item.markupSection.open + "\n", "\n" + item.markupSection.close));
             }
         }
         return markups;
@@ -38,20 +38,16 @@ public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem {
 
     public record QuteMarkupSection(String open, String close) {
 
-        public String apply(String content) {
-            return open + "\n" + content.strip() + "\n" + close;
-        }
-
-        public static Function<String, String> find(Map<String, QuteMarkupSection> markups, String fileName,
-                Function<String, String> defaultFunction) {
+        public static WrapperFilter find(Map<String, WrapperFilter> markups, String fileName,
+                WrapperFilter defaultFilter) {
             final String extension = PathUtils.getExtension(fileName);
             if (extension == null) {
-                return defaultFunction;
+                return defaultFilter;
             }
             if (!markups.containsKey(extension)) {
-                return defaultFunction;
+                return defaultFilter;
             }
-            return markups.get(extension)::apply;
+            return markups.get(extension);
         }
     }
 }
