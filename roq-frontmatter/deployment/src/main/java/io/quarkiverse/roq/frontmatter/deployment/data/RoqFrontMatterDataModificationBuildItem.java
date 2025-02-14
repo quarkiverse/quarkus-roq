@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.data;
 
 import java.nio.file.Path;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
@@ -39,6 +40,6 @@ public final class RoqFrontMatterDataModificationBuildItem extends MultiBuildIte
         JsonObject modify(SourceData sourceData);
     }
 
-    public record SourceData(Path path, String siteRelativePath, JsonObject fm) {
+    public record SourceData(Path path, String siteRelativePath, ConfiguredCollection collection, JsonObject fm) {
     }
 }
