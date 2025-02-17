@@ -514,20 +514,24 @@ Since the new collection is also a normal page, we can use all variables describ
 [#site-static]
 == Site static files
 
-Site static files are served as-is without any additional processing.
+Site static files are served as-is without any additional processing. By default, all files in `public/` are scanned as static files.
 
 [source]
 ----
 public/
-├── image.jpg
-└── presentation.pdf
+├── images/image.jpg // <1>
+├── scripts/script (2).js // <2>
+└── presentation.pdf // <3>
 ----
+<1> generated as on `/images/image.js`
+<2> generated as `/scripts/script-2.js`(slugified 👇)
+<3> generated as `/presentation.pdf`
 
-By default, all files in `public/` are scanned as static files.
+Site static files url can be accessed through `site.file('presentation.pdf')` or `site.file('scripts/script (2).js')` or just their relative paths.
 
-Site static files url can be accessed through `site.file('presentation.pdf')`.
+TIP: `site.file(path)` also checks that the file exists on disk and will adapt on site configuration (e.g. root path change).
 
-TIP: `site.file(path)` also checks that the file exists on disk and will adapt on site configuration (e.g. root path change)
+To improve SEO, all static files are *slugified*, Roq replaces non-URL-friendly characters with `-`. URL-friendly characters are alphanumeric, `-`, and `_` (multiple dots are also tolerated for files). Using `site.file` and `page.file` variables automatically applies this replacement on returned url (same for images). To disable this behavior, set `site.slugify-files=false` in Roq’s configuration.
 
 
 [#page-files]
@@ -700,14 +704,11 @@ It will be rendered with the relevant `<script>` and `<style>` tags to include y
 TIP: You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
 
-
 == Asciidoc support
 
 Asciidoc is supported by Roq using link:{site.url('docs/plugins/')}#plugin-asciidoc[plugins].
 
-{|
-Using `{something}` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `\\{something}`, or wrap more content inside `{|` and `|&#125;`.
-|}
+Using `&#123;something&#125;` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `&#92;&#123;something&#125;`, or wrap more content inside `&#123;|` and `|&#125;`.
 
 === Includes
 
