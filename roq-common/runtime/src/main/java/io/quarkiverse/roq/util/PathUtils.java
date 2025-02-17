@@ -72,4 +72,14 @@ public final class PathUtils {
         }
         return path.substring(i + 1);
     }
+
+    public static String slugify(String value, boolean allowSlashes, boolean allowDots) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value input cannot be null");
+        }
+        return value
+                .replaceAll("[^a-zA-Z0-9_\\-" + (allowDots ? "." : "") + (allowSlashes ? "/" : "") + "]", "-") // Replace non-alphanumeric characters with hyphens
+                .replaceAll("-+", "-") // Replace multiple hyphens with a single one
+                .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
+    }
 }
