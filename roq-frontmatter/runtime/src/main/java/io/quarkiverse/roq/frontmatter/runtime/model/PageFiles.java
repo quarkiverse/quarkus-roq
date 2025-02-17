@@ -5,7 +5,7 @@ import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 
 import java.util.List;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.util.PathUtils;
 
 public record PageFiles(List<String> names, boolean slugified) {
     public boolean contains(Object o) {
@@ -23,6 +23,8 @@ public record PageFiles(List<String> names, boolean slugified) {
     public static String slugifyFile(String filePath) {
         final String extension = getExtension(filePath);
         String path = removeExtension(filePath);
-        return RoqTemplateExtension.slugify(path, true) + "." + extension;
+        // We allow dots because some static files might have versions in their names
+        // Anyway they have an extension
+        return PathUtils.slugify(path, true, true) + "." + extension;
     }
 }

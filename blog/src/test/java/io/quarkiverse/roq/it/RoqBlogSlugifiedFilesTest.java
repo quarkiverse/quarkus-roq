@@ -35,7 +35,7 @@ public class RoqBlogSlugifiedFilesTest {
     @Test
     public void testSlugifyFile() {
         RestAssured.when().get("/posts/roq-n-roll-your-tests/c-est-de-la-poussi-re-d-toile.jpg").then().statusCode(200);
-        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series-foo.png").then().statusCode(200);
+        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.png").then().statusCode(200);
     }
 
     @Test

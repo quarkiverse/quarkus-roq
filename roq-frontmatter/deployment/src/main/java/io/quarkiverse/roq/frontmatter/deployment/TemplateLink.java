@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.util.PathUtils.slugify;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,7 +49,7 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true).toLowerCase()),
+                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true, false).toLowerCase()),
                 Map.entry(":ext",
                         () -> data.pageInfo().isHtml() ? ""
                                 : "." + data.pageInfo().sourceFileExtension()),

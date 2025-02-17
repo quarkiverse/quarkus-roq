@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.json.JsonArray;
 
@@ -29,17 +30,7 @@ public class RoqTemplateExtension {
     }
 
     public static String slugify(String text) {
-        return slugify(text, false);
-    }
-
-    public static String slugify(String text, boolean allowSlashes) {
-        if (text == null) {
-            throw new IllegalArgumentException("Link input cannot be null");
-        }
-        return text
-                .replaceAll(allowSlashes ? "[^a-zA-Z0-9_\\-/]" : "[^a-zA-Z0-9\\-]", "-") // Replace non-alphanumeric characters with hyphens
-                .replaceAll("-+", "-") // Replace multiple hyphens with a single one
-                .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
+        return PathUtils.slugify(text, false, false);
     }
 
     @SuppressWarnings("unchecked")
