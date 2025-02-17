@@ -363,6 +363,90 @@ TIP: By default, url will be rendered as the path from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
+
+== Testing
+
+All templates will be validated at generation. Sometimes, for example on Pull-Request, you want to detect issues before actual generation. Roq provides a way to generate the full site during the test phase.
+
+First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
+
+.pom.xml
+[source,xml]
+----
+    <dependency>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-testing</artifactId>
+        <version>{cdi:project-info.release.current-version}</version>
+        <scope>test</scope>
+    </dependency>
+----
+
+.src/test/java/RoqSiteTest.java
+[source,java]
+----
+@QuarkusTest
+@RoqAndRoll
+public class RoqSiteTest {
+
+    @Test
+    public void testGen() {
+        // All pages will be generated/validated during test setup
+    }
+}
+----
+
+You can also add checks on the actual generated content as it will be served using a static file server:
+
+.src/test/java/RoqSiteTest.java
+[source,java]
+----
+@QuarkusTest
+@RoqAndRoll
+public class RoqSiteTest {
+
+    @Test
+    public void testIndex() {
+        RestAssured.when().get("/")
+                .then()
+                .statusCode(200)
+                .body(containsString(
+                    "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."
+                ));
+    }
+}
+----
+
+### Step 2: Basic Test Example
+
+Once you've added the dependency, you can easily ensure all pages are generated without errors:
+
+
+
+That's it! This basic test already verifies that your site generation is error-free.
+
+---
+
+### Step 3: Test the Generated Content
+
+To go even further, you can test the actual content of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
+
+```java
+@QuarkusTest
+@RoqAndRoll
+public class RoqSiteTest {
+
+    @Test
+    public void testIndex() {
+        RestAssured.when().get("/")
+                .then()
+                .statusCode(200)
+                .body(containsString(
+                    "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."
+                ));
+    }
+}
+```
+
 == Site Configuration
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
