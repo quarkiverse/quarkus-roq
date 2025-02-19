@@ -68,15 +68,9 @@ pre {
     padding-right: 0;
     padding-left: 0;
     overflow: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    word-break: break-all;
-    background-color: #d8d8d8;
+    white-space: pre;
+    background-color: #222;
     border-radius: 5px;
-  }
-
-  code.hljs {
-    background-color: #d8d8d8;
   }
 }
 
@@ -150,6 +144,7 @@ pre {
 }
 
 .post, .article-page, .page-content  {
+	width: 100%;
   background-color: #fff;
 }
 
