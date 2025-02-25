@@ -39,7 +39,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.version>3.18.3</quarkus.version>
         <assertj.version>3.27.3</assertj.version>
-        <quarkus-qute-web.version>3.3.0</quarkus-qute-web.version>
+        <quarkus-qute-web.version>3.4.0</quarkus-qute-web.version>
         <asciidoctorj.version>3.0.0</asciidoctorj.version>
         <asciidoctorj-diagram.version>2.3.1</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>1.8.1</quarkus-web-bundler.version>
