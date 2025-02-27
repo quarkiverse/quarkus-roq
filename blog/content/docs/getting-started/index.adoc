@@ -66,7 +66,7 @@ You may find a few interesting things in there, here are 3 random articles from 
 {#for post in site.collections.get('posts').randomise.take(3)}
 <article class="post">
   {#if post.image}
-  <a class="post-thumbnail" style="background-image: url({post.image})" href="{post.url}"></a>
+  <a class="post-thumbnail" style='background-image: url("{post.image}")' href="{post.url}"></a>
   {/if}
   <div class="post-content">
     <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>
