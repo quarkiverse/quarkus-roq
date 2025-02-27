@@ -862,8 +862,6 @@
 .doc pre > code,
 .doc .listingblock pre:not(.highlight),
 .doc .literalblock pre {
-  background: var(--asciidoc-pre-background);
-  box-shadow: inset 0 0 1.75px var(--asciidoc-pre-border-color);
   display: block;
   overflow-x: auto;
   padding: 0.875em;
