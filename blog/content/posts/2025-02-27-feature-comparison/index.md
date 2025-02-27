@@ -4,7 +4,7 @@ image: https://images.unsplash.com/photo-1560092056-5669e776fc68?q=80&w=4144&aut
 tags: blogging
 ---
 
-Here is a feature comparison with a few other SSGs. 
+Here’s a feature comparison with some popular SSGs to highlight how Roq stacks up.
 
 
 | Feature           | Roq                                           | Hugo                         | Jekyll                               | JBake                        |
