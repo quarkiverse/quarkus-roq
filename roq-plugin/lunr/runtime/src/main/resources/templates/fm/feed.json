@@ -1,0 +1,22 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+{
+  {#for collection in site.collections.list}
+  {#if !collection.hidden && !collection.derived}
+  {#for doc in collection}
+  {#if doc.search}
+  "{doc.info.id}" : {
+    "categories": [
+      {#for tag in doc.data.tags.asStrings}
+        "{tag}"{#if tag_hasNext},{/if}
+      {/for}
+    ],
+    "summary": "{doc.description}",
+    "url": "{doc.url.absolute}",
+    "title": "{doc.title}",
+    "content": "{doc.info.rawContent}"
+  }{#if doc_hasNext},{/if}
+  {/if}
+  {/for}
+  {/if}
+  {/for}
+}
