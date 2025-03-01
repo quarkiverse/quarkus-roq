@@ -13,7 +13,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -26,8 +28,8 @@ import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
-import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
-import io.quarkus.vertx.http.runtime.HttpConfiguration;
+import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
+import io.quarkus.vertx.http.runtime.VertxHttpConfig;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
@@ -49,9 +51,9 @@ public class RoqGenerator implements Handler<RoutingContext> {
     private final Instance<Vertx> vertx;
     private final RoqGeneratorConfig config;
 
-    private final HttpConfiguration httpConfiguration;
+    private final VertxHttpConfig httpConfiguration;
 
-    private final HttpBuildTimeConfig httpBuildTimeConfig;
+    private final VertxHttpBuildTimeConfig httpBuildTimeConfig;
     private final Map<String, StaticFile> staticFiles;
     private WebClient client;
     private final List<SelectedPath> selectedPaths;
@@ -59,8 +61,8 @@ public class RoqGenerator implements Handler<RoutingContext> {
     @Inject
     public RoqGenerator(final Instance<Vertx> vertx,
             final RoqGeneratorConfig config,
-            HttpConfiguration httpConfiguration,
-            HttpBuildTimeConfig httpBuildTimeConfig,
+            VertxHttpConfig httpConfiguration,
+            VertxHttpBuildTimeConfig httpBuildTimeConfig,
             @All final List<RoqSelection> selection) {
         this.vertx = vertx;
         this.config = config;
@@ -150,7 +152,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     private Uni<Void> pollRoqPing() {
-        final String pingPath = PathUtils.join(httpBuildTimeConfig.rootPath, "/roq/ping");
+        final String pingPath = PathUtils.join(httpBuildTimeConfig.rootPath(), "/roq/ping");
         return Multi.createFrom().ticks().every(Duration.ofMillis(500))
                 .onItem().transformToUniAndMerge(tick -> getSend(pingPath)
                         .map(r -> true)
@@ -181,7 +183,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
             }
         }
 
-        final String fullPath = encode(PathUtils.join(httpBuildTimeConfig.rootPath, path));
+        final String fullPath = encode(PathUtils.join(httpBuildTimeConfig.rootPath(), path));
         LOGGER.debugf("Roq is reading %s from http", fullPath);
         return getSend(fullPath)
                 .onFailure().invoke(t -> LOGGER.errorf(t, "Roq request failed %s", fullPath))
@@ -193,11 +195,11 @@ public class RoqGenerator implements Handler<RoutingContext> {
         final String host;
         final int port;
         if (LaunchMode.current() == LaunchMode.TEST) {
-            host = httpConfiguration.testHost.orElse(httpConfiguration.host);
-            port = httpConfiguration.testPort;
+            host = httpConfiguration.testHost().orElse(httpConfiguration.host());
+            port = httpConfiguration.testPort();
         } else {
-            host = httpConfiguration.host;
-            port = httpConfiguration.port;
+            host = httpConfiguration.host();
+            port = httpConfiguration.port();
         }
         return Uni.createFrom().completionStage(() -> client().get(port, host, path)
                 .send()
