@@ -19,7 +19,7 @@ var feedLoaded = function (e) {
         this.ref('id')
         this.field('title', {boost: 10})
         this.field('summary')
-        this.field('categories', {boost: 50})
+        this.field('tags', {boost: 50})
         this.field('content', {boost: 100})
         documents = JSON.parse(e.target.response)
 
@@ -38,16 +38,16 @@ xhr.open('get', '/feed.json')
 xhr.addEventListener('load', feedLoaded)
 xhr.send()
 
-function createSearchResult (result, store, searchResultDataset) {
+function createSearchResult(result, store, searchResultDataset) {
     let currentComponent
     result.forEach(function (item) {
         const doc = store.documents[item.ref]
         const metadata = item.matchData.metadata
-        searchResultDataset.appendChild(createSearchResultItem(doc, item, highlightHit(metadata, doc.title, doc)))
+        searchResultDataset.appendChild(createSearchResultItem(doc, item, highlightHit(metadata, doc)))
     })
 }
 
-function highlightHit (searchMetadata, sectionTitle, doc) {
+function highlightHit(searchMetadata, doc) {
     const terms = {}
     for (const term in searchMetadata) {
         const fields = searchMetadata[term]
@@ -57,13 +57,14 @@ function highlightHit (searchMetadata, sectionTitle, doc) {
     }
     return {
         pageTitleNodes: highlightPageTitle(doc.title, terms.title || []),
-        pageContentNodes: highlightText(doc, terms.text || []),
+        tagsNodes: highlightTags(doc, terms.tags || []),
+        pageContentNodes: highlightText(doc, terms.content || []),
         //pageKeywordNodes: highlightTags(doc, terms.keyword || []),
     }
 }
 
 
-function createSearchResultItem (doc, item, highlightingResult) {
+function createSearchResultItem(doc, item, highlightingResult) {
     const documentTitle = document.createElement('div')
     documentTitle.classList.add('search-result-document-title')
     highlightingResult.pageTitleNodes.forEach(function (node) {
@@ -83,6 +84,21 @@ function createSearchResultItem (doc, item, highlightingResult) {
     documentHitLink.href = doc.url
     documentHit.appendChild(documentHitLink)
     highlightingResult.pageContentNodes.forEach((node) => createHighlightedText(node, documentHitLink))
+    // only show keyword when we got a hit on them
+    if (doc.tags && highlightingResult.tagsNodes.length > 1) {
+        const documentKeywords = document.createElement('div')
+        documentKeywords.classList.add('search-result-keywords')
+        const documentKeywordsFieldLabel = document.createElement('span')
+        documentKeywordsFieldLabel.classList.add('search-result-keywords-field-label')
+        documentKeywordsFieldLabel.innerText = 'keywords: '
+        const documentKeywordsList = document.createElement('span')
+        documentKeywordsList.classList.add('search-result-keywords-list')
+        highlightingResult.tagsNodes.forEach((node) => createHighlightedText(node, documentKeywordsList))
+        documentKeywords.appendChild(documentKeywordsFieldLabel)
+        documentKeywords.appendChild(documentKeywordsList)
+        documentHitLink.appendChild(documentKeywords)
+    }
+
     const searchResultItem = document.createElement('div')
     searchResultItem.classList.add('search-result-item')
     searchResultItem.appendChild(documentTitle)
@@ -94,7 +110,7 @@ function createSearchResultItem (doc, item, highlightingResult) {
 }
 
 
-function createNoResult (text) {
+function createNoResult(text) {
     const searchResultItem = document.createElement('div')
     searchResultItem.classList.add('search-result-item')
     const documentHit = document.createElement('div')
@@ -106,12 +122,12 @@ function createNoResult (text) {
     return searchResultItem
 }
 
-function clearSearchResults (reset) {
+function clearSearchResults(reset) {
     if (reset === true) searchInput.value = ''
     searchResultContainer.innerHTML = ''
 }
 
-function filter (result, documents) {
+function filter(result, documents) {
     const facetFilter = facetFilterInput?.checked && facetFilterInput.dataset.facetFilter
     if (facetFilter) {
         const [field, value] = facetFilter.split(':')
@@ -125,7 +141,7 @@ function filter (result, documents) {
     return result
 }
 
-function search (index, documents, queryString) {
+function search(index, documents, queryString) {
     // execute an exact match search
     let query
     let result = filter(
@@ -173,7 +189,7 @@ function search (index, documents, queryString) {
     return result
 }
 
-function searchIndex (index, store, text) {
+function searchIndex(index, store, text) {
     clearSearchResults(false)
     if (text.trim() === '') {
         return
@@ -189,11 +205,11 @@ function searchIndex (index, store, text) {
     }
 }
 
-function confineEvent (e) {
+function confineEvent(e) {
     e.stopPropagation()
 }
 
-function debounce (func, wait) {
+function debounce(func, wait) {
     let timeout
     return function () {
         const context = this
@@ -206,7 +222,7 @@ function debounce (func, wait) {
     }
 }
 
-function enableSearchInput (enabled) {
+function enableSearchInput(enabled) {
     if (facetFilterInput) {
         facetFilterInput.disabled = !enabled
     }
@@ -214,11 +230,11 @@ function enableSearchInput (enabled) {
     searchInput.title = enabled ? '' : 'Loading index...'
 }
 
-function isClosed () {
+function isClosed() {
     return searchResultContainer.childElementCount === 0
 }
 
-function executeSearch (index) {
+function executeSearch(index) {
     const query = searchInput.value
     try {
         if (!query) return clearSearchResults()
@@ -232,16 +248,16 @@ function executeSearch (index) {
     }
 }
 
-function toggleFilter (e, index) {
+function toggleFilter(e, index) {
     searchInput.focus()
     if (!isClosed()) {
         executeSearch(index)
     }
 }
 
-function initSearch (lunr, data) {
+function initSearch(lunr, data) {
     const start = performance.now()
-    const index = { index: idx, store: {documents:documents} }
+    const index = {index: idx, store: {documents: documents}}
     enableSearchInput(true)
     searchInput.dispatchEvent(
         new CustomEvent('loadedindex', {
@@ -270,18 +286,27 @@ function initSearch (lunr, data) {
 }
 
 
-function highlightPageTitle (title, terms) {
+function highlightPageTitle(title, terms) {
     const positions = getTermPosition(title, terms)
     return buildHighlightedText(title, positions, snippetLength)
 }
 
-function highlightText (doc, terms) {
+function highlightText(doc, terms) {
     const text = doc.content
     const positions = getTermPosition(text, terms)
     return buildHighlightedText(text, positions, snippetLength)
 }
 
-function getTermPosition (text, terms) {
+function highlightTags(doc, terms) {
+    const tags = doc.tags
+    if (tags) {
+        const positions = getTermPosition(tags.toString(), terms)
+        return buildHighlightedText(tags.toString(), positions, snippetLength)
+    }
+    return []
+}
+
+function getTermPosition(text, terms) {
     const positions = terms
         .map((term) => findTermPosition(lunr, term, text))
         .filter((position) => position.length > 0)
@@ -300,7 +325,7 @@ function getTermPosition (text, terms) {
  * @param term
  * @return {{start: number, length: number}}
  */
-function findTermPosition (lunr, term, text) {
+function findTermPosition(lunr, term, text) {
     const str = text.toLowerCase()
     const index = str.indexOf(term)
 
@@ -332,7 +357,7 @@ function findTermPosition (lunr, term, text) {
  * @param {number} snippetLength Maximum text length for text in the result.
  * @returns {[{text: string, type: string}]}
  */
-function buildHighlightedText (text, positions, snippetLength) {
+function buildHighlightedText(text, positions, snippetLength) {
     const textLength = text.length
     const validPositions = positions.filter(
         (position) => position.length > 0 && position.start + position.length <= textLength
@@ -409,7 +434,7 @@ function buildHighlightedText (text, positions, snippetLength) {
  * @param {String} highlightingResultNode.text
  * @param {Node} targetNode
  */
-function createHighlightedText (highlightingResultNode, targetNode) {
+function createHighlightedText(highlightingResultNode, targetNode) {
     let element
     if (highlightingResultNode.type === 'text') {
         element = document.createTextNode(highlightingResultNode.text)
@@ -420,9 +445,6 @@ function createHighlightedText (highlightingResultNode, targetNode) {
     }
     targetNode.appendChild(element)
 }
-
-
-
 
 
 // disable the search input until the index is loaded

@@ -5,7 +5,7 @@
   {#for doc in collection}
   {#if doc.search}
   "{doc.info.id}" : {
-    "categories": [
+    "tags": [
       {#for tag in doc.data.tags.asStrings}
         "{tag}"{#if tag_hasNext},{/if}
       {/for}
