@@ -361,7 +361,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     public static Predicate<Path> isTemplate(QuteConfig config) {
-        HashSet suffixes = new HashSet<>(config.suffixes);
+        HashSet<String> suffixes = new HashSet<>(config.suffixes());
         suffixes.addAll(HTML_OUTPUT_EXTENSIONS);
         return path -> suffixes.contains(getExtension(path.toString()));
     }
