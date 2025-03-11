@@ -48,11 +48,9 @@ inputs:
     default: "target/roq"
   site-future:
     description: "Generate future posts"
-    default: 'false'
     required: false
   site-draft:
     description: "Generate draft posts"
-    default: 'false'
     required: false
 
 runs:
@@ -111,12 +109,23 @@ runs:
       shell: bash
       run: |
         cd ${{ env.SITE_DIR }}
-        ${{ inputs.maven-executable }} -B package quarkus:run \
+        MAVEN_CMD="${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
-          -Dsite.url=${{ env.SITE_URL }} \
-          -Dsite.future=${{ inputs.site-future }} \
-          -Dsite.draft=${{ inputs.site-draft }}
+          -Dsite.url=${{ env.SITE_URL }}"
+    
+        # Add site.future if it's set
+        if [ -n "${{ inputs.site-future }}" ]; then
+          MAVEN_CMD="$MAVEN_CMD -Dsite.future=${{ inputs.site-future }}"
+        fi
+    
+        # Add site.draft if it's set
+        if [ -n "${{ inputs.site-draft }}" ]; then
+          MAVEN_CMD="$MAVEN_CMD -Dsite.draft=${{ inputs.site-draft }}"
+        fi
+    
+        # Run Maven build with the generated arguments
+        $MAVEN_CMD
       env:
         QUARKUS_ROQ_GENERATOR_BATCH: true
 
