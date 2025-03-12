@@ -1,8 +1,14 @@
 name: "Build and Deploy Roq Site"
-description: "Sets up JDK, builds the Quarkus site, and upload the GitHub Pages artifact."
+description: "Sets up JDK, builds the Quarkus site, and uploads the GitHub Pages artifact."
 branding:
   icon: 'music'
   color: 'orange'
+
+on:
+  schedule:
+    - cron: "0 5 * * *"  # Runs every day at 05:00 UTC (10:30 AM IST)
+  workflow_dispatch:  # Allows manual triggering
+
 inputs:
   setup-java:
     description: "Whether to setup Java or not"
@@ -37,7 +43,7 @@ inputs:
     default: 'true'
     required: false
   github-token:
-    description: "GitHub token for accessing GitHub Pages url (required if github-pages)"
+    description: "GitHub token for accessing GitHub Pages URL (required if github-pages)"
     required: false
   site-url:
     description: "The full URL of the site including the eventual root path"
@@ -56,7 +62,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Step 1: Set up Java
     - name: Set up Java
       if: ${{ inputs.setup-java == 'true' }}
       uses: actions/setup-java@v4
@@ -65,7 +70,6 @@ runs:
         distribution: ${{ inputs.java-distribution }}
         cache: ${{ inputs.maven-cache }}
 
-    # Step 2: Get GitHub Pages URL (if not provided as input)
     - name: Get GitHub Pages URL
       shell: bash
       if: ${{ inputs.github-pages == 'true' && inputs.site-url == null }}
@@ -73,9 +77,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        # Fetch GitHub Pages URL
         url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url' 2>/dev/null || echo '')
-        # Check if URL is starts with http
         if [[ $url == http* ]]; then
           echo "GitHub Pages is enabled for this repository: $url"
           echo "SITE_FULL_URL=$url" >> $GITHUB_ENV 
@@ -84,18 +86,17 @@ runs:
           exit 1
         fi
 
-    # Step 3: Setting environments for the build
     - name: Setting envs
       shell: bash
       run: |
         FULL_URL=${{ inputs.site-url || env.SITE_FULL_URL || '/' }}
         if [[ "$FULL_URL" =~ ^https?:// ]]; then
-          SITE_URL=$(echo "$FULL_URL" | sed -E 's|(https?://[^/]+).*|\1|')        # Extract base URL
-          SITE_PATH=$(echo "$FULL_URL" | sed -E 's|https?://[^/]+||')             # Extract path
-          [[ -z "$SITE_PATH" ]] && SITE_PATH="/"                                  # Default to "/" if no path
+          SITE_URL=$(echo "$FULL_URL" | sed -E 's|(https?://[^/]+).*|\1|')
+          SITE_PATH=$(echo "$FULL_URL" | sed -E 's|https?://[^/]+||')
+          [[ -z "$SITE_PATH" ]] && SITE_PATH="/"
         else
           SITE_URL=""
-          SITE_PATH="${FULL_URL:-/}"                                              # Use input as SITE_PATH or default to "/"
+          SITE_PATH="${FULL_URL:-/}"
         fi
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
@@ -104,7 +105,6 @@ runs:
         echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
-    # Step 4: Build and Generate Quarkus Blog with Quarkus HTTP Root Path
     - name: Build & Generate Blog
       shell: bash
       run: |
@@ -114,27 +114,22 @@ runs:
           -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
           -Dsite.url=${{ env.SITE_URL }}"
     
-        # Add site.future if it's set
         if [ -n "${{ inputs.site-future }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.future=${{ inputs.site-future }}"
         fi
     
-        # Add site.draft if it's set
         if [ -n "${{ inputs.site-draft }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.draft=${{ inputs.site-draft }}"
         fi
     
-        # Run Maven build with the generated arguments
         $MAVEN_CMD
       env:
         QUARKUS_ROQ_GENERATOR_BATCH: true
 
-    # Step 5: Setup GitHub Pages
     - name: Setup Pages
       if: ${{ inputs.github-pages == 'true' }}
       uses: actions/configure-pages@v5
 
-    # Step 6: Upload Artifact to GitHub Pages
     - name: Upload Artifact
       if: ${{ inputs.github-pages == 'true' }}
       uses: actions/upload-pages-artifact@v3
