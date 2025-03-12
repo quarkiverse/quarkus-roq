@@ -19,6 +19,9 @@
         {#if site.data.social-linkedin??}
         <li><a href="https://in.linkedin.com/in/{site.data.social-linkedin}" target="_blank"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a></li>
         {/if}
+        {#if site.data.social-slack??}
+        <li><a href="{site.data.social-slack}" target="_blank"><i class="fa-brands fa-slack" aria-hidden="true"></i></a></li>
+        {/if}
         {#if site.data.social-email??}
         <li><a href="mailto:{site.data.social-email}"><i class="fa fa-envelope" aria-hidden="true"></i></a></li>
         {/if}
