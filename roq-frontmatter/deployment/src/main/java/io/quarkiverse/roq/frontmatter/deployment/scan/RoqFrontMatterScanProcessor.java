@@ -6,6 +6,7 @@ import static io.quarkiverse.roq.util.PathUtils.*;
 import static java.util.function.Predicate.not;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,6 +73,10 @@ public class RoqFrontMatterScanProcessor {
     private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
             "adoc");
 
+
+ private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanProcessor.class.getName());
+
+    
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
@@ -412,8 +417,12 @@ public class RoqFrontMatterScanProcessor {
             ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
             final boolean noFuture = !config.future() && (collection == null || !collection.future());
             if (date != null && noFuture && date.isAfter(ZonedDateTime.now())) {
-                return;
-            }
+    LOGGER.warning("Ignoring document: " + file.getName() + " because it's scheduled for the future (" 
+                    + date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME) + "). "
+                    + "To display future articles, use -Dsite.future=true");
+    return;
+}
+
             String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
             final String defaultLayout = type.isPage() && isHtml
                     ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
