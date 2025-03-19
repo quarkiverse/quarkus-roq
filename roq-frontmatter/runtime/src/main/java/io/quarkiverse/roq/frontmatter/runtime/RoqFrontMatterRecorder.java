@@ -10,9 +10,8 @@ import java.util.function.Supplier;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
-import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkus.runtime.annotations.Recorder;
-import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
+import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -22,10 +21,10 @@ import io.vertx.ext.web.RoutingContext;
 @Recorder
 public class RoqFrontMatterRecorder {
 
-    private final HttpBuildTimeConfig httpConfig;
+    private final VertxHttpBuildTimeConfig httpConfig;
     private final RoqSiteConfig config;
 
-    public RoqFrontMatterRecorder(HttpBuildTimeConfig httpConfig, RoqSiteConfig config) {
+    public RoqFrontMatterRecorder(VertxHttpBuildTimeConfig httpConfig, RoqSiteConfig config) {
         this.httpConfig = httpConfig;
         this.config = config;
     }
