@@ -6,7 +6,7 @@ import io.quarkus.qute.i18n.MessageBundle;
 @MessageBundle(value = "roq_theme", locale = "en")
 public interface ThemeMessageBundle {
 
-    @Message(value = "Contact me")
+    @Message(defaultValue = "Contact me")
     String contact_title();
 
 }
