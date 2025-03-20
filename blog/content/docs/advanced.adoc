@@ -430,7 +430,8 @@ That's it! This basic test already verifies that your site generation is error-f
 
 To go even further, you can test the actual content of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
 
-```java
+[source,java]
+----
 @QuarkusTest
 @RoqAndRoll
 public class RoqSiteTest {
@@ -445,7 +446,24 @@ public class RoqSiteTest {
                 ));
     }
 }
-```
+----
+
+== Updating Roq
+
+Make sure your https://quarkus.io/guides/cli-tooling[Quarkus cli] is up-to-date:
+[source,shell]
+----
+$ curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force quarkus@quarkusio
+----
+
+Then run the update command:
+[source,shell]
+----
+$ quarkus update
+----
+
+This will update the Quarkus version and extensions (including Roq) and make sure they are compatible together.
+
 
 == Site Configuration
 
