@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
@@ -42,7 +43,14 @@ public class TemplateLink {
 
     private static Map<String, Supplier<String>> withBasePlaceHolders(LinkData data, Map<String, Supplier<String>> other) {
         Map<String, Supplier<String>> result = new HashMap<>(Map.ofEntries(
-                Map.entry(":collection", data::collection),
+                Map.entry(":collection", () -> {
+                    if (data.collection() == null) {
+                        throw new RoqTemplateLinkException(
+                                "Page '%s' uses ':collection' placeholder in the link, it should not be used outside of a collection."
+                                        .formatted(data.pageInfo().sourceFilePath()));
+                    }
+                    return data.collection();
+                }),
                 Map.entry(":year",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
                 Map.entry(":month",
@@ -77,27 +85,32 @@ public class TemplateLink {
     }
 
     public static String pageLink(String rootPath, String template, PageLinkData data) {
-        return link(rootPath, template, data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE,
+        return linkInternal(rootPath, template,
+                data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE, data,
                 withBasePlaceHolders(data, null));
     }
 
     public static String paginateLink(String rootPath, String template, PaginateLinkData data) {
-        return link(rootPath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, withBasePlaceHolders(data, Map.of(
+        return linkInternal(rootPath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, data, withBasePlaceHolders(data, Map.of(
                 ":page", () -> Objects.requireNonNull(data.page(), "page index is required to build the link"))));
     }
 
     public static String link(String rootPath, String template, String defaultTemplate, LinkData data,
             Map<String, Supplier<String>> placeHolders) {
-        return link(rootPath, template, defaultTemplate, withBasePlaceHolders(data, placeHolders));
+        return linkInternal(rootPath, template, defaultTemplate, data, withBasePlaceHolders(data, placeHolders));
     }
 
-    private static String link(String rootPath, String template, String defaultTemplate,
-            Map<String, Supplier<String>> mapping) {
+    private static String linkInternal(String rootPath, String template, String defaultTemplate,
+            LinkData data, Map<String, Supplier<String>> mapping) {
         String link = template != null ? template : defaultTemplate;
         // Replace each placeholder in the template if it exists
         for (Map.Entry<String, Supplier<String>> entry : mapping.entrySet()) {
             if (link.contains(entry.getKey())) {
                 String replacement = entry.getValue().get();
+                if (replacement == null) {
+                    throw new RoqTemplateLinkException("Link placeholder value for '%s' not found for 'link: %s' in page '%s'."
+                            .formatted(entry.getKey(), template, data.pageInfo().sourceFilePath()));
+                }
                 link = link.replace(entry.getKey(), replacement);
             }
         }
