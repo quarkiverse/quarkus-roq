@@ -411,7 +411,11 @@ public class RoqFrontMatterScanProcessor {
             }
             ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
             final boolean noFuture = !config.future() && (collection == null || !collection.future());
-            if (date != null && noFuture && date.isAfter(ZonedDateTime.now())) {
+            ZonedDateTime now = ZonedDateTime.now();
+            if (date != null && noFuture && date.isAfter(now)) {
+                LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
+                        " To display future articles, use -Dsite.future=true%s.", sourcePath, date, now,
+                        collection == null ? "" : " or -Dsite.collections.%s.future=true".formatted(collection.id()));
                 return;
             }
             String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
