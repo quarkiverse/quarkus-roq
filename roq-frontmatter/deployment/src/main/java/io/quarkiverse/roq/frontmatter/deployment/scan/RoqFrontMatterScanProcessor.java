@@ -433,9 +433,10 @@ public class RoqFrontMatterScanProcessor {
             if (!config.draft() && draft) {
                 return;
             }
-
-            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = generateFilter(markups, sourcePath, layoutId);
+            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter = getMarkupFilter(markups, sourcePath);
+            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = generatePageFilter(markupFilter, layoutId);
             final String generatedTemplate = filter.apply(content);
+            content = markupFilter.apply(content);
             List<Attachment> attachments = null;
             // Scan for files
             if (isIndex) {
@@ -553,22 +554,26 @@ public class RoqFrontMatterScanProcessor {
 
     }
 
-    private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter generateFilter(
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups, String fileName,
+    private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter generatePageFilter(
+            RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter,
             String layout) {
         StringBuilder prefix = new StringBuilder();
         StringBuilder suffix = new StringBuilder();
         if (layout != null) {
             prefix.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
         }
-        final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = find(markups, fileName,
-                RoqFrontMatterQuteMarkupBuildItem.WrapperFilter.EMPTY);
-        prefix.append(filter.prefix());
-        suffix.append(filter.suffix());
+        prefix.append(markupFilter.prefix());
+        suffix.append(markupFilter.suffix());
         if (layout != null) {
             suffix.append("\n{/include}");
         }
         return new RoqFrontMatterQuteMarkupBuildItem.WrapperFilter(prefix.toString(), suffix.toString());
+    }
+
+    private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter getMarkupFilter(
+            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups, String fileName) {
+        return find(markups, fileName,
+                RoqFrontMatterQuteMarkupBuildItem.WrapperFilter.EMPTY);
     }
 
     private static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {

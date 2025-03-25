@@ -1,0 +1,6 @@
+<script type="module" src="{cdi:site.url.fromRoot('/static/bundle/search.js')}?id={config:["quarkus.uuid"]}"></script>
+<script type="module">
+  setupSearch({
+    url: '{cdi:site.url.fromRoot('/search-index.json')}'
+  });
+</script>

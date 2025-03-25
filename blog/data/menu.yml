@@ -1,4 +1,14 @@
-items:
+nav:
+  - title: "Blog"
+    path: "/"
+    icon: "fa-regular fa-newspaper"
+  - title: "Events"
+    path: "/events/"
+    icon: "fa fa-calendar"
+  - title: "About"
+    path: "/about/"
+    icon: "fa fa-thumbs-up"
+doc:
   - title: "Getting Started"
     path: "/docs/getting-started/"
     icon: "fa fa-bolt"
@@ -14,13 +24,4 @@ items:
   - title: "Advanced stuff"
     path: "/docs/advanced/"
     icon: "fa-solid fa-truck-monster"
-  - title: "Blog"
-    path: "/"
-    icon: "fa-regular fa-newspaper"
-  - title: "Events"
-    path: "/events/"
-    icon: "fa fa-calendar"
-  - title: "About"
-    path: "/about/"
-    icon: "fa fa-thumbs-up"
 
