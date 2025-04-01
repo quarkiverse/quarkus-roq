@@ -1,4 +1,5 @@
 import lunr from 'lunr';
+import './search.scss';
 
 const setupSearch = function (options = {}) {
 
@@ -24,11 +25,15 @@ const setupSearch = function (options = {}) {
     function openSearch(e) {
         e.preventDefault();
         searchOverlay.classList.add("active");
-        setTimeout(() => searchInputEl.focus(), 50);
+        setTimeout(() => {
+            searchInputEl.value = '';
+            searchInputEl.focus();
+        }, 50);
     }
 
     function closeSearchOverlay(e) {
         searchOverlay.classList.remove("active");
+        searchInputEl.value = '';
     }
 
     searchButtonEl.addEventListener("click", openSearch);
@@ -38,6 +43,12 @@ const setupSearch = function (options = {}) {
             closeSearchOverlay();
         }
     });
+
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
 
 
     const feedLoaded = function (data) {
@@ -50,6 +61,7 @@ const setupSearch = function (options = {}) {
             this.field('content', {boost: 100})
 
             for (const [key, entry] of Object.entries(documents)) {
+                entry.content = decodeHtml(entry.content);
                 entry.id = key
                 this.add(entry)
             }
@@ -229,17 +241,28 @@ const setupSearch = function (options = {}) {
         e.stopPropagation()
     }
 
-    function debounce(func, wait) {
-        let timeout
+    function debounce(func, wait, immediate = false) {
+        let timeout, lastArgs, lastContext;
+
         return function () {
-            const context = this
-            const args = arguments
-            const later = function () {
-                timeout = null
-                func.apply(context, args)
-            }
-            timeout = setTimeout(later, wait)
-        }
+            const context = this, args = arguments;
+            const callNow = immediate && !timeout;
+
+            // Save latest args and context for final execution
+            lastArgs = args;
+            lastContext = context;
+
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                timeout = null;
+                // Ensure the last invocation runs (but not the same as the immediate one)
+                if (!immediate || lastArgs !== args) {
+                    func.apply(lastContext, lastArgs);
+                }
+            }, wait);
+
+            if (callNow) func.apply(context, args);
+        };
     }
 
     function enableSearchInput(enabled) {
@@ -294,7 +317,7 @@ const setupSearch = function (options = {}) {
                     executeSearch(index)
                 }
 
-            }, 300)
+            }, 300, true)
         )
         searchInputEl.addEventListener('click', confineEvent)
         searchResultContainerEl.addEventListener('click', confineEvent)
