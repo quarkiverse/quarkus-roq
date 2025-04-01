@@ -89,12 +89,7 @@
             <version>11.11.1</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mvnpm</groupId>
-            <artifactId>lunr</artifactId>
-            <version>2.3.9</version>
-            <scope>provided</scope>
-        </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>

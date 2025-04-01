@@ -21,6 +21,29 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>io.mvnpm</groupId>
+                <artifactId>esbuild-maven-plugin</artifactId>
+                <version>0.0.2</version>
+                <executions>
+                    <execution>
+                        <id>esbuild</id>
+                        <goals>
+                            <goal>esbuild</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <entryPoint>search.js</entryPoint>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>lunr</artifactId>
+                        <version>2.3.9</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-extension-maven-plugin</artifactId>
                 <version>${quarkus.version}</version>
