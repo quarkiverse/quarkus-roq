@@ -4,6 +4,8 @@ name: Quarkus Roq Deploy Blog CI
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: "0 5 * * *"  # Runs every day at 05:00 UTC (10:30 AM IST)
   workflow_dispatch:
 
 concurrency:

@@ -53,7 +53,7 @@ class RoqGeneratorProcessor {
         return pageBuildItem;
     }
 
-    @BuildStep(onlyIf = IsDevelopment.class)
+    @BuildStep
     JsonRPCProvidersBuildItem createJsonRPCServiceForCache() {
         return new JsonRPCProvidersBuildItem(RoqGeneratorJsonRPCService.class);
     }

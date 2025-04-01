@@ -27,6 +27,8 @@ name: Roq Site Deploy
 on:
   push:
     branches: [ main ]   # Switch to the branch which should be deployed to GitHub Pages
+  schedule:
+    - cron: "0 5 * * *"  # Runs every day at 05:00 UTC (10:30 AM IST)
   workflow_dispatch:
 
 jobs:

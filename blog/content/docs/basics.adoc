@@ -50,7 +50,7 @@ You can also prepare partial templates. They are located by default in `template
 * `pagination.html`
 * `head.html`
 
-NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/theme/default/src/main/resources/templates[example templates]).
+NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/src/main/resources/templates[example templates]).
 
 === How to create a layout page
 

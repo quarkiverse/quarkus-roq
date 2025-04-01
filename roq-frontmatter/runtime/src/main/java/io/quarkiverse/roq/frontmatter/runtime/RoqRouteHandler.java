@@ -26,8 +26,8 @@ import io.quarkus.qute.runtime.TemplateProducer;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
-import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.RoutingUtils;
+import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
@@ -51,12 +51,12 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final LazyValue<TemplateProducer> templateProducer;
     private final LazyValue<Site> site;
 
-    public RoqRouteHandler(String rootPath, HttpBuildTimeConfig httpBuildTimeConfig,
+    public RoqRouteHandler(String rootPath, VertxHttpBuildTimeConfig httpBuildTimeConfig,
             Map<String, Supplier<? extends Page>> pages) {
         this.rootPath = rootPath;
         this.pages = pages;
-        this.compressMediaTypes = httpBuildTimeConfig.enableCompression
-                ? httpBuildTimeConfig.compressMediaTypes.orElse(List.of())
+        this.compressMediaTypes = httpBuildTimeConfig.enableCompression()
+                ? httpBuildTimeConfig.compressMediaTypes().orElse(List.of())
                 : null;
         this.extractedPaths = new ConcurrentHashMap<>();
         ArcContainer container = Arc.container();

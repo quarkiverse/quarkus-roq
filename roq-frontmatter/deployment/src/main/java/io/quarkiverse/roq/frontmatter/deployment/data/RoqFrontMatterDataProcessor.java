@@ -16,9 +16,10 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcesso
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
+import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterDataProcessor {
@@ -27,7 +28,7 @@ public class RoqFrontMatterDataProcessor {
     public static final String PAGINATE_KEY = "paginate";
 
     @BuildStep
-    void prepareData(HttpBuildTimeConfig httpConfig,
+    void prepareData(VertxHttpBuildTimeConfig httpConfig,
             RoqSiteConfig config,
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
             BuildProducer<RoqFrontMatterTemplateBuildItem> templatesProducer,
@@ -41,14 +42,18 @@ public class RoqFrontMatterDataProcessor {
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity(), (a, b) -> {
                     throw new IllegalStateException("Multiple templates found with id '" + a.id() + "', this is a bug.");
                 }));
-        final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath);
+        final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath());
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             JsonObject data = mergeParents(config, item, byId);
-            final String link = TemplateLink.pageLink(config.rootPath(),
-                    data.getString(LINK_KEY),
-                    new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
-            RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, rootUrl.resolve(link),
+            RoqUrl url = null;
+            if (item.published()) {
+                final String link = TemplateLink.pageLink(config.rootPath(),
+                        data.getString(LINK_KEY),
+                        new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
+                url = rootUrl.resolve(link);
+            }
+            RoqFrontMatterTemplateBuildItem templateItem = new RoqFrontMatterTemplateBuildItem(item, url,
                     data);
             templatesProducer.produce(templateItem);
         }
@@ -105,7 +110,7 @@ public class RoqFrontMatterDataProcessor {
                 final String layoutKey = RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
                         "Layout '%s' not found for file '%s'. Available layouts are: %s."
-                                .formatted(layoutKey, item.info().sourceFileName(), getAvailableLayouts(config, byId)));
+                                .formatted(layoutKey, item.info().sourceFilePath(), getAvailableLayouts(config, byId)));
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();

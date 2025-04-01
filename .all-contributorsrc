@@ -129,6 +129,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "okcjug",
+      "name": "OKC JUG",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44554?v=4",
+      "profile": "https://github.com/okcjug",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

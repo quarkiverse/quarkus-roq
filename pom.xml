@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse</groupId>
         <artifactId>quarkiverse-parent</artifactId>
-        <version>18</version>
+        <version>19</version>
     </parent>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-project-parent</artifactId>
@@ -37,9 +37,9 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.18.3</quarkus.version>
+        <quarkus.version>3.21.0</quarkus.version>
         <assertj.version>3.27.3</assertj.version>
-        <quarkus-qute-web.version>3.3.0</quarkus-qute-web.version>
+        <quarkus-qute-web.version>3.4.0</quarkus-qute-web.version>
         <asciidoctorj.version>3.0.0</asciidoctorj.version>
         <asciidoctorj-diagram.version>2.3.1</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>1.8.1</quarkus-web-bundler.version>

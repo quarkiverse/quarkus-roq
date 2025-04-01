@@ -300,8 +300,8 @@ Here is a list of puns suggested by Chat GPT:
 
 ----
 <1> This time we use the `post` layout from the theme.
-<2> You can define tags (see Plugins) to create pages for tags).
-<3> You have shortcut on the `page` to access `title` and `description`.
+<2> You can add post tags to create grouping pages (see link:{site.url('docs/plugins/')}#plugin-tagging[plugins])).
+<3> You have shortcut on the `page` variable to access `title` and `description` data.
 
 Then let's edit our index page to show the list of posts:
 
