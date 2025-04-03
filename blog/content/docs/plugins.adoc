@@ -259,7 +259,7 @@ quarkus ext add quarkus-roq-plugin-lunr
 . Add the search index json:
 +
 [source,html]
-.blog/content/search-index.json
+.content/search-index.json
 ----
 {#include fm/search/search-index.json}
 ----
