@@ -202,3 +202,70 @@ series: My series Title // <1>
 ----
 
 <1> You should use the exact same title for all documents in the series.
+
+[#plugin-lunr]
+== Roq Plugin Lunr
+
+This plugin enables search for your blog without the need for external, server-side, search services.
+
+To install it you will to do the following:
+
+. Add the dependency
++
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-lunr</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+. Add the search index as blog content
++
+[source]
+.blog/content/search-index.json
+----
+{#include fm/search/search-index.json}
+----
+
+. Inject the search script to the default template
++
+[source]
+----
+---
+layout: theme-layouts/roq-default/default
+---
+
+{#insert /}
+
+{#head}
+{#search-script /}
+//The rest of your default template
+
+----
+
+. Inject the search result overlay and search input to your main page
++
+[source]
+----
+---
+layout: theme-layouts/roq-default/main
+---
+
+{#search-overlay /}
+//The rest of your default template
+{#search-button /}
+//The rest of your default template
+----
+
+You can prevent content from being indexed using fontmatter attribute
+
+[source]
+----
+---
+title: I don't want no idenxing
+layout: roq-default/default
+search: false
+---
+----
