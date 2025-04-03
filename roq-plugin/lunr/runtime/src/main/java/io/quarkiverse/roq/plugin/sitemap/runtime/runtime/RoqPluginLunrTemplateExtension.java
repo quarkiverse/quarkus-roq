@@ -23,7 +23,7 @@ public class RoqPluginLunrTemplateExtension {
             if (!collection.hidden() && !collection.derived()) {
                 for (DocumentPage doc : collection) {
                     if (search(doc)) {
-                        final JsonObject d = createPageJsonObject(doc);
+                        final JsonObject d = createPageJsonObject(site, doc);
                         if (doc.data().containsKey("tags")) {
                             final List<String> tags = RoqTemplateExtension.asStrings(doc.data("tags"));
                             d.put("tags", tags);
@@ -35,18 +35,18 @@ public class RoqPluginLunrTemplateExtension {
         }
         for (NormalPage page : site.pages()) {
             if (search(page)) {
-                json.put(page.id(), createPageJsonObject(page));
+                json.put(page.id(), createPageJsonObject(site, page));
             }
         }
         return new RawString(json.toString());
     }
 
-    private static JsonObject createPageJsonObject(Page page) {
+    private static JsonObject createPageJsonObject(Site site, Page page) {
         return new JsonObject()
                 .put("tags", page.url())
                 .put("summary", page.description())
                 .put("url", page.url().absolute())
                 .put("title", page.title())
-                .put("content", RoqTemplateExtension.stripHtml(RoqTemplateExtension.content(page)));
+                .put("content", RoqTemplateExtension.stripHtml(site.pageContent(page)));
     }
 }

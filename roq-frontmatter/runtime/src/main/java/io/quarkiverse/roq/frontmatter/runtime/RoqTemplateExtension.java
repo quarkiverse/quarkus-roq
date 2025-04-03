@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.util.PathUtils;
-import io.quarkus.arc.Arc;
-import io.quarkus.qute.Engine;
 import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.json.JsonArray;
 
@@ -29,30 +26,15 @@ public class RoqTemplateExtension {
     }
 
     public static Object readTime(Page page) {
-        final long count = numberOfWords(page.rawContent());
-        return Math.round((float) count / 200);
-    }
-
-    /**
-     * Renders the inner content of the given {@link Page} using the Qute template engine.
-     * <p>
-     * This method parses the raw content of the page and renders it with a context
-     * that includes the page itself and the site configuration.
-     * </p>
-     * <strong>Warning:</strong> Do not call this method from within a template that
-     * is already rendering the page content, as it will result in a stack overflow.
-     *
-     * @param page the {@link Page} to render
-     * @return the rendered content of the page
-     */
-    public static String content(Page page) {
-        final Engine engine = Arc.container().instance(Engine.class).get();
-        return engine.parse(page.rawContent()).render(Map.of(
-                "page", page,
-                "site", Arc.container().instance(Site.class).get()));
+        final String text = stripHtml(page.site().pageContent(page));
+        final long count = numberOfWords(text);
+        return ceilDiv(count, 200);
     }
 
     public static String stripHtml(String html) {
+        if (html == null) {
+            return null;
+        }
         return STRIP_HTML_PATTERN.matcher(html).replaceAll("");
     }
 
@@ -69,5 +51,14 @@ public class RoqTemplateExtension {
             return i.getList();
         }
         return List.of();
+    }
+
+    private static long ceilDiv(long x, long y) {
+        final long q = x / y;
+        // if the signs are the same and modulo not zero, round up
+        if ((x ^ y) >= 0 && (q * y != x)) {
+            return q + 1;
+        }
+        return q;
     }
 }

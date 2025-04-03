@@ -98,6 +98,10 @@ public interface Page {
         return image(img);
     }
 
+    default Site site() {
+        return Arc.container().beanInstanceSupplier(Site.class).get().get();
+    }
+
     /**
      * Resolve an image url as an attachment or from the static image dir as a fallback
      *
@@ -109,7 +113,7 @@ public interface Page {
         }
         if (info().usePublicFiles()) {
             // Use site static files
-            return Arc.container().beanInstanceSupplier(Site.class).get().get().image(imageRelativePath);
+            return site().image(imageRelativePath);
         }
         String path = String.valueOf(imageRelativePath);
         if (RoqUrl.isFullPath(path)) {
