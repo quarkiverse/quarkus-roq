@@ -9,9 +9,7 @@ layout: doc
 {#include partials/doc/edit-contrib.adoc name="plugins" /}
 
 [#plugin-tagging]
-== Roq Plugin Tagging
-
-
+== Roq Plugin Tagging (Tags)
 
 This plugin allows to generate a dynamic (derived) collection based on a given collection tags.
 For example, let's consider the posts collection, if multiple posts have `tags: guide`, then we would generate a `/posts/tag/guide` page for all the posts containing the `guide` tag. This works for any collection.
@@ -67,7 +65,7 @@ paginate: true
 |}
 
 [#plugin-aliases]
-== Roq Plugin Aliases
+== Roq Plugin Aliases (Redirections)
 
 This plugin allows creating one or many aliases (redirections) for a page.
 
