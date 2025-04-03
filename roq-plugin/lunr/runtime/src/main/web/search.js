@@ -1,5 +1,6 @@
 import lunr from 'lunr';
 import './search.scss';
+import debounce from 'lodash/debounce';
 
 const setupSearch = function (options = {}) {
 
@@ -14,6 +15,7 @@ const setupSearch = function (options = {}) {
 
     let idx = null;
     let documents = null;
+    let searchQuery = null;
     const searchInputEl = document.querySelector(`${searchField} input[type=search]`)
     let searchResultContainerEl = document.querySelector(resultContainer);
     const snippetLength = 100
@@ -34,6 +36,7 @@ const setupSearch = function (options = {}) {
     function closeSearchOverlay(e) {
         searchOverlay.classList.remove("active");
         searchInputEl.value = '';
+        searchQuery = null;
     }
 
     searchButtonEl.addEventListener("click", openSearch);
@@ -157,6 +160,7 @@ const setupSearch = function (options = {}) {
     function clearSearchResults(reset) {
         if (reset === true) searchInputEl.value = ''
         searchResultContainerEl.innerHTML = ''
+        searchQuery = null;
     }
 
     function filter(result, documents) {
@@ -241,30 +245,6 @@ const setupSearch = function (options = {}) {
         e.stopPropagation()
     }
 
-    function debounce(func, wait, immediate = false) {
-        let timeout, lastArgs, lastContext;
-
-        return function () {
-            const context = this, args = arguments;
-            const callNow = immediate && !timeout;
-
-            // Save latest args and context for final execution
-            lastArgs = args;
-            lastContext = context;
-
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                timeout = null;
-                // Ensure the last invocation runs (but not the same as the immediate one)
-                if (!immediate || lastArgs !== args) {
-                    func.apply(lastContext, lastArgs);
-                }
-            }, wait);
-
-            if (callNow) func.apply(context, args);
-        };
-    }
-
     function enableSearchInput(enabled) {
         if (facetFilterInput) {
             facetFilterInput.disabled = !enabled
@@ -277,8 +257,12 @@ const setupSearch = function (options = {}) {
         return searchResultContainerEl.childElementCount === 0
     }
 
-    function executeSearch(index) {
-        const query = searchInputEl.value
+    function executeSearch(index, query) {
+        if (query === searchQuery) {
+            return;
+        }
+        searchQuery = query;
+        console.log(query);
         try {
             if (!query) return clearSearchResults()
             searchIndex(index.index, index.store, query)
@@ -311,13 +295,15 @@ const setupSearch = function (options = {}) {
         )
         searchInputEl.addEventListener(
             'keydown',
+            (e) => {
+                if (e.key === 'Escape' || e.key === 'Esc') clearSearchResults(true);
+            }
+        )
+        searchInputEl.addEventListener(
+            'input',
             debounce(function (e) {
-                if (e.key === 'Escape' || e.key === 'Esc') return clearSearchResults(true)
-                if (e.which <= 90 && e.which >= 48) {
-                    executeSearch(index)
-                }
-
-            }, 300, true)
+                executeSearch(index, e.target.value.trim());
+            }, 300, {'leading': true, 'trailing': true})
         )
         searchInputEl.addEventListener('click', confineEvent)
         searchResultContainerEl.addEventListener('click', confineEvent)

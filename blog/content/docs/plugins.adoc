@@ -240,3 +240,74 @@ You are all set!
 To remove pages from the sitemap, use `sitemap: false` in the FM data.
 
 Browse `http://localhost:8080/sitemap.xml`.
+
+[#plugin-lunr]
+== Roq Plugin Lunr (Search)
+
+This plugin enables search for your site without the need for external, server-side, search services.
+
+To install it you will to do the following:
+
+. Add the plugin:
++
+[source,shell]
+----
+quarkus ext add quarkus-roq-plugin-lunr
+----
+
+{|
+. Add the search index json:
++
+[source,html]
+.blog/content/search-index.json
+----
+{#include fm/search/search-index.json}
+----
+
+. Inject the search script in the `<head>` of your layout. For example with the default theme:
++
+.templates/layouts/roq-default/default.html
+[source,html]
+----
+---
+layout: theme-layouts/roq-default/default
+---
+
+{#insert /}
+
+{#head}
+{#search-script /}
+...
+
+----
+
+. Inject the search result overlay in the `<body>` and search button in the navigation. For example with the default theme:
++
+.templates/layouts/roq-default/main.html
+[source,html]
+----
+---
+layout: theme-layouts/roq-default/main
+---
+
+{#search-overlay /}
+{#insert /}
+
+{#menu}
+{#search-button /}
+{#include partials/roq-default/sidebar-menu menu=cdi:menu.items /}{/}
+{/}
+
+...
+----
+|}
+
+You can prevent content from being indexed using Frontmatter data:
+[source,yaml]
+----
+---
+title: I don't want no idenxing
+layout: roq-default/default
+search: false
+---
+----

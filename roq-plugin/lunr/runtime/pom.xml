@@ -41,6 +41,11 @@
                         <artifactId>lunr</artifactId>
                         <version>2.3.9</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>lodash</artifactId>
+                        <version>4.17.21</version>
+                    </dependency>
                 </dependencies>
             </plugin>
             <plugin>
