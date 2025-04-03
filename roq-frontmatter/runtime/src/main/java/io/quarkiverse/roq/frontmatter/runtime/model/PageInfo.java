@@ -30,7 +30,8 @@ public record PageInfo(
         String dateString,
 
         /**
-         * The item file content (without the frontmatter header)
+         * The content of the file template, excluding the frontmatter header.
+         * If applicable, this also includes the markup section (e.g "<md>...</md>").
          */
         String rawContent,
 

@@ -51,6 +51,11 @@
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-plugin-lunr</artifactId>
+            <version>${quarkus-roq.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-aliases</artifactId>
             <version>${quarkus-roq.version}</version>
         </dependency>
@@ -84,6 +89,7 @@
             <version>11.11.1</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>

@@ -77,6 +77,7 @@ public class RoqPluginTaggingProcessor {
                 final String tagCollection = tagging.collection() + "/tag/" + e.getKey();
                 final JsonObject data = new JsonObject()
                         .mergeIn(item.data())
+                        .put("title", "#" + e.getKey())
                         .put("tag", e.getKey())
                         .put("tagCollection", tagCollection);
                 final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,

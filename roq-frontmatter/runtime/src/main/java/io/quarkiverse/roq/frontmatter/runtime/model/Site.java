@@ -7,14 +7,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
+import io.quarkus.qute.Engine;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -24,6 +28,9 @@ import io.vertx.core.json.JsonObject;
 @TemplateData
 @Vetoed
 public final class Site {
+
+    private static final Logger LOG = Logger.getLogger(Site.class);
+
     private final RoqUrl url;
     private final String imagesDir;
     private final JsonObject data;
@@ -32,6 +39,7 @@ public final class Site {
     private final LazyValue<Map<String, NormalPage>> pagesById;
     private final LazyValue<Map<String, DocumentPage>> documentsById;
     private final NormalPage page;
+    private final Map<Page, String> pageContentCache = new ConcurrentHashMap<>();
 
     /**
      * @param url the Roq site url to the index page
@@ -196,6 +204,29 @@ public final class Site {
 
     public RoqCollections collections() {
         return collections;
+    }
+
+    /**
+     * Renders the inner content of the given {@link Page} using the Qute template engine.
+     *
+     * @param page the {@link Page} to render
+     * @return the rendered content of the page
+     */
+    public String pageContent(Page page) {
+        try {
+            return pageContentCache.computeIfAbsent(page, p -> {
+                final Engine engine = Arc.container().instance(Engine.class).get();
+                return engine.parse(p.rawContent()).render(Map.of(
+                        "page", p,
+                        "site", this));
+
+            });
+        } catch (Exception e) {
+            if (!(e instanceof IllegalStateException && e.getMessage().contains("Recursive"))) {
+                LOG.warnf(e, "Failed to render page content for file '%s'.", page.info().sourceFilePath());
+            }
+        }
+        return "";
     }
 
     @Override

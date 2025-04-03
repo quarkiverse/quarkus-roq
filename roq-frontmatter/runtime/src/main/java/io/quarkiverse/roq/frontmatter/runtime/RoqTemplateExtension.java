@@ -14,6 +14,7 @@ public class RoqTemplateExtension {
     private static final int QUTE_FALLBACK_PRIORITY = -2;
 
     private static final Pattern COUNT_WORDS = Pattern.compile("\\b\\w+\\b");
+    private static final Pattern STRIP_HTML_PATTERN = Pattern.compile("<[^>]*>");
 
     public static long numberOfWords(String text) {
         return COUNT_WORDS.matcher(text).results().count();
@@ -25,8 +26,16 @@ public class RoqTemplateExtension {
     }
 
     public static Object readTime(Page page) {
-        final long count = numberOfWords(page.rawContent());
-        return Math.round((float) count / 200);
+        final String text = stripHtml(page.site().pageContent(page));
+        final long count = numberOfWords(text);
+        return ceilDiv(count, 200);
+    }
+
+    public static String stripHtml(String html) {
+        if (html == null) {
+            return null;
+        }
+        return STRIP_HTML_PATTERN.matcher(html).replaceAll("");
     }
 
     public static String slugify(String text) {
@@ -42,5 +51,14 @@ public class RoqTemplateExtension {
             return i.getList();
         }
         return List.of();
+    }
+
+    private static long ceilDiv(long x, long y) {
+        final long q = x / y;
+        // if the signs are the same and modulo not zero, round up
+        if ((x ^ y) >= 0 && (q * y != x)) {
+            return q + 1;
+        }
+        return q;
     }
 }
