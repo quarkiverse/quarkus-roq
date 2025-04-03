@@ -262,7 +262,6 @@ const setupSearch = function (options = {}) {
             return;
         }
         searchQuery = query;
-        console.log(query);
         try {
             if (!query) return clearSearchResults()
             searchIndex(index.index, index.store, query)
