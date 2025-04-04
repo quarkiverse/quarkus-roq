@@ -2,3 +2,4 @@
 :toc-title: Contents
 :sectanchors: true
 :toclevels: 1
+:title: {page.title}

@@ -2,6 +2,18 @@
   padding: 10px;
 }
 
+.about .cover-author-image {
+  height: 150px;
+  width: 150px;
+
+  @media only screen and (max-width : 768px) {
+    img {
+      height: 150px;
+      width: 150px;
+    }
+  }
+}
+
 .event {
   background-color: #f9f9f9;
   border: 1px solid #e0e0e0;

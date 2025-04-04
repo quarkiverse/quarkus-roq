@@ -22,6 +22,14 @@
   }
 }
 
+@media only screen and (max-height : 1025px) {
+  aside.sidebar.main {
+    .about p {
+      display: none;
+    }
+  }
+}
+
 /* Small Devices, Tablets */
 @media only screen and (max-width : 768px) {
   aside.sidebar.main {
@@ -45,7 +53,6 @@
 
   .about {
     text-align: center;
-    max-width: 480px;
     margin: 10px auto auto;
     img {
       width: 100px;
