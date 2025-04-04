@@ -1,0 +1,32 @@
+---
+title: 🔎 Your users deserve searching capabilities!
+description: No third party service needed 🚀
+img: https://images.unsplash.com/photo-1554696468-19f8c7a71ad5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+tags: plugin, frontmatter, guide
+author: jtama
+---
+
+So your site is growing larger and larger and so it becomes harder and harder to find anything you wrote more than a few weeks ago.
+And that is frustrating.
+
+[.text-center]
+__**Words vanish, writing remains**__
+
+Yes... But if it remains buried deep in a pile of posts, it won't be of any use to any one.
+
+It seems you need to add a search engine to your site.
+
+But... you choose static generation for a reason, right ? Economy of resources, matters to you. And so you don't want to add a full-blown search engine like ElasticSearch or Solr.
+
+And guess what ? We couldn't agree more **with you** 🤩. We think you are _perfectly_ right, and that people should listen to you more. At least that's what we do. 👂
+
+So we did a bit of research and found out exactly what you need :
+
+https://lunrjs.com/[Lunr.js], it's a small, full-text search engine written in JavaScript. It runs in the browser based on a static generated json index and don't need any other third party services ✨.
+
+**Tadddaaah! ** We wrote a Lunr.js plugin for Roq.
+
+image::search.png[Search]
+
+👉 Full documentation is available link:/docs/plugins/#plugin-lunr[here], don't wait any longer, go check it out.
+
