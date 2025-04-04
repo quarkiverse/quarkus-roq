@@ -1,10 +1,10 @@
 ---
-title: Advanced Stuff
+title: Roq Advanced Stuff
 layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
 
-= Roq Advanced Stuff
+
 
 {#include partials/doc/edit-contrib.adoc name="advanced"/}
 
@@ -225,9 +225,9 @@ Same as for a site, script and styles can either be added to `src/main/resoucres
                     </execution>
                 </executions>
                 <configuration>
-                    <entryPoint>roq.js</entryPoint> // <1>
+                    <entryPoint>roq.js</entryPoint> <!--1-->
                 </configuration>
-                <dependencies> // <2>
+                <dependencies> <!--2-->
                     <dependency>
                         <groupId>org.mvnpm.at.fortawesome</groupId>
                         <artifactId>fontawesome-free</artifactId>
@@ -410,7 +410,7 @@ public class RoqSiteTest {
                 .then()
                 .statusCode(200)
                 .body(containsString(
-                    "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."
+                    "Roq is a static site generator that makes it easy to build websites and blogs"
                 ));
     }
 }
@@ -442,7 +442,7 @@ public class RoqSiteTest {
                 .then()
                 .statusCode(200)
                 .body(containsString(
-                    "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."
+                    "Roq is a static site generator that makes it easy to build websites and blogs"
                 ));
     }
 }

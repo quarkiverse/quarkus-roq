@@ -1,10 +1,8 @@
 ---
-title: Publishing
+title: Publishing a Roq Site
 layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
-
-= Publishing a Roq Site
 
 {#include partials/doc/edit-contrib.adoc name="publishing" /}
 

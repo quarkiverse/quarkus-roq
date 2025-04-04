@@ -51,7 +51,7 @@ public class RoqSiteTest {
                 .then()
                 .statusCode(200)
                 .body(containsString(
-                    "A Static Site Generator to easily create a static website or blog using Quarkus super-powers."
+                    "Roq is a static site generator that makes it easy to build websites and blogs"
                 ));
     }
 }

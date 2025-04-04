@@ -4,8 +4,6 @@ layout: doc
 ---
 {#include partials/doc/doc-attributes.adoc/}
 
-= Quarkus Roq Plugins
-
 {#include partials/doc/edit-contrib.adoc name="plugins" /}
 
 [#plugin-tagging]
@@ -228,7 +226,7 @@ quarkus ext add quarkus-roq-plugin-sitemap
 
 {|
 Then create a new sitemap file:
-[source,xml]
+[source]
 .content/sitemap.xml
 ----
 {#include fm/sitemap.xml}

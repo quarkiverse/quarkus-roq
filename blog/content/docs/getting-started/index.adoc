@@ -1,12 +1,11 @@
 ---
 layout: doc
-title: Getting Started
+title: Getting started with Quarkus Roq
 aliases:
   - /docs
 description: Getting started with Quarkus Roq
 ---
-
-= Getting started with Quarkus Roq
+:title: {page.title}
 
 Roq allows to easily create a static website or blog using Quarkus super-powers.
 
