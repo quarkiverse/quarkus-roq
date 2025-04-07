@@ -20,11 +20,9 @@ Here’s a feature comparison with some popular SSGs to highlight how Roq stacks
 
 ### A Quick Note About Roq
 
-Roq is highly extensible through [plugins]({site.url('/docs/plugins')}), which are built as Quarkus extensions (dependencies). Key features like SEO and Sitemap are already available, with more features in the works, including:
-- search ([Issue #141](https://github.com/quarkiverse/quarkus-roq/issues/141))
-- image processing ([Issue #42](https://github.com/quarkiverse/quarkus-web-bundler/issues/42))
-
-A current limitation is the lack of a theme catalog to help get started ([Issue #270](https://github.com/quarkiverse/quarkus-roq/issues/270)). While it’s not difficult to convert themes from other SSGs to Roq, I’m working on an AI-based theme converter ([Issue #365](https://github.com/quarkiverse/quarkus-roq/issues/365)) to make this process even easier 😁.
+Roq is highly extensible through [plugins]({site.url('/docs/plugins')}), which are built as Quarkus extensions (dependencies). Key features like SEO, Search and Sitemap are already available, with more features in the works, including:
+- Image processing ([Issue #42](https://github.com/quarkiverse/quarkus-web-bundler/issues/42))
+- Theme catalog to help get started ([Issue #270](https://github.com/quarkiverse/quarkus-roq/issues/270)). While it’s not difficult to convert themes from other SSGs to Roq, I’m working on an AI-based theme converter ([Issue #365](https://github.com/quarkiverse/quarkus-roq/issues/365)) to make this process even easier 😁.
 
 Considering its young age, Roq is still very complete!
 
