@@ -11,9 +11,6 @@
     <artifactId>quarkus-roq-plugin-lunr-parent</artifactId>
     <packaging>pom</packaging>
     <name>Quarkus Roq - Plugin - Lunr</name>
-    <properties>
-        <jgit.version>7.1.0.202411261347-r</jgit.version>
-    </properties>
     <modules>
         <module>deployment</module>
         <module>runtime</module>

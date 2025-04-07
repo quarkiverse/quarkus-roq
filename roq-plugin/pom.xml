@@ -11,7 +11,9 @@
     <artifactId>quarkus-roq-plugin-parent</artifactId>
     <packaging>pom</packaging>
     <name>Quarkus Roq - Plugins</name>
-
+    <properties>
+        <jgit.version>7.2.0.202503040940-r</jgit.version>
+    </properties>
     <modules>
         <module>tagging</module>
         <module>aliases</module>
