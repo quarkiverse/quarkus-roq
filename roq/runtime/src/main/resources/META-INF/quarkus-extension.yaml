@@ -12,7 +12,7 @@ metadata:
     - site
     - generator
     - web
-  guide: https://docs.quarkiverse.io/quarkus-roq/dev/
+  guide: https://iamroq.com/docs/
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"

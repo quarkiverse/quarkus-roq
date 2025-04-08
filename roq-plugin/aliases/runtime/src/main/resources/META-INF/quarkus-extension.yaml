@@ -16,7 +16,7 @@ metadata:
     - aliases
     - redirect
     - plugin
-  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-plugins.html#plugin-aliases
+  guide: https://iamroq.com/docs/plugins/#plugin-aliases
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"
