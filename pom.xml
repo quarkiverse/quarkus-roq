@@ -43,6 +43,7 @@
         <asciidoctorj.version>3.0.0</asciidoctorj.version>
         <asciidoctorj-diagram.version>2.3.2</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>1.8.1</quarkus-web-bundler.version>
+        <jandex.version>3.2.7</jandex.version>
     </properties>
 
     <dependencyManagement>
@@ -64,6 +65,11 @@
                     <groupId>io.quarkus</groupId>
                     <artifactId>quarkus-maven-plugin</artifactId>
                     <version>${quarkus.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.smallrye</groupId>
+                    <artifactId>jandex-maven-plugin</artifactId>
+                    <version>${jandex.version}</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>

@@ -12,7 +12,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.19.0</quarkus.platform.version>
+        <quarkus.platform.version>3.21.0</quarkus.platform.version>
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
@@ -117,6 +117,7 @@
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-config-doc-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <targetDirectory>${project.basedir}/templates/partials/doc/configs</targetDirectory>
