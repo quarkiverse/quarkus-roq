@@ -12,7 +12,7 @@ image::roq-dirs.png[Roq directory structure]
 // https://excalidraw.com/#json=VbxiMXccXfFuW0S2-nqnc,v3IIL7FZIpJqIsUshso-FQ
 
 
-NOTE: The https://pages.quarkiverse.io/quarkus-roq/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
+NOTE: The https://iamroq.com/[Roq blog] is a good example of site made with Roq (https://github.com/quarkiverse/quarkus-roq/tree/main/blog[sources]).
 
 === Qute and FrontMatter
 

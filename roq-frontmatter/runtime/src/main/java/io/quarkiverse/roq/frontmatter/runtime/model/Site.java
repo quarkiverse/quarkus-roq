@@ -15,6 +15,7 @@ import jakarta.enterprise.inject.Vetoed;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
@@ -80,7 +81,12 @@ public final class Site {
     }
 
     /**
-     * The site image url if present
+     * Get the site default image from the public image dir.
+     *
+     * The image name is defined in the FM data with key `image` (or `img` or `picture`).
+     *
+     * @return the {@link RoqUrl} of the image or null if it is not defined.
+     * @throws RoqStaticFileException if the image doesn't exist
      */
     public RoqUrl image() {
         final String img = Page.getImgFromData(data());
@@ -91,24 +97,42 @@ public final class Site {
     }
 
     /**
-     * Resolve an image url from the site static files (with check)
+     * Get the image with the given name from the public image dir.
      *
-     * @param imageRelativePath the image relative path under the configured image dir
+     * @param name the image name
+     * @return the {@link RoqUrl} of the image (or path under the public image directory)
+     * @throws RoqStaticFileException if the image doesn't exist
      */
-    public RoqUrl image(Object imageRelativePath) {
-        if (imageRelativePath == null) {
+    public RoqUrl image(Object name) {
+        if (name == null) {
             return null;
         }
-        String path = String.valueOf(imageRelativePath);
+        String path = String.valueOf(name);
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
         path = normaliseName(path, page.info().files().slugified());
         // Legacy images dir support
-        if (hasFile(PathUtils.join("static/assets/images", path))) {
+        if (fileExists(PathUtils.join("static/assets/images", path))) {
             return file(PathUtils.join("static/assets/images", path));
         }
         return file(PathUtils.join(imagesDir, path));
+    }
+
+    /**
+     * Check if the image with the given name is available in the public image dir.
+     *
+     * @param name the image name (or path under the public image directory)
+     * @return true if it exists
+     */
+    public boolean imageExists(String name) {
+        String path = String.valueOf(name);
+        path = normaliseName(path, page.info().files().slugified());
+        // Legacy images dir support
+        if (fileExists(PathUtils.join("static/assets/images", path))) {
+            return true;
+        }
+        return fileExists(PathUtils.join(imagesDir, path));
     }
 
     /**
@@ -119,14 +143,20 @@ public final class Site {
     }
 
     /**
-     * Check if a static file
+     * Check if the file with the given name is in the public directory.
+     *
+     * @param name the file name (or path under the public directory)
      */
-    public boolean hasFile(Object name) {
-        return page.info().hasFile(name);
+    public boolean fileExists(Object name) {
+        return page.info().fileExists(name);
     }
 
     /**
-     * Get a static file url and check if it exists
+     * Find the file in the public directory with the given name and return its static file url.
+     *
+     * @param name the file name (or path under the public directory)
+     * @return the {@link RoqUrl} of the file
+     * @throws RoqStaticFileException if the file doesn't exist
      */
     public RoqUrl file(Object name) {
         return resolvePublicFile(page, name);

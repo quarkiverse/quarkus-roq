@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateExtension;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 
 @TemplateExtension
@@ -51,6 +52,10 @@ public class RoqTemplateExtension {
             return i.getList();
         }
         return List.of();
+    }
+
+    public static String mimeType(String fileName) {
+        return MimeMapping.getMimeTypeForFilename(fileName);
     }
 
     private static long ceilDiv(long x, long y) {

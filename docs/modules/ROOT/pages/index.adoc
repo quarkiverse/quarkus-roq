@@ -4,7 +4,7 @@ include::./_includes/attributes.adoc[]
 
 Roq allows to easily create a static website or blog using Quarkus super-powers.
 
-The documentation is available in the https://pages.quarkiverse.io/quarkus-roq/docs/[Roq website].
+The documentation is available in the https://iamroq.com/docs/[Roq website].
 
 Roq depends on a set of extensions which can also be used standalone:
 
