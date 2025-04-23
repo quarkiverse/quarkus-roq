@@ -19,7 +19,7 @@ You can access page data like this:
 * {page.data.fun}
 
 
-There are a few helpers on the `page` variable ([more on variables](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#variables)):
+There are a few helpers on the `page` variable ([more on variables](https://iamroq.com/docs/basics/#_variables)):
 
 ```markdown
 > \{page.date.format('YYYY')}: \{page.description}
@@ -34,4 +34,4 @@ It's time to write awesome articles!
 
 __Thank you!__
 
-**PS:** To make the tag work ([#blogging]({site.url.resolve('posts/tag/blogging')})), you need to [enable tagging](https://pages.quarkiverse.io/quarkus-roq/docs/plugins#plugin-tagging).
+**PS:** To make the tag work ([#blogging]({site.url.resolve('posts/tag/blogging')})), you need to [enable tagging](https://iamroq.com/docs/plugins/#plugin-tagging).

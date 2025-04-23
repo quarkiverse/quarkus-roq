@@ -87,8 +87,13 @@ public interface Page {
     }
 
     /**
-     * The page image resolved url.
-     * If it's a page with files, it will return from it else from the default image directory.
+     * Get the page default image which is attached to this page
+     * or available in the public image dir for non directory pages.
+     *
+     * The image name is defined in the FM data with key `image` (or `img` or `picture`).
+     *
+     * @return the {@link RoqUrl} of the image or null if it is not defined.
+     * @throws RoqStaticFileException if the image doesn't exist
      */
     default RoqUrl image() {
         final String img = Page.getImgFromData(data());
@@ -103,19 +108,22 @@ public interface Page {
     }
 
     /**
-     * Resolve an image url as an attachment or from the static image dir as a fallback
+     * Get the image with the given name which is attached to this page
+     * or available in the public image dir for non directory pages.
      *
-     * @param imageRelativePath the image relative path as an attachment or from the configured image dir
+     * @param name the image name or relative path
+     * @return the {@link RoqUrl} of the image
+     * @throws RoqStaticFileException if the image doesn't exist
      */
-    default RoqUrl image(Object imageRelativePath) {
-        if (imageRelativePath == null) {
+    default RoqUrl image(Object name) {
+        if (name == null) {
             return null;
         }
         if (info().usePublicFiles()) {
             // Use site static files
-            return site().image(imageRelativePath);
+            return site().image(name);
         }
-        String path = String.valueOf(imageRelativePath);
+        String path = String.valueOf(name);
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
@@ -124,7 +132,27 @@ public interface Page {
     }
 
     /**
-     * The page files files
+     * Check if the image with the given name is attached to this page
+     * or available in the public image dir for non directory pages.
+     *
+     * @param name the image name or relative path
+     * @return true if it exists
+     */
+    default boolean imageExists(Object name) {
+        if (name == null) {
+            return false;
+        }
+        String path = String.valueOf(name);
+        if (info().usePublicFiles()) {
+            // Use site static files
+            return site().imageExists(path);
+        }
+        path = normaliseName(path, info().files().slugified());
+        return fileExists(path);
+    }
+
+    /**
+     * The page attached list of files
      */
     default List<String> files() {
         if (info().usePublicFiles()) {
@@ -136,20 +164,26 @@ public interface Page {
     }
 
     /**
-     * Check if a file is attached to this page
+     * Check if the file with the given name is attached to this page.
+     *
+     * @param name the file name or relative path
      */
-    default boolean hasFile(Object name) {
+    default boolean fileExists(Object name) {
         if (info().usePublicFiles()) {
             throw new RoqStaticFileException(
                     "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
                             .formatted(name, this.sourcePath()));
         }
         var f = normaliseName(name, info().files().slugified());
-        return info().hasFile(f);
+        return info().fileExists(f);
     }
 
     /**
-     * Get a page attached static file url and check if it exists
+     * Find the file attached to this page with the given name and return its static file url.
+     *
+     * @param name the file name or relative path
+     * @return the {@link RoqUrl} of the file
+     * @throws RoqStaticFileException if this page is not a directory page or if the file doesn't exist
      */
     default RoqUrl file(Object name) {
         if (info().usePublicFiles()) {
@@ -172,11 +206,11 @@ public interface Page {
         if (name == null) {
             return null;
         }
-        if (!page.info().hasFiles()) {
+        if (page.info().hasNoFiles()) {
             throw new RoqStaticFileException(missingResourceMessage.formatted(name));
         }
         final String f = normaliseName(name, page.info().files().slugified());
-        if (page.info().hasFile(f)) {
+        if (page.info().fileExists(f)) {
             return page.url().resolve(f);
         } else {
             throw new RoqStaticFileException(notFoundMessage.formatted(name,

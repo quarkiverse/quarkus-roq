@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -118,11 +117,15 @@ public record PageInfo(
         return !files.isEmpty();
     }
 
-    public boolean hasFile(Object name) {
+    public boolean hasNoFiles() {
+        return files.isEmpty();
+    }
+
+    public boolean fileExists(Object name) {
         if (name == null) {
             return false;
         }
-        if (!hasFiles()) {
+        if (hasNoFiles()) {
             return false;
         }
         return files().contains(name);

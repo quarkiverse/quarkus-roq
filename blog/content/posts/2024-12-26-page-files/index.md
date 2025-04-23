@@ -16,4 +16,4 @@ For example here is a sample pdf: [link](sample.pdf).
 
 **Fun fact:** [@parisjug](https://www.parisjug.org/) is already using this feature on their site (which is on Hugo 🤪)!
 
-The doc for this feature is [here](https://pages.quarkiverse.io/quarkus-roq/docs/basics/#page-files).
+The doc for this feature is [here](https://iamroq.com/docs/basics/#page-files).
