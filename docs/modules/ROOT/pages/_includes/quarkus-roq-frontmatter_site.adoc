@@ -408,9 +408,9 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-base-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-base-path[`site.base-path`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-path-prefix]] [.property-path]##link:#quarkus-roq-frontmatter_site-path-prefix[`site.path-prefix`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++site.base-path+++[]
+config_property_copy_button:+++site.path-prefix+++[]
 endif::add-copy-button-to-config-props[]
 
 
@@ -418,14 +418,14 @@ endif::add-copy-button-to-config-props[]
 --
 *READ CAREFULLY:* +
 The root path of your site (e.g. `/blog`) should be set using `quarkus.http.root-path`. +
-This path should be relative to the Quarkus HTTP root path and is meant to be used only when the Roq site is served alongside a Quarkus application.
+This path prefix should be relative to the Quarkus HTTP root path and is meant to be used only when the Roq site is served alongside a Quarkus application on a separate path.
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_BASE_PATH+++[]
+Environment variable: env_var_with_copy_button:+++SITE_PATH_PREFIX+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_BASE_PATH+++`
+Environment variable: `+++SITE_PATH_PREFIX+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
