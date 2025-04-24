@@ -83,7 +83,7 @@ Then to enable GitHub Pages:
 
 It's all good, restart your deploy workflow and enjoy!
 
-== To other services
+=== To other services
 
 ..github/workflows/deploy-other.yml
 [source,yaml]
@@ -115,12 +115,6 @@ jobs:
 |}
 
 This will create a GitHub artifact named `site` that you can download from another job (or another workflow). For example, the PR Preview https://github.com/quarkiverse/quarkus-roq/blob/main/.github/workflows/preview-pr.yml[workflow] of Roq publishes to Surge.
-
-== Other CIs
-
-Using the command above should be easy to configure on any CI.
-
-TIP: if you created a configuration for a given CI which could help others, please share it here 🙏
 
 == Gitlab CI
 
@@ -172,5 +166,12 @@ If everything goes well the pipeline will deploy, the url of the deployment is f
 * Console output of `deploy_roq` job.
 * Clicking `Deploy` => `Pages` on the project sidebar
 * Navigating to the url `\https://gitlab.example.com/user-or-organization/projectpath/project/pages`
+
+== Other CIs
+
+Using the command above should be easy to configure on any CI.
+
+TIP: if you created a configuration for a given CI which could help others, please share it here (or create an issue) 🙏
+
 
 
