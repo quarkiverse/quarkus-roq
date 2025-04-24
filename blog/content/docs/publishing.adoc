@@ -6,6 +6,25 @@ layout: doc
 
 {#include partials/doc/edit-contrib.adoc name="publishing" /}
 
+[#generating]
+== Generating your Roq site
+
+This command:
+[source,shell]
+----
+quarkus build -Dquarkus.roq.generator.batch
+quarkus run
+----
+
+🚀 The site will be generated in `target/roq`.
+
+A shortcut using Maven:
+[source,shell]
+----
+QUARKUS_ROQ_GENERATOR_BATCH=true ./mvnw -B package quarkus:run
+----
+
+[#github-action]
 == Roq GitHub Action
 
 Roq provides a https://github.com/quarkiverse/quarkus-roq/blob/main/action.yml[GitHub action] to publish to GitHub pages or other services.
@@ -94,16 +113,6 @@ jobs:
 |}
 
 This will create a GitHub artifact named `site` that you can download from another job (or another workflow). For example, the PR Preview https://github.com/quarkiverse/quarkus-roq/blob/main/.github/workflows/preview-pr.yml[workflow] of Roq publishes to Surge.
-
-== Building Roq
-
-Roq is based on Quarkus, you just need to set up a JDK to build your Roq site using this command:
-
-[source,shell]
-----
-export QUARKUS_ROQ_GENERATOR_BATCH=true
-./mvnw -B package quarkus:run
-----
 
 == Other CIs
 
