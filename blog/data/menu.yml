@@ -8,6 +8,9 @@ nav:
   - title: "About"
     path: "/about/"
     icon: "fa fa-thumbs-up"
+  - title: "Roqers"
+    path: "/roqers/"
+    icon: "fa fa-guitar"
 doc:
   - title: "Getting Started"
     path: "/docs/getting-started/"
