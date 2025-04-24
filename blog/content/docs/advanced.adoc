@@ -363,14 +363,20 @@ TIP: By default, url will be rendered as the path from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
+[#root-path]
+== Setting the Root Path for your site (base-path)
 
-== Setting the Root Path for your site (sub-path)
+When the entire Roq site is under a root path such as `mysite.io/foo/`, configure `quarkus.http.root-path` in the Quarkus configuration:
 
-When the entire Roq site is under a sub-path, configure `quarkus.http.root-path` in you Quarkus configuration.
+.config/application.properties
+[source,properties]
+----
+quarkus.http.root-path=/foo
+----
 
 Environment variable: `SITE_ROOT_PATH`
 
-TIP: For GitHub Pages, this is already handled by the Roq GitHub Action, no need to do anything.
+TIP: For GitHub Pages, this is already detected and handled by the Roq GitHub Action, no need to do anything.
 
 == Testing
 
