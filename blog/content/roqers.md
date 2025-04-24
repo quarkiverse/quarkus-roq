@@ -1,7 +1,7 @@
 ---
 title: Roqers
 description: |
-  Roq is a powerful static site generator that combines the best features of tools like Jekyll and Hugo, but within the Java ecosystem. It offers a modern approach with Quarkus at its core, requiring zero configuration to get started —ideal for developers who want to jump right in, while still being flexible enough for advanced users to hook into Java for deeper customization.
+  Sites built with Roq! See what fellow Roqers have created—and share your own story.
 layout: :theme/page
 ---
 
