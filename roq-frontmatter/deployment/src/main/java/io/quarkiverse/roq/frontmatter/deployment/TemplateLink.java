@@ -84,23 +84,23 @@ public class TemplateLink {
         return slugify(title).toLowerCase();
     }
 
-    public static String pageLink(String rootPath, String template, PageLinkData data) {
-        return linkInternal(rootPath, template,
+    public static String pageLink(String basePath, String template, PageLinkData data) {
+        return linkInternal(basePath, template,
                 data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE, data,
                 withBasePlaceHolders(data, null));
     }
 
-    public static String paginateLink(String rootPath, String template, PaginateLinkData data) {
-        return linkInternal(rootPath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, data, withBasePlaceHolders(data, Map.of(
+    public static String paginateLink(String basePath, String template, PaginateLinkData data) {
+        return linkInternal(basePath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, data, withBasePlaceHolders(data, Map.of(
                 ":page", () -> Objects.requireNonNull(data.page(), "page index is required to build the link"))));
     }
 
-    public static String link(String rootPath, String template, String defaultTemplate, LinkData data,
+    public static String link(String basePath, String template, String defaultTemplate, LinkData data,
             Map<String, Supplier<String>> placeHolders) {
-        return linkInternal(rootPath, template, defaultTemplate, data, withBasePlaceHolders(data, placeHolders));
+        return linkInternal(basePath, template, defaultTemplate, data, withBasePlaceHolders(data, placeHolders));
     }
 
-    private static String linkInternal(String rootPath, String template, String defaultTemplate,
+    private static String linkInternal(String basePath, String template, String defaultTemplate,
             LinkData data, Map<String, Supplier<String>> mapping) {
         String link = template != null ? template : defaultTemplate;
         // Replace each placeholder in the template if it exists
@@ -118,7 +118,7 @@ public class TemplateLink {
         if (link.endsWith("index") || link.endsWith("index.html")) {
             link = link.replaceAll("index(\\.html)?", "");
         }
-        return addTrailingSlashIfNoExt(removeLeadingSlash(PathUtils.join(rootPath, link)));
+        return addTrailingSlashIfNoExt(removeLeadingSlash(PathUtils.join(basePath, link)));
     }
 
 }

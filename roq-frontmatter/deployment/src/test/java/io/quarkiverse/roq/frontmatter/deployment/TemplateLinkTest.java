@@ -19,7 +19,7 @@ class TemplateLinkTest {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
         final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "posts/my-first-blog-post.md", true, true);
 
-        String generatedLink = pageLink("/", ":year/:month/:day/:slug", new PageLinkData(pageInfo, null, frontMatter));
+        String generatedLink = pageLink("", ":year/:month/:day/:slug", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post/", generatedLink);
     }
 
@@ -28,10 +28,10 @@ class TemplateLinkTest {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
         final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "posts/my-first-blog-post.md", true, true);
 
-        String generatedLink = pageLink("/", ":year/:month/:day/:slug:ext!", new PageLinkData(pageInfo, null, frontMatter));
+        String generatedLink = pageLink("", ":year/:month/:day/:slug:ext!", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post.html", generatedLink);
 
-        String generatedLink2 = pageLink("/", ":year/:month/:day/:slug:ext", new PageLinkData(pageInfo, null, frontMatter));
+        String generatedLink2 = pageLink("", ":year/:month/:day/:slug:ext", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post/", generatedLink2);
     }
 
@@ -40,7 +40,7 @@ class TemplateLinkTest {
         JsonObject frontMatter = new JsonObject();
         final PageInfo pageInfo = createPageInfo("foo.json", "bar/foo.json", false, false);
 
-        String generatedLink = pageLink("/", ":path:ext", new PageLinkData(pageInfo, null, frontMatter));
+        String generatedLink = pageLink("", ":path:ext", new PageLinkData(pageInfo, null, frontMatter));
         assertEquals("bar/foo.json", generatedLink);
     }
 
@@ -49,8 +49,8 @@ class TemplateLinkTest {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
         final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.html", "posts/my-first-blog-post.md", true, true);
 
-        String generatedLink = paginateLink("/", null, new PaginateLinkData(pageInfo, "posts", "3", frontMatter));
-        assertEquals("posts/page3/", generatedLink);
+        String generatedLink = paginateLink("foo", null, new PaginateLinkData(pageInfo, "posts", "3", frontMatter));
+        assertEquals("foo/posts/page3/", generatedLink);
     }
 
     private PageInfo createPageInfo(String sourcePath, String contentPath, boolean draft, boolean indexable) {

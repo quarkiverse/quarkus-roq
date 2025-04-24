@@ -86,7 +86,7 @@ public class RoqPluginTaggingProcessor {
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 
-                final String link = TemplateLink.link(config.rootPath(),
+                final String link = TemplateLink.link(config.pathPrefixOrEmpty(),
                         tagging.link(),
                         DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE,
                         new PageLinkData(item.raw().info(), tagCollection, data),

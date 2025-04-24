@@ -48,7 +48,7 @@ public class RoqFrontMatterDataProcessor {
             JsonObject data = mergeParents(config, item, byId);
             RoqUrl url = null;
             if (item.published()) {
-                final String link = TemplateLink.pageLink(config.rootPath(),
+                final String link = TemplateLink.pageLink(config.pathPrefixOrEmpty(),
                         data.getString(LINK_KEY),
                         new TemplateLink.PageLinkData(item.info(), item.collectionId(), data));
                 url = rootUrl.resolve(link);

@@ -86,7 +86,7 @@ class RoqFrontMatterPublishProcessor {
                 if (i == 1) {
                     paginatedUrl = pagination.url();
                 } else {
-                    final String link = TemplateLink.paginateLink(config.rootPath(), linkTemplate,
+                    final String link = TemplateLink.paginateLink(config.pathPrefixOrEmpty(), linkTemplate,
                             new TemplateLink.PaginateLinkData(pagination.info(),
                                     paginate.collection(), Integer.toString(i), data));
                     paginatedUrl = rootUrl.resolve(link);
