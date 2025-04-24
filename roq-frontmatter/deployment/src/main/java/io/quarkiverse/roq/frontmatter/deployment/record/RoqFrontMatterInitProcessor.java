@@ -1,7 +1,5 @@
 package io.quarkiverse.roq.frontmatter.deployment.record;
 
-import static io.quarkiverse.roq.util.PathUtils.removeTrailingSlash;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +22,7 @@ import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.deployment.annotations.*;
@@ -177,7 +176,7 @@ class RoqFrontMatterInitProcessor {
             return null;
         }
         return httpRootPath.routeBuilder()
-                .routeFunction(httpRootPath.relativePath(removeTrailingSlash(config.rootPath()) + "/*"),
+                .routeFunction(httpRootPath.relativePath(PathUtils.join(config.pathPrefixOrEmpty(), "/*")),
                         recorder.initializeRoute())
                 .handlerType(HandlerType.BLOCKING)
                 .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))

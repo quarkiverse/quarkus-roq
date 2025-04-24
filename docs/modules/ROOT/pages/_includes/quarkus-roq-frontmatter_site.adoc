@@ -7,27 +7,6 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-root-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-root-path[`site.root-path`]##
-ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++site.root-path+++[]
-endif::add-copy-button-to-config-props[]
-
-
-[.description]
---
-The root path of your site (e.g. /blog) relative the quarkus http root path. This is to be used only when the site is living next to a Quarkus application. Use `quarkus.http.root-path` for GitHub Pages relative url.
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_ROOT_PATH+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_ROOT_PATH+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|`/`
-
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-url]] [.property-path]##link:#quarkus-roq-frontmatter_site-url[`site.url`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.url+++[]
@@ -424,6 +403,29 @@ Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-base-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-base-path[`site.base-path`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.base-path+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+*READ CAREFULLY:* +
+The root path of your site (e.g. `/blog`) should be set using `quarkus.http.root-path`. +
+This path should be relative to the Quarkus HTTP root path and is meant to be used only when the Roq site is served alongside a Quarkus application.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_BASE_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_BASE_PATH+++`
 endif::add-copy-button-to-env-var[]
 --
 |string

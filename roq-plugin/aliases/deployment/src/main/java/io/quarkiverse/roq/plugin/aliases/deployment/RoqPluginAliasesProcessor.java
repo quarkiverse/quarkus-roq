@@ -61,7 +61,7 @@ public class RoqPluginAliasesProcessor {
             }
             RoqUrl url = item.url();
             for (String alias : aliasesName) {
-                String aliasLink = TemplateLink.pageLink(config.rootPath(), alias, new TemplateLink.PageLinkData(
+                String aliasLink = TemplateLink.pageLink(config.pathPrefixOrEmpty(), alias, new TemplateLink.PageLinkData(
                         item.raw().info(), item.raw().collectionId(), item.data()));
                 aliasMap.put(aliasLink, url.absolute());
             }

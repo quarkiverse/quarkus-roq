@@ -26,15 +26,6 @@ public interface RoqSiteConfig {
             .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
 
     /**
-     * The root path of your site (e.g. /blog) relative the quarkus http root path.
-     * This is to be used only when the site is living next to a Quarkus application.
-     * Use `quarkus.http.root-path` for GitHub Pages relative url.
-     */
-    @WithName("root-path")
-    @WithDefault("/")
-    String rootPath();
-
-    /**
      * the base hostname & protocol for your site, e.g. http://example.com
      */
     @WithName("url")
@@ -156,6 +147,19 @@ public interface RoqSiteConfig {
                 .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
                         e.getValue().layout().orElse(null)))
                 .toList();
+    }
+
+    /**
+     * <strong>READ CAREFULLY:</strong><br>
+     * The root path of your site (e.g. <code>/blog</code>) should be set using
+     * <code>quarkus.http.root-path</code>.<br>
+     * This path prefix should be relative to the Quarkus HTTP root path and is meant to be used
+     * only when the Roq site is served alongside a Quarkus application on a separate path.
+     */
+    Optional<String> pathPrefix();
+
+    default String pathPrefixOrEmpty() {
+        return pathPrefix().orElse("");
     }
 
     interface CollectionConfig {
