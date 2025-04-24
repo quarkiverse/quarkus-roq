@@ -18,7 +18,9 @@ quarkus run
 
 🚀 The site will be generated in `target/roq`.
 
-A shortcut using Maven:
+
+Here is a one-liner using Maven:
+
 [source,shell]
 ----
 QUARKUS_ROQ_GENERATOR_BATCH=true ./mvnw -B package quarkus:run
