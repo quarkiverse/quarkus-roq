@@ -65,15 +65,12 @@ class RoqGeneratorProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void initHandler(
+    public BuildSelectionBuildItem initBuildSelection(
             RoqGeneratorConfig config,
             List<GeneratedStaticResourceBuildItem> generatedStaticResources,
             List<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpoints,
             List<SelectedPathBuildItem> selectedPaths,
-            StaticResourcesBuildItem staticResourcesBuildItem,
-            OutputTargetBuildItem outputTarget,
-            RoqGeneratorRecorder recorder) {
+            StaticResourcesBuildItem staticResourcesBuildItem) {
         Set<String> staticPaths = new HashSet<>();
         if (staticResourcesBuildItem != null) {
             staticPaths.addAll(staticResourcesBuildItem.getPaths().stream().map(PathUtils::prefixWithSlash).toList());
@@ -92,8 +89,24 @@ class RoqGeneratorProcessor {
         final Map<String, StaticFile> staticFiles = new HashMap<>();
         final RoqSelection buildSelectedPaths = getSelectedPaths(config, selectedPathsFromBuildItems,
                 generatedStaticResourcesMap, staticPaths, staticFiles);
-        recorder.setBuildSelectedPaths(buildSelectedPaths);
-        recorder.setStaticFiles(staticFiles);
+        return new BuildSelectionBuildItem(staticFiles, buildSelectedPaths);
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void initStaticFiles(
+            BuildSelectionBuildItem buildSelection,
+            RoqGeneratorRecorder recorder) {
+        recorder.setStaticFiles(buildSelection.staticFiles());
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void initSelection(
+            BuildSelectionBuildItem buildSelection,
+            OutputTargetBuildItem outputTarget,
+            RoqGeneratorRecorder recorder) {
+        recorder.setBuildSelectedPaths(buildSelection.selectedPaths());
         recorder.setOutputTarget(outputTarget.getOutputDirectory().toAbsolutePath().toString());
     }
 
