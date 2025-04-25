@@ -28,6 +28,7 @@ public class RoqPluginTaggingProcessor {
 
     private static final String FEATURE = "roq-plugin-tagging";
     public static final String DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE = "/:collection/";
+    private RoqTaggingConfig taggingConfig;
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -37,12 +38,14 @@ public class RoqPluginTaggingProcessor {
     @BuildStep
     void publishTagPages(
             RoqSiteConfig config,
+            RoqTaggingConfig taggingConfig,
             RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterTemplateBuildItem> templates,
             List<RoqFrontMatterDocumentTemplateBuildItem> documents,
             BuildProducer<RoqFrontMatterPublishDerivedCollectionBuildItem> derivedCollectionProducer,
             BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
             BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer) {
+        this.taggingConfig = taggingConfig;
 
         // Let's find non page templates with the tagging data
         final List<RoqFrontMatterTemplateBuildItem> taggingTemplates = templates.stream()
@@ -63,7 +66,10 @@ public class RoqPluginTaggingProcessor {
 
             for (RoqFrontMatterDocumentTemplateBuildItem document : documents.stream()
                     .filter(d -> d.collection().id().equals(tagging.collection())).toList()) {
-                final List<String> tags = resolveTags(document);
+                List<String> tags = resolveTags(document);
+                if (taggingConfig.lowercase()) {
+                    tags = tags.stream().map(tag -> tag.toLowerCase(Locale.ROOT)).toList();
+                }
 
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
