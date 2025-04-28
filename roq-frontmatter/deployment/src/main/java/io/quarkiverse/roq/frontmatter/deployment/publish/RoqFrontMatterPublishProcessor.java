@@ -115,8 +115,9 @@ class RoqFrontMatterPublishProcessor {
                     nextPage = paginatedPages.get(next - 1);
                     nextUrl = nextPage.url();
                 }
-                Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, prev,
-                        next, paginatedPages.get(0).url, nextUrl, previousUrl);
+                RoqUrl firstUrl = paginatedPages.get(0).url();
+                Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, firstUrl, prev,
+                        previousUrl, next, nextUrl);
                 pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(currentPage.url(), currentPage.info(),
                         currentPage.data(), paginator));
             }

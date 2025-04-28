@@ -13,11 +13,11 @@ import io.quarkus.qute.TemplateData;
  * @param limit the limit of document per page
  * @param total the total amount of pages
  * @param currentIndex the current document page index 1-based
+ * @param firstUrl the url to the first document page
  * @param previousIndex the previous page index 1-based
- * @param nextIndex the next document page index 1-based
- * @param first the url to the first document page
- * @param next the url to the next document page
  * @param previous the url to the previous document page
+ * @param nextIndex the next document page index 1-based
+ * @param next the url to the next document page
  */
 @TemplateData
 @Vetoed
@@ -27,9 +27,11 @@ public record Paginator(
         int limit,
         int total,
         int currentIndex,
+        RoqUrl firstUrl,
         Integer previousIndex,
+        RoqUrl previous,
         Integer nextIndex,
-        RoqUrl first, RoqUrl next, RoqUrl previous) {
+        RoqUrl next) {
 
     public Integer prevIndex() {
         return previousIndex();
