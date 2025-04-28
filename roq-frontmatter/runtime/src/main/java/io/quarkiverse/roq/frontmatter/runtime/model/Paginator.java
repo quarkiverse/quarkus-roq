@@ -14,9 +14,10 @@ import io.quarkus.qute.TemplateData;
  * @param total the total amount of pages
  * @param currentIndex the current document page index 1-based
  * @param previousIndex the previous page index 1-based
- * @param previous the url to the previous document page
  * @param nextIndex the next document page index 1-based
+ * @param first the url to the first document page
  * @param next the url to the next document page
+ * @param previous the url to the previous document page
  */
 @TemplateData
 @Vetoed
@@ -27,9 +28,8 @@ public record Paginator(
         int total,
         int currentIndex,
         Integer previousIndex,
-        RoqUrl previous,
         Integer nextIndex,
-        RoqUrl next) {
+        RoqUrl first, RoqUrl next, RoqUrl previous) {
 
     public Integer prevIndex() {
         return previousIndex();
