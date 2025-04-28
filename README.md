@@ -12,7 +12,7 @@
     <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </td>
 <td valign="top">
@@ -59,6 +59,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pablomxnl"><img src="https://avatars.githubusercontent.com/u/1665721?v=4?s=100" width="100px;" alt="Pablo Gutierrez"/><br /><sub><b>Pablo Gutierrez</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pablomxnl" title="Code">💻</a> <a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pablomxnl" title="Documentation">📖</a> <a href="#ideas-pablomxnl" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://pedrohosilva.wordpress.com"><img src="https://avatars.githubusercontent.com/u/8390247?v=4?s=100" width="100px;" alt="Pedro Hos"/><br /><sub><b>Pedro Hos</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pedro-hos" title="Code">💻</a> <a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pedro-hos" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/okcjug"><img src="https://avatars.githubusercontent.com/u/44554?v=4?s=100" width="100px;" alt="OKC JUG"/><br /><sub><b>OKC JUG</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/issues?q=author%3Aokcjug" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://jasondl.ee"><img src="https://avatars.githubusercontent.com/u/191616?v=4?s=100" width="100px;" alt="Jason Lee"/><br /><sub><b>Jason Lee</b></sub></a><br /><a href="#ideas-jasondlee" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/quarkiverse/quarkus-roq/commits?author=jasondlee" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
