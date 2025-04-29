@@ -1,11 +1,11 @@
 package io.quarkiverse.roq;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
-
-import java.util.List;
 
 public class RoqTemplateExtensionTest {
     @Test
