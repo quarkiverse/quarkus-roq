@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -46,7 +47,10 @@ public class RoqTemplateExtension {
     @SuppressWarnings("unchecked")
     public static List<String> asStrings(Object o) {
         if (o instanceof String i) {
-            return List.of((i).split("\\h*,\\h*|\\h{2,}"));
+            return Arrays.stream(i.split("[, \t;]"))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
         }
         if (o instanceof JsonArray i) {
             return i.getList();
