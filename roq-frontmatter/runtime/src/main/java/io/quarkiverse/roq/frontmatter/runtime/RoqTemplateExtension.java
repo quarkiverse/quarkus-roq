@@ -44,6 +44,17 @@ public class RoqTemplateExtension {
         return PathUtils.slugify(text, false, false);
     }
 
+    /**
+     * Normalizes a Front Matter (FM) data field into a list of strings,
+     * regardless of whether it's originally defined as:
+     * <ul>
+     *   <li>A list of strings</li>
+     *   <li>A single string containing values separated by commas (`,`), semicolons (`;`), or tabs</li>
+     * </ul>
+     *
+     * @param o the input object representing the FM data field
+     * @return a list of normalized string values
+     */
     @SuppressWarnings("unchecked")
     public static List<String> asStrings(Object o) {
         if (o instanceof String i) {
