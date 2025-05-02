@@ -61,6 +61,7 @@ public class RoqFrontMatterScanProcessor {
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     private static final String LAYOUT_KEY = "layout";
+    private static final String ESCAPE_KEY = "escape";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
     public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-gen/";
     public static final String LAYOUTS_DIR = "layouts";
@@ -71,6 +72,23 @@ public class RoqFrontMatterScanProcessor {
     // We might need to allow plugins to contribute to this at some point
     private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
             "adoc");
+
+    @BuildStep
+    void registerEscapedTemplates(RoqSiteConfig config,
+            BuildProducer<RoqFrontMatterDataModificationBuildItem> dataModificationProducer) {
+        dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
+            if (sourceData.type().isPage() && isPageEscaped(config).test(sourceData.relativePath())) {
+                sourceData.fm().put(ESCAPE_KEY, true);
+            }
+            return sourceData.fm();
+        }));
+    }
+
+    private static Predicate<String> isPageEscaped(RoqSiteConfig config) {
+        return path -> config.escapedPages().orElse(List.of()).stream()
+                .anyMatch(s -> Path.of("").getFileSystem().getPathMatcher("glob:" + s)
+                        .matches(Path.of(path)));
+    }
 
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
@@ -427,14 +445,15 @@ public class RoqFrontMatterScanProcessor {
                     defaultLayout);
 
             for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                fm = modification.modifier().modify(new SourceData(file, sourcePath, collection, fm));
+                fm = modification.modifier().modify(new SourceData(file, sourcePath, collection, type, fm));
             }
             final boolean draft = fm.getBoolean(DRAFT_KEY, false);
             if (!config.draft() && draft) {
                 return;
             }
             final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter = getMarkupFilter(markups, sourcePath);
-            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = generatePageFilter(markupFilter, layoutId);
+            final boolean escaped = fm.getBoolean(ESCAPE_KEY, false);
+            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = generatePageFilter(markupFilter, layoutId, escaped);
             final String generatedTemplate = filter.apply(content);
             content = markupFilter.apply(content);
             List<Attachment> attachments = null;
@@ -556,13 +575,19 @@ public class RoqFrontMatterScanProcessor {
 
     private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter generatePageFilter(
             RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter,
-            String layout) {
+            String layout, boolean escape) {
         StringBuilder prefix = new StringBuilder();
         StringBuilder suffix = new StringBuilder();
         if (layout != null) {
             prefix.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
         }
         prefix.append(markupFilter.prefix());
+
+        if (escape) {
+            prefix.append("{|");
+            suffix.append("|}");
+        }
+
         suffix.append(markupFilter.suffix());
         if (layout != null) {
             suffix.append("\n{/include}");

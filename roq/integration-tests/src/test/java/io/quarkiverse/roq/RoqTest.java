@@ -18,6 +18,18 @@ public class RoqTest {
     }
 
     @Test
+    public void testEscapeDataPage() {
+        RestAssured.when().get("/posts/escape-data").then().statusCode(200).log().ifValidationFails().body(containsString(
+                "{foo} {{{{}}}}} bar {#if}"));
+    }
+
+    @Test
+    public void testEscapedConfigPage() {
+        RestAssured.when().get("/posts/escaped-config").then().statusCode(200).log().ifValidationFails().body(containsString(
+                "{foo} {{{{}}}}} bar {#if}"));
+    }
+
+    @Test
     public void testErrorImagePage() {
         RestAssured.when().get("/posts/error-image").then().statusCode(500).log().ifValidationFails().body(containsString(
                 "RoqStaticFileException: File 'images/not-found.png' not found in public dir"));
