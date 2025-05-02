@@ -40,6 +40,17 @@ public final class RoqFrontMatterDataModificationBuildItem extends MultiBuildIte
         JsonObject modify(SourceData sourceData);
     }
 
-    public record SourceData(Path path, String siteRelativePath, ConfiguredCollection collection, JsonObject fm) {
+    /**
+     * Represent the parsed data from a Roq template
+     *
+     * @param path the source file Path
+     * @param relativePath the source file relative path (from the content directory)
+     * @param collection the source file collection if defined
+     * @param type
+     * @param fm the FM data
+     */
+    public record SourceData(Path path, String relativePath, ConfiguredCollection collection,
+            io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType type,
+            JsonObject fm) {
     }
 }

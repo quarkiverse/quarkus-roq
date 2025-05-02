@@ -42,10 +42,29 @@ public interface RoqSiteConfig {
     int routeOrder();
 
     /**
-     * The ignored files in the site directory (you can use glob expressions).
+     * The ignored files in the site directory.
+     * Supports glob expressions.
      */
     @WithDefault(IGNORED_FILES)
     List<String> ignoredFiles();
+
+    /**
+     * Pages whose content should be escaped&mdash;
+     * i.e., included in Qute rendering but not parsed for Qute expressions.
+     *
+     * <p>
+     * This is based on the page's relative path from the content directory.
+     * </p>
+     *
+     * <p>
+     * This applies only to <em>pages</em> (not layouts or partials).
+     * </p>
+     *
+     * <p>
+     * Supports glob expressions.
+     * </p>
+     */
+    Optional<List<String>> escapedPages();
 
     /**
      * The layout to use for normal html pages if not specified in FM.

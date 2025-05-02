@@ -363,6 +363,23 @@ TIP: By default, url will be rendered as the path from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
+== Escaping pages content
+
+There are cases where you might not want your page content to be parsed by Qute, to avoid conflicts with the content. You have different options:
+
+* Configure it globally via `site.escaped-pages` (globs are allowed):
++
+.config/application.properties
+[source,properties]
+----
+site.escaped-pages=posts/escaped**,my-page.html
+----
+
+* Declare it in Front Matter by setting `escape: true` in your page data.
+
+* Escape inline content by wrapping the section with `\{|` and `|}`, or by manually escaping Qute expressions using `&#92;{`.
+
+
 [#root-path]
 == Setting the Root Path for your site (base-path)
 

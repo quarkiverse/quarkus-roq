@@ -59,7 +59,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The ignored files in the site directory (you can use glob expressions).
+The ignored files in the site directory. Supports glob expressions.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -71,6 +71,33 @@ endif::add-copy-button-to-env-var[]
 --
 |list of string
 |`**/_**,_**,.**`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.escaped-pages+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Pages whose content should be escaped— i.e., included in Qute rendering but not parsed for Qute expressions.
+
+This is based on the page's relative path from the content directory.
+
+This applies only to _pages_ (not layouts or partials).
+
+Supports glob expressions.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_ESCAPED_PAGES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_ESCAPED_PAGES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-page-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-page-layout[`site.page-layout`]##
 ifdef::add-copy-button-to-config-props[]
