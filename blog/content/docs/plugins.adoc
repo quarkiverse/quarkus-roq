@@ -259,7 +259,7 @@ quarkus ext add quarkus-roq-plugin-lunr
 [source,html]
 .content/search-index.json
 ----
-{#include fm/search/search-index.json}
+{#include fm/search-index.json}
 ----
 
 . Inject the search script in the `<head>` of your layout. For example with the default theme:
