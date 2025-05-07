@@ -53,6 +53,16 @@ class TemplateLinkTest {
         assertEquals("foo/posts/page3/", generatedLink);
     }
 
+    @Test
+    void testSlugCase() {
+        JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
+        final PageInfo pageInfo = createPageInfo("posts/my-first-blog-post.md", "posts/my-first-blog-post.md", true, true);
+
+        PageLinkData data = new PageLinkData(pageInfo, null, frontMatter);
+        assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:slug", data));
+        assertEquals("2024/08/27/My-First-Blog-Post/", pageLink("", ":year/:month/:day/:Slug", data));
+    }
+
     private PageInfo createPageInfo(String sourcePath, String contentPath, boolean draft, boolean indexable) {
         return PageInfo.create(
                 sourcePath,
