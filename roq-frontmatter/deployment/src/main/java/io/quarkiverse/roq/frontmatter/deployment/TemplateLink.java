@@ -62,7 +62,8 @@ public class TemplateLink {
                         () -> data.pageInfo().isHtml() ? ""
                                 : "." + data.pageInfo().sourceFileExtension()),
                 Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().sourceFileExtension()),
-                Map.entry(":slug", () -> resolveSlug(data))));
+                Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
+                Map.entry(":Slug", () -> resolveSlug(data)))); // Case-preserving slug
         if (other != null) {
             result.putAll(other);
         }
@@ -81,7 +82,7 @@ public class TemplateLink {
                 title = baseFileName;
             }
         }
-        return slugify(title).toLowerCase();
+        return slugify(title);
     }
 
     public static String pageLink(String basePath, String template, PageLinkData data) {
