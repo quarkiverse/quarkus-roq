@@ -84,7 +84,7 @@ Then you can create a `main.html` file as followed:
 .main.html
 ----
 ---
-layout: :default <1>
+layout: default <1>
 title: And now for something completely different <2>
 ---
 <header> Head </header>
@@ -100,7 +100,7 @@ Finally, you can create a `content.html` file as followed:
 .content.html
 ----
 ---
-layout: :main <1>
+layout: main <1>
 ---
 \{#include partials/image /} <2>
 knees
