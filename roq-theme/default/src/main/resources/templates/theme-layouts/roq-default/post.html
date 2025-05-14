@@ -32,8 +32,8 @@ layout: roq-default/main
                title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
             <a href="https://facebook.com/sharer.php?u={page.url.encoded}" title="Share on Facebook"
                rel="nofollow" target="_blank">Facebook</a>
-            <a href="https://plus.google.com/share?url={page.url.encoded}" title="Share on Google+"
-               rel="nofollow" target="_blank">Google+</a>
+            <a href="https://bsky.app/intent/compose?text={page.title}%0ACheck%20it%20out%20{page.url.encoded}" title="Share on Bluesky"
+                           rel="nofollow" target="_blank">Bluesky</a>
           </div>
           <div class="page-tag">
             {#for tag in page.data.tags.asStrings}
