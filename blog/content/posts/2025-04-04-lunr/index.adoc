@@ -29,4 +29,3 @@ https://lunrjs.com/[Lunr.js], it's a small, full-text search engine written in J
 image::search.png[Search]
 
 👉 Full documentation is available link:/docs/plugins/#plugin-lunr[here], don't wait any longer, go check it out.
-

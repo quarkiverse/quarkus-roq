@@ -154,7 +154,7 @@ public interface RoqSiteConfig {
      * The directory names (in the Roq site directory) containing collections as key
      * and the corresponding collection config as value
      */
-    @ConfigDocDefault("posts={id: post, hidden: false}")
+    @ConfigDocDefault("posts=true")
     @WithName("collections")
     Map<String, CollectionConfig> collectionsMap();
 
