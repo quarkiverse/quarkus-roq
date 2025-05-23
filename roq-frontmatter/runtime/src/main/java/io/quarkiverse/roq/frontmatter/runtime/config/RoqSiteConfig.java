@@ -21,7 +21,7 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String PUBLIC_DIR = "public";
-    String IGNORED_FILES = "**/_**,_**,.**";
+    String IGNORED_FILES = "**/_**,_**,.**,**/.**";
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
             .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
 
