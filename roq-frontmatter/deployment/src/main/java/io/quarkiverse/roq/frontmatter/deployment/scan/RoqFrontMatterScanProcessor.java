@@ -38,6 +38,7 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModifica
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
@@ -63,6 +64,7 @@ public class RoqFrontMatterScanProcessor {
     private static final String LAYOUT_KEY = "layout";
     private static final String ESCAPE_KEY = "escape";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+    private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
     public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-gen/";
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
@@ -155,7 +157,7 @@ public class RoqFrontMatterScanProcessor {
             YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
@@ -203,7 +205,7 @@ public class RoqFrontMatterScanProcessor {
     private static Consumer<Path> createRoqDirConsumer(YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
@@ -228,7 +230,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static void scanContent(YAMLMapper mapper, QuteConfig quteConfig, RoqSiteConfig config,
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications, List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
@@ -291,7 +293,7 @@ public class RoqFrontMatterScanProcessor {
     private static void scanLayouts(YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+            Map<String, WrapperFilter> markups,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             List<RoqFrontMatterRawTemplateBuildItem> items,
@@ -393,7 +395,7 @@ public class RoqFrontMatterScanProcessor {
             QuteConfig quteConfig,
             RoqSiteConfig config,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+            Map<String, WrapperFilter> markups,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             ConfiguredCollection collection,
             TemplateType type) {
@@ -451,11 +453,14 @@ public class RoqFrontMatterScanProcessor {
             if (!config.draft() && draft) {
                 return;
             }
-            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter = getMarkupFilter(markups, sourcePath);
+            final WrapperFilter markupFilter = getMarkupFilter(markups, sourcePath);
             final boolean escaped = fm.getBoolean(ESCAPE_KEY, false);
-            final RoqFrontMatterQuteMarkupBuildItem.WrapperFilter filter = generatePageFilter(markupFilter, layoutId, escaped);
-            final String generatedTemplate = filter.apply(content);
-            content = markupFilter.apply(content);
+            final WrapperFilter escapeFilter = getEscapeFilter(escaped);
+            final WrapperFilter includeFilter = getIncludeFilter(layoutId);
+
+            final String contentWithMarkup = markupFilter.apply(escapeFilter.apply(content));
+            final String generatedTemplate = includeFilter.apply(contentWithMarkup);
+
             List<Attachment> attachments = null;
             // Scan for files
             if (isIndex) {
@@ -476,7 +481,7 @@ public class RoqFrontMatterScanProcessor {
             PageInfo info = PageInfo.create(id,
                     draft,
                     dateString,
-                    content,
+                    contentWithMarkup,
                     sourcePath,
                     quteTemplatePath,
                     attachments != null
@@ -573,32 +578,25 @@ public class RoqFrontMatterScanProcessor {
 
     }
 
-    private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter generatePageFilter(
-            RoqFrontMatterQuteMarkupBuildItem.WrapperFilter markupFilter,
-            String layout, boolean escape) {
-        StringBuilder prefix = new StringBuilder();
-        StringBuilder suffix = new StringBuilder();
-        if (layout != null) {
-            prefix.append("{#include ").append(ROQ_GENERATED_QUTE_PREFIX + layout).append("}\n");
+    private static WrapperFilter getEscapeFilter(boolean escaped) {
+        if (!escaped) {
+            return WrapperFilter.EMPTY;
         }
-        prefix.append(markupFilter.prefix());
-
-        if (escape) {
-            prefix.append("{|");
-            suffix.append("|}");
-        }
-
-        suffix.append(markupFilter.suffix());
-        if (layout != null) {
-            suffix.append("\n{/include}");
-        }
-        return new RoqFrontMatterQuteMarkupBuildItem.WrapperFilter(prefix.toString(), suffix.toString());
+        return ESCAPE_FILTER;
     }
 
-    private static RoqFrontMatterQuteMarkupBuildItem.WrapperFilter getMarkupFilter(
-            Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups, String fileName) {
+    private static WrapperFilter getIncludeFilter(String layout) {
+        if (layout == null) {
+            return WrapperFilter.EMPTY;
+        }
+        String prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
+        return new WrapperFilter(prefix, "\n{/include}");
+    }
+
+    private static WrapperFilter getMarkupFilter(
+            Map<String, WrapperFilter> markups, String fileName) {
         return find(markups, fileName,
-                RoqFrontMatterQuteMarkupBuildItem.WrapperFilter.EMPTY);
+                WrapperFilter.EMPTY);
     }
 
     private static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
@@ -642,7 +640,7 @@ public class RoqFrontMatterScanProcessor {
         return result;
     }
 
-    private static String resolveOutputExtension(Map<String, RoqFrontMatterQuteMarkupBuildItem.WrapperFilter> markups,
+    private static String resolveOutputExtension(Map<String, WrapperFilter> markups,
             String fileName) {
         if (find(markups, fileName, null) != null) {
             return ".html";
