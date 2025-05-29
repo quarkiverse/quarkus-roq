@@ -4,7 +4,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -14,10 +20,7 @@ import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
-import io.quarkiverse.roq.data.deployment.exception.DataConflictException;
-import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
-import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
-import io.quarkiverse.roq.data.deployment.exception.DataScanningException;
+import io.quarkiverse.roq.data.deployment.exception.*;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
@@ -78,6 +81,17 @@ public class RoqDataReaderProcessor {
 
         Map<String, AnnotationInstance> annotationMap = annotations.stream().collect(Collectors.toMap(
                 annotation -> annotation.value().asString(), Function.identity()));
+
+        annotationMap.forEach((key, annotationInstance) -> {
+            boolean isRequired = Optional.ofNullable(annotationInstance.value("required"))
+                    .map(AnnotationValue::asBoolean)
+                    .orElse(false);
+
+            if (isRequired && !dataJsonMap.containsKey(key)) {
+                throw new DataMappingRequiredFileException(
+                        "The @DataMapping#value(%s) is required, but there is no corresponding data file".formatted(key));
+            }
+        });
 
         if (config.enforceBean()) {
             List<String> dataMappingErrors = collectDataMappingErrors(annotationMap.keySet(), dataJsonMap.keySet());

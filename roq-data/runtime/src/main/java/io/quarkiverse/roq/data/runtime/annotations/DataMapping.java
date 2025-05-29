@@ -29,4 +29,11 @@ public @interface DataMapping {
      * @return {@code true} if the root element is an array, {@code false} otherwise
      */
     boolean parentArray() default false;
+
+    /**
+     * Defines whether the corresponding data file is required.
+     *
+     * @return {@code true} if the data file is mandatory, {@code false} if it's optional.
+     */
+    boolean required() default false;
 }
