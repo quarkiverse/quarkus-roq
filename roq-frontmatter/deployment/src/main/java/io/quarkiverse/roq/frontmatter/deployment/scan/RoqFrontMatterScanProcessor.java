@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.deployment.scan;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.toWrapperFilters;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
 import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 import static java.util.function.Predicate.not;
 
 import java.io.IOException;
@@ -365,6 +366,7 @@ public class RoqFrontMatterScanProcessor {
                                 return;
                             }
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
+                                    .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)
                                     .content(content)
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)

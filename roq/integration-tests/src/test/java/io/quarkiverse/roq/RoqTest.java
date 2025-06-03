@@ -66,7 +66,8 @@ public class RoqTest {
                 .body(containsString("<h1 class=\"page-title\">K8S Post</h1>"))
                 .body(containsString("<code class=\"language-yaml\">---"))
                 .body(containsString("This is an attached file: /hello.txt"))
-                .body(containsString("Legacy: /static/assets/images/legacy.png"));
+                .body(containsString("Legacy: /static/assets/images/legacy.png"))
+                .body(containsString("ROQ overridden"));
     }
 
     @Test

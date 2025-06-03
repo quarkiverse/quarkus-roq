@@ -138,9 +138,18 @@ It will automatically utilize the Frontmatter data from all your blog posts to g
 == Themes
 
 [#overriding-theme]
-=== Overriding theme layouts
+=== Overriding theme
 
-In Roq, you can override theme layouts by inserting an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
+In Roq, you can override theme partials or layouts.
+
+*To override a theme partial*, it is very simple, you just need to add the same template in your site.
+
+For example, adding your own `templates/partials/roq-default/pagination.html`
+
+will override the https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/default/src/main/resources/templates/partials/roq-default/pagination.html[one from the default Roq theme]
+
+
+*To override a theme layouts*, it is a tad more complex. You need to insert an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
 
 TIP: Roq layouts are leveraging https://quarkus.io/guides/qute-reference#include_helper[Qute includes] under the hood. It is possible to define insert sections which can define overridable default content.
 
