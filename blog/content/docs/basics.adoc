@@ -183,7 +183,7 @@ layout: :theme/index //<2>
 
 <p>
   With Roq, it is very easy to a link to another.
-  <a href="{site.url('/roq-bottom')}">page</a>. // <3>
+  <a href="{site.url('/roq-page')}">page</a>. // <3>
 </p>
 
 ----
