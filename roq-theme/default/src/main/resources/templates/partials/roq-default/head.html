@@ -1,6 +1,5 @@
 {@java.lang.String tag}
 
-{#ga4 tag="" /}
 <meta charset="utf-8">
 
 {#seo page site /}
@@ -23,3 +22,7 @@
 <link rel="stylesheet" href="{site.url.fromRoot('/static/bundle/roq.css')}?id={config:["roq-default.uuid"]}">
 
 {#bundle /}
+
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}

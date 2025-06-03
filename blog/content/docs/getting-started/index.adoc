@@ -24,7 +24,7 @@ In this video, we initialise the repository and set up GitHub Pages, discover a 
 
 == How it works
 
-// https://excalidraw.com/#json=pZssfxY47ooeLKkHeH0cM,7jxUkcUdHu3WcR1ktCRFow
+// https://excalidraw.com/#json=zLN7CGLyb0s1QAs0V_kXh,DHTH94LaPVtZHRI-nnRpxg
 image::./roq-how-it-works.png[Roq - How it works]
 
 == Advantages of Roq
