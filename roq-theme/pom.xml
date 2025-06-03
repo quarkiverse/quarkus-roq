@@ -14,5 +14,6 @@
 
     <modules>
         <module>default</module>
+        <module>resume</module>
     </modules>
 </project>

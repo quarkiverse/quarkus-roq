@@ -1,90 +1,25 @@
-<div class="mx-auto max-w-2xl space-y-16 p-5 md:col-span-8 md:p-10">
-  {#for section in cdi:bio.list}
-  <div x-data="{ showAll: false }">
-    {#resumeSection title=section.title footer=capture:strong}
-    {#for item in section.items}
-    <div x-show="showAll || {item_index} < 3" x-cloak>
-      {#resumeItem
+{#for section in cdi:bio.list}
+<div x-data="{ showAll: false }">
+  {#resumeSection title=section.title footer=capture:strong}
+  {#for item in section.items}
+  <div x-show="showAll || {item_index} < 3" x-cloak>
+    {#resumeItem
           header=item.header
           title=item.title}
-      {item.content.markdownify}
-      {/resumeItem}
-    </div>
-    {/for}
-    <li class="relative before:absolute before:top-1 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950">
-      <button
-        class="mt-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
-        @click="showAll = !showAll"
-        x-text="showAll ? 'Show less' : '... Show more'"
-      ></button>
-    </li>
-    {/resumeSection}
+    {item.content.markdownify}
+    {/resumeItem}
   </div>
   {/for}
-  <!-- Social -->
-  <div>
-    <div
-      class="mb-8 border-b-4 border-gray-100 py-2.5 dark:border-gray-900"
-    >
-      <h3 class="text-xl font-medium">Social</h3>
-    </div>
-    <ul
-      class="relative space-y-6 pl-6 before:absolute before:top-0 before:bottom-0 before:left-0 before:block before:w-1 before:rounded-full before:bg-purple-50 before:content-[''] dark:before:bg-purple-950"
-    >
-      <li
-        class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
-      >
-        <h4
-          class="text-sm font-semibold text-purple-600 dark:text-purple-500"
-        >
-          LinkedIn
-        </h4>
-        <h5 class="mb-2 font-bold">Work Profile</h5>
-        <p>
-          <a
-            href="javascript:void(0)"
-            class="text-sm font-medium text-gray-600 underline hover:text-gray-600/75 dark:text-gray-400 dark:hover:text-gray-400/75"
-          >
-            https://linkedin.com/shaun.castillo
-          </a>
-        </p>
-      </li>
-      <li
-        class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
-      >
-        <h4
-          class="text-sm font-semibold text-purple-600 dark:text-purple-500"
-        >
-          X
-        </h4>
-        <h5 class="mb-2 font-bold">Work Profile</h5>
-        <p>
-          <a
-            href="javascript:void(0)"
-            class="text-sm font-medium text-gray-600 underline hover:text-gray-600/75 dark:text-gray-400 dark:hover:text-gray-400/75"
-          >
-            https://x.com/shaun.castillo
-          </a>
-        </p>
-      </li>
-      <li
-        class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
-      >
-        <h4
-          class="text-sm font-semibold text-purple-600 dark:text-purple-500"
-        >
-          Facebook
-        </h4>
-        <h5 class="mb-2 font-bold">Personal Profile</h5>
-        <p>
-          <a
-            class="text-sm font-medium text-gray-600 underline hover:text-gray-600/75 dark:text-gray-400 dark:hover:text-gray-400/75"
-            href="javascript:void(0)"
-          >
-            https://facebook.com/shaun.castillo
-          </a>
-        </p>
-      </li>
-    </ul>
-  </div>
+  {#if section.items.size > 3}
+  <li
+    class="relative before:absolute before:top-1 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950">
+    <button
+      class="mt-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+      @click="showAll = !showAll"
+      x-text="showAll ? 'Show less' : '... Show more'"
+    ></button>
+  </li>
+  {/if}
+  {/resumeSection}
 </div>
+{/for}

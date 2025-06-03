@@ -5,7 +5,6 @@ layout: roq-resume/page
 {@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
 
 
-<!-- Page Container -->
 <div
   x-data="{
         darkMode: false,
@@ -22,100 +21,20 @@ layout: roq-resume/page
       }"
   class="min-h-dvh min-w-[320px] bg-white text-gray-800 dark:bg-gray-950 dark:text-gray-100"
 >
-  <!-- Toggle Dark Mode -->
-  <div
-    class="fixed top-0 right-0 z-50 flex size-12 items-center justify-center"
-  >
-    <button
-      x-on:click="toggleDarkMode()"
-      type="button"
-      class="inline-block size-9 text-gray-600 hover:opacity-75 dark:text-gray-400"
-    >
-      <svg
-        x-show="!darkMode"
-        x-cloak
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="inline-block size-6"
-      >
-        <circle cx="12" cy="12" r="4"/>
-        <path d="M12 2v2"/>
-        <path d="M12 20v2"/>
-        <path d="m4.93 4.93 1.41 1.41"/>
-        <path d="m17.66 17.66 1.41 1.41"/>
-        <path d="M2 12h2"/>
-        <path d="M20 12h2"/>
-        <path d="m6.34 17.66-1.41 1.41"/>
-        <path d="m19.07 4.93-1.41 1.41"/>
-      </svg>
-      <svg
-        x-show="darkMode"
-        x-cloak
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="inline-block size-6"
-      >
-        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-      </svg>
-    </button>
-  </div>
-  <!-- END Toggle Dark Mode -->
+  {#include partials/roq-resume/toggle-darkmode /}
 
   <div class="container mx-auto max-w-7xl">
     <div class="grid grid-cols-1 md:grid-cols-12">
       {#include partials/roq-resume/info /}
-      {#include partials/roq-resume/bio /}
 
-          <!-- Footer -->
-          <footer
-            class="mt-20 space-y-2 py-8 text-sm text-gray-600 dark:text-gray-400"
-          >
-            <p class="font-semibold">
-              Resume &copy;
-              <script>
-                document.write(new Date().getFullYear());
-              </script>
-            </p>
-            <p class="inline-flex items-center gap-1">
-              <span>Crafted with</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                data-slot="icon"
-                class="hi-mini hi-heart inline-block size-5 text-rose-500"
-              >
-                <path
-                  d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z"
-                />
-              </svg>
-              <span
-              >by
-                    <a
-                      href="https://pixelcave.com"
-                      class="font-medium text-black underline hover:text-black/75 dark:text-white dark:hover:text-white/75"
-                    >
-                      pixelcave
-                    </a></span
-              >
-            </p>
-          </footer>
-          <!-- END Footer -->
-        </div>
-        <!-- END Social -->
+      <div class="mx-auto max-w-2xl space-y-16 p-5 md:col-span-8 md:p-10">
+        {#include partials/roq-resume/bio /}
+        {#include partials/roq-resume/social /}
+        {#include partials/roq-resume/footer /}
+
       </div>
-      <!-- END Bio -->
     </div>
   </div>
 </div>
-<!-- END Page Container -->
+</div>
+</div>

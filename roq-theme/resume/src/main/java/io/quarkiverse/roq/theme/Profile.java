@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 
-@DataMapping("profile")
+@DataMapping(value = "profile", required = true)
 public record Profile(
         @JsonProperty(required = true) String firstName,
         @JsonProperty(required = true) String lastName,

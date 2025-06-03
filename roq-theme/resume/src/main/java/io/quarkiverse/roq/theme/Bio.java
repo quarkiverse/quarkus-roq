@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 
-@DataMapping(value = "bio", parentArray = true)
+@DataMapping(value = "bio", parentArray = true, required = true)
 public record Bio(
         List<Section> list) {
     public record Section(@JsonProperty(required = true) String title, List<Item> items) {
