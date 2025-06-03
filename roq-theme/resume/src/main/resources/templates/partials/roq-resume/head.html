@@ -1,0 +1,52 @@
+
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}
+
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+<base href="{page.url.relative}">
+
+{#include fm/favicon /}
+{#seo page site /}
+{#rss site /}
+
+<link rel="stylesheet" href="{site.url.fromRoot('/static/bundle/resume.css')}?id={config:["roq-resume.uuid"]}">
+<script type="module" src="{site.url.fromRoot('/static/bundle/resume.js')}?id={config:["roq-resume.uuid"]}"></script>
+
+<!-- Tailwind CSS v4 Configuration -->
+<style type="text/tailwindcss">
+  /* Class based dark mode */
+  @custom-variant dark (&:where(.dark, .dark *));
+
+  /* Theme configuration */
+  @theme {
+    /* Fonts */
+    --default-font-family: "Inter";
+  }
+
+
+  .markdown h1 {
+    @apply text-3xl font-bold mb-4;
+  }
+  .markdown h2 {
+    @apply text-2xl font-semibold mb-3;
+  }
+  .markdown p {
+    @apply mb-4;
+  }
+  .markdown ul {
+    @apply list-disc list-inside pl-5 mb-4;
+  }
+  .markdown ol {
+    @apply list-decimal list-inside pl-5 mb-4;
+  }
+  .markdown blockquote {
+    @apply border-l-4 border-gray-400 pl-4 italic text-gray-600 mb-4;
+  }
+  .markdown pre {
+    @apply bg-gray-100 p-3 rounded overflow-x-auto text-sm mb-4;
+  }
+</style>

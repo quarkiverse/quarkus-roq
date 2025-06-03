@@ -27,4 +27,7 @@ doc:
   - title: "Advanced stuff"
     path: "/docs/advanced/"
     icon: "fa-solid fa-truck-monster"
+  - title: "Themes"
+    path: "/docs/themes/"
+    icon: "fa-solid fa-spray-can-sparkles"
 
