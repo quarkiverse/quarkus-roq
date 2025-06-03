@@ -1,0 +1,19 @@
+{@java.lang.String title}
+{#let
+  headingClass=(headingClass ?: "text-xl font-medium")
+  borderClass=(borderClass ?: "mb-8 border-b-4 border-gray-100 py-2.5 dark:border-gray-900")
+}
+<section {#if class??}class="{class}"{/if}>
+  <div class="{borderClass}">
+    <h3 class="{headingClass}">{title}</h3>
+  </div>
+  <ul
+    class="relative space-y-6 pl-6
+           before:absolute before:top-0 before:bottom-0 before:left-0
+           before:block before:w-1 before:rounded-full
+           before:bg-purple-50 dark:before:bg-purple-950
+           before:content-['']">
+    {nested-content}
+  </ul>
+  {#insert footer/}
+</section>
