@@ -135,6 +135,7 @@ It will automatically utilize the Frontmatter data from all your blog posts to g
 |}
 
 
+[#themes]
 == Themes
 
 [#overriding-theme]

@@ -8,9 +8,8 @@
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <version>${project.version}.Beta</version>
     <artifactId>quarkus-roq-theme-resume</artifactId>
-    <name>Quarkus Roq - Theme - Resume (</name>
+    <name>Quarkus Roq - Theme - Resume (Beta)</name>
 
     <dependencies>
         <dependency>
