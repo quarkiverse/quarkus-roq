@@ -1,12 +1,12 @@
 ---
-title: Roqers Hall Of Fame
+title: The Roqers Hall Of Fame
 link: roqers
 description: |
   Sites built with Roq! See what fellow Roqers have created—and share your own story.
 layout: :theme/page
 ---
 
-# 🎸 Roqers
+# 🎸 The Roqers Hall Of Fame
 
 **Already a Roqer? be a part of the hall of fame, please share the link with a small description in the comments and give us your experience.**
 
