@@ -43,7 +43,7 @@
         <asciidoctorj.version>3.0.0</asciidoctorj.version>
         <asciidoctorj-diagram.version>2.3.2</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>1.8.1</quarkus-web-bundler.version>
-        <jandex.version>3.2.7</jandex.version>
+        <jandex.version>3.3.1</jandex.version>
     </properties>
 
     <dependencyManagement>
