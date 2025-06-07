@@ -427,6 +427,9 @@ First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
     </dependency>
 ----
 
+=== Basic Test Example
+Once you've added the dependency, you can easily ensure all pages are generated without errors:
+
 .src/test/java/RoqSiteTest.java
 [source,java]
 ----
@@ -441,6 +444,9 @@ public class RoqSiteTest {
 }
 ----
 
+That's it! This basic test already verifies that your site generation is error-free.
+
+=== Generated Content Test Example
 You can also add checks on the actual generated content as it will be served using a static file server:
 
 .src/test/java/RoqSiteTest.java
@@ -454,27 +460,13 @@ public class RoqSiteTest {
     public void testIndex() {
         RestAssured.when().get("/")
                 .then()
-                .statusCode(200)
-                .body(containsString(
-                    "Roq is a static site generator that makes it easy to build websites and blogs"
-                ));
+                .statusCode(200);
     }
 }
 ----
 
-### Step 2: Basic Test Example
-
-Once you've added the dependency, you can easily ensure all pages are generated without errors:
-
-
-
-That's it! This basic test already verifies that your site generation is error-free.
-
----
-
-### Step 3: Test the Generated Content
-
-To go even further, you can test the actual content of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
+=== Content Detail Test Example
+To go even further, you can test the actual content details of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
 
 [source,java]
 ----
@@ -488,7 +480,7 @@ public class RoqSiteTest {
                 .then()
                 .statusCode(200)
                 .body(containsString(
-                    "Roq is a static site generator that makes it easy to build websites and blogs"
+                    "Ready to Roq my world!"
                 ));
     }
 }
