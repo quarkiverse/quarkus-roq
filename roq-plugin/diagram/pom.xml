@@ -4,26 +4,19 @@
 
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
-        <artifactId>quarkus-roq-project-parent</artifactId>
+        <artifactId>quarkus-roq-plugin-parent</artifactId>
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-plugin-parent</artifactId>
+    <artifactId>quarkus-roq-plugin-diagram-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Quarkus Roq - Plugins</name>
+    <name>Quarkus Roq - Plugin - Diagram</name>
+
     <properties>
-        <jgit.version>7.2.1.202505142326-r</jgit.version>
+        <quarkus-barcode.version>1.0.0</quarkus-barcode.version>
     </properties>
     <modules>
-        <module>tagging</module>
-        <module>aliases</module>
-        <module>markdown</module>
-        <module>asciidoc</module>
-        <module>asciidoc-jruby</module>
-        <module>qrcode</module>
-        <module>series</module>
-        <module>sitemap</module>
-        <module>lunr</module>
-        <module>diagram</module>
+        <module>deployment</module>
+        <module>runtime</module>
     </modules>
 </project>

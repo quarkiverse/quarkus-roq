@@ -1,0 +1,25 @@
+---
+title: More diagram than you could have dreamed of.
+description: Leveraging Kroki.io to generate diagram from text
+image: https://images.unsplash.com/photo-1496112576525-8b31e9ce4872?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+tags: plugin, frontmatter, guide, diagram
+author: jtama
+---
+
+As much as you love writing content in a textual format, you like to produce your diagram as code.
+
+But there are so many: _PlantUML_, _Ditaa_, _Mermaid_, _BPMN_ and so on and so forth.
+
+Integrating all those formats would be a real pain.
+
+Hopefully you don't have to, https://kroki.io/[*_Kroki.io_*] has already done it for you.
+
+A new plugin has been added to integrate its capability seamlessly to *ROQ*
+
+You can use it through an already deployed server or let the plugin make use of Quarkus dev services to do the job for you.
+
+
+// FIXME when window runner has a container runtime available
+image::diag_sample.svg[Sample diagram that shows kroki usage]
+
+👉 Full documentation is available link:/docs/plugins/#plugin-diagram[here], let's diagram all the things!
