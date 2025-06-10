@@ -275,6 +275,8 @@ layout: theme-layouts/roq-default/default
 
 {#head}
 {#search-script /}
+{/}
+
 ...
 
 ----
@@ -293,7 +295,7 @@ layout: theme-layouts/roq-default/main
 
 {#menu}
 {#search-button /}
-{#include partials/roq-default/sidebar-menu menu=cdi:menu.items /}{/}
+{#include partials/roq-default/sidebar-menu menu=cdi:menu.items /}
 {/}
 
 ...
