@@ -34,6 +34,7 @@ public final class Site {
 
     private final RoqUrl url;
     private final String imagesDir;
+    private final String basePath;
     private final JsonObject data;
     private final List<NormalPage> pages;
     private final RoqCollections collections;
@@ -45,14 +46,16 @@ public final class Site {
     /**
      * @param url the Roq site url to the index page
      * @param imagesDir directory to resolve global images url (e.g. /static/images)
+     * @param basePath the base path for the site (e.g. /repository-name for GitHub Pages)
      * @param data the site FM data (declared in the index.html)
      * @param pages all the pages in this site (without the documents)
      * @param collections all the collections in this site (containing documents)
      */
-    public Site(RoqUrl url, String imagesDir, JsonObject data, List<NormalPage> pages,
+    public Site(RoqUrl url, String imagesDir, String basePath, JsonObject data, List<NormalPage> pages,
             RoqCollections collections) {
         this.url = url;
         this.imagesDir = imagesDir;
+        this.basePath = basePath != null ? basePath : "";
         this.data = data;
         this.pages = pages;
         this.collections = collections;
@@ -78,6 +81,14 @@ public final class Site {
      */
     public String description() {
         return data().getString("description");
+    }
+
+    /**
+     * The base path for the site (e.g. /repository-name for GitHub Pages).
+     * This is used to prefix all URLs in templates.
+     */
+    public String basePath() {
+        return basePath;
     }
 
     /**

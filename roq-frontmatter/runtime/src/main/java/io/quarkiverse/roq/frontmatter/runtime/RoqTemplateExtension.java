@@ -73,6 +73,26 @@ public class RoqTemplateExtension {
         return MimeMapping.getMimeTypeForFilename(fileName);
     }
 
+    /**
+     * Template extension to generate asset paths with base path support.
+     * Usage in templates: {site.assetPath('/css/style.css')}
+     *
+     * @param site the site
+     * @param path the asset path
+     * @return the asset path with base path prefix if configured
+     */
+    public static String assetPath(Site site, String path) {
+        String basePath = site.basePath();
+        if (basePath == null || basePath.isEmpty()) {
+            return path;
+        }
+        // Ensure basePath starts with /
+        String normalizedBasePath = basePath.startsWith("/") ? basePath : "/" + basePath;
+        // Remove leading slash from path to avoid double slashes
+        String normalizedPath = path.startsWith("/") ? path.substring(1) : path;
+        return normalizedBasePath + "/" + normalizedPath;
+    }
+
     private static long ceilDiv(long x, long y) {
         final long q = x / y;
         // if the signs are the same and modulo not zero, round up

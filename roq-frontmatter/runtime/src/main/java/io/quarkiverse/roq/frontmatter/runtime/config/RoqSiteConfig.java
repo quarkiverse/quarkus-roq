@@ -181,6 +181,32 @@ public interface RoqSiteConfig {
         return pathPrefix().orElse("");
     }
 
+    /**
+     * The base path for your site (e.g. <code>/repository-name</code> for GitHub Pages).
+     * This is used to prefix all URLs in templates and is particularly useful for deployments
+     * where the site is served from a subdirectory.
+     * <p>
+     * Examples:
+     * <ul>
+     * <li>GitHub Pages: <code>/repository-name</code></li>
+     * <li>Corporate intranet: <code>/docs/project-name</code></li>
+     * <li>Development: <code>""</code> (empty)</li>
+     * </ul>
+     * <p>
+     * Environment-specific configuration is supported:
+     *
+     * <pre>
+     * %dev.site.base-path=
+     * %prod.site.base-path=/my-project
+     * </pre>
+     */
+    @WithDefault("")
+    Optional<String> basePath();
+
+    default String basePathOrEmpty() {
+        return basePath().orElse("");
+    }
+
     interface CollectionConfig {
         /**
          * If this collection is enabled

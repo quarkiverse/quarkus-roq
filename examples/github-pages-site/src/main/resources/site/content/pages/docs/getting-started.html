@@ -1,0 +1,77 @@
+---
+title: Getting Started
+description: Learn how to get started with ROQ and base path configuration
+layout: main
+section: docs
+show-sidebar: true
+show-breadcrumbs: true
+enable-search: true
+difficulty: beginner
+estimated-time: "10 minutes"
+---
+
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>{page.title}</h1>
+        <p class="doc-description">{page.description}</p>
+        
+        {#if page.data.difficulty}
+        <div class="doc-meta">
+            <span class="difficulty {page.data.difficulty}">
+                Difficulty: {page.data.difficulty}
+            </span>
+            {#if page.data.estimated-time}
+            <span class="time-estimate">
+                Estimated time: {page.data.estimated-time}
+            </span>
+            {/if}
+        </div>
+        {/if}
+    </header>
+
+    <section class="doc-section">
+        <h2>Installation</h2>
+        <p>To get started with ROQ, add the following dependency to your project:</p>
+        
+        <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.quarkiverse.roq&lt;/groupId&gt;
+    &lt;artifactId&gt;quarkus-roq&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+    </section>
+
+    <section class="doc-section">
+        <h2>Base Path Configuration</h2>
+        <p>Configure your base path for different environments:</p>
+        
+        <pre><code># application.properties
+%dev.site.base-path=
+%prod.site.base-path=/my-project</code></pre>
+        
+        <p>This allows your site to work both locally (no base path) and in production (with base path).</p>
+    </section>
+
+    <section class="doc-section">
+        <h2>Template Usage</h2>
+        <p>Use the base path in your templates:</p>
+        
+        <pre><code>&lt;!-- Asset paths --&gt;
+&lt;link rel="stylesheet" href="{site.assetPath('/css/style.css')}"&gt;
+
+&lt;!-- Navigation links --&gt;
+&lt;a href="{site.basePath}/docs/"&gt;Documentation&lt;/a&gt;
+
+&lt;!-- Custom frontmatter --&gt;
+{#if page.data.show-toc}
+&lt;div class="table-of-contents"&gt;...&lt;/div&gt;
+{/if}</code></pre>
+    </section>
+
+    <section class="doc-section">
+        <h2>Next Steps</h2>
+        <ul>
+            <li><a href="{site.basePath}/docs/configuration/">Learn about configuration options</a></li>
+            <li><a href="{site.basePath}/docs/templates/">Explore template features</a></li>
+            <li><a href="{site.basePath}/docs/deployment/">Deploy to GitHub Pages</a></li>
+        </ul>
+    </section>
+</article>

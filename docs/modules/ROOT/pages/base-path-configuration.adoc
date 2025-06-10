@@ -1,0 +1,226 @@
+= Base Path Configuration
+
+ROQ now supports configurable base paths, making it production-ready for deployments like GitHub Pages, corporate intranets, and other scenarios where your site is served from a subdirectory.
+
+== Overview
+
+The base path feature allows you to:
+
+* Deploy to GitHub Pages with repository-specific URLs (e.g., `/repository-name`)
+* Serve sites from subdirectories in corporate environments
+* Use different base paths for different environments (dev, staging, prod)
+* Maintain clean templates that work across all environments
+
+== Configuration
+
+Add the base path configuration to your `application.properties`:
+
+[source,properties]
+----
+# Basic configuration
+site.base-path=/my-project
+
+# Environment-specific configuration
+%dev.site.base-path=
+%staging.site.base-path=/staging/my-project
+%prod.site.base-path=/my-project
+----
+
+== Common Use Cases
+
+=== GitHub Pages
+
+For GitHub Pages deployment where your repository is named `my-awesome-docs`:
+
+[source,properties]
+----
+# Development (local)
+%dev.site.base-path=
+
+# Production (GitHub Pages)
+%prod.site.base-path=/my-awesome-docs
+----
+
+=== Corporate Intranet
+
+For deployment in a corporate environment under `/docs/project-name`:
+
+[source,properties]
+----
+%prod.site.base-path=/docs/project-name
+----
+
+=== Multi-Environment Setup
+
+[source,properties]
+----
+%dev.site.base-path=
+%test.site.base-path=/test/my-project
+%staging.site.base-path=/staging/my-project
+%prod.site.base-path=/my-project
+----
+
+== Template Usage
+
+=== Accessing Base Path
+
+Use `{site.basePath}` in your templates to access the configured base path:
+
+[source,html]
+----
+<div>
+  <p>Current base path: {site.basePath}</p>
+  <a href="{site.basePath}/about">About Us</a>
+</div>
+----
+
+=== Asset Path Helper
+
+Use the `assetPath` helper for automatic base path resolution:
+
+[source,html]
+----
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{page.title}</title>
+    <!-- Automatically includes base path -->
+    <link rel="stylesheet" href="{site.assetPath('/css/style.css')}">
+    <script src="{site.assetPath('/js/app.js')}"></script>
+</head>
+<body>
+    <!-- Manual base path usage -->
+    <img src="{site.basePath}/images/logo.png" alt="Logo">
+</body>
+</html>
+----
+
+=== Navigation Links
+
+Create navigation that works across all environments:
+
+[source,html]
+----
+<nav>
+    <ul>
+        <li><a href="{site.basePath}/">Home</a></li>
+        <li><a href="{site.basePath}/docs/">Documentation</a></li>
+        <li><a href="{site.basePath}/blog/">Blog</a></li>
+        <li><a href="{site.basePath}/contact/">Contact</a></li>
+    </ul>
+</nav>
+----
+
+== Custom Frontmatter Properties
+
+ROQ supports custom frontmatter properties that can be accessed in templates:
+
+=== Custom Properties
+
+Define custom properties in your page frontmatter:
+
+[source,yaml]
+----
+---
+title: My Page
+custom-layout: special
+enable-sidebar: false
+author-bio: "John is a software developer..."
+tags: ["java", "quarkus", "static-sites"]
+---
+----
+
+=== Template Access
+
+Access custom properties using `page.data.property-name`:
+
+[source,html]
+----
+{#if page.data.enable-sidebar}
+<aside class="sidebar">
+    <!-- Sidebar content -->
+</aside>
+{/if}
+
+{#if page.data.custom-layout == 'special'}
+<div class="special-layout">
+    <!-- Special layout content -->
+</div>
+{/if}
+
+<div class="author-info">
+    <p>{page.data.author-bio}</p>
+</div>
+
+<div class="tags">
+    {#for tag in page.data.tags}
+    <span class="tag">{tag}</span>
+    {/for}
+</div>
+----
+
+== Migration Guide
+
+=== From Hardcoded Paths
+
+**Before:**
+[source,html]
+----
+<link rel="stylesheet" href="/my-project/css/style.css">
+<a href="/my-project/docs/">Documentation</a>
+----
+
+**After:**
+[source,html]
+----
+<link rel="stylesheet" href="{site.assetPath('/css/style.css')}">
+<a href="{site.basePath}/docs/">Documentation</a>
+----
+
+=== From Manual Environment Switching
+
+**Before:** Separate template files for different environments
+
+**After:** Single template with environment-specific configuration
+
+== Best Practices
+
+1. **Use `assetPath` for static resources** - CSS, JS, images
+2. **Use `site.basePath` for page links** - Navigation, internal links
+3. **Configure per environment** - Different base paths for dev/staging/prod
+4. **Test locally** - Ensure dev mode works with empty base path
+5. **Validate deployment** - Test that all links work in production
+
+== Troubleshooting
+
+=== Development Mode Issues
+
+If development mode doesn't work with base path configuration:
+
+[source,properties]
+----
+# Ensure dev environment has empty base path
+%dev.site.base-path=
+----
+
+=== Double Slashes in URLs
+
+If you see URLs like `/my-project//css/style.css`, ensure your paths don't start with `/` when using `assetPath`:
+
+[source,html]
+----
+<!-- Correct -->
+{site.assetPath('/css/style.css')}
+{site.assetPath('css/style.css')}
+
+<!-- Avoid -->
+{site.assetPath('//css/style.css')}
+----
+
+=== Missing Base Path
+
+If base path is not applied, check:
+
+1. Configuration is in the correct profile
+2. Template syntax is correct: `{site.basePath}` not `{site.base-path}`
+3. ROQ version supports base path feature

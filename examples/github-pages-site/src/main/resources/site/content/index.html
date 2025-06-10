@@ -1,0 +1,46 @@
+---
+title: Welcome to My Documentation
+description: A comprehensive guide built with ROQ
+layout: main
+custom-hero: true
+featured-sections: ["getting-started", "api-reference", "examples"]
+---
+
+<div class="hero">
+  {#if page.data.custom-hero}
+  <div class="hero-custom">
+    <h1>Welcome to {site.title}</h1>
+    <p>{site.description}</p>
+    <div class="hero-actions">
+      <a href="{site.basePath}/docs/getting-started/" class="btn btn-primary">Get Started</a>
+      <a href="{site.basePath}/docs/api/" class="btn btn-secondary">API Reference</a>
+    </div>
+  </div>
+  {/if}
+</div>
+
+<div class="featured-sections">
+  <h2>Featured Sections</h2>
+  <div class="section-grid">
+    {#for section in page.data.featured-sections}
+    <div class="section-card">
+      <h3>{section}</h3>
+      <p>Learn about {section} in our comprehensive documentation.</p>
+      <a href="{site.basePath}/docs/{section}/">Learn More</a>
+    </div>
+    {/for}
+  </div>
+</div>
+
+<div class="recent-updates">
+  <h2>Recent Updates</h2>
+  {#if site.collections.posts}
+  {#for post in site.collections.posts.limit(3)}
+  <article class="update-item">
+    <h3><a href="{post.url}">{post.title}</a></h3>
+    <p>{post.description}</p>
+    <time>{post.date.format('MMM dd, yyyy')}</time>
+  </article>
+  {/for}
+  {/if}
+</div>

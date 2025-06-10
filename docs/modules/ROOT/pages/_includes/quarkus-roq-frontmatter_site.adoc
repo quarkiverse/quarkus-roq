@@ -458,5 +458,41 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-base-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-base-path[`site.base-path`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.base-path+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The base path for your site (e.g. `/repository-name` for GitHub Pages). This is used to prefix all URLs in templates and is particularly useful for deployments where the site is served from a subdirectory.
+
+Examples:
+
+ - GitHub Pages: `/repository-name`
+ - Corporate intranet: `/docs/project-name`
+ - Development: `""` (empty)
+
+
+
+Environment-specific configuration is supported:
+
+```
+%dev.site.base-path=
+%prod.site.base-path=/my-project
+```
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_BASE_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_BASE_PATH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
 |===
 

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{page.title} - {site.title}</title>
+    <meta name="description" content="{page.description ?: site.description}">
+    
+    <!-- Base path aware asset loading -->
+    <link rel="stylesheet" href="{site.assetPath('/css/main.css')}">
+    <link rel="stylesheet" href="{site.assetPath('/css/theme.css')}">
+    <link rel="icon" href="{site.assetPath('/images/favicon.ico')}">
+    
+    <!-- SEO and social media tags -->
+    <meta property="og:title" content="{page.title} - {site.title}">
+    <meta property="og:description" content="{page.description ?: site.description}">
+    <meta property="og:url" content="{page.url.absolute}">
+    {#if page.image}
+    <meta property="og:image" content="{page.image.absolute}">
+    {/if}
+</head>
+<body>
+    <header class="site-header">
+        <nav class="main-nav">
+            <div class="nav-brand">
+                <a href="{site.basePath}/">
+                    <img src="{site.assetPath('/images/logo.svg')}" alt="{site.title}" class="logo">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{site.basePath}/">Home</a></li>
+                <li><a href="{site.basePath}/docs/">Documentation</a></li>
+                <li><a href="{site.basePath}/blog/">Blog</a></li>
+                <li><a href="{site.basePath}/about/">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        {#if page.data.show-breadcrumbs}
+        <nav class="breadcrumbs">
+            <a href="{site.basePath}/">Home</a>
+            {#if page.data.section}
+            <span class="separator">/</span>
+            <a href="{site.basePath}/{page.data.section}/">{page.data.section}</a>
+            {/if}
+            <span class="separator">/</span>
+            <span class="current">{page.title}</span>
+        </nav>
+        {/if}
+
+        <div class="content-wrapper">
+            {#if page.data.show-sidebar}
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <h3>Navigation</h3>
+                    <ul>
+                        <li><a href="{site.basePath}/docs/getting-started/">Getting Started</a></li>
+                        <li><a href="{site.basePath}/docs/configuration/">Configuration</a></li>
+                        <li><a href="{site.basePath}/docs/templates/">Templates</a></li>
+                        <li><a href="{site.basePath}/docs/deployment/">Deployment</a></li>
+                    </ul>
+                </nav>
+            </aside>
+            {/if}
+
+            <div class="content">
+                {#insert /}
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>&copy; 2024 {site.title}. Built with <a href="https://github.com/quarkiverse/quarkus-roq">ROQ</a>.</p>
+            <p>Base path: <code>{site.basePath}</code></p>
+        </div>
+    </footer>
+
+    <!-- Base path aware script loading -->
+    <script src="{site.assetPath('/js/main.js')}"></script>
+    {#if page.data.enable-search}
+    <script src="{site.assetPath('/js/search.js')}"></script>
+    {/if}
+</body>
+</html>
