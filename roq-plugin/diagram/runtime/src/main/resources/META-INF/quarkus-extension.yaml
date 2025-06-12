@@ -1,0 +1,26 @@
+name: Roq Plugin Diagram
+description: This plugin allows generate any kind of Diagram as code by leveraging Kroki.io
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - ssg
+    - plantuml
+    - kroki
+    - mermaid
+    - plugin
+  guide: https://iamroq.com/docs/plugins/#plugin-diagram
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq"
+  status: "preview"

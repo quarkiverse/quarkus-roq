@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="392" version="1.0" shape-rendering="geometricPrecision">
+    <defs>
+        <filter id="shadowBlur" x="0" y="0" width="200%" height="200%">
+            <feOffset in="SourceGraphic" dx="3.0003002" dy="3.0003002" result="offOut"></feOffset>
+            <feGaussianBlur in="offOut" stdDeviation="3"></feGaussianBlur>
+        </filter>
+    </defs>
+    <g stroke-width="1" stroke-linecap="square" stroke-linejoin="round">
+        <rect x="0" y="0" width="340" height="392" style="fill: #ffffff"></rect>
+        <path stroke="#969696" fill="#969696" filter="url(#shadowBlur)"
+              d="M25.0 147.0 L165.0 147.0 L165.0 203.0 L25.0 203.0 z"></path>
+        <path stroke="#969696" fill="#969696" filter="url(#shadowBlur)"
+              d="M25.0 259.0 L165.0 259.0 L165.0 315.0 L25.0 315.0 z"></path>
+        <path stroke="#969696" fill="#969696" filter="url(#shadowBlur)"
+              d="M115.0 35.0 L205.0 35.0 L205.0 91.0 L115.0 91.0 z"></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="white"
+              d="M25.0 147.0 L165.0 147.0 L165.0 203.0 L25.0 203.0 z"></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="white"
+              d="M25.0 259.0 L165.0 259.0 L165.0 315.0 L25.0 315.0 z"></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="white"
+              d="M115.0 35.0 L205.0 35.0 L205.0 91.0 L115.0 91.0 z"></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="none"
+              d="M175.0 301.0 L215.0 301.0 L215.0 357.0 L135.0 357.0 L135.0 329.0 "></path>
+        <path stroke="none" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="#000000"
+              d="M155.0 98.0 L150.0 112.0 L160.0 112.0 z"></path>
+        <path stroke="none" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="#000000"
+              d="M150.0 126.0 L155.0 140.0 L160.0 126.0 z"></path>
+        <path stroke="none" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="#000000"
+              d="M95.0 210.0 L90.0 224.0 L100.0 224.0 z"></path>
+        <path stroke="none" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="#000000"
+              d="M90.0 238.0 L95.0 252.0 L100.0 238.0 z"></path>
+        <path stroke="none" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="#000000"
+              d="M135.0 322.0 L130.0 336.0 L140.0 336.0 z"></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="none"
+              d="M155.0 105.0 L155.0 133.0 "></path>
+        <path stroke="#000000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" fill="none"
+              d="M95.0 217.0 L95.0 245.0 "></path>
+        <text x="141" y="68" font-family="sans-serif" font-size="15" stroke="none" fill="#000000">User</text>
+        <text x="75" y="124" font-family="sans-serif" font-size="15" stroke="none" fill="#000000">writes</text>
+        <text x="80" y="180" font-family="sans-serif" font-size="14" stroke="none" fill="#000000">Roq</text>
+        <text x="114" y="236" font-family="sans-serif" font-size="15" stroke="none" fill="#000000">Delegates</text>
+        <text x="74" y="292" font-family="sans-serif" font-size="15" stroke="none" fill="#000000">Kroki</text>
+        <text x="234" y="334" font-family="sans-serif" font-size="15" stroke="none" fill="#000000">generates</text>
+    </g>
+</svg>
