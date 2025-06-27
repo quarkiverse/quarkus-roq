@@ -284,6 +284,12 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 | `my-page`, `search` or `docs/my-doc`
 
 | All
+| `:raw-path`
+| The raw file path of the page without the extension.
+| `My$`, `my car` or `été/2024`
+
+
+| All
 | `:slug`
 | The slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the file name.
 | `my-page-title`
@@ -329,6 +335,8 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 | `1`, `2`
 |===
 
+
+NOTE: The slug derivation replaces all non-alphanumeric characters by `-` to make them url friendly.
 
 Default link value:
 

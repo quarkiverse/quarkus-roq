@@ -12,6 +12,15 @@ import io.restassured.RestAssured;
 public class RoqTest {
 
     @Test
+    public void testSpecialChars() {
+        RestAssured.when().get("/élo you$@").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("élo you$@.html - Hello, world! I'm Roq"))
+                .body(containsString("This is a test layout:"))
+                .body(containsString("href=\"/%C3%A9lo%20you$@/\""))
+                .body(containsString("It should work fine"));
+    }
+
+    @Test
     public void testErrorFilePage() {
         RestAssured.when().get("/posts/error-file").then().statusCode(500).log().ifValidationFails().body(containsString(
                 "RoqStaticFileException: Can't find file 'not-found.pdf' attached to the page"));
@@ -79,7 +88,7 @@ public class RoqTest {
                         "Here are the links: /posts/2010-08-05-hello-world/hello.pdf and /posts/2010-08-05-hello-world/hello.pdf"))
                 .body(containsString(
                         "and an images: /images/hello.png, /images/hello.foo.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"))
-                .body(containsString("page by path: /lo-you/"))
+                .body(containsString("page by path: /%C3%A9lo%20you$@/"))
                 .body(containsString("document by path: /posts/k8s-post/"));
         RestAssured.when().get("/images/hello.foo.png").then().statusCode(200).log().ifValidationFails();
     }

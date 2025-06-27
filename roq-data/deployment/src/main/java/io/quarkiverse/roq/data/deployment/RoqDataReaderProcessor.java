@@ -233,8 +233,8 @@ public class RoqDataReaderProcessor {
                 try {
                     items.put(name, new RoqDataBuildItem(name, file, Files.readAllBytes(file), dataConverter));
                 } catch (IOException e) {
-                    throw new UncheckedIOException("Error while decoding using %s converter: %s "
-                            .formatted(filename, converter.getClass()), e);
+                    throw new UncheckedIOException("Error while reading data file: '%s'"
+                            .formatted(filename), e);
                 }
             }
         };

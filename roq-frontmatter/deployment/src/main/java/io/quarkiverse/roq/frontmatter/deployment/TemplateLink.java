@@ -57,6 +57,7 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
+                Map.entry(":raw-path", () -> removeExtension(data.pageInfo().sourceFilePath())),
                 Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourceFilePath()), true, false).toLowerCase()),
                 Map.entry(":ext",
                         () -> data.pageInfo().isHtml() ? ""

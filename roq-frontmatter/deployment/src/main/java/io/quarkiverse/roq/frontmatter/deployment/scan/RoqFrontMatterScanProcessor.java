@@ -70,7 +70,6 @@ public class RoqFrontMatterScanProcessor {
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
-    public static final Pattern NON_PATH_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9_\\\\/.\\-]");
 
     // We might need to allow plugins to contribute to this at some point
     private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
@@ -403,9 +402,9 @@ public class RoqFrontMatterScanProcessor {
             TemplateType type) {
         return file -> {
             String sourcePath = toUnixPath(contentDir.relativize(file).toString());
-            String normalizedPath = normalizePath(sourcePath);
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(normalizedPath)
-                    + resolveOutputExtension(markups, normalizedPath);
+            String cleanPath = replaceWhitespaceChars(sourcePath);
+            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(cleanPath)
+                    + resolveOutputExtension(markups, cleanPath);
             boolean published = type.isPage();
             String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
             final boolean isHtml = isPageTargetHtml(file);
@@ -538,8 +537,8 @@ public class RoqFrontMatterScanProcessor {
         return new JsonObject(map);
     }
 
-    private static String normalizePath(String sourcePath) {
-        return NON_PATH_CHAR_PATTERN.matcher(sourcePath).replaceAll("-");
+    private static String replaceWhitespaceChars(String sourcePath) {
+        return sourcePath.replaceAll("\\s+", "-");
     }
 
     protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
