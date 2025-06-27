@@ -112,7 +112,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     public Path generateBlocking() {
-        return generate().await().atMost(Duration.ofSeconds(10));
+        return generate().await().atMost(Duration.ofSeconds(config.timeout()));
     }
 
     public Uni<Path> generate() {
