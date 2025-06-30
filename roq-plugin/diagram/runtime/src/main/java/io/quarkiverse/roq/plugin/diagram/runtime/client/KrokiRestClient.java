@@ -11,7 +11,7 @@ public interface KrokiRestClient {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    String generateDiagram(DiagramRequest request);
+    byte[] generateDiagram(DiagramRequest request);
 
     record DiagramRequest(String diagramType, String diagramSource, String outputFormat) {
     }

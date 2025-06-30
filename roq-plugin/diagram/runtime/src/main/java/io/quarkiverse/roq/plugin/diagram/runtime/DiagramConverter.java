@@ -58,8 +58,7 @@ public class DiagramConverter {
         try {
             imageBytes = krokiApi.generateDiagram(
                     new KrokiRestClient.DiagramRequest(params.language(), diagramSource,
-                            params.diagramOutputFormat().getFormatString()))
-                    .getBytes();
+                            params.diagramOutputFormat().getFormatString()));
             dataUri = dataUri(imageBytes, params.diagramOutputFormat());
         } catch (Exception e) {
             logger.error("Failed to generate diagram", e);
