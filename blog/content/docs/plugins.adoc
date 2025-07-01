@@ -335,7 +335,7 @@ quarkus ext add quarkus-roq-plugin-diagram
 +
 [source,html]
 ----
-\{#diagram asciidoc=true language="pikchr" alt="Impossible trident", width=500 height=500 diagramOutputFormat="svg"}
+\{#diagram asciidoc=true language="pikchr" alt="Impossible trident" width=500 height=500 diagramOutputFormat="svg"}
 
 scale = 1.0
 eh = 0.5cm
