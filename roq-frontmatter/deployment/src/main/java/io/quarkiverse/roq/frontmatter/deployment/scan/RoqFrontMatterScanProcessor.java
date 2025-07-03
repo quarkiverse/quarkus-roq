@@ -79,7 +79,8 @@ public class RoqFrontMatterScanProcessor {
     void registerEscapedTemplates(RoqSiteConfig config,
             BuildProducer<RoqFrontMatterDataModificationBuildItem> dataModificationProducer) {
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
-            if (sourceData.type().isPage() && isPageEscaped(config).test(sourceData.relativePath())) {
+            if (sourceData.type().isPage() && !sourceData.fm().containsKey(ESCAPE_KEY)
+                    && isPageEscaped(config).test(sourceData.relativePath())) {
                 sourceData.fm().put(ESCAPE_KEY, true);
             }
             return sourceData.fm();
