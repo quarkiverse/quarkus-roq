@@ -36,14 +36,14 @@ Next, in your template, loop through the paginated posts using:
 </article>
 {/for}
 
-{#include includes/pagination.html/}
+{#include partials/pagination.html/}
 ----
 <1> Calling `.paginated(page.paginator)` will resolve to the posts for the computed page.
 |}
 
 === Step 2: Including Pagination Controls
 
-To add pagination controls, use the provided `fm/pagination.html` in your own `_includes/pagination.html`:
+To add pagination controls, use the provided `fm/pagination.html` in your own `partials/pagination.html`:
 
 {|
 [source,html]
