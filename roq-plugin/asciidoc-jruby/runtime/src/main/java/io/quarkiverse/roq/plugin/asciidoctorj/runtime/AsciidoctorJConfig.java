@@ -12,8 +12,16 @@ import io.smallrye.config.WithDefault;
 public interface AsciidoctorJConfig {
 
     /**
-     * Set Asciidoctorj attributes
-     */
+     * Defines the AsciidoctorJ attributes to be applied during rendering.
+     * <p>
+     * Default values:
+     * <ul>
+     * <li><code>relfileprefix=../</code></li>
+     * <li><code>relfilesuffix=/</code></li>
+     * <li><code>noheader=true</code></li>
+     * <li><code>showtitle=true</code></li>
+     * </ul>
+     **/
     Map<String, String> attributes();
 
     /**

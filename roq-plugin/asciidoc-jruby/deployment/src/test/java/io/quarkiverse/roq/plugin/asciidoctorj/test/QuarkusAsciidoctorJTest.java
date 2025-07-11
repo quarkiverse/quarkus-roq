@@ -17,7 +17,6 @@ public class QuarkusAsciidoctorJTest {
 
     public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
             new AsciidoctorJConverter(new AsciidoctorJConfig() {
-
                 @Override
                 public Map<String, String> attributes() {
                     return Map.of();
@@ -27,7 +26,6 @@ public class QuarkusAsciidoctorJTest {
                 public String templatesDir() {
                     return "src/main/asciidoc-templates";
                 }
-
             }));
 
     @Test

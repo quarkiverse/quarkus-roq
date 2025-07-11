@@ -1,7 +1,8 @@
 ---
-title: Roq Advanced Stuff
 layout: doc
 ---
+= Roq Advanced Stuff
+
 {#include partials/doc/doc-attributes.adoc/}
 
 

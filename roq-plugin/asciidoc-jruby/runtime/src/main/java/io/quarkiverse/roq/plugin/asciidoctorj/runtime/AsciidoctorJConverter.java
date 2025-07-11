@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import org.asciidoctor.*;
+import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
 @Singleton
@@ -18,8 +19,6 @@ public class AsciidoctorJConverter {
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
 
     private final Asciidoctor asciidoctor;
-
-    private final AsciidoctorJConfig config;
     private final Options options;
 
     @Inject
@@ -27,10 +26,11 @@ public class AsciidoctorJConverter {
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
-        this.config = config;
         asciidoctor.requireLibrary("asciidoctor-diagram");
         final AttributesBuilder attributes = Attributes.builder()
                 .showTitle(true)
+                .attribute("relfileprefix", "../")
+                .attribute("relfilesuffix", "/")
                 .attribute("noheader", true);
         config.attributes().forEach(attributes::attribute);
         final Path templateDir = Paths.get(config.templatesDir());
@@ -41,10 +41,6 @@ public class AsciidoctorJConverter {
         } else {
             optionsBuilder.standalone(false);
         }
-        final Path workingDir = Paths.get("");
-        if (Files.isDirectory(workingDir)) {
-            optionsBuilder.baseDir(workingDir.toAbsolutePath().toFile());
-        }
         options = optionsBuilder
                 .safe(SafeMode.SAFE)
                 .backend("html5")
@@ -53,11 +49,15 @@ public class AsciidoctorJConverter {
         LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
     }
 
-    public String apply(String asciidoc) {
+    public String apply(Path templatePath, String asciidoc) {
+        if (templatePath != null && Files.isDirectory(templatePath.getParent())) {
+            options.setBaseDir(templatePath.getParent().toString());
+        }
         // Cleaning the content from global indentation is necessary because
         // AsciiDoc content is not supposed to be indented globally
         // In Qute context it might often be indented
-        return asciidoctor.convert(trimIndent(asciidoc), options);
+        final Document doc = asciidoctor.load(trimIndent(asciidoc), options);
+        return doc.convert();
     }
 
     public static String trimIndent(String content) {
