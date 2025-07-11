@@ -66,12 +66,12 @@ class RoqFrontMatterPublishProcessor {
 
         for (RoqFrontMatterPaginateTemplateBuildItem pagination : paginationList) {
             final JsonObject data = pagination.data();
-            Paginate paginate = readPaginate(pagination.info().sourceFilePath(), data, pagination.defaultPaginatedCollection());
+            Paginate paginate = readPaginate(pagination.info().sourcePath(), data, pagination.defaultPaginatedCollection());
             AtomicInteger collectionSize = sizeByCollection.get(paginate.collection());
             if (collectionSize == null) {
                 throw new ConfigurationException(
                         "Paginate collection not found '" + paginate.collection() + "' in "
-                                + pagination.info().sourceFilePath());
+                                + pagination.info().sourcePath());
             }
             final int total = collectionSize.get();
             if (paginate.size() <= 0) {
@@ -94,7 +94,7 @@ class RoqFrontMatterPublishProcessor {
                 PageInfo info = pagination.info();
                 if (i > 1) {
                     info = info.changeId(
-                            PathUtils.removeExtension(info.sourceFilePath()) + "_p" + i + "." + info.sourceFileExtension());
+                            PathUtils.removeExtension(info.sourcePath()) + "_p" + i + "." + info.sourceFileExtension());
                 }
                 paginatedPages.add(new PageToPublish(paginatedUrl, info, data));
             }

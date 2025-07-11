@@ -1,10 +1,8 @@
----
-title: Plugins
-layout: doc
----
-{#include partials/doc/doc-attributes.adoc/}
+= Plugins
+include::_includes/attributes.adoc[]
+:doc-name: plugins
 
-{#include partials/doc/edit-contrib.adoc name="plugins" /}
+include::_includes/edit-contrib.adoc[]
 
 [#plugin-tagging]
 == Roq Plugin Tagging (Tags)
@@ -22,12 +20,11 @@ quarkus ext add quarkus-roq-plugin-tagging
 
 If you are using a theme that supports it (includes a tagging layout), you should now have tags pages available for all the tags in your posts!
 
-TIP: You can use  link:{site.url('docs/advanced')}#_overriding_theme_layouts[theme override] to customize the theme tagging layout.
+TIP: You can use  xref:advanced.adoc#overriding-theme[theme override] to customize the theme tagging layout.
 
 
 To enable tagging without a theme, create a layout template and add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`. It is available through `site.collections.get(page.data.tagCollection)`:
 
-{|
 [source,html]
 .templates/layouts/tag.html
 ----
@@ -41,11 +38,9 @@ tagging: posts
 {/for}
 
 ----
-|}
 
 This also support pagination like any other collection, as tagging is already specifying the target collection, pagination can be enabled just with in FM `paginate: true`:
 
-{|
 [source,html]
 .templates/layouts/tag.html
 ----
@@ -60,7 +55,6 @@ paginate: true
 {/for}
 
 ----
-|}
 
 [#plugin-aliases]
 == Roq Plugin Aliases (Redirections)
@@ -179,7 +173,6 @@ quarkus ext add quarkus-roq-plugin-series
 
 Edit the layout for your posts, for example when using roq-default theme:
 
-{|
 [source,html]
 .templates/layouts/roq-default/post-series.html
 ----
@@ -194,7 +187,6 @@ layout: theme-layouts/roq-default/post
 ----
 <1> This will add the series partial before the post content, if it's declared.
 <2> This is the post content
-|}
 
 And finally, use this layout and add the `series` attribute in the Front Matter of the posts you want to join.
 
@@ -224,14 +216,12 @@ To install it run:
 quarkus ext add quarkus-roq-plugin-sitemap
 ----
 
-{|
 Then create a new sitemap file:
 [source]
 .content/sitemap.xml
 ----
 {#include fm/sitemap.xml}
 ----
-|}
 
 You are all set!
 
@@ -253,7 +243,6 @@ To install it you will to do the following:
 quarkus ext add quarkus-roq-plugin-lunr
 ----
 
-{|
 . Add the search index json:
 +
 [source,html]
@@ -300,7 +289,6 @@ layout: theme-layouts/roq-default/main
 
 ...
 ----
-|}
 
 You can prevent content from being indexed using Frontmatter data:
 [source,yaml]

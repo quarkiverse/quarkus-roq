@@ -1,0 +1,8 @@
+:toc: macro
+:toc-title: Contents
+:sectanchors: true
+:toclevels: 1
+:idprefix:
+:idseparator: -
+:page-layout: doc-jruby
+:imagesdir: {site-path}images/docs

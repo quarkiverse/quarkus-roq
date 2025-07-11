@@ -1,16 +1,35 @@
----
-title: Roq the basics
-layout: doc
----
-{#include partials/doc/doc-attributes.adoc/}
+= Roq the basics
+include::_includes/attributes.adoc[]
+:doc-name: basics
 
-{#include partials/doc/edit-contrib.adoc name="basics" /}
+include::_includes/edit-contrib.adoc[]
 
 By default, your site files should be located in the **project root directory** (or in the Java resources dir: `src/main/resources/`).
 
-{#include partials/doc/directory-structure.adoc /}
+include::_includes/directory-structure.adoc[]
 
 == Qute and FrontMatter
+
+[source,java]
+----
+public enum MyEnum {
+    A, B;
+
+    public String toJsonString() { <1>
+        return this == A ? "first" : "second";
+    }
+
+    public static MyEnum fromJsonString(final String v) { <2>
+        return switch (v) {
+            case "first" -> MyEnum.A;
+            case "second" -> MyEnum.B;
+            default -> throw new IllegalArgumentException("Unsupported '" + v + "'");
+        };
+    }
+}
+----
+<.> `toJsonString` is an instance method with no parameter used to replace `.name()` call during serialization,
+<.> `fromJsonString` is a static method with a `String` parameter used to replace `.valueOf(String)` call during deserialization.
 
 All templates may use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
 
@@ -39,7 +58,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 * `post`: the layout for blog posts
 * `recipe`: the layout for recipes or whatever
 
-A layout may be specified in pages through the `layout` FrontMatter key (e.g. `layout: page`). By default, `posts` will use the `post` layout and normal pages the `page` layout (this can be configured through link:{site.url('docs/advanced/')}#quarkus-roq-frontmatter_site-page-layout[site configuration]).
+A layout may be specified in pages through the `layout` FrontMatter key (e.g. `layout: page`). By default, `posts` will use the `post` layout and normal pages the `page` layout (this can be configured through xref:advanced.adoc#quarkus-roq-frontmatter_site-page-layout[site configuration]).
 
 TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike partials, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
@@ -54,7 +73,7 @@ NOTE: if you don't already have layouts and partials in your project, <<install-
 
 If you’re using a theme, you can take advantage of its layouts, but you’re also free to add your own. Layouts are built on a powerful inheritance system, allowing flexibility and customization.
 
-TIP: When using a theme, you can create new layouts that extend the existing theme layouts or partially override them to better suit your needs. Learn more here: link:{site.url('docs/advanced/')}#overriding-theme[Overriding Theme].
+TIP: When using a theme, you can create new layouts that extend the existing theme layouts or partially override them to better suit your needs. Learn more here: xref:advanced.adoc#overriding-theme[Overriding Theme].
 
 In this sample we will create a simple 3 steps inheritance layout. All below files should be located in the `templates/layouts/` directory.
 
@@ -68,10 +87,10 @@ To do so, you will first need a `default.html` file as followed:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>\{page.title}</title> <1>
+    <title>{page.title}</title> <1>
 </head>
 <body>
-    \{#insert /} <2>
+    {#insert /} <2>
 </body>
 </html>
 ----
@@ -88,7 +107,7 @@ layout: default <1>
 title: And now for something completely different <2>
 ---
 <header> Head </header>
-\{#insert /}
+{#insert /}
 <footer> Toes </footer>
 ----
 <1> Uses the `default` layout.
@@ -102,7 +121,7 @@ Finally, you can create a `content.html` file as followed:
 ---
 layout: main <1>
 ---
-\{#include partials/image /} <2>
+{#include partials/image /} <2>
 knees
 ----
 <1> Uses the `main` layout.
@@ -145,7 +164,7 @@ Partials work the other way around. They are bits of qute template fragment that
 
 Then I can include it in my content page:
 
-`\{#include partials/image /}`
+`{#include partials/image /}`
 
 [#install-theme]
 == Install a theme
@@ -161,13 +180,12 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 ----
 
 
-It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the link:{site.url('docs/advanced')}#themes[*Theme section*].
+It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
 == Site index template
 
 Your site index template is required and should be located in `content/index.html`.
 
-{|
 [source,html]
 .content/index.html
 ----
@@ -192,13 +210,9 @@ layout: :theme/index //<2>
 <2> The layout to use (in this case `:theme/index` which refers to the `index` layout from the theme).
 <3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
 
-|}
-
-TIP: There are different ways to link your pages as explained in the  link:{site.url('docs/advanced')}#links[Links & Urls] section.
+TIP: There are different ways to link your pages as explained in the  link:{site-baseurl}docs/advanced#links[Links & Urls] section.
 
 == Variables
-
-{|
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
 
@@ -335,15 +349,12 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-|}
-
 == Pages
 
 Any template file without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
 
 Let's create your first page and spice things up a bit by using Markdown.
 
-{|
 [source,markdown]
 .roq-bottom.md
 ----
@@ -368,7 +379,6 @@ __{page.data.the-rope}!__ <3>
 <1> you can use `link` to give this page a custom link (by default it will use the file-name).
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
-|}
 
 == Global data
 
@@ -382,7 +392,7 @@ For example:
 bar: Roq
 ----
 
-Can be access with `\{cdi:foo.bar}` in any template.
+Can be access with `{cdi:foo.bar}` in any template.
 
 
 == Collections
@@ -392,7 +402,6 @@ Once created you can easily iterate and link to them.
 
 By default, Roq is configured with a `posts` collection using the `content/posts` directory. Let's create our first post:
 
-{|
 [source,markdown]
 .content/posts/2024-10-14-roq-solid.md
 ----
@@ -428,14 +437,12 @@ Here is a list of puns suggested by Chat GPT:
 15.	Stone Cold Roq – Referring to something very cool or emotionless.
 
 ----
-|}
 <1> This time we use the `post` layout from the theme.
-<2> You can define tags (see link:{site.url('docs/plugins')}#plugin-tagging[Plugins] to create pages for tags).
+<2> You can define tags (see xref:plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
 <3> You have shortcut on the `page` to access `title` and `description`.
 
 Ok, to dive a bit deeper, we could create a json listing all posts with some info:
 
-{|
 [source,html]
 .content/posts.json
 ----
@@ -451,13 +458,11 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 {/for}
 ]
 ----
-<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  link:{site.url('docs/advanced/')}#pagination[paginate]).
+<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  xref:advanced.adoc#pagination[paginate]).
 <2> `post.image` is smart and is already resolved to the image url (as a RoqUrl), `absolute` to get the absolute url.
 <3> `post.url` contains the post url (as a RoqUrl), you could also use `absolute` to get the absolute url.
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
-
-|}
 
 === How to create custom collections?
 
@@ -490,24 +495,24 @@ site.collections.posts=true
 site.collections.posts.layout=":theme/post"
 ----
 
+<1> We are adding the new collection `docs`;
+<2> Here, we are declaring the `docs` layout;
+<3> Finally, since the new collection is not a time-based collection, we need to set `future` as true to show all files.
+
 NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
 
-1. We are adding the new collection `docs`;
-2. Here, we are declaring the `docs` layout;
-3. Finally, since the new collection is not a time-based collection, we need to set `future` as true to show all files.
+
 
 Now, we can access all the new collection `docs` data as follows:
 
-{|
 [source]
 ----
 {#for doc in site.collections.docs}
 - [{doc.title}]({doc.url})
 {/for}
 ----
-|}
 
-Since the new collection is also a normal page, we can use all variables described in the link:#_variables[variable section].
+Since the new collection is also a normal page, we can use all variables described in the link:#variables[variable section].
 
 [#site-static]
 == Site static files
@@ -560,11 +565,9 @@ The resulting link for a page can be different from its directory name, attached
 
 Let's imagine for a minute that the page link is `https://my-site.org/awesome-page/`, then the slide will be served on `https://my-site.org/awesome-page/slide.pdf`.
 
-{|
 You can use `{page.file("slide.pdf")}` to resolve the file url *and check that the file exists*. This is also useful in other cases, for example from another page (e.g. `{site.page("my-page/index.md").file("slide.pdf")}`) or if you want the absolute url (e.g. `{page.file("slide.pdf").absolute}`):
 
 TIP: If you want to iterate over page files, they can be listed using `{page.files}`.
-|}
 
 === Images
 
@@ -574,15 +577,15 @@ The site images should be added in the public image directory (e.g. `my-site/pub
 
 The default public path prefix for images is `images/` (this can be changed in the site configuration).
 
-Url can be accessed using the site variable as shown in this example: `<img src="\{site.image('image-1.png')`}" />.
+Url can be accessed using the site variable as shown in this example: `<img src="{site.image('image-1.png')`}" />.
 
-TIP: The image method is a convenience and is equivalent to using `<img src="\{site.file('images/image-1.png')`}" />.
+TIP: The image method is a convenience and is equivalent to using `<img src="{site.file('images/image-1.png')`}" />.
 
 ==== Page images
 
-When using pages as directories (such as `posts/surf/index.html`), `\{page.image(name)}` checks if the file is attached to the given page and return its url.
+When using pages as directories (such as `posts/surf/index.html`), `{page.image(name)}` checks if the file is attached to the given page and return its url.
 
-In other pages (such as `posts/basketball.md`), `\{page.image(name)}` will act the same as `site.image(name)` and resolve from the site image directory.
+In other pages (such as `posts/basketball.md`), `{page.image(name)}` will act the same as `site.image(name)` and resolve from the site image directory.
 
 Let's take this example structure:
 
@@ -609,7 +612,6 @@ my-site/
 
 Here is how to access those images from the article:
 
-{|
 [source,html]
 .surf-article/index.html
 ----
@@ -634,11 +636,9 @@ image: cover.jpg
 <4> `site.image(path)` looks into `/public/images/` by default (with disk checking).
 <5> render the absolute url (e.g. `https://my-site.org/images/basketball.png`)
 <6> this would throw an error!
-|}
 
 === Page & Site cover image
 
-{|
 Page cover image is referenced in the page FM `image` data.
 [source,yaml]
 .some-page.md
@@ -662,8 +662,6 @@ image: my-site.png
 
 It can be accessed in any template through `{site.image}`.
 
-|}
-
 == Styles and Javascript
 
 Here are two options to consume scripts and styles:
@@ -686,7 +684,6 @@ my-site/
 
 To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
 
-{|
 [source,html]
 .layouts/head.html
 ----
@@ -695,7 +692,6 @@ To include the generated bundle in your template, specify the bundle tag in the 
   {#bundle /}
 </head>
 ----
-|}
 
 It will be rendered with the relevant `<script>` and `<style>` tags to include your bundle.
 
@@ -704,13 +700,5 @@ For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Qua
 
 == Asciidoc support
 
-Asciidoc is supported by Roq using link:{site.url('docs/plugins/')}#plugin-asciidoc[plugins].
+Asciidoc is supported by Roq using xref:plugins.adoc#plugin-asciidoc[plugins].
 
-Using `&#123;something&#125;` will be parsed by Qute, to avoid issues with custom attributes, you can either escape it `&#92;&#123;something&#125;`, or wrap more content inside `&#123;|` and `|&#125;`.
-
-=== Includes
-
-The standard Asciidoc include is not supported, but you can use Qute includes instead:
-
-. Place your file in a folder under the `template` directory (for example `partials`)
-. Use Qute include directive `\{# partials/your_included_file.adoc /}` to include it

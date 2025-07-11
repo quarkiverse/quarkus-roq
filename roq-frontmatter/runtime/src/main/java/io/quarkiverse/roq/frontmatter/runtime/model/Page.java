@@ -59,10 +59,10 @@ public interface Page {
     }
 
     /**
-     * The path of the source file (e.g posts/my-favorite-beer.md)
+     * The path of the source relative to the content directory (e.g posts/my-favorite-beer.md)
      */
     default String sourcePath() {
-        return info().sourceFilePath();
+        return info().sourcePath();
     }
 
     /**

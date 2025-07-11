@@ -1,0 +1,66 @@
+== Directory Structure
+
+The default directory structure is:
+[source, text]
+----
+my-site/
+├── data/                                // <1>
+│   ├── menu.yml
+│   └── tags.yml
+│
+├── content/                             // <2>
+│   ├── posts/                           // <3>
+│   │   ├── 2024-10-14-roq-ssg/
+│   │   │   ├── index.md
+│   │   │   └── image.jpg
+│   │   └── 2024-10-20-heart-roq.md
+│   │
+│   ├── roq-page.md                      // <4>
+│   └── index.html                       // <5>
+│
+├── public/                              // <6>
+│   └── style.css
+│
+└── templates/                           // <7>
+    ├── partials/                        // <8>
+    │   ├── head.html
+    │   └── pagination.html
+    │
+    └── layouts/                         // <9>
+        ├── base.html
+        ├── page.html
+        └── post.html
+└── pom.xml                              // <10>
+----
+
+<1> **Roq Data Files**
+The `data/` directory contains data files like `menu.yml` and `tags.yml`. These files can hold structured data used across the site.
+
+<2> **Content Files**
+The `content/` directory is where all content of the site that will be generated as pages resides (.html, .md, .adoc*, .json, .xml, ...)
+
+<3> **Collections**
+The `posts/` directory is the default collection in Roq, it is optional. It holds content files for blog posts or similar structured documents. You can configure multiples collections (recipes, events, ...).
+
+<4> **Additional pages**
+You may provide additional pages files like `roq-page.md` outside a collection. You can also use sub-directories which will be part of the resulting path.
+
+<5> **Index File**
+The `index.html` file is required and serves as the homepage. It provides site-wide data using FrontMatter.
+
+<6> **Static Files**
+The `public/` directory holds static files, such as images, CSS, or JavaScript files. These files will not be processed.
+
+<7> **Templates**
+The `templates/` directory is optional as templates can be provided by a theme. It contains Qute templates for partials and layouts.
+
+<8> **Qute Partials**
+The `partials/` directory contains reusable Qute template fragments, such as `head.html` and `pagination.html`, which can be included in layouts.
+
+<9> **Layouts**
+The `layouts/` directory defines the structure for pages and documents. For example:
+- `base.html` is the main layout.
+- `page.html` and `post.html` are specific layouts for pages and posts.
+
+<10> **Build files**
+The build file such as a `pom.xml` is needed to configure the build. It contains dependencies for your site such as theme and plugins.

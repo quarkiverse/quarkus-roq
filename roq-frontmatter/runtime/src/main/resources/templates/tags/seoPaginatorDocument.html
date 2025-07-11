@@ -1,0 +1,10 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+{#if page.collection??}
+  <!-- SEO COLLECTION PAGES -->
+  {#if page.prevPage}
+  <link rel="prev" href="{page.prevPage.url.absolute}" />
+  {/if}
+  {#if page.nextPage}
+  <link rel="next" href="{page.nextPage.url.absolute}" />
+  {/if}
+{/if}
