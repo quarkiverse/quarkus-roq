@@ -15,7 +15,14 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Set Asciidoctorj attributes
+Defines the AsciidoctorJ attributes to be applied during rendering.
+
+Default values:
+
+ - `relfileprefix=../`
+ - `relfilesuffix=/`
+ - `noheader=true`
+ - `showtitle=true`
 
 
 ifdef::add-copy-button-to-env-var[]

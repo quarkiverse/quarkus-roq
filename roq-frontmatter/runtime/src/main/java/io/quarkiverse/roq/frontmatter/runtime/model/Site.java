@@ -3,10 +3,7 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 import static io.quarkiverse.roq.frontmatter.runtime.model.Page.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.model.Page.resolvePublicFile;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,6 +38,7 @@ public final class Site {
     private final LazyValue<Map<String, DocumentPage>> documentsById;
     private final NormalPage page;
     private final Map<Page, String> pageContentCache = new ConcurrentHashMap<>();
+    private final List<Page> allPages;
 
     /**
      * @param url the Roq site url to the index page
@@ -56,10 +54,15 @@ public final class Site {
         this.data = data;
         this.pages = pages;
         this.collections = collections;
-        this.page = pages.stream().filter(p -> p.info().isSiteIndex()).findFirst().get();
+        this.page = pages.stream().filter(p -> p.info().isSiteIndex()).findFirst().orElseThrow();
         this.pagesById = new LazyValue<>(() -> pages.stream().collect(Collectors.toMap(NormalPage::id, Function.identity())));
         this.documentsById = new LazyValue<>(() -> collections().collections().values().stream()
                 .flatMap(Collection::stream).collect(Collectors.toMap(DocumentPage::id, Function.identity(), (a, b) -> a)));
+        this.allPages = getAllPages(pages, collections);
+    }
+
+    public List<Page> allPages() {
+        return allPages;
     }
 
     public static Site getBeanInstance() {
@@ -260,32 +263,38 @@ public final class Site {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null || obj.getClass() != this.getClass())
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
             return false;
-        var that = (Site) obj;
-        return Objects.equals(this.url, that.url) &&
-                Objects.equals(this.imagesDir, that.imagesDir) &&
-                Objects.equals(this.data, that.data) &&
-                Objects.equals(this.pages, that.pages) &&
-                Objects.equals(this.collections, that.collections);
+        Site site = (Site) o;
+        return Objects.equals(url, site.url) && Objects.equals(imagesDir, site.imagesDir) && Objects.equals(data, site.data)
+                && Objects.equals(collections, site.collections) && Objects.equals(page, site.page)
+                && Objects.equals(pageContentCache, site.pageContentCache) && Objects.equals(allPages, site.allPages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url, imagesDir, data, pages, collections);
+        return Objects.hash(url, imagesDir, data, page, pageContentCache, allPages);
     }
 
     @Override
     public String toString() {
-        return "Site[" +
-                "url=" + url + ", " +
-                "imagesDirUrl=" + imagesDir + ", " +
-                "data=" + data + ", " +
-                "pages=" + pages + ", " +
-                "collections=" + collections + ']';
+        return new StringJoiner(", ", Site.class.getSimpleName() + "[", "]")
+                .add("url=" + url)
+                .add("imagesDir='" + imagesDir + "'")
+                .add("data=" + data)
+                .add("page=" + page)
+                .add("pageContentCache=" + pageContentCache)
+                .add("allPages=" + allPages)
+                .toString();
+    }
+
+    private static ArrayList<Page> getAllPages(List<NormalPage> pages, RoqCollections collections) {
+        final ArrayList<Page> allPages = new ArrayList<>(pages);
+        for (RoqCollection value : collections.collections().values()) {
+            allPages.addAll(value);
+        }
+        return allPages;
     }
 
 }

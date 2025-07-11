@@ -1,7 +1,7 @@
----
-title: Roq the basics
-layout: doc
----
+= Roq the basics
+
+:page-layout: doc
+
 {#include partials/doc/doc-attributes.adoc/}
 
 {#include partials/doc/edit-contrib.adoc name="basics" /}

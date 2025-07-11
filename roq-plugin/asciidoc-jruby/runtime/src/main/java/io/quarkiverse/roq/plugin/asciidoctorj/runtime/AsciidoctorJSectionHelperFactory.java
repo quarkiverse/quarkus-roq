@@ -1,20 +1,16 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver.TEMPLATE_PATH;
+
+import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import jakarta.inject.Inject;
 
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
-import io.quarkus.qute.CompletedStage;
-import io.quarkus.qute.EngineConfiguration;
-import io.quarkus.qute.RawString;
-import io.quarkus.qute.ResultNode;
-import io.quarkus.qute.SectionHelper;
-import io.quarkus.qute.SectionHelperFactory;
-import io.quarkus.qute.SingleResultNode;
-import io.quarkus.qute.TemplateExtension;
+import io.quarkus.qute.*;
+import io.quarkus.qute.TemplateExtension.TemplateAttribute;
 
 @EngineConfiguration
 public class AsciidoctorJSectionHelperFactory
@@ -22,12 +18,9 @@ public class AsciidoctorJSectionHelperFactory
 
     private static final LazyValue<AsciidoctorJConverter> CONVERTER = new LazyValue<>(
             () -> Arc.container().instance(AsciidoctorJConverter.class).get());
-
     private final AsciidoctorJConverter converter;
 
     public AsciidoctorJSectionHelperFactory() {
-        // This constructor is only used during build
-        // where the converter is not used at all
         this.converter = null;
     }
 
@@ -42,30 +35,25 @@ public class AsciidoctorJSectionHelperFactory
     }
 
     @Override
-    public AsciidocSectionHelper initialize(SectionInitContext context) {
-        return new AsciidocSectionHelper(converter);
-    }
-
-    @TemplateExtension(matchNames = { "asciidocify", "asciidocToHtml" })
-    static RawString convertToAsciidoc(String text, String ignoredName) {
-        return new RawString(CONVERTER.get().apply(text));
-    }
-
-    public static class AsciidocSectionHelper implements SectionHelper {
-
-        private final AsciidoctorJConverter converter;
-
-        public AsciidocSectionHelper(AsciidoctorJConverter converter) {
-            this.converter = converter;
-        }
-
-        @Override
-        public CompletionStage<ResultNode> resolve(SectionResolutionContext context) {
+    public AsciidocSectionHelper initialize(SectionInitContext c) {
+        return (SectionHelper.SectionResolutionContext context) -> {
             return context.execute().thenCompose(rn -> {
                 StringBuilder sb = new StringBuilder();
                 rn.process(sb::append);
-                return CompletedStage.of(new SingleResultNode(converter.apply(sb.toString())));
+                return CompletedStage.of(
+                        new SingleResultNode(
+                                converter.apply((Path) context.resolutionContext().getAttribute(TEMPLATE_PATH),
+                                        sb.toString())));
             });
-        }
+        };
+    }
+
+    @TemplateExtension(matchNames = { "asciidocify", "asciidocToHtml" })
+    static RawString convertToAsciidoc(String text, String ignoredName, @TemplateAttribute(TEMPLATE_PATH) Object templatePath) {
+        return new RawString(CONVERTER.get().apply((Path) templatePath, text));
+    }
+
+    public interface AsciidocSectionHelper extends SectionHelper {
+
     }
 }
