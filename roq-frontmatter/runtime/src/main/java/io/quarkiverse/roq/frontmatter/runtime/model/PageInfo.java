@@ -35,6 +35,10 @@ public record PageInfo(
         String rawContent,
 
         /**
+         * The absolute path of the source file (it may not be mounted)
+         */
+        String absoluteSourceFilePath,
+        /**
          * The path of the source file (e.g posts/my-favorite-beer.md)
          */
         String sourceFilePath,
@@ -62,23 +66,25 @@ public record PageInfo(
             boolean draft,
             String dateString,
             String rawContent,
+            String absoluteSourceFilePath,
             String sourcePath,
             String quteTemplateId,
             PageFiles files,
             boolean isHtml,
             boolean isSiteIndex) {
-        return new PageInfo(id, draft, dateString, rawContent, sourcePath, quteTemplateId, files,
+        return new PageInfo(id, draft, dateString, rawContent, absoluteSourceFilePath, sourcePath, quteTemplateId, files,
                 isHtml, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
         // We don't copy the site index files
-        return new PageInfo(id, draft(), dateString(), rawContent(), sourceFilePath(),
+        return new PageInfo(id, draft(), dateString(), rawContent(), absoluteSourceFilePath(), sourceFilePath(),
                 generatedTemplateId(), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public PageInfo changeIds(Function<String, String> function) {
         return new PageInfo(function.apply(id()), draft(), dateString(), rawContent(),
+                absoluteSourceFilePath(),
                 sourceFilePath(),
                 function.apply(generatedTemplateId()), isSiteIndex() ? null : files(), isHtml(), false);
     }

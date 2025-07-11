@@ -1,7 +1,6 @@
----
-title: Themes
-layout: doc
----
+= Themes
+
+:page-layout: doc
 
 {#include partials/doc/doc-attributes.adoc/}
 

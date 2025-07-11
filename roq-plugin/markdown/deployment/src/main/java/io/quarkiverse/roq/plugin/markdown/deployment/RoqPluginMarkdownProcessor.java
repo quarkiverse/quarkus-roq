@@ -7,7 +7,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 public class RoqPluginMarkdownProcessor {
-
+    private static final Set<String> APPLICABLE_EXTENSIONS = Set.of("md", "markdown");
     private static final String FEATURE = "roq-plugin-markdown";
 
     @BuildStep
@@ -17,7 +17,7 @@ public class RoqPluginMarkdownProcessor {
 
     @BuildStep
     RoqFrontMatterQuteMarkupBuildItem markup() {
-        return new RoqFrontMatterQuteMarkupBuildItem(Set.of("md", "markdown"),
+        return new RoqFrontMatterQuteMarkupBuildItem("markdown", c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()),
                 new RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection("{#markdown}", "{/markdown}"));
     }
 
