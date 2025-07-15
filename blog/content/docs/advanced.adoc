@@ -478,6 +478,8 @@ public class RoqSiteTest {
 
 The RestAssured port will automatically use the Roq static server, running on port 8082 by default.
 
+TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=8082)`.
+
 == Updating Roq
 
 Make sure your https://quarkus.io/guides/cli-tooling[Quarkus cli] is up-to-date:
