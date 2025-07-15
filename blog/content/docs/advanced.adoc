@@ -468,19 +468,26 @@ public class RoqSiteTest {
     public void testIndex() {
         RestAssured.when().get("/")
                 .then()
-                .statusCode(200);
+                .statusCode(200)
+                .body(containsString(
+                    "Ready to Roq my world!"
+                ));
     }
 }
 ----
 
-=== Content Detail Test Example
-To go even further, you can test the actual content details of your generated site. The RestAssured port will automatically use the Roq static server. Here's how:
+The RestAssured port will automatically use the Roq static test server, running on port 8082 by default.
 
+TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=8082)`.
+
+=== Default Quarkus Test Example
+It's possible to use the default Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then it will be rendered at runtime on a dynamic web server instead only:
+
+.src/test/java/QuateWebSiteTest.java
 [source,java]
 ----
 @QuarkusTest
-@RoqAndRoll
-public class RoqSiteTest {
+public class QuteWebSiteTest {
 
     @Test
     public void testIndex() {
@@ -493,6 +500,8 @@ public class RoqSiteTest {
     }
 }
 ----
+
+In this case the RestAssured port will automatically use the Quarkus dynamic test server, running on port 8081 by default.
 
 == Updating Roq
 
