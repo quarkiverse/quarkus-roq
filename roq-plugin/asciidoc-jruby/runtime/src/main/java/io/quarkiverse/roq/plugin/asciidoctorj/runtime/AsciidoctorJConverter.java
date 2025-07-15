@@ -13,46 +13,71 @@ import org.asciidoctor.*;
 import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+
 @Singleton
 public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
 
     private final Asciidoctor asciidoctor;
-    private final Options options;
+    private final AsciidoctorJConfig config;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
+        this.config = config;
         asciidoctor.requireLibrary("asciidoctor-diagram");
+        LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
+
+    }
+
+    public Options createOptions(RoqTemplateAttributes templateAttributes) {
         final AttributesBuilder attributes = Attributes.builder()
                 .showTitle(true)
+                .attribute("sitegen", "roq")
                 .attribute("relfileprefix", "../")
                 .attribute("relfilesuffix", "/")
                 .attribute("noheader", true);
+        if (templateAttributes.pageUrl() != null) {
+            attributes.attribute("page-url", templateAttributes.pageUrl());
+        }
+        if (templateAttributes.pagePath() != null) {
+            attributes.attribute("page-path", templateAttributes.pagePath());
+        }
+        if (templateAttributes.siteUrl() != null) {
+            attributes.attribute("site-url", templateAttributes.siteUrl());
+        }
+        if (templateAttributes.sitePath() != null) {
+            attributes.attribute("site-path", templateAttributes.sitePath());
+        }
         config.attributes().forEach(attributes::attribute);
-        final Path templateDir = Paths.get(config.templatesDir());
+        final Path templatesDir = Paths.get(config.templatesDir());
         final OptionsBuilder optionsBuilder = Options.builder();
-        if (Files.isDirectory(templateDir)) {
-            optionsBuilder.templateDirs(templateDir.toAbsolutePath().toFile());
+        if (Files.isDirectory(templatesDir)) {
+            optionsBuilder.templateDirs(templatesDir.toAbsolutePath().toFile());
             optionsBuilder.standalone(true);
         } else {
             optionsBuilder.standalone(false);
         }
-        options = optionsBuilder
+        if (templateAttributes.sourcePath() != null) {
+            Path templateDir = Paths.get(templateAttributes.sourcePath()).getParent();
+            if (Files.isDirectory(templateDir)) {
+                optionsBuilder.baseDir(templateDir.toFile());
+            }
+        }
+        return optionsBuilder
                 .safe(SafeMode.SAFE)
                 .backend("html5")
                 .attributes(attributes.build())
                 .build();
-        LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
     }
 
-    public String apply(Path templatePath, String asciidoc) {
-        if (templatePath != null && Files.isDirectory(templatePath.getParent())) {
-            options.setBaseDir(templatePath.getParent().toString());
-        }
+    public String apply(String asciidoc,
+            RoqTemplateAttributes attributes) {
+        Options options = createOptions(attributes);
         // Cleaning the content from global indentation is necessary because
         // AsciiDoc content is not supposed to be indented globally
         // In Qute context it might often be indented

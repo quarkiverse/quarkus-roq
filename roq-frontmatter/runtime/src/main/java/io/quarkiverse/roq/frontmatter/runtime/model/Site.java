@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.resolveGeneratedContentTemplateId;
 import static io.quarkiverse.roq.frontmatter.runtime.model.Page.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.model.Page.resolvePublicFile;
 
@@ -17,6 +18,7 @@ import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -85,7 +87,7 @@ public final class Site {
 
     /**
      * Get the site default image from the public image dir.
-     *
+     * <p>
      * The image name is defined in the FM data with key `image` (or `img` or `picture`).
      *
      * @return the {@link RoqUrl} of the image or null if it is not defined.
@@ -249,7 +251,12 @@ public final class Site {
         try {
             return pageContentCache.computeIfAbsent(page, p -> {
                 final Engine engine = Arc.container().instance(Engine.class).get();
-                return engine.parse(p.rawContent()).render(Map.of(
+                final String id = resolveGeneratedContentTemplateId(page.info().generatedTemplateId());
+                final Template template = engine.getTemplate(id);
+                if (template == null) {
+                    return "";
+                }
+                return template.render(Map.of(
                         "page", p,
                         "site", this));
 

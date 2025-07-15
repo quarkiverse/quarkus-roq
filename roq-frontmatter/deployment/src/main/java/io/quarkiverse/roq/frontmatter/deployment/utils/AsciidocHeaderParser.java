@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.utils;
 
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.ESCAPE_KEY;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,11 +18,15 @@ public class AsciidocHeaderParser {
     public record Header(String title, String author, Map<String, Object> attributes) {
     }
 
-    public static RoqFrontMatterHeaderParserBuildItem createBuildItem(Predicate<TemplateContext> isApplicable) {
+    public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean escape, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             try {
                 Header header = parseHeader(templateContext.content());
-                return toPageData(header);
+                final JsonObject pageData = toPageData(header);
+                if (!pageData.containsKey(ESCAPE_KEY)) {
+                    pageData.put(ESCAPE_KEY, escape);
+                }
+                return pageData;
             } catch (IOException e) {
                 throw new RoqFrontMatterReadingException(
                         "Error reading AsciiDoc Attributes block in file: %s".formatted(templateContext.templatePath()));

@@ -1,0 +1,104 @@
+= Getting started with Quarkus Roq
+include::_includes/attributes.adoc[]
+:!toc:
+:page-escape: false
+:page-aliases: /docs
+:page-description: Getting started with Quarkus Roq
+
+Roq allows to easily create a static website or blog using Quarkus super-powers.
+
+In this video, we initialise the repository and set up GitHub Pages, discover a few basics and create a new blog post.
+
+++++
+<div class="video-wrapper">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/fWBFqbQusbs?si=wQ2EpqyT9PEhHdju" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+++++
+
+[#generate]
+== Get up and running with Roq
+
+
+1. 👉 *Install* the https://quarkus.io/guides/cli-tooling[Quarkus CLI,window=_blank].
+2. 🚀 **Generate the starter app** using the CLI (you can change the name), or via https://code.quarkus.io/?a=roq-with-blog&e=io.quarkiverse.roq%3Aquarkus-roq[code.quarkus.io,window=_blank]
++
+[source,shell]
+----
+quarkus create app roq-with-blog -x=io.quarkiverse.roq:quarkus-roq
+----
+
+3. 🎮 *start dev-mode*:
++
+[source,shell]
+----
+cd roq-with-blog
+quarkus dev
+----
+
+4. 💻 Your site is available on *link:http://localhost:8080[localhost,window=_blank]* for dev
+5. 🍾 Time to **xref:basics.adoc[Roq the basics]**!
+6. ☀️ If you found some happiness with Roq, please support us:
++
+++++
+<br/>
+<a class="github-button" href="https://github.com/quarkiverse/quarkus-roq" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star quarkiverse/quarkus-roq on GitHub">Star</a>
+++++
+
+
+== How it works
+
+// https://excalidraw.com/#json=zLN7CGLyb0s1QAs0V_kXh,DHTH94LaPVtZHRI-nnRpxg
+image::roq-how-it-works.png[Roq - How it works]
+
+== Advantages of Roq
+
+Knowing that *you don't need to learn Quarkus or Java* to use Roq, consider the following advantages:
+
+1. *Quarkus-based*:
+Since Roq is just a very thin layer on top of Quarkus, it ensures that the tool stays up to date and benefits from the robust support provided by the Quarkus ecosystem.
+
+2. *For everyone*:
+It is very easy to use with any level of knowledge. You can start with an existing theme (as a dependency) and only write Markdown or Asciidoc content, or customize everything.
+
+3. *Reproducibility Across Platforms*:
+Unlike some other SSG, Roq offers better reproducibility across multiple platforms, ensuring more consistent and predictable results when building or deploying.
+
+4. *Easy to maintain*:
+Managing dependencies and updates is easier with Roq thanks to Maven and Gradle. Other systems such as Go or Ruby can be difficult to maintain and make reproducible across environments.
+
+5. *Speed*:
+Roq is using Quarkus for dev and build. Quarkus is famous for being supersonic and subatomic, with one example showing a Roq site build in just 20 milliseconds, greatly reducing build times compared to traditional generators.
+
+6. *Type Safety (via Qute templates)*:
+Roq leverages Quarkus Qute's type safety in templates and posts, making it easier to handle links, data injection, and other dynamic content with confidence.
+
+7. *Local Development Experience*:
+Roq provides a smoother local development experience without the need to "test in production," as is often necessary with other SSGs due to its difficulties in running locally.
+
+8. *Code Completion* (coming soon):
+Thanks to Qute, Roq offers code completion, which is beneficial when working in templates, helping to reduce errors and improve developer productivity.
+
+== The blog
+
+You may find a few interesting things in there, here are 3 random articles from our link:\{site-url}[blog].
+
+++++
+<br/>
+{#if site.collections.get('posts')}
+{#for post in site.collections.get('posts').randomise.take(3)}
+<article class="post">
+  {#if post.image}
+  <a class="post-thumbnail" style='background-image: url("{post.image}")' href="{post.url}"></a>
+  {/if}
+  <div class="post-content">
+    <h2 class="post-title"><a href="{post.url}">{post.title}</a></h2>
+    <p>{post.description}</p>
+    <span class="post-date">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>
+    <span class="post-words">
+      {post.readTime} minute(s) read
+    </span>
+  </div>
+</article>
+{/for}
+{/if}
+++++

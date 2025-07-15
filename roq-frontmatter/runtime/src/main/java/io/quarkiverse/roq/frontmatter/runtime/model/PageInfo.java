@@ -44,7 +44,7 @@ public record PageInfo(
         String sourceFilePath,
 
         /**
-         * The generated template path for Qute (e.g posts/my-favorite-beer.html)
+         * The generated template path for Qute (e.g roq-gen/posts/my-favorite-beer.html)
          */
         String generatedTemplateId,
 

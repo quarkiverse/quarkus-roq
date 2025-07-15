@@ -1,4 +1,0 @@
-:toc: macro
-:toc-title: Contents
-:sectanchors: true
-:toclevels: 1

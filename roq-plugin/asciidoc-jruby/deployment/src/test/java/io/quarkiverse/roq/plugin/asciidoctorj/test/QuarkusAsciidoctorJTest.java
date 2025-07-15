@@ -23,6 +23,11 @@ public class QuarkusAsciidoctorJTest {
                 }
 
                 @Override
+                public boolean escape() {
+                    return true;
+                }
+
+                @Override
                 public String templatesDir() {
                     return "src/main/asciidoc-templates";
                 }

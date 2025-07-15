@@ -25,6 +25,18 @@ public interface AsciidoctorJConfig {
     Map<String, String> attributes();
 
     /**
+     * Controls whether all AsciiDoc templates should be parsed by Qute.
+     * <p>
+     * When set to {@code true}, Qute will not parse AsciiDoc files,
+     * except those that have the {@code :page-escape: false} attribute in their header.
+     *
+     * <p>
+     * By default, Qute parsing is disabled for AsciiDoc templates.
+     */
+    @WithDefault("true")
+    boolean escape();
+
+    /**
      * Templates directory for Asciidoctorj
      */
     @WithDefault("src/main/asciidoc-templates")

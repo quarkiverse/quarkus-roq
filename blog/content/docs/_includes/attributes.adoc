@@ -1,0 +1,7 @@
+:toc: macro
+:toc-title: Contents
+:sectanchors: true
+:toclevels: 1
+:idprefix:
+:idseparator: -
+:imagesdir: {site-path}images/docs

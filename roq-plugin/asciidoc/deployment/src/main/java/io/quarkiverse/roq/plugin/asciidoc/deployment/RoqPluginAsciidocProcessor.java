@@ -5,6 +5,7 @@ import java.util.Set;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.utils.AsciidocHeaderParser;
+import io.quarkiverse.roq.plugin.asciidoc.runtime.AsciidocConfig;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
@@ -26,8 +27,8 @@ public class RoqPluginAsciidocProcessor {
     }
 
     @BuildStep
-    RoqFrontMatterHeaderParserBuildItem header() {
-        return AsciidocHeaderParser.createBuildItem(c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
+    RoqFrontMatterHeaderParserBuildItem header(AsciidocConfig config) {
+        return AsciidocHeaderParser.createBuildItem(config.escape(), c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
     }
 
 }

@@ -1,0 +1,141 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-dir[`quarkus.roq.dir`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Path to the Roq directory (relative to the project root).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-resource-dir[`quarkus.roq.resource-dir`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.resource-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Path to the Roq directory in the resources.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_RESOURCE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_RESOURCE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties[`quarkus.roq.jackson.fail-on-unknown-properties`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.jackson.fail-on-unknown-properties+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If enabled, Jackson will fail when encountering unknown properties.
+
+You can still override it locally with `@JsonIgnoreProperties(ignoreUnknown = false)`.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_JACKSON_FAIL_ON_UNKNOWN_PROPERTIES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_UNKNOWN_PROPERTIES+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`true`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans[`quarkus.roq.jackson.fail-on-empty-beans`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.jackson.fail-on-empty-beans+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If enabled, Jackson will fail when no accessors are found for a type. This is enabled by default to match the default Jackson behavior.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_JACKSON_FAIL_ON_EMPTY_BEANS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_EMPTY_BEANS+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`true`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums[`quarkus.roq.jackson.accept-case-insensitive-enums`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.jackson.accept-case-insensitive-enums+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If enabled, Jackson will ignore case during Enum deserialization.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_JACKSON_ACCEPT_CASE_INSENSITIVE_ENUMS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_JACKSON_ACCEPT_CASE_INSENSITIVE_ENUMS+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-property-naming-strategy]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-property-naming-strategy[`quarkus.roq.jackson.property-naming-strategy`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.jackson.property-naming-strategy+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Defines how names of JSON properties ("external names") are derived from names of POJO methods and fields ("internal names"). The value can be one of the one of the constants in `com.fasterxml.jackson.databind.PropertyNamingStrategies`, so for example, `LOWER_CAMEL_CASE` or `UPPER_CAMEL_CASE`.
+
+The value can also be a fully qualified class name of a `com.fasterxml.jackson.databind.PropertyNamingStrategy` subclass.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_JACKSON_PROPERTY_NAMING_STRATEGY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_JACKSON_PROPERTY_NAMING_STRATEGY+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+|===
+

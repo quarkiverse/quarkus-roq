@@ -6,6 +6,7 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParser
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateContext;
 import io.quarkiverse.roq.frontmatter.deployment.utils.AsciidocHeaderParser;
+import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConfig;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJSectionHelperFactory;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -35,8 +36,8 @@ public class RoqPluginAsciidoctorJProcessor {
     }
 
     @BuildStep
-    RoqFrontMatterHeaderParserBuildItem header() {
-        return AsciidocHeaderParser.createBuildItem(c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
+    RoqFrontMatterHeaderParserBuildItem header(AsciidoctorJConfig config) {
+        return AsciidocHeaderParser.createBuildItem(config.escape(), c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
     }
 
     @BuildStep

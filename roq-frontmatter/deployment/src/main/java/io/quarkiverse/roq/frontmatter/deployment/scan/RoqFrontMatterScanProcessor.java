@@ -4,6 +4,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeade
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.resolveHeaderParsers;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 import static java.util.function.Predicate.not;
@@ -65,12 +66,9 @@ public class RoqFrontMatterScanProcessor {
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     private static final String LAYOUT_KEY = "layout";
-    private static final String ESCAPE_KEY = "escape";
+    public static final String ESCAPE_KEY = "escape";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
-    public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-gen/";
-    public static final String LAYOUTS_DIR = "layouts";
-    public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
 
     // We might need to allow plugins to contribute to this at some point
@@ -141,6 +139,7 @@ public class RoqFrontMatterScanProcessor {
                                 item.data(),
                                 item.collection(),
                                 item.generatedTemplate(),
+                                item.generatedContentTemplate(),
                                 item.published(),
                                 item.attachments()));
                     }
@@ -165,7 +164,7 @@ public class RoqFrontMatterScanProcessor {
         dataProducer.produce(item);
     }
 
-    private static String removeThemePrefix(String id) {
+    public static String removeThemePrefix(String id) {
         return id.replace(getLayoutsDir(TemplateType.THEME_LAYOUT), getLayoutsDir(TemplateType.LAYOUT));
     }
 
@@ -434,8 +433,10 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
                     templateContext);
             String cleanPath = replaceWhitespaceChars(sourcePath);
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(cleanPath)
+            final String templatePath = removeExtension(cleanPath)
                     + resolveOutputExtension(markup != null, templateContext);
+            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + templatePath;
+            String quteContentTemplatePath = ROQ_GENERATED_CONTENT_QUTE_PREFIX + templatePath;
             boolean published = type.isPage();
             String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
             final boolean isHtml = isPageTargetHtml(file);
@@ -512,6 +513,7 @@ public class RoqFrontMatterScanProcessor {
                     isSiteIndex);
 
             items.add(new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, data, collection, generatedTemplate,
+                    contentWithMarkup,
                     published, attachments));
 
         };
