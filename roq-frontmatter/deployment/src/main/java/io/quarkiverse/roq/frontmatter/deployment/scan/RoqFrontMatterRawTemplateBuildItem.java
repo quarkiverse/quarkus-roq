@@ -40,9 +40,14 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final ConfiguredCollection collection;
 
     /**
-     * The generated template content to be passed to be passed to Qute.
+     * The generated Qute template with the layout include
      */
     private final String generatedTemplate;
+
+    /**
+     * The generated Qute template with just the content (without the layout include)
+     */
+    private final String generatedContentTemplate;
 
     /**
      * Should this template be published (published templates can be available in the data, but hidden from routing).
@@ -56,7 +61,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public RoqFrontMatterRawTemplateBuildItem(PageInfo info, String layout, TemplateType type, JsonObject data,
             ConfiguredCollection collection,
-            String generatedTemplate,
+            String generatedTemplate, String generatedContentTemplate,
             boolean published, List<Attachment> attachments) {
         this.info = info;
         this.layout = layout;
@@ -64,6 +69,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         this.data = data;
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
+        this.generatedContentTemplate = generatedContentTemplate;
         this.published = published;
         this.attachments = attachments;
     }
@@ -106,6 +112,10 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public String generatedTemplate() {
         return generatedTemplate;
+    }
+
+    public String generatedContentTemplate() {
+        return generatedContentTemplate;
     }
 
     public boolean published() {

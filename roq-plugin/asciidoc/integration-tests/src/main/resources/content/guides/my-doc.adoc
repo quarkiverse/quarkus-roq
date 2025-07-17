@@ -1,0 +1,34 @@
+////
+This guide is maintained in the main Quarkus repository
+and pull requests should be submitted there:
+https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
+////
+= Getting Started to Quarkus Messaging with AMQP 1.0
+include::_attributes.adoc[]
+:categories: messaging
+:summary: This guide demonstrates how your Quarkus application can utilize Quarkus Messaging to interact with AMQP.
+:extensions: io.quarkus:quarkus-messaging-amqp
+:topics: messaging,amqp
+
+This guide demonstrates how your Quarkus application can utilize Quarkus Messaging to interact with AMQP 1.0.
+
+IMPORTANT: If you want to use RabbitMQ, you should use the xref:rabbitmq.adoc[Quarkus Messaging RabbitMQ extension].
+Alternatively, if you want to use RabbitMQ with AMQP 1.0 you need to enable the AMQP 1.0 plugin in the RabbitMQ broker;
+check the https://smallrye.io/smallrye-reactive-messaging/smallrye-reactive-messaging/3.9/amqp/amqp.html#amqp-rabbitmq[connecting to RabbitMQ]
+documentation.
+
+== Prerequisites
+
+:prerequisites-docker-compose:
+include::{includes}/prerequisites.adoc[]
+
+== Architecture
+
+In this guide, we are going to develop two applications communicating with an AMQP broker.
+We will use https://activemq.apache.org/components/artemis/[Artemis], but you can use any AMQP 1.0 broker.
+The first application sends a _quote request_ to an AMQP queue and consumes messages from the _quote_ queue.
+The second application receives the _quote request_ and sends a _quote_ back.
+
+image::iamroq.png[alt=Architecture, align=center,width=80%]
+
+xref:another-doc.adoc[Another Doc]

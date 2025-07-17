@@ -1,0 +1,75 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-dir]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-dir[`quarkus.roq.data.dir`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data.dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The location of the Roq data files relative to the quarkus.roq.dir.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`data`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-enforce-bean]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-enforce-bean[`quarkus.roq.data.enforce-bean`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data.enforce-bean+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Whether to enforce the use of a bean for each data file.  +
+With this option enabled, when a record is annotated with `DataMapping`, a bean will be created and populated with the data from the file.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA_ENFORCE_BEAN+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA_ENFORCE_BEAN+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-log-data-beans]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-log-data-beans[`quarkus.roq.data.log-data-beans`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data.log-data-beans+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Log data beans as info during build
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA_LOG_DATA_BEANS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA_LOG_DATA_BEANS+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`true`
+
+|===
+

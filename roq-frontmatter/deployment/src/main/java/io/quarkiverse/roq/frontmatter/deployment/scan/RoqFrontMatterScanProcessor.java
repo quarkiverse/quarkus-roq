@@ -1,7 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.toWrapperFilters;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.resolveHeaderParsers;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 import static java.util.function.Predicate.not;
@@ -63,12 +66,9 @@ public class RoqFrontMatterScanProcessor {
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     private static final String LAYOUT_KEY = "layout";
-    private static final String ESCAPE_KEY = "escape";
+    public static final String ESCAPE_KEY = "escape";
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
-    public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-gen/";
-    public static final String LAYOUTS_DIR = "layouts";
-    public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
     public static final String TEMPLATES_DIR = "templates";
 
     // We might need to allow plugins to contribute to this at some point
@@ -87,15 +87,22 @@ public class RoqFrontMatterScanProcessor {
         }));
     }
 
-    private static Predicate<String> isPageEscaped(RoqSiteConfig config) {
-        return path -> config.escapedPages().orElse(List.of()).stream()
-                .anyMatch(s -> Path.of("").getFileSystem().getPathMatcher("glob:" + s)
-                        .matches(Path.of(path)));
+    @BuildStep
+    RoqFrontMatterHeaderParserBuildItem registerFrontMatterParse(RoqJacksonBuildItem jackson) {
+        return new RoqFrontMatterHeaderParserBuildItem(templateContext -> hasFrontMatter(templateContext.content()), c -> {
+            try {
+                return readFM(jackson.getYamlMapper(), c.content());
+            } catch (JsonProcessingException | IllegalArgumentException e) {
+                throw new RoqFrontMatterReadingException(
+                        "Error reading YAML FrontMatter block (enclosed by '---') in file: %s".formatted(c.templatePath()));
+            }
+        }, RoqFrontMatterScanProcessor::stripFrontMatter, FRONTMATTER_HEADER_PARSER_PRIORITY);
     }
 
     @BuildStep
     void scan(RoqProjectBuildItem roqProject,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             RoqJacksonBuildItem jackson,
             QuteConfig quteConfig,
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
@@ -108,10 +115,10 @@ public class RoqFrontMatterScanProcessor {
         try {
             dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             List<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject,
-                    jackson.getYamlMapper(),
                     quteConfig,
                     siteConfig,
-                    toWrapperFilters(markupList),
+                    markupList,
+                    headerParserList,
                     watch,
                     dataModifications,
                     templatePathProducer,
@@ -132,6 +139,7 @@ public class RoqFrontMatterScanProcessor {
                                 item.data(),
                                 item.collection(),
                                 item.generatedTemplate(),
+                                item.generatedContentTemplate(),
                                 item.published(),
                                 item.attachments()));
                     }
@@ -144,38 +152,45 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
+    private static Predicate<String> isPageEscaped(RoqSiteConfig config) {
+        return path -> config.escapedPages().orElse(List.of()).stream()
+                .anyMatch(s -> Path.of("").getFileSystem().getPathMatcher("glob:" + s)
+                        .matches(Path.of(path)));
+    }
+
     private static void produceRawTemplate(BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             RoqFrontMatterRawTemplateBuildItem item) {
         LOGGER.debugf("Roq is producing a raw template '%s'", item.info().generatedTemplateId());
         dataProducer.produce(item);
     }
 
-    private static String removeThemePrefix(String id) {
+    public static String removeThemePrefix(String id) {
         return id.replace(getLayoutsDir(TemplateType.THEME_LAYOUT), getLayoutsDir(TemplateType.LAYOUT));
     }
 
     public List<RoqFrontMatterRawTemplateBuildItem> resolveItems(RoqProjectBuildItem roqProject,
-            YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, WrapperFilter> markups,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
-        roqProject.consumeRoqDir(createRoqDirConsumer(mapper, quteConfig, config, markups, watch, dataModifications,
-                staticFilesProducer, templatePathProducer, items));
+        roqProject.consumeRoqDir(
+                createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
+                        staticFilesProducer, templatePathProducer, items));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
                 t -> {
-                    scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items,
+                    scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
                             t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.LAYOUT);
-                    scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items,
+                    scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
                             t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.THEME_LAYOUT);
@@ -185,7 +200,8 @@ public class RoqFrontMatterScanProcessor {
         roqProject.consumePathFromRoqResourceDir(config.contentDir(),
                 l -> {
                     watchResourceDir(watch, l);
-                    scanContent(mapper, quteConfig, config, markups, watch, dataModifications, items, l.getPath().getParent(),
+                    scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
+                            l.getPath().getParent(),
                             l.getPath());
                 });
 
@@ -195,7 +211,7 @@ public class RoqFrontMatterScanProcessor {
             templateRootProducer.produce(new TemplateRootBuildItem(PathUtils.join(roqProject.roqResourceDir(), TEMPLATES_DIR)));
             // and scan for layouts in this directory
             roqProject.consumePathFromRoqResourceDir(TEMPLATES_DIR,
-                    l -> scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items,
+                    l -> scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
                             l.getPath().getParent(), l.getPath(),
                             TemplateType.LAYOUT));
         }
@@ -203,11 +219,11 @@ public class RoqFrontMatterScanProcessor {
         return items;
     }
 
-    private static Consumer<Path> createRoqDirConsumer(YAMLMapper mapper,
+    private static Consumer<Path> createRoqDirConsumer(
             QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, WrapperFilter> markups,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
@@ -222,17 +238,19 @@ public class RoqFrontMatterScanProcessor {
             watchDirectory(templatesDir, watch);
             scanTemplates(quteConfig, config, watch, templatePathProducer, templatesDir);
             // No need to ignore the template as it's not a template root
-            scanLayouts(mapper, quteConfig, config, markups, watch, dataModifications, items, siteDir, templatesDir,
+            scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
+                    templatesDir,
                     TemplateType.LAYOUT);
             final Path contentDir = siteDir.resolve(config.contentDir());
             watchDirectory(contentDir, watch);
-            scanContent(mapper, quteConfig, config, markups, watch, dataModifications, items, siteDir, contentDir);
+            scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
+                    contentDir);
         };
     }
 
-    private static void scanContent(YAMLMapper mapper, QuteConfig quteConfig, RoqSiteConfig config,
-            Map<String, WrapperFilter> markups,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+    private static void scanContent(QuteConfig quteConfig, RoqSiteConfig config,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications, List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
             Path contentDir) {
@@ -251,12 +269,12 @@ public class RoqFrontMatterScanProcessor {
                     .forEach(p -> {
                         final String dirName = contentDir.relativize(p).getName(0).toString();
                         if (collections.containsKey(dirName)) {
-                            addBuildItem(siteDir, contentDir, items, mapper, quteConfig, config, watch, markups,
-                                    dataModifications,
+                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch, markupList,
+                                    headerParserList, dataModifications,
                                     collections.get(dirName), TemplateType.DOCUMENT_PAGE).accept(p);
                         } else {
-                            addBuildItem(siteDir, contentDir, items, mapper, quteConfig, config, watch, markups,
-                                    dataModifications, null,
+                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch, markupList,
+                                    headerParserList, dataModifications, null,
                                     TemplateType.NORMAL_PAGE).accept(p);
                         }
                     });
@@ -291,11 +309,10 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
-    private static void scanLayouts(YAMLMapper mapper,
-            QuteConfig quteConfig,
+    private static void scanLayouts(QuteConfig quteConfig,
             RoqSiteConfig config,
-            Map<String, WrapperFilter> markups,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
@@ -310,9 +327,10 @@ public class RoqFrontMatterScanProcessor {
 
         // scan layouts and templates
         try (Stream<Path> stream = Files.walk(layoutsDir)) {
-            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, mapper, quteConfig, config,
+            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, quteConfig, config,
                     watch,
-                    markups,
+                    markupList,
+                    headerParserList,
                     dataModifications,
                     null,
                     type);
@@ -393,24 +411,16 @@ public class RoqFrontMatterScanProcessor {
             Path siteDir,
             Path contentDir,
             List<RoqFrontMatterRawTemplateBuildItem> items,
-            YAMLMapper mapper,
             QuteConfig quteConfig,
             RoqSiteConfig config,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            Map<String, WrapperFilter> markups,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             ConfiguredCollection collection,
             TemplateType type) {
         return file -> {
             String sourcePath = toUnixPath(contentDir.relativize(file).toString());
-            String cleanPath = replaceWhitespaceChars(sourcePath);
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + removeExtension(cleanPath)
-                    + resolveOutputExtension(markups, cleanPath);
-            boolean published = type.isPage();
-            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
-            final boolean isHtml = isPageTargetHtml(file);
-            var isIndex = isHtml && "index".equals(PathUtils.removeExtension(PathUtils.fileName(sourcePath)));
-            var isSiteIndex = isHtml && id.startsWith("index.");
             final String fullContent;
             try {
                 fullContent = Files.readString(file, StandardCharsets.UTF_8);
@@ -418,20 +428,30 @@ public class RoqFrontMatterScanProcessor {
                 throw new RoqSiteScanningException(
                         "Error while reading template file: %s".formatted(sourcePath), e);
             }
-            JsonObject fm;
+            TemplateContext templateContext = new TemplateContext(file, sourcePath, fullContent);
+            WrapperFilter markup = findMarkupFilter(markupList, templateContext);
+            List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
+                    templateContext);
+            String cleanPath = replaceWhitespaceChars(sourcePath);
+            final String templatePath = removeExtension(cleanPath)
+                    + resolveOutputExtension(markup != null, templateContext);
+            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + templatePath;
+            String quteContentTemplatePath = ROQ_GENERATED_CONTENT_QUTE_PREFIX + templatePath;
+            boolean published = type.isPage();
+            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
+            final boolean isHtml = isPageTargetHtml(file);
+            var isIndex = isHtml && "index".equals(PathUtils.removeExtension(PathUtils.fileName(sourcePath)));
+            var isSiteIndex = isHtml && id.startsWith("index.");
+
+            JsonObject data = new JsonObject();
             String content = fullContent;
-            if (hasFrontMatter(fullContent)) {
-                try {
-                    fm = readFM(mapper, fullContent);
-                } catch (JsonProcessingException | IllegalArgumentException e) {
-                    throw new RoqFrontMatterReadingException(
-                            "Error reading YAML FrontMatter block (enclosed by '---') in file: %s".formatted(sourcePath));
-                }
-                content = stripFrontMatter(fullContent);
-            } else {
-                fm = new JsonObject();
+
+            for (RoqFrontMatterHeaderParserBuildItem headerParser : headerParsers) {
+                data.mergeIn(headerParser.parse().apply(templateContext), true);
+                content = headerParser.removeHeader().apply(content);
             }
-            ZonedDateTime date = parsePublishDate(file, fm, config.dateFormat(), config.timeZone());
+
+            ZonedDateTime date = parsePublishDate(file, data, config.dateFormat(), config.timeZone());
             final boolean noFuture = !config.future() && (collection == null || !collection.future());
             ZonedDateTime now = ZonedDateTime.now();
             if (date != null && noFuture && date.isAfter(now)) {
@@ -445,22 +465,21 @@ public class RoqFrontMatterScanProcessor {
                     ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
                     : null;
             final String layoutId = normalizedLayout(config.theme(),
-                    fm.getString(LAYOUT_KEY),
+                    data.getString(LAYOUT_KEY),
                     defaultLayout);
 
             for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                fm = modification.modifier().modify(new SourceData(file, sourcePath, collection, type, fm));
+                data = modification.modifier().modify(new SourceData(file, sourcePath, collection, type, data));
             }
-            final boolean draft = fm.getBoolean(DRAFT_KEY, false);
+            final boolean draft = data.getBoolean(DRAFT_KEY, false);
             if (!config.draft() && draft) {
                 return;
             }
-            final WrapperFilter markupFilter = getMarkupFilter(markups, sourcePath);
-            final boolean escaped = fm.getBoolean(ESCAPE_KEY, false);
+            final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
             final WrapperFilter escapeFilter = getEscapeFilter(escaped);
             final WrapperFilter includeFilter = getIncludeFilter(layoutId);
-
-            final String contentWithMarkup = markupFilter.apply(escapeFilter.apply(content));
+            final String escapedContent = escapeFilter.apply(content);
+            final String contentWithMarkup = markup != null ? markup.apply(escapedContent) : escapedContent;
             final String generatedTemplate = includeFilter.apply(contentWithMarkup);
 
             List<Attachment> attachments = null;
@@ -484,6 +503,7 @@ public class RoqFrontMatterScanProcessor {
                     draft,
                     dateString,
                     contentWithMarkup,
+                    file.toAbsolutePath().toString(),
                     sourcePath,
                     quteTemplatePath,
                     attachments != null
@@ -492,9 +512,9 @@ public class RoqFrontMatterScanProcessor {
                     isHtml,
                     isSiteIndex);
 
-            items.add(
-                    new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, fm, collection, generatedTemplate,
-                            published, attachments));
+            items.add(new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, data, collection, generatedTemplate,
+                    contentWithMarkup,
+                    published, attachments));
 
         };
     }
@@ -642,12 +662,12 @@ public class RoqFrontMatterScanProcessor {
         return result;
     }
 
-    private static String resolveOutputExtension(Map<String, WrapperFilter> markups,
-            String fileName) {
-        if (find(markups, fileName, null) != null) {
+    private static String resolveOutputExtension(boolean markupFound,
+            TemplateContext templateContext) {
+        if (markupFound) {
             return ".html";
         }
-        final String extension = getExtension(fileName);
+        final String extension = templateContext.getExtension();
         if (extension == null) {
             return "";
         }

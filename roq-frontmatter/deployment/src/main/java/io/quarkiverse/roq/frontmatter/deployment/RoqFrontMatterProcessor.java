@@ -1,36 +1,19 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.LAYOUTS_DIR;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.ROQ_GENERATED_QUTE_PREFIX;
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.getExtension;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.isLayoutSourceTemplate;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.resolveGeneratedContentTemplateId;
+import static io.quarkiverse.roq.util.PathUtils.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
-import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
+import io.quarkiverse.roq.frontmatter.runtime.*;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
-import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
-import io.quarkiverse.roq.frontmatter.runtime.model.Page;
-import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
-import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
-import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
-import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
-import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
-import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -70,9 +53,15 @@ public class RoqFrontMatterProcessor {
                     .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplateId()).extensionInfo(FEATURE)
                             .content(item.generatedTemplate()).build());
             if (item.published()) {
+                // Add the template for just the content
+                final String contentTemplateId = resolveGeneratedContentTemplateId(item.info().generatedTemplateId());
+                templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
+                        .content(item.generatedContentTemplate()).build());
                 if (item.collection() != null) {
+                    docTemplates.add(contentTemplateId);
                     docTemplates.add(item.info().generatedTemplateId());
                 } else {
+                    pageTemplates.add(contentTemplateId);
                     pageTemplates.add(item.info().generatedTemplateId());
                 }
             } else {
@@ -82,8 +71,7 @@ public class RoqFrontMatterProcessor {
 
         // Setup type-safety for generate templates
         validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
-            if (c.getTemplateId().startsWith(LAYOUTS_DIR)
-                    && layoutTemplates.contains(ROQ_GENERATED_QUTE_PREFIX + c.getTemplateId())) {
+            if (isLayoutSourceTemplate(c.getTemplateId())) {
                 // Fixes https://github.com/quarkiverse/quarkus-roq/issues/530
                 c.addContentFilter(s -> "");
                 return;

@@ -1,0 +1,216 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-paths]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-paths[`quarkus.roq.generator.paths`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.paths+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The selected paths to include in the static website. The output path is generated automatically: paths ending with a slash are completed with index.html, while other paths remain unchanged. Glob syntax is authorized for non-dynamic resources (without query or path params)
+
+For dynamic paths selection, produce a `RoqSelection` in you app.
+
+```
+`&++#++64;Produces
+&++#++64;Singleton
+&++#++64;Transactional
+RoqSelection produce() ++{++
+    return new RoqSelection(List.of(
+            SelectedPath.builder().html("/roq?name=foo").build(),
+            SelectedPath.builder().html("/blog/hello/").build(),
+            SelectedPath.builder().path("/api/hello?name=foo").outputPath("/hello-foo.json").build()));`
+}
+```
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_PATHS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATHS+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|`/,/static/**`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-enabled]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-enabled[`quarkus.roq.generator.path-replace.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.path-replace.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Enable path character replace
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-allowed-regex]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-allowed-regex[`quarkus.roq.generator.path-replace.allowed-regex`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.path-replace.allowed-regex+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The regex of allowed characters for file names (other characters will be replaced), for example: `++[++^a-zA-Z0-9_++\\\\++/.++\\++-++]++`
+
+By default, all characters are unchanged.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ALLOWED_REGEX+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ALLOWED_REGEX+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`[^a-zA-Z0-9_\\/.\-]`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-replace-with]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-replace-with[`quarkus.roq.generator.path-replace.replace-with`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.path-replace.replace-with+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The character to use to replace characters which doesn't match the 'allowed-regex'
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_REPLACE_WITH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_REPLACE_WITH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`-`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-custom-paths-custom-paths]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-custom-paths-custom-paths[`quarkus.roq.generator.custom-paths."custom-paths"`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.custom-paths."custom-paths"+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+With this config you can configure the path to get content from AND also the output path that will be generated for it.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_CUSTOM_PATHS__CUSTOM_PATHS_+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_CUSTOM_PATHS__CUSTOM_PATHS_+++`
+endif::add-copy-button-to-env-var[]
+--
+|Map<String,String>
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-output-dir]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-output-dir[`quarkus.roq.generator.output-dir`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.output-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Output directory for the static website relative to the target directory
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_OUTPUT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_OUTPUT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`roq`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-batch]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-batch[`quarkus.roq.generator.batch`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.batch+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Build as a CLI to export the static website
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_BATCH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_BATCH+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-timeout]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-timeout[`quarkus.roq.generator.timeout`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.timeout+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Timeout for full generation in seconds
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_TIMEOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_TIMEOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|long
+|`60`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-request-retry]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-request-retry[`quarkus.roq.generator.request-retry`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.generator.request-retry+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+How many times should a request be retried
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_GENERATOR_REQUEST_RETRY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_GENERATOR_REQUEST_RETRY+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`10`
+
+|===
+
