@@ -29,3 +29,20 @@ ifdef::prerequisites-graalvm-mandatory[]
 * Mandrel or GraalVM installed and xref:building-native-image.adoc#configuring-graalvm[configured appropriately]
 endif::[]
 endif::[]
+
+include::_includes/hello.adoc[]
+
+## Lvel Offset
+
+include::_includes/special.adoc[leveloffset=+2"]
+
+
+## Lines
+
+include::_includes/special.adoc[leveloffset=+2,lines="1..2,15..20"]
+
+## Tags:
+
+include::_includes/tags.adoc[tags=snippets]
+
+include::_includes/tags.adoc[tags=snippet-a]

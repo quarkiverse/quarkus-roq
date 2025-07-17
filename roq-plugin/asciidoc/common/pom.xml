@@ -7,13 +7,13 @@
         <artifactId>quarkus-roq-plugin-asciidoc-parent</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
-    <artifactId>quarkus-roq-plugin-asciidoc</artifactId>
-    <name>Quarkus Roq - Plugin - Asciidoc - Runtime</name>
+    <artifactId>quarkus-roq-plugin-asciidoc-common</artifactId>
+    <name>Quarkus Roq - Plugin - Asciidoc - Common</name>
 
     <dependencies>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-frontmatter</artifactId>
+            <artifactId>quarkus-roq-frontmatter-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -21,43 +21,5 @@
             <artifactId>asciidoc-java</artifactId>
             <version>${asciidoc-java.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.qute.web</groupId>
-            <artifactId>quarkus-qute-web-asciidoc</artifactId>
-            <version>${quarkus-qute-web.version}</version>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-extension-maven-plugin</artifactId>
-                <version>${quarkus.version}</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>extension-descriptor</goal>
-                        </goals>
-                        <configuration>
-                            <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}</deployment>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-extension-processor</artifactId>
-                            <version>${quarkus.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

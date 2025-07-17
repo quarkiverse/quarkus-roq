@@ -1,10 +1,13 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
+import static org.asciidoctor.Options.BASEDIR;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -14,6 +17,7 @@ import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 
 @Singleton
 public class AsciidoctorJConverter {
@@ -21,15 +25,22 @@ public class AsciidoctorJConverter {
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
 
     private final Asciidoctor asciidoctor;
-    private final AsciidoctorJConfig config;
+    private Map<String, String> configuredAttributes;
+    private String templateDir;
 
     @Inject
-    public AsciidoctorJConverter(AsciidoctorJConfig config) {
+    public AsciidoctorJConverter(RoqSiteConfig roqSiteConfig, AsciidoctorJConfig config) {
+        this(config.attributes(), config.templatesDir(), roqSiteConfig.contentDir());
+    }
+
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, String templateDir, String contentDir) {
+        this.configuredAttributes = configuredAttributes;
+        this.templateDir = templateDir;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
-        this.config = config;
         asciidoctor.requireLibrary("asciidoctor-diagram");
+        asciidoctor.javaExtensionRegistry().includeProcessor(new AsciidocJInclude(contentDir));
         LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
 
     }
@@ -53,8 +64,8 @@ public class AsciidoctorJConverter {
         if (templateAttributes.sitePath() != null) {
             attributes.attribute("site-path", templateAttributes.sitePath());
         }
-        config.attributes().forEach(attributes::attribute);
-        final Path templatesDir = Paths.get(config.templatesDir());
+        configuredAttributes.forEach(attributes::attribute);
+        final Path templatesDir = Paths.get(templateDir);
         final OptionsBuilder optionsBuilder = Options.builder();
         if (Files.isDirectory(templatesDir)) {
             optionsBuilder.templateDirs(templatesDir.toAbsolutePath().toFile());
@@ -64,9 +75,7 @@ public class AsciidoctorJConverter {
         }
         if (templateAttributes.sourcePath() != null) {
             Path templateDir = Paths.get(templateAttributes.sourcePath()).getParent();
-            if (Files.isDirectory(templateDir)) {
-                optionsBuilder.baseDir(templateDir.toFile());
-            }
+            optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());
         }
         return optionsBuilder
                 .safe(SafeMode.SAFE)

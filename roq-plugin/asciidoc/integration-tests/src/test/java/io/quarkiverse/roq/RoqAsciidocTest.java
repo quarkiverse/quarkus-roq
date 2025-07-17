@@ -6,7 +6,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 
 @QuarkusTest
-public class RoqAsciidocIT {
+public class RoqAsciidocTest {
 
     @Test
     public void test1() {

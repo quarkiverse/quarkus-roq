@@ -4,12 +4,11 @@ and pull requests should be submitted there:
 https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
 ////
 = Getting Started to Quarkus Messaging with AMQP 1.0
-
+include::_attributes.adoc[]
 :categories: messaging
 :summary: This guide demonstrates how your Quarkus application can utilize Quarkus Messaging to interact with AMQP.
 :extensions: io.quarkus:quarkus-messaging-amqp
 :topics: messaging,amqp
-include::_attributes.adoc[]
 
 This guide demonstrates how your Quarkus application can utilize Quarkus Messaging to interact with AMQP 1.0.
 
@@ -21,7 +20,7 @@ documentation.
 == Prerequisites
 
 :prerequisites-docker-compose:
-include::\{includes}/prerequisites.adoc[]
+include::{includes}/prerequisites.adoc[]
 
 == Architecture
 

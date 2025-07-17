@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-public class RoqAsciidocJIT {
+public class RoqAsciidocJTest {
 
     @Test
     public void test() {

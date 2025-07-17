@@ -4,7 +4,6 @@ import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.utils.AsciidocHeaderParser;
 import io.quarkiverse.roq.plugin.asciidoc.runtime.AsciidocConfig;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;

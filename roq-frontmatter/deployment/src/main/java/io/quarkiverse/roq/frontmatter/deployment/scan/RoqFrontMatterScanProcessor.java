@@ -428,7 +428,7 @@ public class RoqFrontMatterScanProcessor {
                 throw new RoqSiteScanningException(
                         "Error while reading template file: %s".formatted(sourcePath), e);
             }
-            TemplateContext templateContext = new TemplateContext(sourcePath, fullContent);
+            TemplateContext templateContext = new TemplateContext(file, sourcePath, fullContent);
             WrapperFilter markup = findMarkupFilter(markupList, templateContext);
             List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
                     templateContext);
@@ -475,7 +475,7 @@ public class RoqFrontMatterScanProcessor {
             if (!config.draft() && draft) {
                 return;
             }
-            final boolean escaped = data.getBoolean(ESCAPE_KEY, false);
+            final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
             final WrapperFilter escapeFilter = getEscapeFilter(escaped);
             final WrapperFilter includeFilter = getIncludeFilter(layoutId);
             final String escapedContent = escapeFilter.apply(content);

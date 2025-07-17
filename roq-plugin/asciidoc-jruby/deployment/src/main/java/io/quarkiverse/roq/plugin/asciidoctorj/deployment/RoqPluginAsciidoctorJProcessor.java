@@ -5,7 +5,7 @@ import java.util.Set;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateContext;
-import io.quarkiverse.roq.frontmatter.deployment.utils.AsciidocHeaderParser;
+import io.quarkiverse.roq.plugin.asciidoc.deployment.AsciidocHeaderParser;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConfig;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJSectionHelperFactory;

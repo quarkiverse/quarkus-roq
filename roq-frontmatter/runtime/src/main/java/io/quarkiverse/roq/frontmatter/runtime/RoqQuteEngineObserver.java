@@ -4,8 +4,6 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.SOURC
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.TEMPLATE_ID;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,10 +39,7 @@ public class RoqQuteEngineObserver {
             templateInstance.setAttribute(TEMPLATE_ID, templateId);
             if (templatePathMapping.containsKey(templateId)) {
                 final String pathString = templatePathMapping.get(templateId);
-                final Path path = Path.of(pathString);
-                if (Files.isReadable(path) && Files.isDirectory(path.getParent())) {
-                    templateInstance.setAttribute(SOURCE_PATH, pathString);
-                }
+                templateInstance.setAttribute(SOURCE_PATH, pathString);
             }
         });
     }

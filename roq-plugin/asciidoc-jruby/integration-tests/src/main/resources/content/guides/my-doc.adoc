@@ -20,7 +20,7 @@ documentation.
 == Prerequisites
 
 :prerequisites-docker-compose:
-include::\{includes}/prerequisites.adoc[]
+include::{includes}/prerequisites.adoc[]
 
 == Architecture
 

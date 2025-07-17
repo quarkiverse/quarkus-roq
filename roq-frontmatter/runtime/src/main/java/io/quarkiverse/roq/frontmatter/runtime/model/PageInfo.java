@@ -38,6 +38,7 @@ public record PageInfo(
          * The absolute path of the source file (it may not be mounted)
          */
         String absoluteSourceFilePath,
+
         /**
          * The path of the source file (e.g posts/my-favorite-beer.md)
          */
