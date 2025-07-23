@@ -113,14 +113,14 @@ quarkus ext add quarkus-roq-plugin-asciidoc
 
 or
 
+[#plugin-asciidoc-jruby]
+
 [source,shell]
 ----
 quarkus ext add quarkus-roq-plugin-asciidoc-jruby
 ----
 
 Once done, every file with either '.adoc' or '.asciidoc' extension will be processed.
-
-WARNING: For better security, Asciidoc includes have been disabled, use Qute includes instead.
 
 [#plugin-markdown]
 == Roq Plugin Markdown
