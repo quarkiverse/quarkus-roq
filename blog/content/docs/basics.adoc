@@ -464,6 +464,23 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 <4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
 <5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
 
+=== Draft and Future
+
+To create a draft page or document, you can use frontmatter data `draft: true` to take the decision. Draft won't be visible when published unless you have the `%dev.site.draft=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode). 
+
+TIP: You may also start quarkus with the option: `quarkus dev -Dsite.draft`.
+
+By default, documents with a date in the future (FrontMatter data or file name) will not be visible unless you have `%dev.site.future=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode). 
+
+TIP: You may also start quarkus with the option: `quarkus dev -Dsite.future`.
+
+It is possible to configure a collection to always show future documents:
+[source,properties]
+----
+site.collections.events.future=true // <1> 
+----
+<1> Always show future documents for the "events" collection.
+
 === How to create custom collections?
 
 You can easily create your own collection, such as documentation, recipes, team members, or conference talks. To do this, simply create a new folder under the `content` directory. For example, if you're adding `docs`, it would look like this:
