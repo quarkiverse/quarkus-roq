@@ -1,0 +1,10 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+{#if page.paginator??}
+  <!-- SEO PAGINATOR -->
+  {#if page.paginator.previous}
+  <link rel="prev" href="{page.paginator.previous.absolute}"/>
+  {/if}
+  {#if page.paginator.next}
+  <link rel="next" href="{page.paginator.next.absolute}"/>
+  {/if}
+{/if}

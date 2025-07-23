@@ -15,7 +15,14 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Set Asciidoctorj attributes
+Defines the AsciidoctorJ attributes to be applied during rendering.
+
+Default values:
+
+ - `relfileprefix=../`
+ - `relfilesuffix=/`
+ - `noheader=true`
+ - `showtitle=true`
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -27,6 +34,31 @@ endif::add-copy-button-to-env-var[]
 --
 |Map<String,String>
 |
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-escape]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-escape[`quarkus.asciidoctorj.escape`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoctorj.escape+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Controls whether all AsciiDoc templates should be parsed by Qute.
+
+When set to `true`, Qute will not parse AsciiDoc files, except those that have the `:page-escape: false` attribute in their header.
+
+By default, Qute parsing is disabled for AsciiDoc templates.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOCTORJ_ESCAPE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOCTORJ_ESCAPE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`true`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir[`quarkus.asciidoctorj.templates-dir`]##
 ifdef::add-copy-button-to-config-props[]
@@ -47,7 +79,7 @@ Environment variable: `+++QUARKUS_ASCIIDOCTORJ_TEMPLATES_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`src/main/asciidoc-templates`
+|
 
 |===
 

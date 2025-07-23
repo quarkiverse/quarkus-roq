@@ -70,6 +70,7 @@ class TemplateLinkTest {
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
                 "",
                 contentPath,
+                contentPath,
                 "",
                 new PageFiles(List.of(), true),
                 indexable,

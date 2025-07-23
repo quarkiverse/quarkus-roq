@@ -1,18 +1,2 @@
-{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
-{#if page.paginator??}
-    <!-- SEO PAGINATOR -->
-    {#if page.paginator.previous}
-    <link rel="prev" href="{page.paginator.previous.absolute}" />
-    {/if}
-    {#if page.paginator.next}
-    <link rel="next" href="{page.paginator.next.absolute}" />
-    {/if}
-{#else if page.collection??}
-  <!-- SEO COLLECTION PAGES -->
-  {#if page.prevPage}
-  <link rel="prev" href="{page.prevPage.url.absolute}" />
-  {/if}
-  {#if page.nextPage}
-  <link rel="next" href="{page.nextPage.url.absolute}" />
-  {/if}
-{/if}
+{#seoPaginatorNormal page/}
+{#seoPaginatorDocument page /}

@@ -110,7 +110,7 @@ public class RoqFrontMatterDataProcessor {
                 final String layoutKey = RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
                         "Layout '%s' not found for file '%s'. Available layouts are: %s."
-                                .formatted(layoutKey, item.info().sourceFilePath(), getAvailableLayouts(config, byId)));
+                                .formatted(layoutKey, item.info().sourcePath(), getAvailableLayouts(config, byId)));
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();

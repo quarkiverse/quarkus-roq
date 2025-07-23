@@ -147,6 +147,10 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             } else {
                 instance.data("page", page);
                 instance.data("site", site.get());
+                instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
+                instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
+                instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
+                instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
                 instance.renderAsync().whenComplete((r, t) -> {
                     if (t != null) {
                         Throwable rootCause = rootCause(t);

@@ -8,7 +8,6 @@ import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConfig;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJSectionHelperFactory;
 import io.quarkus.qute.Engine;
@@ -16,19 +15,7 @@ import io.quarkus.qute.Engine;
 public class QuarkusAsciidoctorJTest {
 
     public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
-            new AsciidoctorJConverter(new AsciidoctorJConfig() {
-
-                @Override
-                public Map<String, String> attributes() {
-                    return Map.of();
-                }
-
-                @Override
-                public String templatesDir() {
-                    return "src/main/asciidoc-templates";
-                }
-
-            }));
+            new AsciidoctorJConverter(Map.of(), null));
 
     @Test
     public void shouldConvertUsingAsciiTag() {
@@ -40,6 +27,27 @@ public class QuarkusAsciidoctorJTest {
         assertThat(result).containsIgnoringWhitespaces("""
                  <div class="paragraph">
                  <p>&#8230;&#8203;</p>
+                 </div>
+                """);
+    }
+
+    @Test
+    public void shouldUseAttributes() {
+        Engine engine = Engine.builder().addDefaults()
+                .addSectionHelper(FACTORY).build();
+
+        String result = engine.parse("""
+                {#asciidoc}
+                :relfileprefix: ../
+                :relfilesuffix: /
+
+                xref:foo.adoc[Bar]
+                {/asciidoc}
+                """).render();
+
+        assertThat(result).containsIgnoringWhitespaces("""
+                 <div class="paragraph">
+                    <p><a href="../foo/">Bar</a></p>
                  </div>
                 """);
     }
@@ -65,7 +73,7 @@ public class QuarkusAsciidoctorJTest {
 
         String result = engine.parse("{#ascii}= Quarkus and Roq{/ascii}").render();
 
-        assertThat(result).contains("<h1>Quarkus and Roq</h1>");
+        assertThat(result).isEqualToIgnoringWhitespace("<h1>Quarkus and Roq</h1>");
     }
 
     @Test

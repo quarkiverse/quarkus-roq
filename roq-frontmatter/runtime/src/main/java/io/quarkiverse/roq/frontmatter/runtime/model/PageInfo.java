@@ -35,12 +35,17 @@ public record PageInfo(
         String rawContent,
 
         /**
-         * The path of the source file (e.g posts/my-favorite-beer.md)
+         * The path of the source file on disk or in the classpath
          */
-        String sourceFilePath,
+        String sourceFile,
 
         /**
-         * The generated template path for Qute (e.g posts/my-favorite-beer.html)
+         * The path of the source relative to the content directory (e.g posts/my-favorite-beer.md)
+         */
+        String sourcePath,
+
+        /**
+         * The generated template path for Qute (e.g roq-gen/posts/my-favorite-beer.html)
          */
         String generatedTemplateId,
 
@@ -62,24 +67,26 @@ public record PageInfo(
             boolean draft,
             String dateString,
             String rawContent,
+            String absoluteSourceFilePath,
             String sourcePath,
             String quteTemplateId,
             PageFiles files,
             boolean isHtml,
             boolean isSiteIndex) {
-        return new PageInfo(id, draft, dateString, rawContent, sourcePath, quteTemplateId, files,
+        return new PageInfo(id, draft, dateString, rawContent, absoluteSourceFilePath, sourcePath, quteTemplateId, files,
                 isHtml, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
         // We don't copy the site index files
-        return new PageInfo(id, draft(), dateString(), rawContent(), sourceFilePath(),
+        return new PageInfo(id, draft(), dateString(), rawContent(), sourceFile(), sourcePath(),
                 generatedTemplateId(), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public PageInfo changeIds(Function<String, String> function) {
         return new PageInfo(function.apply(id()), draft(), dateString(), rawContent(),
-                sourceFilePath(),
+                sourceFile(),
+                sourcePath(),
                 function.apply(generatedTemplateId()), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
@@ -95,7 +102,7 @@ public record PageInfo(
      * The file name (e.g my-favorite-beer.md)
      */
     public String sourceFileName() {
-        return PathUtils.fileName(sourceFilePath);
+        return PathUtils.fileName(sourcePath);
     }
 
     /**
