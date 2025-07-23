@@ -717,5 +717,9 @@ For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Qua
 
 == Asciidoc support
 
-Asciidoc is supported by Roq using xref:plugins.adoc#plugin-asciidoc[plugins].
+Roq has a plugin to allow using `.adoc` file: xref:plugins.adoc#plugin-asciidoc[Asciidoc Plugin]. This plugin is fully java, the Asciidoc support is very close to the Ruby implementation.
+
+If you need to use the ruby implementation, we also have a solution: xref:plugins.adoc#plugin-asciidoc-jruby[Asciidoc JRuby Plugin].
+
+
 
