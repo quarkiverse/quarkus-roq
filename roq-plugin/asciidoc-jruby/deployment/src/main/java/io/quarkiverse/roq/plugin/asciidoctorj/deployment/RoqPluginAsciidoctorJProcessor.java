@@ -37,7 +37,7 @@ public class RoqPluginAsciidoctorJProcessor {
 
     @BuildStep
     RoqFrontMatterHeaderParserBuildItem header(AsciidoctorJConfig config) {
-        return AsciidocHeaderParser.createBuildItem(config.escape(), c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
+        return AsciidocHeaderParser.createBuildItem(config.qute(), c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
     }
 
     @BuildStep

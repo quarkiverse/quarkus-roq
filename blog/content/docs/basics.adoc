@@ -10,27 +10,6 @@ include::_includes/directory-structure.adoc[]
 
 == Qute and FrontMatter
 
-[source,java]
-----
-public enum MyEnum {
-    A, B;
-
-    public String toJsonString() { <1>
-        return this == A ? "first" : "second";
-    }
-
-    public static MyEnum fromJsonString(final String v) { <2>
-        return switch (v) {
-            case "first" -> MyEnum.A;
-            case "second" -> MyEnum.B;
-            default -> throw new IllegalArgumentException("Unsupported '" + v + "'");
-        };
-    }
-}
-----
-<.> `toJsonString` is an instance method with no parameter used to replace `.name()` call during serialization,
-<.> `fromJsonString` is a static method with a `String` parameter used to replace `.valueOf(String)` call during deserialization.
-
 All templates may use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
 
 TIP: Type-safety doesn't make it more complex, it just means that using wrong variables and such will result in build error. This way it won't leak in production.
@@ -216,7 +195,7 @@ TIP: There are different ways to link your pages as explained in the  link:{site
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
 
-* The `site` variable allow to access site global info from any page, document, layout or partial.
+* The `site` (link:{roqjavadocmodelurl}Site.html[javadoc,window=_blank]) variable allow to access site global info from any page, document, layout or partial.
 +
 .Show attributes
 [%collapsible]
@@ -283,7 +262,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-* The `page` variable is available in pages, documents, layouts, and partials. It contains the info for the page it is used from.
+* The `page` (link:{roqjavadocmodelurl}Page.html[javadoc,window=_blank]) variable is available in pages, documents, layouts, and partials. It contains the info for the page it is used from.
 +
 .Show attributes
 [%collapsible]
@@ -353,7 +332,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 
 Any template file without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
 
-Let's create your first page and spice things up a bit by using Markdown.
+Let's create your first page and spice things up a bit by using Markdown (included by default with Roq).
 
 [source,markdown]
 .roq-bottom.md
@@ -379,6 +358,18 @@ __{page.data.the-rope}!__ <3>
 <1> you can use `link` to give this page a custom link (by default it will use the file-name).
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
+
+== Markup language
+
+=== Markdown
+
+Roq already includes the Markdown plugin by default. To use Markdown markup language (based on https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]), on pages or documents, add the `.md` or `markdown` file extension and it will automatically work.
+
+TIP: If you don't want to use Markdown at all, you may disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
+
+=== Asciidoc
+
+Asciidoc is also fully compatible with Roq using xref:plugins.adoc#plugin-asciidoc[plugins].
 
 == Global data
 
@@ -517,8 +508,6 @@ site.collections.posts.layout=":theme/post"
 <3> Finally, since the new collection is not a time-based collection, we need to set `future` as true to show all files.
 
 NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
-
-
 
 Now, we can access all the new collection `docs` data as follows:
 
@@ -714,12 +703,3 @@ It will be rendered with the relevant `<script>` and `<style>` tags to include y
 
 TIP: You may also consume and bundle npm dependencies among other cool things.
 For more info, read the https://docs.quarkiverse.io/quarkus-web-bundler/dev/[Quarkus Web Bundler documentation].
-
-== Asciidoc support
-
-Roq has a plugin to allow using `.adoc` file: xref:plugins.adoc#plugin-asciidoc[Asciidoc Plugin]. This plugin is fully java, the Asciidoc support is very close to the Ruby implementation.
-
-If you need to use the ruby implementation, we also have a solution: xref:plugins.adoc#plugin-asciidoc-jruby[Asciidoc JRuby Plugin].
-
-
-

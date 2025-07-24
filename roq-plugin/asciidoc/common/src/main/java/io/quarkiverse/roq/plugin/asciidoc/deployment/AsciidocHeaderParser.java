@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -15,6 +17,7 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateContext;
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.vertx.core.json.JsonObject;
 import io.yupiik.asciidoc.model.Header;
 import io.yupiik.asciidoc.parser.Parser;
@@ -26,14 +29,22 @@ public class AsciidocHeaderParser {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(AsciidocHeaderParser.class);
 
     private static final ContentResolver EMPTY_CONTENT_RESOLVER = (ref, encoding) -> Optional.empty();
+    private static final String QUTE_KEY = "qute";
 
-    public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean escape, Predicate<TemplateContext> isApplicable) {
+    public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean qute, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             Parser parser = new Parser();
             ContentResolver contentResolver = new PathContentResolver(templateContext.sourceFile().getParent());
             Header header = parser.parseHeader(new Reader(templateContext.content().lines().toList()),
                     new Parser.ParserContext(contentResolver));
             final JsonObject pageData = toPageData(header);
+            boolean escape = !qute;
+
+            if (header.attributes().containsKey(QUTE_KEY)) {
+                final String quteAttribute = header.attributes().get(QUTE_KEY);
+                escape = !(quteAttribute.isEmpty() || Boolean.parseBoolean(quteAttribute));
+            }
+
             if (!pageData.containsKey(ESCAPE_KEY)) {
                 pageData.put(ESCAPE_KEY, escape);
             }
@@ -43,13 +54,15 @@ public class AsciidocHeaderParser {
 
     public static JsonObject toPageData(Header header) {
         JsonObject pageData = new JsonObject();
-        for (String key : header.attributes().keySet()) {
+        final Map<String, String> attributes = processAttributes(header.attributes());
+        pageData.put("attributes", JsonObject.mapFrom(attributes));
+        for (String key : attributes.keySet()) {
             if (key.startsWith("page-")) {
-                pageData.put(key.substring(5), header.attributes().get(key));
+                pageData.put(key.substring(5), attributes.get(key));
             }
         }
         if (!header.title().isBlank()) {
-            pageData.put("title", header.title());
+            pageData.put(Page.FM_TITLE, header.title());
         }
         if (!header.author().name().isBlank()) {
             pageData.put("author", new JsonObject().put("name", header.author().name()).put("email", header.author().mail()));
@@ -58,7 +71,29 @@ public class AsciidocHeaderParser {
             pageData.put("revision", new JsonObject().put("number", header.revision().number())
                     .put("date", header.revision().date()).put("remark", header.revision().revmark()));
         }
+        if (attributes.containsKey("description")) {
+            pageData.put(Page.FM_DESCRIPTION, attributes.get("description"));
+        }
+        if (attributes.containsKey("image")) {
+            pageData.put("image", attributes.get("image"));
+        }
         return pageData;
+    }
+
+    public static Map<String, String> processAttributes(Map<String, String> input) {
+        Map<String, String> result = new LinkedHashMap<>();
+
+        for (Map.Entry<String, String> entry : input.entrySet()) {
+            String key = entry.getKey();
+
+            if (key.startsWith("!")) {
+                result.remove(key.substring(1));
+            } else {
+                result.put(key, entry.getValue());
+            }
+        }
+
+        return result;
     }
 
     static class PathContentResolver implements RelativeContentResolver {

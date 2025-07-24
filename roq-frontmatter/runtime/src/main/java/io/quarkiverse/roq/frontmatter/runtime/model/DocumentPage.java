@@ -24,6 +24,9 @@ public record DocumentPage(
         JsonObject data,
         boolean hidden) implements Page {
 
+    /**
+     * @return the collection associated with this page
+     */
     public RoqCollection collection() {
         return Arc.container().beanInstanceSupplier(Site.class).get().get().collections().resolveCollection(this);
     }

@@ -2,7 +2,6 @@ package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
 import static org.asciidoctor.Options.BASEDIR;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -25,16 +24,14 @@ public class AsciidoctorJConverter {
 
     private final Asciidoctor asciidoctor;
     private Map<String, String> configuredAttributes;
-    private String templateDir;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
-        this(config.attributes(), config.templatesDir().orElse(null));
+        this(config.attributes());
     }
 
-    public AsciidoctorJConverter(Map<String, String> configuredAttributes, String templateDir) {
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes) {
         this.configuredAttributes = configuredAttributes;
-        this.templateDir = templateDir;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
@@ -66,13 +63,6 @@ public class AsciidoctorJConverter {
         configuredAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();
-        final Path templatesDirPath = templateDir != null ? Paths.get(templateDir) : null;
-        if (templatesDirPath != null && Files.isDirectory(templatesDirPath)) {
-            optionsBuilder.templateDirs(templatesDirPath.toAbsolutePath().toFile());
-            optionsBuilder.standalone(true);
-        } else {
-            optionsBuilder.standalone(false);
-        }
         if (templateAttributes.sourcePath() != null) {
             Path templateDir = Paths.get(templateAttributes.sourcePath()).getParent();
             optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());

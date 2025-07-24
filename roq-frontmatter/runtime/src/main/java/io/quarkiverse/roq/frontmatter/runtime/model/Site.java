@@ -1,8 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.resolveGeneratedContentTemplateId;
-import static io.quarkiverse.roq.frontmatter.runtime.model.Page.normaliseName;
-import static io.quarkiverse.roq.frontmatter.runtime.model.Page.resolvePublicFile;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,12 +62,11 @@ public final class Site {
         this.allPages = getAllPages(pages, collections);
     }
 
+    /**
+     * @return The full list of pages for this site
+     */
     public List<Page> allPages() {
         return allPages;
-    }
-
-    public static Site getBeanInstance() {
-        return Arc.container().beanInstanceSupplier(Site.class).get().get();
     }
 
     /**
@@ -94,7 +92,7 @@ public final class Site {
      * @throws RoqStaticFileException if the image doesn't exist
      */
     public RoqUrl image() {
-        final String img = Page.getImgFromData(data());
+        final String img = getImgFromData(data());
         if (img == null) {
             return null;
         }
@@ -221,22 +219,37 @@ public final class Site {
         return documentsById.get().get(sourcePath);
     }
 
+    /**
+     * @return The site url
+     */
     public RoqUrl url() {
         return url;
     }
 
+    /**
+     * @return The image directory url
+     */
     public RoqUrl imagesDirUrl() {
         return url().resolve(imagesDir);
     }
 
+    /**
+     * @return The site data
+     */
     public JsonObject data() {
         return data;
     }
 
+    /**
+     * @return the full list of normal pages (without documents)
+     */
     public List<NormalPage> pages() {
         return pages;
     }
 
+    /**
+     * @return the list of collections
+     */
     public RoqCollections collections() {
         return collections;
     }

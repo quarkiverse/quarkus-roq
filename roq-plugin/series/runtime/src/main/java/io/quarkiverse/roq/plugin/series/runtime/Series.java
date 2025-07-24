@@ -9,6 +9,7 @@ import java.util.Objects;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
 import io.quarkus.arc.impl.LazyValue;
 
 public record Series(Map<String, SeriesEntry> series) {
@@ -24,7 +25,7 @@ public record Series(Map<String, SeriesEntry> series) {
             this.title = title;
             this.documentIds = documentIds;
             this.documents = new LazyValue<>(() -> {
-                Site site = Site.getBeanInstance();
+                Site site = Sites.getSite();
                 return documentIds.stream().map(site::document)
                         .sorted(BY_DATE.reversed())
                         .toList();

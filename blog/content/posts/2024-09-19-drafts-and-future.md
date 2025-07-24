@@ -10,7 +10,7 @@ author: ia3andy
 Roq just made content management easier with a cool new feature that lets you control drafts and future articles directly in your configuration. No more messing around with hard-to-track content—now you can manage everything through the Quarkus config:
 
 ```shell
-quarkus dev -site.drafts -site.future`
+quarkus dev -site.draft -site.future`
 ```
 
 This is using frontmatter data in articles and pages `draft: true` and `date: 2024-09-19 10:45:00 +0200` to take the decision.

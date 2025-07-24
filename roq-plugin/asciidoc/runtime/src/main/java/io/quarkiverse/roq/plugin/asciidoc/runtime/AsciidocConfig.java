@@ -12,13 +12,13 @@ public interface AsciidocConfig {
     /**
      * Controls whether all AsciiDoc templates should be parsed by Qute.
      * <p>
-     * When set to {@code true}, Qute will not parse AsciiDoc files,
-     * except those that have the {@code :page-escape: false} attribute in their header.
+     * When set to {@code true}, Qute will parse AsciiDoc files.
+     * Files with the {@code :qute:} attribute in their header will override this config.
      *
      * <p>
      * By default, Qute parsing is disabled for AsciiDoc templates.
      */
-    @WithDefault("true")
-    boolean escape();
+    @WithDefault("false")
+    boolean qute();
 
 }

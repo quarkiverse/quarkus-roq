@@ -7,9 +7,9 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-attributes-attributes[`quarkus.asciidoctorj.attributes."attributes"`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes[`quarkus.asciidoc.attributes."attributes"`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.asciidoctorj.attributes."attributes"+++[]
+config_property_copy_button:+++quarkus.asciidoc.attributes."attributes"+++[]
 endif::add-copy-button-to-config-props[]
 
 
@@ -26,18 +26,18 @@ Default values:
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOCTORJ_ATTRIBUTES__ATTRIBUTES_+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ASCIIDOCTORJ_ATTRIBUTES__ATTRIBUTES_+++`
+Environment variable: `+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++`
 endif::add-copy-button-to-env-var[]
 --
 |Map<String,String>
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-escape]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-escape[`quarkus.asciidoctorj.escape`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-qute]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-qute[`quarkus.asciidoc.qute`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.asciidoctorj.escape+++[]
+config_property_copy_button:+++quarkus.asciidoc.qute+++[]
 endif::add-copy-button-to-config-props[]
 
 
@@ -45,41 +45,20 @@ endif::add-copy-button-to-config-props[]
 --
 Controls whether all AsciiDoc templates should be parsed by Qute.
 
-When set to `true`, Qute will not parse AsciiDoc files, except those that have the `:page-escape: false` attribute in their header.
+When set to `true`, Qute will parse AsciiDoc files, except those that have the `:page-qute: false` attribute in their header.
 
 By default, Qute parsing is disabled for AsciiDoc templates.
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOCTORJ_ESCAPE+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_QUTE+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ASCIIDOCTORJ_ESCAPE+++`
+Environment variable: `+++QUARKUS_ASCIIDOC_QUTE+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`true`
-
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir[`quarkus.asciidoctorj.templates-dir`]##
-ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.asciidoctorj.templates-dir+++[]
-endif::add-copy-button-to-config-props[]
-
-
-[.description]
---
-Templates directory for Asciidoctorj
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOCTORJ_TEMPLATES_DIR+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ASCIIDOCTORJ_TEMPLATES_DIR+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|
+|`false`
 
 |===
 
