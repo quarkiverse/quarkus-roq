@@ -92,13 +92,13 @@ Now, when you access the URL `http://localhost:8081/first-roq-article-ever`, you
 NOTE: you can use link templating in aliases
 
 [#plugin-asciidoc]
-[#plugin-asciidoc-jruby]
 == Roq Plugin AsciiDoc
 
 This plugin allows to use Asciidoctor as a markup language to produce content.
 
 There are two implementations of Asciidoc for Roq:
 
+[#plugin-asciidoc-jruby]
 1. *Asciidoc JRuby*: Offers the full feature set of Asciidoctor but is a bit slower to start (based on https://github.com/asciidoctor/asciidoctorj[asciidoctorj,window=_blank]
 +
 [source,shell]
