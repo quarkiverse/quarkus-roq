@@ -122,7 +122,7 @@ Qute parsing is disabled by default on Asciidoc files, to enable it:
 quarkus.asciidoc.qute=true
 ----
 
-TIP: you can also use the `:qute:` attribute to change the default behaviour per page.
+TIP: you can also use the `:qute:` Asciidoc header attribute to enable Qute parsing (or not `:qute: false`) per page.
 
 === Asciidoc includes
 
@@ -200,8 +200,8 @@ By default, the plugin produces HTML output compatible with both `HTML` and `Mar
 
 [source,mixed]
 ----
-\{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /} // Will generate HTML code
-\{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
+{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /} // Will generate HTML code
+{#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 asciidoc=true/} // Will save the file in the static folder and generate an asciidoc image macro pointing to it
 ----
 
 [#plugin-series]
