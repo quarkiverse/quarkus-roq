@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.frontmatter.runtime.model.PageFiles.slugifyFile;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.*;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 
 import java.nio.file.Path;
@@ -96,7 +96,7 @@ public interface Page {
      * @throws RoqStaticFileException if the image doesn't exist
      */
     default RoqUrl image() {
-        final String img = Page.getImgFromData(data());
+        final String img = getImgFromData(data());
         if (img == null) {
             return null;
         }
@@ -196,38 +196,6 @@ public interface Page {
                 "File '%s' not found in '" + dir + "' directory (found: %s).");
     }
 
-    static RoqUrl resolvePublicFile(Page page, Object name) {
-        return resolveFile(page, name, "No file found in the public dir.",
-                "File '%s' not found in public dir (found: %s).");
-    }
-
-    static RoqUrl resolveFile(Page page, Object name, String missingResourceMessage,
-            String notFoundMessage) {
-        if (name == null) {
-            return null;
-        }
-        if (page.info().hasNoFiles()) {
-            throw new RoqStaticFileException(missingResourceMessage.formatted(name));
-        }
-        final String f = normaliseName(name, page.info().files().slugified());
-        if (page.info().fileExists(f)) {
-            return page.url().resolve(f);
-        } else {
-            throw new RoqStaticFileException(notFoundMessage.formatted(name,
-                    String.join(", ", page.info().files().names())));
-        }
-    }
-
-    static String normaliseName(Object name, boolean slugify) {
-        final String clean = String.valueOf(name).replace("./", "");
-        if (slugify) {
-            return slugifyFile(clean);
-        } else {
-            return clean;
-        }
-
-    }
-
     /**
      * The url to this page
      */
@@ -238,6 +206,12 @@ public interface Page {
      */
     JsonObject data();
 
+    /**
+     * Get the data value for a given key
+     *
+     * @param name the data key name
+     * @return the value or null if not present
+     */
     default Object data(String name) {
         if (data().containsKey(name)) {
             return data().getValue(name);
@@ -245,7 +219,4 @@ public interface Page {
         return null;
     }
 
-    static String getImgFromData(JsonObject data) {
-        return data.getString("img", data.getString("image", data.getString("picture")));
-    }
 }

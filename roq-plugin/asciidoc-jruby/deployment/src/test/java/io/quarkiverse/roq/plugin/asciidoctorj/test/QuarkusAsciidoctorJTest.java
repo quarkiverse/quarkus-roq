@@ -15,7 +15,7 @@ import io.quarkus.qute.Engine;
 public class QuarkusAsciidoctorJTest {
 
     public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
-            new AsciidoctorJConverter(Map.of(), null));
+            new AsciidoctorJConverter(Map.of()));
 
     @Test
     public void shouldConvertUsingAsciiTag() {

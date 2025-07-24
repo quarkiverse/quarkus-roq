@@ -60,26 +60,5 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`true`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoctorj-templates-dir[`quarkus.asciidoctorj.templates-dir`]##
-ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.asciidoctorj.templates-dir+++[]
-endif::add-copy-button-to-config-props[]
-
-
-[.description]
---
-Templates directory for Asciidoctorj
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOCTORJ_TEMPLATES_DIR+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ASCIIDOCTORJ_TEMPLATES_DIR+++`
-endif::add-copy-button-to-env-var[]
---
-|string
-|
-
 |===
 

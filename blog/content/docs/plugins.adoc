@@ -92,35 +92,80 @@ Now, when you access the URL `http://localhost:8081/first-roq-article-ever`, you
 NOTE: you can use link templating in aliases
 
 [#plugin-asciidoc]
+[#plugin-asciidoc-jruby]
 == Roq Plugin AsciiDoc
 
-This plugin allows to use asciidoc to produce content.
+This plugin allows to use Asciidoctor as a markup language to produce content.
 
-[NOTE]
-====
 There are two implementations of Asciidoc for Roq:
 
-1. *Asciidoc (Java)*: Provides fast startup and native build compatibility but has limited features and does not support extensions.
-2. *Asciidoc JRuby*: Offers the full feature set of Asciidoctor but is slower to start and incompatible with native builds.
-====
-
-To install it:
-
+1. *Asciidoc JRuby*: Offers the full feature set of Asciidoctor but is a bit slower to start (based on https://github.com/asciidoctor/asciidoctorj[asciidoctorj,window=_blank]
++
+[source,shell]
+----
+quarkus ext add quarkus-roq-plugin-asciidoc-jruby
+----
+2. *Asciidoc (Java)*: Provides fast startup but does not support all Asciidoc options yet (based on https://github.com/yupiik/tools-maven-plugin/tree/master/asciidoc-java[asciidoc-java,window=_blank] which is actively maintained).
++
 [source,shell]
 ----
 quarkus ext add quarkus-roq-plugin-asciidoc
 ----
 
-or
+Then, add the '.adoc' or '.asciidoc' file extension on page or document and they will be processed using Asciidoctor.
 
-[#plugin-asciidoc-jruby]
+=== Use Qute in Asciidoc files
 
-[source,shell]
+Qute parsing is disabled by default on Asciidoc files, to enable it:
+[source,properties]
 ----
-quarkus ext add quarkus-roq-plugin-asciidoc-jruby
+quarkus.asciidoc.qute=true
 ----
 
-Once done, every file with either '.adoc' or '.asciidoc' extension will be processed.
+TIP: you can also use the `:qute:` attribute to change the default behaviour per page.
+
+=== Asciidoc includes
+
+You may use includes normally, just make sure the included file is ignored by Roq by prefixing the file or the directory with `_`.
+[source,asciidoc]
+----
+\include::_includes/attributes.adoc.adoc[]
+----
+
+=== Headers
+
+Asciidoc headers are parsed by Roq and used as page data:
+
+* `= Title` is used as page title.
+* author is available through `page.data.author.name` and `page.data.author.email`.
+* revision is available through  `page.data.revision.number`, `page.data.revision.date` and  `page.data.revision.remark`.
+* attribute `:description:` is use as page description.
+* attributes starting with `page-` will be used as page data (`:page-image:` -> `image` in the data)
+* all other header attributes are also available in `page.data.attributes`.
+
+TIP: You can also use FrontMatter header to set the page data like any other page.
+
+=== Roq attributes
+
+[cols="1,1", options="header"]
+|===
+| Name | Description
+
+| \{site-url}
+| The full site url (e.g. `https://my-site.com/blog/`)
+
+| \{site-path}
+| The site path (e.g. `/blog/`)
+
+| \{page-url}
+| The full site url (e.g. `https://my-site.com/blog/about/`)
+
+| \{page-path}
+| The site path (e.g. `/blog/about`)
+
+|===
+
+
 
 [#plugin-markdown]
 == Roq Plugin Markdown
@@ -323,7 +368,7 @@ quarkus ext add quarkus-roq-plugin-diagram
 +
 [source,html]
 ----
-\{#diagram asciidoc=true language="pikchr" alt="Impossible trident" width=500 height=500 diagramOutputFormat="svg"}
+{#diagram asciidoc=true language="pikchr" alt="Impossible trident" width=500 height=500 diagramOutputFormat="svg"}
 
 scale = 1.0
 eh = 0.5cm
@@ -348,7 +393,7 @@ move right er down ed from last ellipse.n
 ellipse height eh width ew
 line width lwl right from last ellipse.n then to L1.end
 line width lwl right from last ellipse.s then up eh
-\{/}
+{/}
 ----
 
 You can either use a deployed server or let the dev services provide one for you, but in this case you won't have https://hub.docker.com/r/yuzutech/kroki[all languages available].

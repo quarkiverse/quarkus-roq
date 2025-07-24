@@ -2,8 +2,14 @@
 layout: :theme/main
 bodyClass: documentation
 ---
+{#let attributes = page.data.attributes}
 
 <div class="asciidoc">
+  {#if attributes.containsKey('tocnav')}
+  <aside class="toc sidebar" data-title="{attributes.toctitle ?: 'Contents'}" data-levels="{attributes.toclevels ?: 2}">
+    <div class="toc-menu"></div>
+  </aside>
+  {/if}
   <article class="asciidoctor doc">
     {#insert /}
   </article>

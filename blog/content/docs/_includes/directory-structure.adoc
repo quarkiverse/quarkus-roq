@@ -1,7 +1,7 @@
 == Directory Structure
 
 The default directory structure is:
-[source, text]
+[source]
 ----
 my-site/
 ├── data/                                // <1>

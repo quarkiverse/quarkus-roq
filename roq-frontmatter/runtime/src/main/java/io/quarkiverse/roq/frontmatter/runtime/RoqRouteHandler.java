@@ -14,6 +14,7 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InjectableContext.ContextState;
@@ -38,7 +39,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
 
     private static final Logger LOG = Logger.getLogger(RoqRouteHandler.class);
 
-    private final String rootPath;
     private final List<String> compressMediaTypes;
     // request path to template path
     private final Map<String, Supplier<? extends Page>> pages;
@@ -53,7 +53,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
 
     public RoqRouteHandler(String rootPath, VertxHttpBuildTimeConfig httpBuildTimeConfig,
             Map<String, Supplier<? extends Page>> pages) {
-        this.rootPath = rootPath;
         this.pages = pages;
         this.compressMediaTypes = httpBuildTimeConfig.enableCompression()
                 ? httpBuildTimeConfig.compressMediaTypes().orElse(List.of())
@@ -67,7 +66,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // TemplateProducer is singleton and we want to initialize lazily
         this.templateProducer = new LazyValue<>(
                 () -> Arc.container().instance(TemplateProducer.class).get());
-        this.site = new LazyValue<>(() -> Arc.container().instance(Site.class).get());
+        this.site = new LazyValue<>(Sites::getSite);
     }
 
     @Override
