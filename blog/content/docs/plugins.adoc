@@ -279,6 +279,8 @@ Browse `http://localhost:8080/sitemap.xml`.
 
 This plugin enables search for your site without the need for external, server-side, search services.
 
+image::{site-url}images/docs/roq-search.gif[Search,800]
+
 To install it you will to do the following:
 
 . Add the plugin:

@@ -26,6 +26,8 @@ https://lunrjs.com/[Lunr.js], it's a small, full-text search engine written in J
 
 **Tadddaaah! ** We wrote a Lunr.js plugin for Roq.
 
-image::search.png[Search]
+image::{site-url}images/docs/roq-search.gif[Search]
+
+{nbsp}
 
 👉 Full documentation is available link:/docs/plugins/#plugin-lunr[here], don't wait any longer, go check it out.
