@@ -503,7 +503,7 @@ This will update the Quarkus version and extensions (including Roq) and make sur
 
 === Version migration guide
 
-==== Updating to Roq 1.7.0
+==== Updating to Roq 1.7
 
 By re-implementing Asciidoc support, you may need to check a few things when updating:
 
