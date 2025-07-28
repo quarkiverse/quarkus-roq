@@ -19,12 +19,14 @@ layout: roq-default/main
       </figure>
     </div> <!-- End Page Cover Image -->
     {/if}
-    <div class="wrap-content">
+    <section class="wrap-content">
       <header class="header-page">
         <h1 class="page-title">{page.title}</h1>
         <div class="page-date"><span>{page.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
       </header>
-      {#insert /}
+      <section>
+        {#insert /}
+      </section>
       <div class="page-footer">
         <div class="footer-links">
           <div class="page-share">

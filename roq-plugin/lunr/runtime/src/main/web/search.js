@@ -58,15 +58,18 @@ const setupSearch = function (options = {}) {
         documents = data;
         idx = lunr(function () {
             this.ref('id')
+            this.field('fragment', {boost: 5})
             this.field('title', {boost: 10})
             this.field('summary')
             this.field('tags', {boost: 50})
             this.field('content', {boost: 100})
 
+
             for (const [key, entry] of Object.entries(documents)) {
                 entry.content = decodeHtml(entry.content);
                 entry.id = key
-                this.add(entry)
+                const boost = entry.boost ?? 1
+                this.add(entry, { boost })
             }
         })
         console.log('idx ready')
@@ -115,10 +118,9 @@ const setupSearch = function (options = {}) {
         })
         const documentHit = document.createElement('div')
         documentHit.classList.add('search-result-document-hit')
-        const documentHitLink = document.createElement('a')
-        documentHitLink.href = doc.url
-        documentHit.appendChild(documentHitLink)
-        highlightingResult.pageContentNodes.forEach((node) => createHighlightedText(node, documentHitLink))
+        const documentHitContent = document.createElement('div')
+        documentHit.appendChild(documentHitContent)
+        highlightingResult.pageContentNodes.forEach((node) => createHighlightedText(node, documentHitContent))
         // only show keyword when we got a hit on them
         if (doc.tags && highlightingResult.tagsNodes.length > 1) {
             const documentKeywords = document.createElement('div')
@@ -131,15 +133,19 @@ const setupSearch = function (options = {}) {
             highlightingResult.tagsNodes.forEach((node) => createHighlightedText(node, documentKeywordsList))
             documentKeywords.appendChild(documentKeywordsFieldLabel)
             documentKeywords.appendChild(documentKeywordsList)
-            documentHitLink.appendChild(documentKeywords)
+            documentHitContent.appendChild(documentKeywords)
         }
 
-        const searchResultItem = document.createElement('div')
+        const searchResultItem = document.createElement('a')
+        searchResultItem.href = doc.url
         searchResultItem.classList.add('search-result-item')
         searchResultItem.appendChild(documentTitle)
         searchResultItem.appendChild(documentHit)
         searchResultItem.addEventListener('mousedown', function (e) {
-            e.preventDefault()
+            e.preventDefault();
+        })
+        searchResultItem.addEventListener('click', function (e) {
+            closeSearchOverlay();
         })
         return searchResultItem
     }
@@ -310,7 +316,9 @@ const setupSearch = function (options = {}) {
             facetFilterInput.parentElement.addEventListener('click', confineEvent)
             facetFilterInput.addEventListener('change', (e) => toggleFilter(e, index))
         }
-        document.documentElement.addEventListener('click', clearSearchResults)
+        document.documentElement.addEventListener('click', (e) => {
+            clearSearchResults(true);
+        });
     }
 
 

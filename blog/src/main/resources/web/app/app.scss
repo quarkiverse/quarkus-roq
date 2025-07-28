@@ -2,6 +2,18 @@
   padding: 10px;
 }
 
+.about .author-name {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  &::after {
+    content: none;
+  }
+}
+
+.about .roq-version {
+  margin-bottom: 15px;
+}
+
 .about .cover-author-image {
   height: 150px;
   width: 150px;
