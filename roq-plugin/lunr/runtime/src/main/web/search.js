@@ -58,16 +58,17 @@ const setupSearch = function (options = {}) {
         documents = data;
         idx = lunr(function () {
             this.ref('id')
+            this.field('fragment', {boost: 5})
             this.field('title', {boost: 10})
             this.field('summary')
             this.field('tags', {boost: 50})
             this.field('content', {boost: 100})
-            this.field('fragment', {boost: 150})
+
 
             for (const [key, entry] of Object.entries(documents)) {
                 entry.content = decodeHtml(entry.content);
                 entry.id = key
-                const boost = entry.boost
+                const boost = entry.boost ?? 1
                 this.add(entry, { boost })
             }
         })
@@ -141,7 +142,10 @@ const setupSearch = function (options = {}) {
         searchResultItem.appendChild(documentTitle)
         searchResultItem.appendChild(documentHit)
         searchResultItem.addEventListener('mousedown', function (e) {
-            e.preventDefault()
+            e.preventDefault();
+        })
+        searchResultItem.addEventListener('click', function (e) {
+            closeSearchOverlay();
         })
         return searchResultItem
     }
@@ -312,7 +316,9 @@ const setupSearch = function (options = {}) {
             facetFilterInput.parentElement.addEventListener('click', confineEvent)
             facetFilterInput.addEventListener('change', (e) => toggleFilter(e, index))
         }
-        document.documentElement.addEventListener('click', clearSearchResults)
+        document.documentElement.addEventListener('click', (e) => {
+            clearSearchResults(true);
+        });
     }
 
 

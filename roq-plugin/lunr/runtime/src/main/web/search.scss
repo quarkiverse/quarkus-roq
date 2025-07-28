@@ -5,6 +5,8 @@
   --search-border-radius: 5px;
   --search-highlight-bg: transparent;
   --search-highlight-color: #63676d;
+  --search-result-bg: white;
+  --search-hover-bg: #ADD8E6;
   --search-result-text: #63676d;
   --search-result-title: #02060c;
   --search-placeholder-color: #aaa;
@@ -77,6 +79,7 @@
 .search-result-item {
   padding: 12px;
   border-bottom: 1px solid #ddd;
+  background: var(--search-result-bg);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -85,7 +88,7 @@
   color: var(--search-result-text);
 
   &:hover {
-    background: var(--search-highlight-bg);
+    background: var(--search-hover-bg);
   }
 }
 

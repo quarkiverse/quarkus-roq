@@ -10,10 +10,6 @@
     <artifactId>quarkus-roq-plugin-lunr</artifactId>
     <name>Quarkus Roq - Plugin - Lunr - Runtime</name>
 
-    <properties>
-        <jsoup.version>1.20.1</jsoup.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
@@ -24,6 +20,17 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>${jsoup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5-internal</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

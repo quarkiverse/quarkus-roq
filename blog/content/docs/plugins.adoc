@@ -339,11 +339,20 @@ You can prevent content from being indexed using Frontmatter data:
 [source,yaml]
 ----
 ---
-title: I don't want no idenxing
-layout: roq-default/default
+title: I don't want to be indexed
 search: false
 ---
 ----
+
+You can also boost specific pages or layouts in the results:
+[source,yaml]
+----
+---
+title: I want to be first in the result
+search-boost: 30
+---
+----
+
 
 [#plugin-diagram]
 == Roq Plugin Diagram
