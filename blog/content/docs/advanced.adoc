@@ -464,7 +464,7 @@ TIP: The Roq test server port could be modified by an annotation parameter like 
 === Default Quarkus Test Example
 It's possible to use the default Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then it will be rendered at runtime on a dynamic web server instead only:
 
-.src/test/java/QuateWebSiteTest.java
+.src/test/java/QuteWebSiteTest.java
 [source,java]
 ----
 @QuarkusTest
