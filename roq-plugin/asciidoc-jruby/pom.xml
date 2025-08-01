@@ -10,7 +10,7 @@
     </parent>
     <artifactId>quarkus-roq-plugin-asciidoc-jruby-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Quarkus Roq - Plugin - AsciidoctorJ</name>
+    <name>Quarkus Roq - Plugin - Asciidoc JRuby</name>
 
     <modules>
         <module>deployment</module>

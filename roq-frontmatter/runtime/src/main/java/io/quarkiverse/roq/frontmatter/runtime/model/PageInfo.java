@@ -29,6 +29,11 @@ public record PageInfo(
         String dateString,
 
         /**
+         * The markup (markdown, asciidoc) or null if none
+         */
+        String markup,
+
+        /**
          * The content of the file template, excluding the frontmatter header.
          * If applicable, this also includes the markup section (e.g "<md>...</md>").
          */
@@ -66,6 +71,7 @@ public record PageInfo(
     public static PageInfo create(String id,
             boolean draft,
             String dateString,
+            String markup,
             String rawContent,
             String absoluteSourceFilePath,
             String sourcePath,
@@ -73,18 +79,19 @@ public record PageInfo(
             PageFiles files,
             boolean isHtml,
             boolean isSiteIndex) {
-        return new PageInfo(id, draft, dateString, rawContent, absoluteSourceFilePath, sourcePath, quteTemplateId, files,
+        return new PageInfo(id, draft, dateString, markup, rawContent, absoluteSourceFilePath, sourcePath, quteTemplateId,
+                files,
                 isHtml, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
         // We don't copy the site index files
-        return new PageInfo(id, draft(), dateString(), rawContent(), sourceFile(), sourcePath(),
+        return new PageInfo(id, draft(), dateString(), markup(), rawContent(), sourceFile(), sourcePath(),
                 generatedTemplateId(), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public PageInfo changeIds(Function<String, String> function) {
-        return new PageInfo(function.apply(id()), draft(), dateString(), rawContent(),
+        return new PageInfo(function.apply(id()), draft(), dateString(), markup(), rawContent(),
                 sourceFile(),
                 sourcePath(),
                 function.apply(generatedTemplateId()), isSiteIndex() ? null : files(), isHtml(), false);

@@ -46,6 +46,7 @@ public interface RoqSiteConfig {
      * Supports glob expressions.
      */
     @WithDefault(IGNORED_FILES)
+    @ConfigDocDefault("&#42;&#42;/_&#42;&#42;,_&#42;&#42;,.&#42;&#42;,&#42;&#42;/.&#42;&#42;")
     List<String> ignoredFiles();
 
     /**

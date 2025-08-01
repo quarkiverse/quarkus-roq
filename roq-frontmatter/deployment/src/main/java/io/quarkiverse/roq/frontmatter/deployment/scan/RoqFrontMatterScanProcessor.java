@@ -312,7 +312,8 @@ public class RoqFrontMatterScanProcessor {
     private static void scanLayouts(QuteConfig quteConfig,
             RoqSiteConfig config,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
-            List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
@@ -429,7 +430,7 @@ public class RoqFrontMatterScanProcessor {
                         "Error while reading template file: %s".formatted(sourcePath), e);
             }
             TemplateContext templateContext = new TemplateContext(file, sourcePath, fullContent);
-            WrapperFilter markup = findMarkupFilter(markupList, templateContext);
+            RoqFrontMatterQuteMarkupBuildItem markup = findMarkupFilter(markupList, templateContext);
             List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
                     templateContext);
             String cleanPath = replaceWhitespaceChars(sourcePath);
@@ -479,7 +480,7 @@ public class RoqFrontMatterScanProcessor {
             final WrapperFilter escapeFilter = getEscapeFilter(escaped);
             final WrapperFilter includeFilter = getIncludeFilter(layoutId);
             final String escapedContent = escapeFilter.apply(content);
-            final String contentWithMarkup = markup != null ? markup.apply(escapedContent) : escapedContent;
+            final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
             final String generatedTemplate = includeFilter.apply(contentWithMarkup);
 
             List<Attachment> attachments = null;
@@ -502,6 +503,7 @@ public class RoqFrontMatterScanProcessor {
             PageInfo info = PageInfo.create(id,
                     draft,
                     dateString,
+                    markup != null ? markup.name() : null,
                     contentWithMarkup,
                     file.toAbsolutePath().toString(),
                     sourcePath,
@@ -696,7 +698,7 @@ public class RoqFrontMatterScanProcessor {
         return "";
     }
 
-    private static String stripFrontMatter(String content) {
+    public static String stripFrontMatter(String content) {
         return FRONTMATTER_PATTERN.matcher(content).replaceFirst("");
     }
 

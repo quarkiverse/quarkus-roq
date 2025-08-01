@@ -416,7 +416,8 @@ First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
     </dependency>
 ----
 
-=== Basic Test Example
+=== Test Site Generation
+
 Once you've added the dependency, you can easily ensure all pages are generated without errors:
 
 .src/test/java/RoqSiteTest.java
@@ -435,8 +436,7 @@ public class RoqSiteTest {
 
 That's it! This basic test already verifies that your site generation is error-free.
 
-=== Generated Content Test Example
-You can also add checks on the actual generated content as it will be served using a static file server:
+You can also add checks on the actual generated content as it is served using a static file server:
 
 .src/test/java/RoqSiteTest.java
 [source,java]
@@ -461,8 +461,9 @@ The RestAssured port will automatically use the Roq static test server, running 
 
 TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=8082)`.
 
-=== Default Quarkus Test Example
-It's possible to use the default Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then it will be rendered at runtime on a dynamic web server instead only:
+=== Using standard Quarkus test
+
+It's possible to use the standard Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then pages will be rendered dynamically on demand at runtime:
 
 .src/test/java/QuteWebSiteTest.java
 [source,java]

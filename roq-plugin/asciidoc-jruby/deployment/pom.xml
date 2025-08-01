@@ -13,17 +13,12 @@
     <dependencies>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-frontmatter-deployment</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-asciidoc-jruby</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-plugin-asciidoc-common</artifactId>
+            <artifactId>quarkus-roq-plugin-asciidoc-common-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

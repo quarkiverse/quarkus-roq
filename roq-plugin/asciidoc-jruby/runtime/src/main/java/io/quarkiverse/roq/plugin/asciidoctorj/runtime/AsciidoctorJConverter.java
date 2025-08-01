@@ -41,7 +41,7 @@ public class AsciidoctorJConverter {
 
     }
 
-    public Options createOptions(RoqTemplateAttributes templateAttributes) {
+    public Options createOptions(Map<String, String> asciidocAttributes, RoqTemplateAttributes templateAttributes) {
         final AttributesBuilder attributes = Attributes.builder()
                 .showTitle(true)
                 .attribute("sitegen", "roq")
@@ -61,6 +61,7 @@ public class AsciidoctorJConverter {
             attributes.attribute("site-path", templateAttributes.sitePath());
         }
         configuredAttributes.forEach(attributes::attribute);
+        asciidocAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();
         if (templateAttributes.sourcePath() != null) {
@@ -75,8 +76,9 @@ public class AsciidoctorJConverter {
     }
 
     public String apply(String asciidoc,
-            RoqTemplateAttributes attributes) {
-        Options options = createOptions(attributes);
+            Map<String, String> asciidocAttributes,
+            RoqTemplateAttributes templateAttributes) {
+        Options options = createOptions(asciidocAttributes, templateAttributes);
         // Cleaning the content from global indentation is necessary because
         // AsciiDoc content is not supposed to be indented globally
         // In Qute context it might often be indented

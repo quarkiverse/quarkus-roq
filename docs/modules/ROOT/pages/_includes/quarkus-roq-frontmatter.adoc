@@ -70,7 +70,7 @@ Environment variable: `+++SITE_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`**/_**,_**,.**,**/.**`
+|`&#42;&#42;/_&#42;&#42;,_&#42;&#42;,.&#42;&#42;,&#42;&#42;/.&#42;&#42;`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
 ifdef::add-copy-button-to-config-props[]

@@ -18,6 +18,7 @@
         <module>tagging</module>
         <module>aliases</module>
         <module>markdown</module>
+        <module>asciidoc-common</module>
         <module>asciidoc</module>
         <module>asciidoc-jruby</module>
         <module>qrcode</module>

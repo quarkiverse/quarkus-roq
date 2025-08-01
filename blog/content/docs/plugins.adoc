@@ -129,7 +129,7 @@ TIP: you can also use the `:qute:` Asciidoc header attribute to enable Qute pars
 You may use includes normally, just make sure the included file is ignored by Roq by prefixing the file or the directory with `_`.
 [source,asciidoc]
 ----
-\include::_includes/attributes.adoc.adoc[]
+\include::_includes/attributes.adoc[]
 ----
 
 === Headers
@@ -165,7 +165,42 @@ TIP: You can also use FrontMatter header to set the page data like any other pag
 
 |===
 
+=== Asciidoc Attributes
 
+Attributes can be configured:
+
+* Globally in the configuration:
++
+[source,properties]
+----
+quarkus.asciidoc.attributes.source-highlighter=highlight.js
+----
+
+* As an include file in the Asciidoc headers:
++
+[source,asciidoc]
+----
+= Hello
+include::_includes/attributes.adoc[]
+----
+
+* As part of the Frontmatter data `asciidoc-attributes` in a page or in a layout:
++
+[source,yaml]
+----
+---
+asciidoc-attributes:
+  notitle: true
+---
+----
+
+[#toc]
+=== Table of Content (TOC)
+
+To add a Table of Content, you can either use the Asciidoc solution and make it part of the content or add https://github.com/quarkiverse/quarkus-roq/blob/main/blog/src/main/resources/web/app/toc.js[this script] to your site (source: Antora).
+
+
+This will add a dynamic TOC in the `<aside class="toc sidebar"></aside>` of your layout. You can specify the title and content using `data-title` and `data-levels` attributes.
 
 [#plugin-markdown]
 == Roq Plugin Markdown
