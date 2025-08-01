@@ -68,6 +68,7 @@ class TemplateLinkTest {
                 sourcePath,
                 false,
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
+                "markdown",
                 "",
                 contentPath,
                 contentPath,

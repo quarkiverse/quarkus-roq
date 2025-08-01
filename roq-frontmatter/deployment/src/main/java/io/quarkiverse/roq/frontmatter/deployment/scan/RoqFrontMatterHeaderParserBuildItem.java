@@ -55,7 +55,7 @@ public final class RoqFrontMatterHeaderParserBuildItem extends MultiBuildItem im
             List<RoqFrontMatterHeaderParserBuildItem> items,
             TemplateContext context) {
         return streamFilter(items, context)
-                .sorted(Comparator.comparingInt(RoqFrontMatterHeaderParserBuildItem::priority).reversed()).toList();
+                .sorted(Comparator.comparingInt(RoqFrontMatterHeaderParserBuildItem::priority)).toList();
     }
 
 }

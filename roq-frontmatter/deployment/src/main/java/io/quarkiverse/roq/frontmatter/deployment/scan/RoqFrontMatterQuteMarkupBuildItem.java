@@ -38,7 +38,8 @@ public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem impl
         return isApplicable.test(context);
     }
 
-    public static WrapperFilter findMarkupFilter(List<RoqFrontMatterQuteMarkupBuildItem> markupList, TemplateContext context) {
+    public static RoqFrontMatterQuteMarkupBuildItem findMarkupFilter(List<RoqFrontMatterQuteMarkupBuildItem> markupList,
+            TemplateContext context) {
         if (context.getExtension() == null) {
             return null;
         }
@@ -52,7 +53,7 @@ public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem impl
         if (applicable.isEmpty()) {
             return null;
         }
-        return applicable.get(0).toWrapperFilter();
+        return applicable.get(0);
     }
 
     public WrapperFilter toWrapperFilter() {

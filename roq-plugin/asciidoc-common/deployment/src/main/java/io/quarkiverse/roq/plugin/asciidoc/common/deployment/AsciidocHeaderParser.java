@@ -1,6 +1,7 @@
-package io.quarkiverse.roq.plugin.asciidoc.deployment;
+package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.ESCAPE_KEY;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.stripFrontMatter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -34,8 +35,9 @@ public class AsciidocHeaderParser {
     public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean qute, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             Parser parser = new Parser();
+            String content = stripFrontMatter(templateContext.content());
             ContentResolver contentResolver = new PathContentResolver(templateContext.sourceFile().getParent());
-            Header header = parser.parseHeader(new Reader(templateContext.content().lines().toList()),
+            Header header = parser.parseHeader(new Reader(content.lines().toList()),
                     new Parser.ParserContext(contentResolver));
             final JsonObject pageData = toPageData(header);
             boolean escape = !qute;
@@ -58,11 +60,15 @@ public class AsciidocHeaderParser {
         pageData.put("attributes", JsonObject.mapFrom(attributes));
         for (String key : attributes.keySet()) {
             if (key.startsWith("page-")) {
-                pageData.put(key.substring(5), attributes.get(key));
+                final String value = attributes.get(key);
+                pageData.put(key.substring(5), value.isEmpty() ? true : value);
             }
         }
         if (!header.title().isBlank()) {
             pageData.put(Page.FM_TITLE, header.title());
+        }
+        if (header.attributes().containsKey(Page.FM_DESCRIPTION) && !header.attributes().get(Page.FM_DESCRIPTION).isBlank()) {
+            pageData.put(Page.FM_DESCRIPTION, header.attributes().get("description"));
         }
         if (!header.author().name().isBlank()) {
             pageData.put("author", new JsonObject().put("name", header.author().name()).put("email", header.author().mail()));
