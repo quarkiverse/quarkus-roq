@@ -681,7 +681,13 @@ public class RoqFrontMatterScanProcessor {
     }
 
     private static Predicate<Path> isFileExcluded(Path siteDir, RoqSiteConfig config) {
-        return path -> config.ignoredFiles().stream()
+        List<String> ignored = new ArrayList<>(config.defaultIgnoredFiles());
+        config.ignoredFiles().ifPresent(ignored::addAll);
+        return isFileExcluded(siteDir, ignored);
+    }
+
+    static Predicate<Path> isFileExcluded(Path siteDir, List<String> ignoredFiles) {
+        return path -> ignoredFiles.stream()
                 .anyMatch(s -> path.getFileSystem().getPathMatcher("glob:" + s).matches(siteDir.relativize(path)));
     }
 

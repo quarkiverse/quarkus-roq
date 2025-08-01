@@ -59,7 +59,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The ignored files in the site directory. Supports glob expressions.
+Add new ignored files to the default list. The ignored files (relative to the site directory).
+
+Only the `content/`, `public/`, and `static/` directories are scanned.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -70,7 +72,36 @@ Environment variable: `+++SITE_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`&#42;&#42;/_&#42;&#42;,_&#42;&#42;,.&#42;&#42;,&#42;&#42;/.&#42;&#42;`
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-ignored-files[`site.default-ignored-files`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.default-ignored-files+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The default ignored files (relative to the site directory) include:
+
+ - `.DS_Store`
+ - `Thumbs.db`
+ - All files or directories starting with an underscore (`_`)
+
+
+
+Only the `content/`, `public/`, and `static/` directories are scanned.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_DEFAULT_IGNORED_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_DEFAULT_IGNORED_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|``**.DS_Store,**Thumbs.db,**/_**,_**``
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
 ifdef::add-copy-button-to-config-props[]

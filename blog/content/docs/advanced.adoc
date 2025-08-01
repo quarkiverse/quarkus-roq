@@ -518,6 +518,12 @@ Search has also been improved:
 
 * Make sure your style is still valid with the new search result dom.
 
+Ignored files:
+
+* `site.ignored-files` now *extends* `site.default-ignored-files` instead of replacing it.
+The default ignore list was updated to allow files starting with `.` (except `DS_Store` and `Thumbs.db`).
+Check your config to ensure it still works as expected.
+
 == Site Configuration
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
