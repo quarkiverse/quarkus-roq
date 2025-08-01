@@ -25,6 +25,7 @@ public record PageFiles(List<String> names, boolean slugified) {
         String path = removeExtension(filePath);
         // We allow dots because some static files might have versions in their names
         // Anyway they have an extension
-        return PathUtils.slugify(path, true, true) + "." + extension;
+        String slugify = PathUtils.slugify(path, true, true);
+        return extension == null ? slugify : slugify + "." + extension;
     }
 }
