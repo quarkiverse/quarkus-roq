@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-generator-parent</artifactId>
-        <version>1.7.0</version>
+        <version>999-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-roq-generator-deployment</artifactId>
     <name>Quarkus Roq - Generator - Deployment</name>
