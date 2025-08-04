@@ -181,7 +181,7 @@ quarkus.asciidoc.attributes.source-highlighter=highlight.js
 [source,asciidoc]
 ----
 = Hello
-include::_includes/attributes.adoc[]
+\include::_includes/attributes.adoc[]
 ----
 
 * As part of the Frontmatter data `asciidoc-attributes` in a page or in a layout:
