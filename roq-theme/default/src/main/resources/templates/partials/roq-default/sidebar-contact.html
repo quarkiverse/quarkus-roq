@@ -1,35 +1,12 @@
 <section class="contact">
     <h3 class="contact-title">{roq_theme:contact_title}</h3>
     <ul>
-        {#if site.data.social-twitter??}
-        <li><a href="https://twitter.com/{site.data.social-twitter}" target="_blank"><i class="fa-brands fa-twitter" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-bluesky??}
-        <li><a href="https://bsky.app/profile/{site.data.social-bluesky}" target="_blank"><i class="fa-brands fa-bluesky"></i></a></li>
-        {/if}
-        {#if site.data.social-mastodon??}
-        <li><a href="{site.data.social-mastodon}" rel="me" target="_blank"><i class="fa-brands fa-mastodon"></i></a></li>
-        {/if}
-        {#if site.data.social-facebook??}
-        <li><a href="https://facebook.com/{site.data.social-facebook}" target="_blank"><i class="fa-brands fa-facebook" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-github??}
-        <li><a href="https://github.com/{site.data.social-github}" target="_blank"><i class="fa-brands fa-github" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-linkedin??}
-        <li><a href="https://in.linkedin.com/in/{site.data.social-linkedin}" target="_blank"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-slack??}
-        <li><a href="{site.data.social-slack}" target="_blank"><i class="fa-brands fa-slack" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-email??}
-        <li><a href="mailto:{site.data.social-email}"><i class="fa fa-envelope" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-discord??}
-        <li><a href="{site.data.social-discord}" target="_blank"><i class="fa-brands fa-discord" aria-hidden="true"></i></a></li>
-        {/if}
-        {#if site.data.social-youtube??}
-        <li><a href="{site.data.social-youtube}" target="_blank"><i class="fa-brands fa-youtube" aria-hidden="true"></i></a></li>
-        {/if}
+        {#for brand in brands}
+        <li>
+            <a href="{brand.url}" target="_blank">
+                <i class="{brand.icon}" aria-hidden="true"></i>
+            </a>
+        </li>
+        {/for}
     </ul>
 </section>
