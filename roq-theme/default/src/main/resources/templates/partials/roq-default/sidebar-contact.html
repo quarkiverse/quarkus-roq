@@ -1,11 +1,11 @@
 <section class="contact">
     <h3 class="contact-title">{roq_theme:contact_title}</h3>
     <ul>
-        {#for id in iconMap.keySet()}
-        {#if site.data.get(id)??}
+        {#for entry in brand.entrySet()}
+        {#if site.data.get(entry.key)??}
         <li>
-            <a href="{urlPrefixMap.get(id)}{site.data.get(id)}" target="_blank">
-                <i class="{iconMap.get(id)}" aria-hidden="true"></i>
+            <a href="{entry.value.prefix()}{site.data.get(entry.key)}" target="_blank">
+                <i class="{entry.value.icon()}" aria-hidden="true"></i>
             </a>
         </li>
         {/if}

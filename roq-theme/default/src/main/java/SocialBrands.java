@@ -4,27 +4,19 @@ import io.quarkus.qute.TemplateGlobal;
 
 @TemplateGlobal
 public class SocialBrands {
-    public static final Map<String, String> iconMap = Map.ofEntries(
-            Map.entry("social-twitter", "fa-brands fa-twitter"),
-            Map.entry("social-github", "fa-brands fa-github"),
-            Map.entry("social-linkedin", "fa-brands fa-linkedin"),
-            Map.entry("social-facebook", "fa-brands fa-facebook"),
-            Map.entry("social-youtube", "fa-brands fa-youtube"),
-            Map.entry("social-discord", "fa-brands fa-discord"),
-            Map.entry("social-email", "fa fa-envelope"),
-            Map.entry("social-bluesky", "fa-brands fa-bluesky"),
-            Map.entry("social-mastodon", "fa-brands fa-mastodon"),
-            Map.entry("social-slack", "fa-brands fa-slack"));
 
-    public static final Map<String, String> urlPrefixMap = Map.ofEntries(
-            Map.entry("social-twitter", "https://twitter.com/"),
-            Map.entry("social-github", "https://github.com/"),
-            Map.entry("social-linkedin", "https://in.linkedin.com/in/"),
-            Map.entry("social-facebook", "https://facebook.com/"),
-            Map.entry("social-youtube", "https://youtube.com/"),
-            Map.entry("social-discord", ""),
-            Map.entry("social-email", "mailto:"),
-            Map.entry("social-bluesky", "https://bsky.app/profile/"),
-            Map.entry("social-mastodon", ""),
-            Map.entry("social-slack", ""));
+    private record SocialBrand(String icon, String prefix) {}
+
+    public static final Map<String, SocialBrand> brand = Map.ofEntries(
+            Map.entry("social-twitter", new SocialBrand("fa-brands fa-twitter", "https://twitter.com/")),
+            Map.entry("social-github", new SocialBrand("fa-brands fa-github", "https://github.com/")),
+            Map.entry("social-linkedin", new SocialBrand("fa-brands fa-linkedin", "https://in.linkedin.com/in/")),
+            Map.entry("social-facebook", new SocialBrand("fa-brands fa-facebook", "https://facebook.com/")),
+            Map.entry("social-youtube", new SocialBrand("fa-brands fa-youtube", "https://youtube.com/")),
+            Map.entry("social-discord", new SocialBrand("fa-brands fa-discord", "")),
+            Map.entry("social-email", new SocialBrand("fa fa-envelope", "mailto:")),
+            Map.entry("social-bluesky", new SocialBrand("fa-brands fa-bluesky", "https://bsky.app/profile/")),
+            Map.entry("social-mastodon", new SocialBrand("fa-brands fa-mastodon", "")),
+            Map.entry("social-slack", new SocialBrand("fa-brands fa-slack", ""))
+    );
 }
