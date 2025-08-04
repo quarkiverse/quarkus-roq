@@ -1,12 +1,14 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
+import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import jakarta.enterprise.event.Event;
 
@@ -22,7 +24,6 @@ import io.quarkus.arc.ManagedContext;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.qute.Variant;
 import io.quarkus.qute.runtime.TemplateProducer;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -32,7 +33,7 @@ import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.web.MIMEHeader;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.ext.web.RoutingContext;
 
 public class RoqRouteHandler implements Handler<RoutingContext> {
@@ -114,52 +115,47 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // Extract the real template path, e.g. /item.html -> web/item
         Page page = extractedPaths.computeIfAbsent(requestPath, this::extractTemplatePath);
         if (page != null) {
-            final String templateId = removeExtension(page.info().generatedTemplateId());
+            final String templateId = page.info().generatedTemplateId();
             Template template = templateProducer.get().getInjectableTemplate(templateId);
-            TemplateInstance originalInstance = template.instance();
-            TemplateInstance instance = originalInstance;
-
-            List<MIMEHeader> acceptableTypes = rc.parsedHeaders().accept();
-            // Note that we need to obtain the variants from the original template, even if fragment is used
-            Variant selected = trySelectVariant(rc, originalInstance, acceptableTypes);
-
-            if (selected != null) {
-                instance.setAttribute(TemplateInstance.SELECTED_VARIANT, selected);
-                rc.response().putHeader(HttpHeaders.CONTENT_TYPE, selected.getContentType());
-
-                // Compression support - only compress the response if the content type matches the config value
-                if (compressMediaTypes != null
-                        && compressMediaTypes.contains(selected.getContentType())) {
-                    String contentEncoding = rc.response().headers().get(HttpHeaders.CONTENT_ENCODING);
-                    if (contentEncoding != null && HttpHeaders.IDENTITY.toString().equals(contentEncoding)) {
-                        rc.response().headers().remove(HttpHeaders.CONTENT_ENCODING);
-                    }
+            TemplateInstance instance = template.instance();
+            String contentType = template.getVariant().isPresent() ? template.getVariant().get().getContentType()
+                    : MimeMapping.getMimeTypeForFilename(templateId);
+            Charset charset = template.getVariant().isPresent() ? template.getVariant().get().getCharset()
+                    : StandardCharsets.UTF_8;
+            if (contentType != null) {
+                if (contentType.startsWith("text")) {
+                    rc.response().putHeader(HttpHeaders.CONTENT_TYPE,
+                            contentType + ";charset="
+                                    + charset);
+                } else {
+                    rc.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
                 }
             }
 
-            if (selected == null && !acceptableTypes.isEmpty()) {
-                // The Accept header is set, but we are not able to select the appropriate variant
-                LOG.errorf("Appropriate template variant not found %s: %s",
-                        acceptableTypes.stream().map(MIMEHeader::rawValue).collect(Collectors.toList()),
-                        rc.request().path());
-                rc.response().setStatusCode(406).end();
-            } else {
-                instance.data("page", page);
-                instance.data("site", site.get());
-                instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
-                instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
-                instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
-                instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
-                instance.renderAsync().whenComplete((r, t) -> {
-                    if (t != null) {
-                        Throwable rootCause = rootCause(t);
-                        LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
-                        rc.fail(rootCause);
-                    } else {
-                        rc.response().setStatusCode(200).end(r);
-                    }
-                });
+            // Compression support - only compress the response if the content type matches the config value
+            if (contentType != null && compressMediaTypes != null
+                    && compressMediaTypes.contains(contentType)) {
+                String contentEncoding = rc.response().headers().get(HttpHeaders.CONTENT_ENCODING);
+                if (contentEncoding != null && HttpHeaders.IDENTITY.toString().equals(contentEncoding)) {
+                    rc.response().headers().remove(HttpHeaders.CONTENT_ENCODING);
+                }
             }
+
+            instance.data("page", page);
+            instance.data("site", site.get());
+            instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
+            instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
+            instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
+            instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+            instance.renderAsync().whenComplete((r, t) -> {
+                if (t != null) {
+                    Throwable rootCause = rootCause(t);
+                    LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
+                    rc.fail(rootCause);
+                } else {
+                    rc.response().setStatusCode(200).end(r);
+                }
+            });
         } else {
             LOG.debugf("Template page not found: %s", rc.request().path());
             rc.next();
@@ -174,27 +170,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         return root;
     }
 
-    private Variant trySelectVariant(RoutingContext rc, TemplateInstance instance, List<MIMEHeader> acceptableTypes) {
-        Object variantsAttr = instance.getAttribute(TemplateInstance.VARIANTS);
-        if (variantsAttr != null) {
-            @SuppressWarnings("unchecked")
-            List<Variant> variants = (List<Variant>) variantsAttr;
-            if (!acceptableTypes.isEmpty()) {
-                for (MIMEHeader accept : acceptableTypes) {
-                    // https://github.com/vert-x3/vertx-web/issues/2388
-                    accept.value();
-                    for (Variant variant : variants) {
-                        if (new ContentType(variant.getContentType()).matches(accept.component(),
-                                accept.subComponent())) {
-                            return variant;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     private Page extractTemplatePath(String path) {
         path = removeLeadingSlash(path);
 
@@ -204,27 +179,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             return pages.get(link).get();
         }
         return null;
-    }
-
-    final static class ContentType {
-
-        private static final String WILDCARD = "*";
-
-        final String type;
-        final String subtype;
-
-        ContentType(String value) {
-            int slash = value.indexOf('/');
-            this.type = value.substring(0, slash);
-            int semicolon = value.indexOf(';');
-            this.subtype = semicolon != -1 ? value.substring(slash + 1, semicolon) : value.substring(slash + 1);
-        }
-
-        boolean matches(String otherType, String otherSubtype) {
-            return (type.equals(otherType) || type.equals(WILDCARD) || otherType.equals(WILDCARD))
-                    && (subtype.equals(otherSubtype) || subtype.equals(WILDCARD) || otherSubtype.equals(WILDCARD));
-        }
-
     }
 
 }
