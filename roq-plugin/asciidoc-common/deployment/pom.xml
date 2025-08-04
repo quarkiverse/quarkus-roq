@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-plugin-asciidoc-common-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>1.7.0</version>
     </parent>
     <artifactId>quarkus-roq-plugin-asciidoc-common-deployment</artifactId>
     <name>Quarkus Roq - Plugin - Asciidoc - Common - Deployment</name>
