@@ -4,8 +4,8 @@ import io.quarkus.qute.TemplateGlobal;
 
 @TemplateGlobal
 public class SocialBrands {
-
-    private record SocialBrand(String icon, String prefix) {}
+    private record SocialBrand(String icon, String prefix) {
+    }
 
     public static final Map<String, SocialBrand> brand = Map.ofEntries(
             Map.entry("social-twitter", new SocialBrand("fa-brands fa-twitter", "https://twitter.com/")),
@@ -17,6 +17,5 @@ public class SocialBrands {
             Map.entry("social-email", new SocialBrand("fa fa-envelope", "mailto:")),
             Map.entry("social-bluesky", new SocialBrand("fa-brands fa-bluesky", "https://bsky.app/profile/")),
             Map.entry("social-mastodon", new SocialBrand("fa-brands fa-mastodon", "")),
-            Map.entry("social-slack", new SocialBrand("fa-brands fa-slack", ""))
-    );
+            Map.entry("social-slack", new SocialBrand("fa-brands fa-slack", "")));
 }
