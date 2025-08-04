@@ -69,7 +69,7 @@ aside.sidebar.main {
 }
 .content-box {
   padding: 0px 0px 0px 260px;
-
+  min-width: 0;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -208,6 +208,10 @@ footer {
   margin: 1.5rem 0;
   width: 100%;
   max-width: 100%;
+
+  @media only screen and (max-width : 480px) {
+    padding: 5px;
+  }
 }
 
 .post {

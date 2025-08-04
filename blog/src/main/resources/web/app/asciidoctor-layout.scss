@@ -1,5 +1,7 @@
 
 body.documentation {
+  word-wrap: anywhere;
+
   .wrapper {
     max-width: 1500px;
     position: relative;
@@ -9,13 +11,12 @@ body.documentation {
     background-color: white;
     padding: 30px;
     display: flex;
-
+    min-width: 0;
 
     @media only screen and (max-width: 768px) {
-      padding: 20px;
-    }
-    @media only screen and (max-width: 480px) {
-      padding: 10px;
+      padding: 0;
+      margin: 0;
+      display: block;
     }
 
     @media screen and (max-width: 1023.5px) {
@@ -144,11 +145,6 @@ body.documentation {
 
     .toc .toc-menu .is-hidden-toc {
       display: none !important;
-    }
-
-
-    article.doc {
-      margin: 0 2rem 0 0;
     }
   }
 }
