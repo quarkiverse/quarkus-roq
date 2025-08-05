@@ -23,6 +23,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
+import io.quarkus.qute.runtime.QuteConfig;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
@@ -38,6 +39,7 @@ public class RoqFrontMatterProcessor {
 
     @BuildStep
     void bindQuteTemplates(
+            QuteConfig quteConfig,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
             List<RoqFrontMatterPageTemplateBuildItem> pageTemplatesItems,
@@ -52,14 +54,21 @@ public class RoqFrontMatterProcessor {
         // Produce generated Qute templates
         for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
             templatePathProducer
-                    .produce(
-                            TemplatePathBuildItem.builder().path(item.raw().templateSource().generatedQuteId())
-                                    .extensionInfo(FEATURE)
-                                    .content(item.raw().generatedTemplate()).build());
+                    .produce(TemplatePathBuildItem.builder()
+                            .parserConfig(item.parserConfig())
+                            .path(item.raw().templateSource().generatedQuteId())
+                            .extensionInfo(FEATURE)
+                            .content(item.raw().generatedTemplate())
+                            .build());
+
             // Add the template for just the content
             final String contentTemplateId = resolveGeneratedContentTemplateId(item.raw().templateSource().generatedQuteId());
-            templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
-                    .content(item.raw().generatedContentTemplate()).build());
+            templatePathProducer.produce(TemplatePathBuildItem.builder()
+                        .parserConfig(item.parserConfig())
+                        .path(contentTemplateId)
+                        .extensionInfo(FEATURE)
+                    .content(item.raw().generatedContentTemplate())
+                        .build());
             if (item.raw().collection() != null) {
                 docTemplates.add(contentTemplateId);
                 docTemplates.add(item.raw().templateSource().generatedQuteId());

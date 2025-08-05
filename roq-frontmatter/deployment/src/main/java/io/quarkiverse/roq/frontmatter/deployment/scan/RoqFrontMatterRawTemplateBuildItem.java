@@ -7,6 +7,7 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTempla
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.builder.item.MultiBuildItem;
+import io.quarkus.qute.ParserConfig;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -41,6 +42,10 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     private final ConfiguredCollection collection;
 
     /**
+     * The ParserConfig for this template
+     */
+    private final ParserConfig parserConfig;
+    /**
      * The generated Qute template with the layout include
      */
     private final String generatedTemplate;
@@ -60,7 +65,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
             TemplateType type,
             JsonObject data,
             ConfiguredCollection collection,
-            String generatedTemplate,
+            ParserConfig parserConfig, String generatedTemplate,
             String generatedContentTemplate,
             List<Attachment> attachments) {
         this.templateSource = templateSource;
@@ -68,6 +73,7 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         this.type = type;
         this.data = data;
         this.collection = collection;
+        this.parserConfig = parserConfig;
         this.generatedTemplate = generatedTemplate;
         this.generatedContentTemplate = generatedContentTemplate;
         this.attachments = attachments;
@@ -107,6 +113,10 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public String collectionId() {
         return collection != null ? collection.id() : null;
+    }
+
+    public ParserConfig parserConfig() {
+        return parserConfig;
     }
 
     public String generatedTemplate() {

@@ -60,6 +60,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.paths.PathVisit;
+import io.quarkus.qute.ParserConfig;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
@@ -144,6 +145,7 @@ public class RoqFrontMatterScanProcessor {
                                 TemplateType.LAYOUT,
                                 item.data(),
                                 item.collection(),
+                                item.parserConfig(),
                                 item.generatedTemplate(),
                                 item.generatedContentTemplate(),
                                 item.attachments()));
@@ -262,7 +264,7 @@ public class RoqFrontMatterScanProcessor {
         if (!Files.isDirectory(contentDir)) {
             return;
         }
-
+        final ParserConfig parserConfig = getParserConfig(quteConfig);
         // scan content
         final Map<String, ConfiguredCollection> collections = config.collections().stream()
                 .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity()));
@@ -274,12 +276,12 @@ public class RoqFrontMatterScanProcessor {
                     .forEach(p -> {
                         final String dirName = contentDir.relativize(p).getName(0).toString();
                         if (collections.containsKey(dirName)) {
-                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch,
+                            addBuildItem(siteDir, contentDir, parserConfig, items, quteConfig, config, watch,
                                     markupList,
                                     headerParserList, dataModifications,
                                     collections.get(dirName), TemplateType.DOCUMENT_PAGE).accept(p);
                         } else {
-                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch,
+                            addBuildItem(siteDir, contentDir, parserConfig, items, quteConfig, config, watch,
                                     markupList,
                                     headerParserList, dataModifications, null,
                                     TemplateType.NORMAL_PAGE).accept(p);
@@ -329,13 +331,15 @@ public class RoqFrontMatterScanProcessor {
         final String dir = getLayoutsDir(type);
         Path layoutsDir = templatesRoot.resolve(dir);
 
+        final ParserConfig parserConfig = getParserConfig(quteConfig, templatesRoot);
+
         if (!Files.isDirectory(layoutsDir)) {
             return;
         }
 
         // scan layouts and templates
         try (Stream<Path> stream = Files.walk(layoutsDir)) {
-            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, quteConfig, config,
+            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, parserConfig, items, quteConfig, config,
                     watch,
                     markupList,
                     headerParserList,
@@ -370,6 +374,7 @@ public class RoqFrontMatterScanProcessor {
         if (!Files.isDirectory(templatesRoot)) {
             return;
         }
+        final ParserConfig parserConfig = getParserConfig(quteConfig);
         // scan templates
         try (Stream<Path> stream = Files.walk(templatesRoot)) {
             stream
@@ -395,6 +400,7 @@ public class RoqFrontMatterScanProcessor {
                                     .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)
                                     .content(content)
+                                    .parserConfig(parserConfig)
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
                                     .build());
                         } catch (IOException e) {
@@ -408,6 +414,27 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
+    public static ParserConfig getParserConfig(QuteConfig quteConfig, Path templatesRoot) {
+        final Path dotQute = templatesRoot.resolve(".qute");
+        if (Files.exists(dotQute)) {
+            Properties props = new Properties();
+            try (var input = Files.newInputStream(dotQute)) {
+                props.load(input);
+            } catch (IOException e) {
+                LOGGER.warnf("Unable to read %s file: %s", templatesRoot + "/.qute", e);
+            }
+            if (props.containsKey("alt-expr-syntax")) {
+                return new ParserConfig(Boolean.parseBoolean(props.getProperty("alt-expr-syntax", "false")) ? '=' : null);
+            }
+        }
+
+        return getParserConfig(quteConfig);
+    }
+
+    public static ParserConfig getParserConfig(QuteConfig quteConfig) {
+        return quteConfig.altExprSyntax() ? new ParserConfig('=') : ParserConfig.DEFAULT;
+    }
+
     public static Predicate<Path> isTemplate(QuteConfig config) {
         HashSet<String> suffixes = new HashSet<>(config.suffixes());
         suffixes.addAll(HTML_OUTPUT_EXTENSIONS);
@@ -418,6 +445,7 @@ public class RoqFrontMatterScanProcessor {
     private static Consumer<Path> addBuildItem(
             Path siteDir,
             Path referenceDir,
+            ParserConfig parserConfig,
             List<RoqFrontMatterRawTemplateBuildItem> items,
             QuteConfig quteConfig,
             RoqSiteConfig config,
@@ -510,7 +538,8 @@ public class RoqFrontMatterScanProcessor {
 
             }
 
-            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection, generatedTemplate,
+            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection, parserConfig,
+                    generatedTemplate,
                     contentWithMarkup, attachments));
 
         };

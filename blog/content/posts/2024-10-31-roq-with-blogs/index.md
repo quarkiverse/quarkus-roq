@@ -8,7 +8,7 @@ author: ia3andy
 
 Hello folks,
 
-First let me thanks the Roq [contributors]({site.url('about')}), they have been awesome and this has been so fun to create Roq!
+First let me thanks the Roq [contributors]({=site.url('about')}), they have been awesome and this has been so fun to create Roq!
 
 **If you want to get started quickly:**
 
@@ -57,7 +57,7 @@ At this point, I thought back on what my wife had said... maybe it was time to r
 
 🗓️ **May 7, 2024:**
 
-![Discussion with Max]({page.image('generator-runtime-discussion.png')})
+![Discussion with Max]({=page.image('generator-runtime-discussion.png')})
 
 My idea was to generate static pages at runtime… because then all of Quarkus could become static without any changes 😍.
 
