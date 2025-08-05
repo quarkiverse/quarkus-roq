@@ -149,6 +149,15 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "jotaNas",
+      "name": "João Nascimento",
+      "avatar_url": "https://avatars.githubusercontent.com/u/69321552?v=4",
+      "profile": "https://github.com/jotaNas",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
