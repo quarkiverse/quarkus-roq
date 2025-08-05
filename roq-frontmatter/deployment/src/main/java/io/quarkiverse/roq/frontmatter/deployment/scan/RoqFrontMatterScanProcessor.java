@@ -214,7 +214,7 @@ public class RoqFrontMatterScanProcessor {
                             TemplateType.THEME_LAYOUT);
                 });
 
-        // Scan for content in the classpath in the resource roq dir (could be classpath root)
+        // Scan for content in the classpath in the resource roq dir (could be classpath root or custom)
         roqProject.consumePathFromRoqResourceDir(config.contentDir(),
                 l -> {
                     watchResourceDir(watch, l);
@@ -274,7 +274,6 @@ public class RoqFrontMatterScanProcessor {
         if (!Files.isDirectory(contentDir)) {
             return;
         }
-
         // scan content
         final Map<String, ConfiguredCollection> collections = config.collections().stream()
                 .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity()));
@@ -298,7 +297,8 @@ public class RoqFrontMatterScanProcessor {
                         }
                         addBuildItem(siteDir, contentDir, items, quteConfig, config, watch,
                                 markupList,
-                                headerParserList, dataModifications,
+                                headerParserList,
+                                dataModifications,
                                 collection,
                                 type).accept(p);
                     });
@@ -415,6 +415,7 @@ public class RoqFrontMatterScanProcessor {
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
                                     .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)
+                                    .fullPath(p)
                                     .content(content)
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
                                     .build());
@@ -464,9 +465,8 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
                     templateContext);
             String cleanPath = replaceWhitespaceChars(referencePath);
-            final String templatePath = removeExtension(cleanPath)
+            final String templateOutputPath = removeExtension(cleanPath)
                     + resolveOutputExtension(markup != null, templateContext);
-            String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + templatePath;
             String id = type.isPage() ? referencePath : removeExtension(referencePath);
 
             JsonObject data = new JsonObject();
@@ -505,10 +505,9 @@ public class RoqFrontMatterScanProcessor {
             TemplateSource source = TemplateSource.create(
                     id,
                     markup != null ? markup.name() : null,
-                    contentWithMarkup,
                     sourceFile,
                     referencePath,
-                    quteTemplatePath,
+                    templateOutputPath,
                     type.isLayout() || type.isThemeLayout(),
                     isHtml,
                     isIndex,
@@ -534,7 +533,8 @@ public class RoqFrontMatterScanProcessor {
 
             }
 
-            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection, generatedTemplate,
+            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection,
+                    generatedTemplate,
                     contentWithMarkup, attachments));
 
         };

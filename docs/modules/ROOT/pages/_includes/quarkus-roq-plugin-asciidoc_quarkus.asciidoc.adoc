@@ -30,7 +30,7 @@ Environment variable: `+++QUARKUS_ASCIIDOC_QUTE+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`false`
+|`+++false+++`
 
 |===
 

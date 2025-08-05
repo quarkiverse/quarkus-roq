@@ -101,7 +101,6 @@ class TemplateLinkTest {
         TemplateSource templateSource = TemplateSource.create(
                 path,
                 "markdown",
-                "",
                 new SourceFile("/bla", path),
                 path,
                 "",

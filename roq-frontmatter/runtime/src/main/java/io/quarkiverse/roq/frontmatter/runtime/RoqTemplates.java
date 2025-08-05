@@ -14,11 +14,4 @@ public final class RoqTemplates {
         return templateId.startsWith(LAYOUTS_DIR + "/") || templateId.startsWith(THEME_LAYOUTS_DIR_PREFIX + LAYOUTS_DIR + "/");
     }
 
-    public static String resolveGeneratedContentTemplateId(String templateId) {
-        return templateId.replace(ROQ_GENERATED_QUTE_PREFIX, ROQ_GENERATED_CONTENT_QUTE_PREFIX);
-    }
-
-    public static String resolveOriginalTemplateId(String templateId) {
-        return templateId.replace(ROQ_GENERATED_CONTENT_QUTE_PREFIX, ROQ_GENERATED_QUTE_PREFIX);
-    }
 }

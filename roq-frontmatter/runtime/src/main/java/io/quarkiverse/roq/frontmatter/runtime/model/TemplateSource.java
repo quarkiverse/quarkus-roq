@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_CONTENT_QUTE_PREFIX;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
+
 import java.util.function.Function;
 
 import jakarta.enterprise.inject.Vetoed;
@@ -13,8 +16,6 @@ import io.quarkus.qute.TemplateData;
  * @param id The page unique identifier. It is either the source file's relative path
  *        (e.g. {@code posts/my-post.md}) or a generated source path for dynamic pages.
  * @param markup The markup language used for this page (e.g. {@code markdown}, {@code asciidoc}), or {@code null} if none.
- * @param rawContent The content of the file or template, excluding any frontmatter header.
- *        If applicable, this includes the markup block (e.g. {@code <md>...</md>}).
  * @param file The source file location on disk or in the classpath.
  * @param path A stable, canonical identifier for the page within the logical content structure
  *        (e.g. {@code posts/my-favorite-beer.md}).
@@ -30,7 +31,6 @@ import io.quarkus.qute.TemplateData;
 public record TemplateSource(
         String id,
         String markup,
-        String rawContent,
         SourceFile file,
         String path,
         String generatedQuteId,
@@ -42,7 +42,6 @@ public record TemplateSource(
     public static TemplateSource create(
             String id,
             String markup,
-            String rawContent,
             SourceFile sourceFile,
             String path,
             String quteTemplateId,
@@ -51,19 +50,27 @@ public record TemplateSource(
             boolean isIndex,
             boolean isSiteIndex) {
 
-        return new TemplateSource(id, markup, rawContent, sourceFile, path, quteTemplateId, isLayout, isTargetHtml, isIndex,
+        return new TemplateSource(id, markup, sourceFile, path, quteTemplateId, isLayout, isTargetHtml, isIndex,
                 isSiteIndex);
     }
 
     public TemplateSource changeId(String id) {
         // We don't copy the site index files
-        return new TemplateSource(id, markup(), rawContent(), file(), path(),
+        return new TemplateSource(id, markup(), file(), path(),
                 generatedQuteId(), isLayout(), isTargetHtml(), isIndex(), false);
     }
 
     public TemplateSource changeIds(Function<String, String> function) {
-        return new TemplateSource(function.apply(id()), markup(), rawContent(), file(), path(),
+        return new TemplateSource(function.apply(id()), markup(), file(), path(),
                 function.apply(generatedQuteId()), isLayout(), isTargetHtml(), isIndex(), false);
+    }
+
+    public String generatedQuteTemplateId() {
+        return ROQ_GENERATED_QUTE_PREFIX + generatedQuteId;
+    }
+
+    public String generatedQuteContentTemplateId() {
+        return ROQ_GENERATED_CONTENT_QUTE_PREFIX + generatedQuteId;
     }
 
     /**
