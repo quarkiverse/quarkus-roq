@@ -23,7 +23,7 @@ public class RoqTest {
     @Test
     public void testErrorFilePage() {
         RestAssured.when().get("/posts/error-file").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: Can't find file 'not-found.pdf' attached to the page"));
+                "RoqStaticFileException: Only page directories with an index can have attached files. Then add 'not-found.pdf' to the page directory to fix this error."));
     }
 
     @Test
@@ -47,13 +47,20 @@ public class RoqTest {
     @Test
     public void testErrorImagePageDir() {
         RestAssured.when().get("/posts/error-image-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "Can't find 'not-found.png' in  'posts/error-image-dir' which has no attached static file."));
+                "File 'images/not-found.png' not found in public dir"));
     }
 
     @Test
     public void testErrorFilePageDir() {
         RestAssured.when().get("/posts/error-file-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
                 "Can't find 'not-found.pdf' in  'posts/error-file-dir' which has no attached static file."));
+    }
+
+    @Test
+    public void testErrorFilePageDirNotFound() {
+        RestAssured.when().get("/posts/error-image-not-found").then().statusCode(500).log().ifValidationFails()
+                .body(containsString(
+                        "File 'not-found.png' not found in 'posts/error-image-not-found' directory (found: hello.png)."));
     }
 
     @Test

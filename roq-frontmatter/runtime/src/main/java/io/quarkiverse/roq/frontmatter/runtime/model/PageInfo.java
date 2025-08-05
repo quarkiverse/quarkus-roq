@@ -102,7 +102,7 @@ public record PageInfo(
     }
 
     public boolean usePublicFiles() {
-        return isSiteIndex || files() == null;
+        return isSiteIndex || hasNoFiles();
     }
 
     /**
@@ -128,11 +128,11 @@ public record PageInfo(
     }
 
     public boolean hasFiles() {
-        return !files.isEmpty();
+        return files != null && !files.isEmpty();
     }
 
     public boolean hasNoFiles() {
-        return files.isEmpty();
+        return files == null || files.isEmpty();
     }
 
     public boolean fileExists(Object name) {
