@@ -186,9 +186,9 @@ public interface Page {
      * @throws RoqStaticFileException if this page is not a directory page or if the file doesn't exist
      */
     default RoqUrl file(Object name) {
-        if (info().usePublicFiles()) {
+        if (!info().isIndex()) {
             throw new RoqStaticFileException(
-                    "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
+                    "Only page directories with an index can have attached files. Then add '%s' to the page directory to fix this error."
                             .formatted(name, this.sourcePath()));
         }
         final String dir = toUnixPath(Path.of(this.sourcePath()).getParent().toString());
