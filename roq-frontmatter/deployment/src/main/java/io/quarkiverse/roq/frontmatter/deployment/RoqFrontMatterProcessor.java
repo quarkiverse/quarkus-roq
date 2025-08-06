@@ -22,6 +22,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
+import io.quarkus.qute.runtime.QuteConfig;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
@@ -37,6 +38,7 @@ public class RoqFrontMatterProcessor {
 
     @BuildStep
     void bindQuteTemplates(
+            QuteConfig quteConfig,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
             List<RoqFrontMatterRawTemplateBuildItem> roqFrontMatterTemplates,
@@ -50,13 +52,21 @@ public class RoqFrontMatterProcessor {
         // Produce generated Qute templates
         for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
             templatePathProducer
-                    .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplateId()).extensionInfo(FEATURE)
-                            .content(item.generatedTemplate()).build());
+                    .produce(TemplatePathBuildItem.builder()
+                            .parserConfig(item.parserConfig())
+                            .path(item.info().generatedTemplateId())
+                            .extensionInfo(FEATURE)
+                            .content(item.generatedTemplate())
+                            .build());
             if (item.published()) {
                 // Add the template for just the content
                 final String contentTemplateId = resolveGeneratedContentTemplateId(item.info().generatedTemplateId());
-                templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
-                        .content(item.generatedContentTemplate()).build());
+                templatePathProducer.produce(TemplatePathBuildItem.builder()
+                        .parserConfig(item.parserConfig())
+                        .path(contentTemplateId)
+                        .extensionInfo(FEATURE)
+                        .content(item.generatedContentTemplate())
+                        .build());
                 if (item.collection() != null) {
                     docTemplates.add(contentTemplateId);
                     docTemplates.add(item.info().generatedTemplateId());

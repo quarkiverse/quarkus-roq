@@ -7,7 +7,7 @@ search-boost: 30
 
 <div class="asciidoc">
   {#if attributes.containsKey('tocnav')}
-  <aside class="toc sidebar" data-title="{attributes.toctitle ?: 'Contents'}" data-levels="{attributes.toclevels ?: 2}">
+  <aside class="toc sidebar" data-title="{=attributes.toctitle ?: 'Contents'}" data-levels="{=attributes.toclevels ?: 2}">
     <div class="toc-menu"></div>
   </aside>
   {/if}
