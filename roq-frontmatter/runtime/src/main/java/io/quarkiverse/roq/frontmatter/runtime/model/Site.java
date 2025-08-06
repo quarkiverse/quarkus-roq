@@ -209,7 +209,7 @@ public final class Site {
     }
 
     /**
-     * Find a document by sourcePath
+     * Find a document by page path
      *
      * @param sourcePath the document source path (e.g. pages/first-page.html) or the generated source path for generated
      *        documents.
@@ -276,7 +276,7 @@ public final class Site {
             });
         } catch (Exception e) {
             if (!(e instanceof IllegalStateException && e.getMessage().contains("Recursive"))) {
-                LOG.warnf(e, "Failed to render page content for file '%s'.", page.info().sourcePath());
+                LOG.warnf(e, "Failed to render page content for file '%s'.", page.info().sourceFile().absolutePath());
             }
         }
         return "";

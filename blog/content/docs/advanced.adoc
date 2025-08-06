@@ -1,8 +1,8 @@
 = Roq Advanced Stuff
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: advanced
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 [#pagination]
 == Pagination
@@ -529,4 +529,4 @@ Check your config to ensure it still works as expected.
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
 
 
-include::_includes/configs/quarkus-roq-frontmatter_site.adoc[]
+include::../../includes/configs/quarkus-roq-frontmatter_site.adoc[]

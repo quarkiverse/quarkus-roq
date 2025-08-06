@@ -47,7 +47,7 @@ public class TemplateLink {
                     if (data.collection() == null) {
                         throw new RoqTemplateLinkException(
                                 "Page '%s' uses ':collection' placeholder in the link, it should not be used outside of a collection."
-                                        .formatted(data.pageInfo().sourcePath()));
+                                        .formatted(data.pageInfo().path()));
                     }
                     return data.collection();
                 }),
@@ -57,8 +57,8 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":raw-path", () -> removeExtension(data.pageInfo().sourcePath())),
-                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().sourcePath()), true, false).toLowerCase()),
+                Map.entry(":raw-path", () -> removeExtension(data.pageInfo().path())),
+                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().path()), true, false).toLowerCase()),
                 Map.entry(":ext",
                         () -> data.pageInfo().isHtml() ? ""
                                 : "." + data.pageInfo().sourceFileExtension()),
@@ -78,7 +78,7 @@ public class TemplateLink {
             final String baseFileName = data.pageInfo().sourceBaseFileName();
             if ("index".equalsIgnoreCase(baseFileName)) {
                 // in this case we take the parent dir name
-                title = PathUtils.fileName(data.pageInfo().sourcePath().replaceAll("/index\\..+", ""));
+                title = PathUtils.fileName(data.pageInfo().path().replaceAll("/index\\..+", ""));
             } else {
                 title = baseFileName;
             }
@@ -111,7 +111,7 @@ public class TemplateLink {
                 String replacement = entry.getValue().get();
                 if (replacement == null) {
                     throw new RoqTemplateLinkException("Link placeholder value for '%s' not found for 'link: %s' in page '%s'."
-                            .formatted(entry.getKey(), template, data.pageInfo().sourcePath()));
+                            .formatted(entry.getKey(), template, data.pageInfo().sourceFile().relativePath()));
                 }
                 link = link.replace(entry.getKey(), replacement);
             }

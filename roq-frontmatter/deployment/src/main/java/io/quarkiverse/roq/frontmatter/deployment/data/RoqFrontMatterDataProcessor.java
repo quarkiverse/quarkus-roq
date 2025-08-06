@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.getLayoutKey;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -12,7 +14,6 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundExce
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
@@ -107,10 +108,11 @@ public class RoqFrontMatterDataProcessor {
         fms.add(item.data());
         while (parent != null) {
             if (!byId.containsKey(parent)) {
-                final String layoutKey = RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), parent);
+                final String layoutKey = getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
                         "Layout '%s' not found for file '%s'. Available layouts are: %s."
-                                .formatted(layoutKey, item.info().sourcePath(), getAvailableLayouts(config, byId)));
+                                .formatted(layoutKey, item.info().sourceFile().absolutePath(),
+                                        getAvailableLayouts(config, byId)));
             }
             final RoqFrontMatterRawTemplateBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();
@@ -127,7 +129,7 @@ public class RoqFrontMatterDataProcessor {
     private static String getAvailableLayouts(RoqSiteConfig config, Map<String, RoqFrontMatterRawTemplateBuildItem> byId) {
         return byId.entrySet().stream()
                 .filter(i -> i.getValue().isLayout())
-                .map(i -> RoqFrontMatterScanProcessor.getLayoutKey(config.theme(), i.getKey()))
+                .map(i -> getLayoutKey(config.theme(), i.getKey()))
                 .map("'%s'"::formatted).collect(Collectors.joining(", "));
     }
 }

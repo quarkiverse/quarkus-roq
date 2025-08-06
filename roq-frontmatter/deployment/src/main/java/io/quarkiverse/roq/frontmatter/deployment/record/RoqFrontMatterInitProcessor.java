@@ -18,6 +18,7 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundE
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -35,6 +36,27 @@ import io.quarkus.vertx.http.runtime.HandlerType;
 
 class RoqFrontMatterInitProcessor {
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterInitProcessor.class);
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void bindSources(
+            RoqFrontMatterRootUrlBuildItem rootUrlItem,
+            List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
+            BuildProducer<SyntheticBeanBuildItem> beansProducer,
+            RoqFrontMatterRecorder recorder) {
+        if (rootUrlItem == null) {
+            return;
+        }
+
+        final List<PageInfo> list = rawTemplates.stream().map(RoqFrontMatterRawTemplateBuildItem::info).toList();
+        Supplier<Sources> sources = recorder.createSources(list);
+        beansProducer.produce(SyntheticBeanBuildItem.configure(Sources.class)
+                .named("sources")
+                .scope(Singleton.class)
+                .unremovable()
+                .supplier(sources)
+                .done());
+    }
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)

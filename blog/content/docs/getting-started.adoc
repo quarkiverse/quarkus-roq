@@ -1,5 +1,5 @@
 = Getting started with Quarkus Roq
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :qute:
 :page-aliases: /docs
 :page-description: Getting started with Quarkus Roq

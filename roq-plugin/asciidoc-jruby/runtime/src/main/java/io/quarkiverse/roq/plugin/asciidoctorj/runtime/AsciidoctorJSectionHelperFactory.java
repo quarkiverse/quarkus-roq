@@ -61,26 +61,29 @@ public class AsciidoctorJSectionHelperFactory
     @TemplateExtension(matchNames = { "asciidocify", "asciidocToHtml" })
     static RawString convertToAsciidoc(String text,
             String ignoredName,
+            @TemplateAttribute(SOURCE_ROOT_PATH) Object sourceRootPath,
             @TemplateAttribute(SOURCE_PATH) Object templatePath,
             @TemplateAttribute(SITE_PATH) Object sitePath,
             @TemplateAttribute(SITE_URL) Object siteUrl,
             @TemplateAttribute(PAGE_PATH) Object pagePath,
             @TemplateAttribute(PAGE_URL) Object pageUrl) {
-        return convertToAsciidoc(text, ignoredName, Map.of(), templatePath, sitePath, siteUrl, pagePath, pageUrl);
+        return convertToAsciidoc(text, ignoredName, Map.of(), sourceRootPath, templatePath, sitePath, siteUrl, pagePath,
+                pageUrl);
     }
 
     @TemplateExtension(matchNames = { "asciidocify", "asciidocToHtml" })
     static RawString convertToAsciidoc(String text,
             String ignoredName,
             Map<String, Object> attributes,
-            @TemplateAttribute(SOURCE_PATH) Object templatePath,
+            @TemplateAttribute(SOURCE_ROOT_PATH) Object sourceRootPath,
+            @TemplateAttribute(SOURCE_PATH) Object sourcePath,
             @TemplateAttribute(SITE_PATH) Object sitePath,
             @TemplateAttribute(SITE_URL) Object siteUrl,
             @TemplateAttribute(PAGE_PATH) Object pagePath,
             @TemplateAttribute(PAGE_URL) Object pageUrl) {
         return new RawString(
                 CONVERTER.get().apply(text, convertToStringMap(attributes),
-                        new RoqTemplateAttributes((String) templatePath, (String) siteUrl,
+                        new RoqTemplateAttributes((String) sourceRootPath, (String) sourcePath, (String) siteUrl,
                                 (String) sitePath, (String) pageUrl, (String) pagePath)));
     }
 
@@ -111,6 +114,7 @@ public class AsciidoctorJSectionHelperFactory
                 rn.process(sb::append);
                 final ResolutionContext resolutionContext = context.resolutionContext();
                 final RoqTemplateAttributes attributes = new RoqTemplateAttributes(
+                        (String) resolutionContext.getAttribute(SOURCE_ROOT_PATH),
                         (String) resolutionContext.getAttribute(SOURCE_PATH),
                         (String) resolutionContext.getAttribute(SITE_URL),
                         (String) resolutionContext.getAttribute(SITE_PATH),

@@ -1,8 +1,8 @@
 = Themes
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: themes
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 It will provide templates, scripts and styles for your site. For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 

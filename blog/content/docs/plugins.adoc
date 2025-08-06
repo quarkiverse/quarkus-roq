@@ -1,8 +1,8 @@
 = Plugins
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: plugins
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 [#plugin-tagging]
 == Roq Plugin Tagging (Tags)
@@ -129,7 +129,7 @@ TIP: you can also use the `:qute:` Asciidoc header attribute to enable Qute pars
 You may use includes normally, just make sure the included file is ignored by Roq by prefixing the file or the directory with `_`.
 [source,asciidoc]
 ----
-\include::_includes/attributes.adoc[]
+\include::../../includes/attributes.adoc[]
 ----
 
 === Headers
@@ -181,7 +181,7 @@ quarkus.asciidoc.attributes.source-highlighter=highlight.js
 [source,asciidoc]
 ----
 = Hello
-\include::_includes/attributes.adoc[]
+\include::../../includes/attributes.adoc[]
 ----
 
 * As part of the Frontmatter data `asciidoc-attributes` in a page or in a layout:

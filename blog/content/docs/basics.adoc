@@ -1,12 +1,12 @@
 = Roq the basics
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: basics
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 By default, your site files should be located in the **project root directory** (or in the Java resources dir: `src/main/resources/`).
 
-include::_includes/directory-structure.adoc[]
+include::../../includes/directory-structure.adoc[]
 
 == Qute and FrontMatter
 

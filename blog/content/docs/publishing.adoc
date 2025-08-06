@@ -1,8 +1,8 @@
 = Publishing a Roq Site
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: publishing
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 [#generating]
 == Generating your Roq site

@@ -9,59 +9,40 @@ import jakarta.enterprise.inject.Vetoed;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateData;
 
+/**
+ * Represents metadata and content for a template source (page, document or template).
+ *
+ * TODO: rename to TemplateSource
+ * TODO: move all optional fields to another record (draft, dateString, files, isHtml, isSiteIndex)
+ *
+ * @param id The page unique identifier. It is either the source file's relative path
+ *        (e.g. {@code posts/my-post.md}) or a generated source path for dynamic pages.
+ * @param draft Whether this page is marked as a draft.
+ * @param dateString The date associated with this page, as a string (with time zone).
+ * @param markup The markup language used for this page (e.g. {@code markdown}, {@code asciidoc}), or {@code null} if none.
+ * @param rawContent The content of the file or template, excluding any frontmatter header.
+ *        If applicable, this includes the markup block (e.g. {@code <md>...</md>}).
+ * @param sourceFile The source file location on disk or in the classpath.
+ * @param path A stable, canonical identifier for the page within the logical content structure
+ *        (e.g. {@code posts/my-favorite-beer.md}).
+ * @param generatedTemplateId The generated Qute template path for this page
+ *        (e.g. {@code roq-gen/posts/my-favorite-beer.html}).
+ * @param files List of attached static files, or {@code null} when public files should be used instead.
+ * @param isHtml Whether this page is an HTML page (as opposed to JSON, YAML, etc.).
+ * @param isSiteIndex Whether this page is the site index (only one such page exists per site).
+ */
 @TemplateData
 @Vetoed
 public record PageInfo(
-        /**
-         * The page unique identifier, it is either the source file relative path (e.g. posts/my-post.md or a generated source
-         * path for dynamic pages).
-         */
         String id,
-
-        /**
-         * If this page is a draft or not
-         */
         boolean draft,
-
-        /**
-         * This page zoned date
-         */
         String dateString,
-
-        /**
-         * The markup (markdown, asciidoc) or null if none
-         */
         String markup,
-
-        /**
-         * The content of the file template, excluding the frontmatter header.
-         * If applicable, this also includes the markup section (e.g "<md>...</md>").
-         */
         String rawContent,
-
-        /**
-         * The path of the source file on disk or in the classpath
-         */
-        String sourceFile,
-
-        /**
-         * The path of the source relative to the content directory (e.g posts/my-favorite-beer.md)
-         */
-        String sourcePath,
-
-        /**
-         * The generated template path for Qute (e.g roq-gen/posts/my-favorite-beer.html)
-         */
+        SourceFile sourceFile,
+        String path,
         String generatedTemplateId,
-
-        /**
-         * List of attached static files (null when public files should be used instead)
-         */
         PageFiles files,
-
-        /**
-         * Is this a html page or something else (json, yml, ...)
-         */
         boolean isHtml,
         boolean isSiteIndex) {
 
@@ -73,27 +54,25 @@ public record PageInfo(
             String dateString,
             String markup,
             String rawContent,
-            String absoluteSourceFilePath,
-            String sourcePath,
+            SourceFile sourceFile,
+            String path,
             String quteTemplateId,
             PageFiles files,
             boolean isHtml,
             boolean isSiteIndex) {
-        return new PageInfo(id, draft, dateString, markup, rawContent, absoluteSourceFilePath, sourcePath, quteTemplateId,
+        return new PageInfo(id, draft, dateString, markup, rawContent, sourceFile, path, quteTemplateId,
                 files,
                 isHtml, isSiteIndex);
     }
 
     public PageInfo changeId(String id) {
         // We don't copy the site index files
-        return new PageInfo(id, draft(), dateString(), markup(), rawContent(), sourceFile(), sourcePath(),
+        return new PageInfo(id, draft(), dateString(), markup(), rawContent(), sourceFile(), path(),
                 generatedTemplateId(), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
     public PageInfo changeIds(Function<String, String> function) {
-        return new PageInfo(function.apply(id()), draft(), dateString(), markup(), rawContent(),
-                sourceFile(),
-                sourcePath(),
+        return new PageInfo(function.apply(id()), draft(), dateString(), markup(), rawContent(), sourceFile(), path(),
                 function.apply(generatedTemplateId()), isSiteIndex() ? null : files(), isHtml(), false);
     }
 
@@ -109,7 +88,7 @@ public record PageInfo(
      * The file name (e.g my-favorite-beer.md)
      */
     public String sourceFileName() {
-        return PathUtils.fileName(sourcePath);
+        return PathUtils.fileName(path());
     }
 
     /**

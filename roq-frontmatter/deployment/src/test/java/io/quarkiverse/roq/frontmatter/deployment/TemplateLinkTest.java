@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.vertx.core.json.JsonObject;
 
 class TemplateLinkTest {
@@ -70,8 +71,8 @@ class TemplateLinkTest {
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
                 "markdown",
                 "",
-                contentPath,
-                contentPath,
+                new SourceFile("/bla", contentPath),
+                sourcePath,
                 "",
                 new PageFiles(List.of(), true),
                 indexable,

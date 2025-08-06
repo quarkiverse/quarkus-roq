@@ -66,6 +66,10 @@ public class RoqFrontMatterRecorder {
         };
     }
 
+    public Supplier<Sources> createSources(List<PageInfo> list) {
+        return () -> new Sources(list);
+    }
+
     public Consumer<Route> initializeRoute() {
         return r -> {
             r.method(HttpMethod.GET);
@@ -81,4 +85,5 @@ public class RoqFrontMatterRecorder {
     public Handler<RoutingContext> aliasRoute(String target) {
         return ctx -> ctx.redirect(target);
     }
+
 }
