@@ -66,7 +66,6 @@ public interface RoqSiteConfig {
      * </p>
      */
     @WithDefault(IGNORED_FILES)
-    @ConfigDocDefault("`**.DS_Store,**Thumbs.db,**/_**,_**`")
     List<String> defaultIgnoredFiles();
 
     /**
