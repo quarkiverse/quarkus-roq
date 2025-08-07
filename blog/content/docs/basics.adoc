@@ -276,9 +276,9 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The URL to this page
 | `http://example.com/about`
 
-| `page.info`
-| `PageInfo`
-| The page info (file name, ...)
+| `page.source`
+| `Origin`
+| The page source (file name, ...)
 |
 
 | `page.data`
@@ -323,7 +323,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 
 | `page.date`
 | `ZonedDateTime`
-| The publication date of the page
+| The publication date of the page or null
 | `2023-10-01T12:00:00Z`
 |===
 ====

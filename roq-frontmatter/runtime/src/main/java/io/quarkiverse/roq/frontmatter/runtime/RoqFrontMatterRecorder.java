@@ -44,13 +44,13 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<NormalPage> createPage(RoqUrl url, PageInfo info, JsonObject data, Paginator paginator) {
-        return () -> new NormalPage(url, info, data, paginator);
+    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, JsonObject data, Paginator paginator) {
+        return () -> new NormalPage(url, source, data, paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageInfo info, JsonObject data,
+    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, JsonObject data,
             boolean hidden) {
-        return () -> new DocumentPage(collection, url, info, data, hidden);
+        return () -> new DocumentPage(collection, url, source, data, hidden);
     }
 
     public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage,
@@ -66,7 +66,7 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<Sources> createSources(List<PageInfo> list) {
+    public Supplier<Sources> createSources(List<TemplateSource> list) {
         return () -> new Sources(list);
     }
 

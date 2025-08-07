@@ -28,4 +28,9 @@ public class RoqAsciidocTest {
         RestAssured.when().get("/guides/another-doc/").then().statusCode(200).log().ifValidationFails();
     }
 
+    @Test
+    public void testError() {
+        RestAssured.when().get("/guides/include-error/").then().statusCode(500).log().ifValidationFails();
+    }
+
 }

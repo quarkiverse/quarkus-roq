@@ -1,0 +1,76 @@
+= Roq Release Notes
+include::../../includes/attributes.adoc[]
+:doc-name: releases
+
+include::../../includes/edit-contrib.adoc[]
+
+We aim to keep the API stable, but since Roq is still young, breaking changes may happen. The good news: almost all breakage will be caught during build or xref:advanced.adoc#test-site-generation[site generation tests].
+
+Want to follow Roq’s progress and update your project safely? You’re in the right place.
+
+== Roq 1.8
+
+Sorry for the breaking releases back to back but this includes a refactor to allow safely including files from the whole site directory when using AsciidocJ (requested by a user).
+
+This mostly change internal api, but can eventually break really specific usage.
+
+→ Guide for migrating <<to-1-8>>
+
+== Roq 1.7
+
+The Asciidoc support was already available, but with this new release, we made it a Roq top level citizen:
+
+* Support for Asciidoc headers to control the Roq data
+* Includes
+* Roq page and site attributes (urls, ...)
+* `xref` are working out of the box for structured content such as docs
+* Fine grained Asciidoc attributes (config, layout, page)
+* Harmonization between Ruby and Java implementation
+* Dynamic TOC support
+
+👉 link:{site-path}docs/plugins/#plugin-asciidoc[The Roq Asciidoc plugin doc]
+
+A few weeks ago, we added link:{site-path}posts/your-users-deserve-searching-capabilities/[support for search] as a plugin to Roq. I wasn't fully happy with the style and the fact that it was targetting the full page instead of the nearest fragment for the actual keyword.
+
+I spend a bit of time on this and came up with a new way of indexing the content which slice the content based on fragments. Currently, it supports both Asciidoc and Markdown output.
+
+Give it a try, it is enabled on this site. If you want this for your site:
+
+👉 link:{site-path}docs/plugins/#plugin-asciidoc[The Roq Search plugin doc]
+
+
+→ Guide for migrating <<to-1-7>>
+
+
+== Migration guide
+
+1. xref:advanced.adoc#updating-roq[Make sur you update using Quarkus CLI]
+2. Make sure you implemented xref:advanced.adoc#test-site-generation[generation tests]
+
+=== to 1.8
+
+*Make sure build and generation tests are passing:*
+
+* `page.info()` has been rewritten and split into `page.source()` and `page.source().template()`.
+* Roq BuildItems has been modified to be easier to understand, all plugins have been updated accordingly. Unless you have your own custom plugins, this shouldn't affect you.
+
+=== to 1.7
+
+**Asciidoc support has been improved, if you use it, **you may need to check a few things when updating:
+
+* Asciidoc files (.adoc and .asciidoc) will be escaped by default meaning no Qute parsing. Instead, it is possible to use asciidoc includes and vars instead (can be configured through `quarkus.asciidoc.qute=false`).
+* Config renamed `quarkus.asciidoctorj` -> `quarkus.asciidoc` (this is to be able to switch from one to the other asciidoc plugin)
+* `quarkus.asciidoc.qute` (instead of `quarkus.asciidoc.escape` in 1.7.0.CR1)
+* `:qute:` or `:qute: true` to enable Qute parsing per page
+* Remove config `quarkus.asciidoctorj.templates-dir` (toc can be handled by script).
+
+*Search plugin* has also been improved:
+
+* Make sure your style is still valid with the new search result dom.
+
+*Ignored files:*
+
+* `site.ignored-files` now *extends* `site.default-ignored-files` instead of replacing it.
+The default ignore list was updated to allow files starting with `.` (except `DS_Store` and `Thumbs.db`).
+Check your config to ensure it still works as expected.
+

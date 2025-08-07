@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.generator.runtime;
 
-public enum PageSource {
+public enum Origin {
     /**
      * This page is configured through {@link RoqGeneratorConfig}
      */

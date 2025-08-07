@@ -126,10 +126,10 @@ TIP: you can also use the `:qute:` Asciidoc header attribute to enable Qute pars
 
 === Asciidoc includes
 
-You may use includes normally, just make sure the included file is ignored by Roq by prefixing the file or the directory with `_`.
+You may use includes files from all the site directory. Just make sure the included file is ignored by Roq by prefixing the file or the directory with `_`.
 [source,asciidoc]
 ----
-\include::../../includes/attributes.adoc[]
+\include::_includes/attributes.adoc[]
 ----
 
 === Headers
@@ -181,7 +181,7 @@ quarkus.asciidoc.attributes.source-highlighter=highlight.js
 [source,asciidoc]
 ----
 = Hello
-\include::../../includes/attributes.adoc[]
+\include::_includes/attributes.adoc[]
 ----
 
 * As part of the Frontmatter data `asciidoc-attributes` in a page or in a layout:

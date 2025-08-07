@@ -13,9 +13,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.Sources;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.qute.EngineBuilder;
 
 @ApplicationScoped
@@ -54,7 +54,7 @@ public class RoqQuteEngineObserver {
         }
         // A template can be used in multiple pages
         return sources.list().stream()
-                .collect(Collectors.toMap(PageInfo::generatedTemplateId, PageInfo::sourceFile,
+                .collect(Collectors.toMap(TemplateSource::generatedQuteId, TemplateSource::file,
                         (a, b) -> a));
     }
 }

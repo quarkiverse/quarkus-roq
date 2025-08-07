@@ -32,3 +32,5 @@ The second application receives the _quote request_ and sends a _quote_ back.
 image::iamroq.png[alt=Architecture, align=center,width=80%]
 
 xref:another-doc.adoc[Another Doc]
+
+include::../_include-parent.adoc

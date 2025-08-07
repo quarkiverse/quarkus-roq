@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import jakarta.inject.Singleton;
 
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentBuildItem;
 import io.quarkiverse.roq.plugin.series.runtime.Series;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesMessage;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesRecorder;
@@ -53,13 +53,13 @@ public class RoqPluginSeriesProcessor {
     void generateSeries(
             SeriesRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
-            List<RoqFrontMatterDocumentTemplateBuildItem> documents) {
+            List<RoqFrontMatterDocumentBuildItem> documents) {
         // Currently, we don't enforce series to be on the same collection, should we?
         Map<String, List<String>> series = documents.stream()
                 .filter(item -> item.data().containsKey(FM_SERIE))
                 .collect(Collectors.toMap(
                         item -> item.data().getString(FM_SERIE),
-                        item -> new ArrayList<>(List.of(item.raw().id())),
+                        item -> new ArrayList<>(List.of(item.template().source().id())),
                         (a, b) -> {
                             a.addAll(b);
                             return a;

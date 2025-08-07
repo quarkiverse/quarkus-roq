@@ -16,15 +16,15 @@ public final class Pages {
         if (name == null) {
             return null;
         }
-        if (page.info().hasNoFiles()) {
+        if (page.source().hasNoFiles()) {
             throw new RoqStaticFileException(missingResourceMessage.formatted(name));
         }
-        final String f = normaliseName(name, page.info().files().slugified());
-        if (page.info().fileExists(f)) {
+        final String f = normaliseName(name, page.source().files().slugified());
+        if (page.source().fileExists(f)) {
             return page.url().resolve(f);
         } else {
             throw new RoqStaticFileException(notFoundMessage.formatted(name,
-                    String.join(", ", page.info().files().names())));
+                    String.join(", ", page.source().files().names())));
         }
     }
 

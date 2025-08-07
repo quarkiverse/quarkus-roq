@@ -17,7 +17,8 @@ public class RoqPluginSitemapTemplateExtension {
         if (page.data().containsKey(LAST_MODIFIED_AT)) {
             return ZonedDateTime.parse(page.data().getString(LAST_MODIFIED_AT));
         }
-        return page.date();
+        final ZonedDateTime date = page.date();
+        return date != null ? date : ZonedDateTime.now();
     }
 
     public static boolean sitemap(Page page) {

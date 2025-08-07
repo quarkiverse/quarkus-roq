@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
-import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.util.PathUtils;
 import io.vertx.core.json.JsonObject;
 
@@ -26,18 +26,18 @@ public class TemplateLink {
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
 
     public interface LinkData {
-        PageInfo pageInfo();
+        PageSource pageSource();
 
         String collection();
 
         JsonObject data();
     }
 
-    public record PageLinkData(PageInfo pageInfo, String collection,
+    public record PageLinkData(PageSource pageSource, String collection,
             JsonObject data) implements LinkData {
     }
 
-    public record PaginateLinkData(PageInfo pageInfo, String collection, String page,
+    public record PaginateLinkData(PageSource pageSource, String collection, String page,
             JsonObject data) implements LinkData {
     }
 
@@ -47,22 +47,24 @@ public class TemplateLink {
                     if (data.collection() == null) {
                         throw new RoqTemplateLinkException(
                                 "Page '%s' uses ':collection' placeholder in the link, it should not be used outside of a collection."
-                                        .formatted(data.pageInfo().path()));
+                                        .formatted(data.pageSource().path()));
                     }
                     return data.collection();
                 }),
                 Map.entry(":year",
-                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
                 Map.entry(":month",
-                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
-                        () -> Optional.ofNullable(data.pageInfo().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
-                Map.entry(":raw-path", () -> removeExtension(data.pageInfo().path())),
-                Map.entry(":path", () -> slugify(removeExtension(data.pageInfo().path()), true, false).toLowerCase()),
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
+                Map.entry(":raw-path", () -> removeExtension(data.pageSource().path())),
+                Map.entry(":path",
+                        () -> slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
                 Map.entry(":ext",
-                        () -> data.pageInfo().isHtml() ? ""
-                                : "." + data.pageInfo().sourceFileExtension()),
-                Map.entry(":ext!", () -> data.pageInfo().isHtml() ? ".html" : "." + data.pageInfo().sourceFileExtension()),
+                        () -> data.pageSource().isTargetHtml() ? ""
+                                : "." + data.pageSource().extension()),
+                Map.entry(":ext!",
+                        () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
                 Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
                 Map.entry(":Slug", () -> resolveSlug(data)))); // Case-preserving slug
         if (other != null) {
@@ -75,10 +77,10 @@ public class TemplateLink {
         String title = data.data().getString("slug",
                 data.data().getString("title"));
         if (title == null || title.isBlank()) {
-            final String baseFileName = data.pageInfo().sourceBaseFileName();
+            final String baseFileName = data.pageSource().baseFileName();
             if ("index".equalsIgnoreCase(baseFileName)) {
                 // in this case we take the parent dir name
-                title = PathUtils.fileName(data.pageInfo().path().replaceAll("/index\\..+", ""));
+                title = PathUtils.fileName(data.pageSource().path().replaceAll("/index\\..+", ""));
             } else {
                 title = baseFileName;
             }
@@ -111,7 +113,7 @@ public class TemplateLink {
                 String replacement = entry.getValue().get();
                 if (replacement == null) {
                     throw new RoqTemplateLinkException("Link placeholder value for '%s' not found for 'link: %s' in page '%s'."
-                            .formatted(entry.getKey(), template, data.pageInfo().sourceFile().relativePath()));
+                            .formatted(entry.getKey(), template, data.pageSource().file().relativePath()));
                 }
                 link = link.replace(entry.getKey(), replacement);
             }
