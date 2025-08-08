@@ -101,7 +101,7 @@ Environment variable: `+++SITE_DEFAULT_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|``**.DS_Store,**Thumbs.db,**/_**,_**``
+|`**.DS_Store,**Thumbs.db,**/_**,_**`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
 ifdef::add-copy-button-to-config-props[]
