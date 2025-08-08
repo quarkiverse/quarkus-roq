@@ -8,6 +8,13 @@ import java.util.List;
 import io.quarkiverse.roq.util.PathUtils;
 
 public record PageFiles(List<String> names, boolean slugified) {
+
+    public static final PageFiles EMPTY = new PageFiles(List.of(), false);
+
+    public static PageFiles empty() {
+        return EMPTY;
+    }
+
     public boolean contains(Object o) {
         return names.contains(o);
     }

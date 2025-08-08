@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -39,7 +39,7 @@ public class RoqPluginAliasesProcessor {
     @BuildStep
     public void consumeTemplates(
             RoqSiteConfig config,
-            List<RoqFrontMatterTemplateBuildItem> templates,
+            List<RoqFrontMatterPageTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
             BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
@@ -49,11 +49,7 @@ public class RoqPluginAliasesProcessor {
         }
 
         HashMap<String, String> aliasMap = new HashMap<>();
-        for (RoqFrontMatterTemplateBuildItem item : templates) {
-
-            if (!item.published()) {
-                continue;
-            }
+        for (RoqFrontMatterPageTemplateBuildItem item : templates) {
 
             Set<String> aliasesName = getAliases(item.data());
             if (aliasesName.isEmpty()) {
@@ -62,7 +58,7 @@ public class RoqPluginAliasesProcessor {
             RoqUrl url = item.url();
             for (String alias : aliasesName) {
                 String aliasLink = TemplateLink.pageLink(config.pathPrefixOrEmpty(), alias, new TemplateLink.PageLinkData(
-                        item.raw().info(), item.raw().collectionId(), item.data()));
+                        item.source(), item.raw().collectionId(), item.data()));
                 aliasMap.put(aliasLink, url.absolute());
             }
         }

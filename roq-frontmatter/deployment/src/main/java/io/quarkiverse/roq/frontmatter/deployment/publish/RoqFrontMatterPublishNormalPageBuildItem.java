@@ -1,20 +1,20 @@
 package io.quarkiverse.roq.frontmatter.deployment.publish;
 
-import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
-public final class RoqFrontMatterPublishPageBuildItem extends MultiBuildItem {
+public final class RoqFrontMatterPublishNormalPageBuildItem extends MultiBuildItem {
     private final RoqUrl url;
-    private final PageInfo info;
+    private final PageSource source;
     private final JsonObject data;
     private final Paginator paginator;
 
-    public RoqFrontMatterPublishPageBuildItem(RoqUrl url, PageInfo info, JsonObject data, Paginator paginator) {
+    public RoqFrontMatterPublishNormalPageBuildItem(RoqUrl url, PageSource source, JsonObject data, Paginator paginator) {
         this.url = url;
-        this.info = info;
+        this.source = source;
         this.data = data;
         this.paginator = paginator;
     }
@@ -23,8 +23,8 @@ public final class RoqFrontMatterPublishPageBuildItem extends MultiBuildItem {
         return url;
     }
 
-    public PageInfo info() {
-        return info;
+    public PageSource source() {
+        return source;
     }
 
     public JsonObject data() {

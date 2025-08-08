@@ -4,8 +4,14 @@ import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeade
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.resolveHeaderParsers;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
-import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR_PREFIX;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.fileName;
+import static io.quarkiverse.roq.util.PathUtils.getExtension;
+import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 import static java.util.function.Predicate.not;
 
@@ -13,17 +19,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +53,8 @@ import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateB
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
-import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -63,17 +69,17 @@ import io.vertx.core.json.JsonObject;
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---\\v", Pattern.DOTALL);
-    private static final String DRAFT_KEY = "draft";
-    private static final String DATE_KEY = "date";
+
     private static final String LAYOUT_KEY = "layout";
     public static final String ESCAPE_KEY = "escape";
-    private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
     public static final String TEMPLATES_DIR = "templates";
 
     // We might need to allow plugins to contribute to this at some point
     private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
             "adoc");
+    public static final String LAYOUTS_DIR_PREFIX = addTrailingSlash(LAYOUTS_DIR);
 
     @BuildStep
     void registerEscapedTemplates(RoqSiteConfig config,
@@ -133,14 +139,13 @@ public class RoqFrontMatterScanProcessor {
                     String layoutId = removeThemePrefix(item.id());
                     if (!ids.contains(layoutId)) {
                         produceRawTemplate(dataProducer, new RoqFrontMatterRawTemplateBuildItem(
-                                item.info().changeIds(RoqFrontMatterScanProcessor::removeThemePrefix),
+                                item.templateSource().changeIds(RoqFrontMatterScanProcessor::removeThemePrefix),
                                 item.layout(),
                                 TemplateType.LAYOUT,
                                 item.data(),
                                 item.collection(),
                                 item.generatedTemplate(),
                                 item.generatedContentTemplate(),
-                                item.published(),
                                 item.attachments()));
                     }
                 }
@@ -160,7 +165,7 @@ public class RoqFrontMatterScanProcessor {
 
     private static void produceRawTemplate(BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             RoqFrontMatterRawTemplateBuildItem item) {
-        LOGGER.debugf("Roq is producing a raw template '%s'", item.info().generatedTemplateId());
+        LOGGER.debugf("Roq is producing a raw template '%s'", item.templateSource().generatedQuteId());
         dataProducer.produce(item);
     }
 
@@ -269,11 +274,13 @@ public class RoqFrontMatterScanProcessor {
                     .forEach(p -> {
                         final String dirName = contentDir.relativize(p).getName(0).toString();
                         if (collections.containsKey(dirName)) {
-                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch, markupList,
+                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch,
+                                    markupList,
                                     headerParserList, dataModifications,
                                     collections.get(dirName), TemplateType.DOCUMENT_PAGE).accept(p);
                         } else {
-                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch, markupList,
+                            addBuildItem(siteDir, contentDir, items, quteConfig, config, watch,
+                                    markupList,
                                     headerParserList, dataModifications, null,
                                     TemplateType.NORMAL_PAGE).accept(p);
                         }
@@ -339,7 +346,7 @@ public class RoqFrontMatterScanProcessor {
                     .filter(Files::isRegularFile)
                     .filter(not(isFileExcluded(templatesRoot.getParent(), config)))
                     .filter(isTemplate(quteConfig))
-                    .filter(RoqFrontMatterScanProcessor::isPageTargetHtml)
+                    .filter(RoqFrontMatterScanProcessor::isTemplateTargetHtml)
                     .forEach(layoutsConsumer);
 
         } catch (IOException e) {
@@ -410,7 +417,7 @@ public class RoqFrontMatterScanProcessor {
     @SuppressWarnings("unchecked")
     private static Consumer<Path> addBuildItem(
             Path siteDir,
-            Path contentDir,
+            Path referenceDir,
             List<RoqFrontMatterRawTemplateBuildItem> items,
             QuteConfig quteConfig,
             RoqSiteConfig config,
@@ -421,28 +428,25 @@ public class RoqFrontMatterScanProcessor {
             ConfiguredCollection collection,
             TemplateType type) {
         return file -> {
-            String sourcePath = toUnixPath(contentDir.relativize(file).toString());
+            final String relativePath = toUnixPath(siteDir.relativize(file).normalize().toString());
+            String referencePath = toUnixPath(referenceDir.relativize(file).normalize().toString());
+            SourceFile sourceFile = new SourceFile(toUnixPath(siteDir.normalize().toAbsolutePath().toString()), relativePath);
             final String fullContent;
             try {
                 fullContent = Files.readString(file, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new RoqSiteScanningException(
-                        "Error while reading template file: %s".formatted(sourcePath), e);
+                        "Error while reading template file: %s".formatted(sourceFile.absolutePath()), e);
             }
-            TemplateContext templateContext = new TemplateContext(file, sourcePath, fullContent);
+            TemplateContext templateContext = new TemplateContext(file, referencePath, fullContent);
             RoqFrontMatterQuteMarkupBuildItem markup = findMarkupFilter(markupList, templateContext);
             List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
                     templateContext);
-            String cleanPath = replaceWhitespaceChars(sourcePath);
+            String cleanPath = replaceWhitespaceChars(referencePath);
             final String templatePath = removeExtension(cleanPath)
                     + resolveOutputExtension(markup != null, templateContext);
             String quteTemplatePath = ROQ_GENERATED_QUTE_PREFIX + templatePath;
-            String quteContentTemplatePath = ROQ_GENERATED_CONTENT_QUTE_PREFIX + templatePath;
-            boolean published = type.isPage();
-            String id = type.isPage() ? sourcePath : removeExtension(sourcePath);
-            final boolean isHtml = isPageTargetHtml(file);
-            var isIndex = isHtml && "index".equals(PathUtils.removeExtension(PathUtils.fileName(sourcePath)));
-            var isSiteIndex = isHtml && id.startsWith("index.");
+            String id = type.isPage() ? referencePath : removeExtension(referencePath);
 
             JsonObject data = new JsonObject();
             String content = fullContent;
@@ -452,36 +456,41 @@ public class RoqFrontMatterScanProcessor {
                 content = headerParser.removeHeader().apply(content);
             }
 
-            ZonedDateTime date = parsePublishDate(file, data, config.dateFormat(), config.timeZone());
-            final boolean noFuture = !config.future() && (collection == null || !collection.future());
-            ZonedDateTime now = ZonedDateTime.now();
-            if (date != null && noFuture && date.isAfter(now)) {
-                LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
-                        " To display future articles, use -Dsite.future=true%s.", sourcePath, date, now,
-                        collection == null ? "" : " or -Dsite.collections.%s.future=true".formatted(collection.id()));
-                return;
-            }
-            String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            final boolean isHtml = isTemplateTargetHtml(file);
+
             final String defaultLayout = type.isPage() && isHtml
                     ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
                     : null;
+
             final String layoutId = normalizedLayout(config.theme(),
                     data.getString(LAYOUT_KEY),
                     defaultLayout);
 
             for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                data = modification.modifier().modify(new SourceData(file, sourcePath, collection, type, data));
+                data = modification.modifier().modify(new SourceData(file, referencePath, collection, type, data));
             }
-            final boolean draft = data.getBoolean(DRAFT_KEY, false);
-            if (!config.draft() && draft) {
-                return;
-            }
+
             final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
             final WrapperFilter escapeFilter = getEscapeFilter(escaped);
             final WrapperFilter includeFilter = getIncludeFilter(layoutId);
             final String escapedContent = escapeFilter.apply(content);
             final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
             final String generatedTemplate = includeFilter.apply(contentWithMarkup);
+
+            var isIndex = type.isPage() && isHtml && "index".equals(removeExtension(fileName(referencePath)));
+            var isSiteIndex = isHtml && id.startsWith("index.");
+
+            TemplateSource source = TemplateSource.create(
+                    id,
+                    markup != null ? markup.name() : null,
+                    contentWithMarkup,
+                    sourceFile,
+                    referencePath,
+                    quteTemplatePath,
+                    type.isLayout() || type.isThemeLayout(),
+                    isHtml,
+                    isIndex,
+                    isSiteIndex);
 
             List<Attachment> attachments = null;
             // Scan for files
@@ -500,23 +509,9 @@ public class RoqFrontMatterScanProcessor {
                 }
 
             }
-            PageInfo info = PageInfo.create(id,
-                    draft,
-                    dateString,
-                    markup != null ? markup.name() : null,
-                    contentWithMarkup,
-                    file.toAbsolutePath().toString(),
-                    sourcePath,
-                    quteTemplatePath,
-                    attachments != null
-                            ? new PageFiles(attachments.stream().map(Attachment::name).toList(), config.slugifyFiles())
-                            : null,
-                    isHtml,
-                    isSiteIndex);
 
-            items.add(new RoqFrontMatterRawTemplateBuildItem(info, layoutId, type, data, collection, generatedTemplate,
-                    contentWithMarkup,
-                    published, attachments));
+            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection, generatedTemplate,
+                    contentWithMarkup, attachments));
 
         };
     }
@@ -564,44 +559,6 @@ public class RoqFrontMatterScanProcessor {
         return sourcePath.replaceAll("\\s+", "-");
     }
 
-    protected static ZonedDateTime parsePublishDate(Path file, JsonObject frontMatter, String dateFormat,
-            Optional<String> timeZone) {
-        String dateString;
-        final boolean fromFileName;
-        if (frontMatter.containsKey(DATE_KEY)) {
-            dateString = frontMatter.getString(DATE_KEY);
-            fromFileName = false;
-        } else {
-            Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(file.toString());
-            if (!matcher.find()) {
-                // Lets fallback on using today's date if not specified
-                return ZonedDateTime.now();
-            }
-            dateString = matcher.group(1);
-            fromFileName = true;
-        }
-        try {
-            return new DateTimeFormatterBuilder().appendPattern(dateFormat)
-                    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                    .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
-                    .toFormatter()
-                    .withZone(timeZone.isPresent() ? ZoneId.of(timeZone.get()) : ZoneId.systemDefault())
-                    .parse(dateString, ZonedDateTime::from);
-        } catch (DateTimeParseException e) {
-            if (fromFileName) {
-                throw new RoqSiteScanningException(
-                        "Error while reading date '%s' in file name: '%s'\nreason: %s".formatted(dateString, file,
-                                e.getLocalizedMessage()));
-            } else {
-                throw new RoqFrontMatterReadingException(
-                        "Error while reading FrontMatter 'date' ('%s') in file: '%s'\nreason: %s".formatted(dateString, file,
-                                e.getLocalizedMessage()));
-            }
-        }
-
-    }
-
     private static WrapperFilter getEscapeFilter(boolean escaped) {
         if (!escaped) {
             return WrapperFilter.EMPTY;
@@ -646,16 +603,16 @@ public class RoqFrontMatterScanProcessor {
             }
         }
 
-        if (!normalized.contains(PathUtils.addTrailingSlash(LAYOUTS_DIR))) {
-            normalized = PathUtils.join(LAYOUTS_DIR, normalized);
+        if (!normalized.contains(LAYOUTS_DIR_PREFIX)) {
+            normalized = PathUtils.join(LAYOUTS_DIR_PREFIX, normalized);
         }
         return removeExtension(normalized);
     }
 
     public static String getLayoutKey(Optional<String> theme, String resolvedLayout) {
         String result = resolvedLayout;
-        if (result.startsWith(addTrailingSlash(LAYOUTS_DIR))) {
-            result = result.substring(PathUtils.addTrailingSlash(LAYOUTS_DIR).length());
+        if (result.startsWith(LAYOUTS_DIR_PREFIX)) {
+            result = result.substring(LAYOUTS_DIR_PREFIX.length());
 
             if (theme.isPresent() && result.contains(theme.get())) {
                 result = result.replace(theme.get(), ":theme");
@@ -691,7 +648,7 @@ public class RoqFrontMatterScanProcessor {
                 .anyMatch(s -> path.getFileSystem().getPathMatcher("glob:" + s).matches(siteDir.relativize(path)));
     }
 
-    private static boolean isPageTargetHtml(Path path) {
+    private static boolean isTemplateTargetHtml(Path path) {
         final String extension = getExtension(path.toString());
         return HTML_OUTPUT_EXTENSIONS.contains(extension);
     }

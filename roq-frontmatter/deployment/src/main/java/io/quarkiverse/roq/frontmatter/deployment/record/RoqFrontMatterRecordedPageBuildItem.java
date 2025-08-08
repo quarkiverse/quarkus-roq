@@ -6,13 +6,13 @@ import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.builder.item.MultiBuildItem;
 
-public final class RoqFrontMatterPageBuildItem extends MultiBuildItem {
+public final class RoqFrontMatterRecordedPageBuildItem extends MultiBuildItem {
     private final String id;
     private final RoqUrl url;
     private final boolean hidden;
     private final Supplier<? extends Page> page;
 
-    public RoqFrontMatterPageBuildItem(String id, RoqUrl url, boolean hidden, Supplier<? extends Page> page) {
+    public RoqFrontMatterRecordedPageBuildItem(String id, RoqUrl url, boolean hidden, Supplier<? extends Page> page) {
         this.id = id;
         this.url = url;
         this.hidden = hidden;

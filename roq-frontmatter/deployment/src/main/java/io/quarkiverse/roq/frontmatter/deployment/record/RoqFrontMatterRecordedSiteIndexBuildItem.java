@@ -5,10 +5,10 @@ import java.util.function.Supplier;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkus.builder.item.SimpleBuildItem;
 
-public final class RoqFrontMatterSiteIndexBuildItem extends SimpleBuildItem {
+public final class RoqFrontMatterRecordedSiteIndexBuildItem extends SimpleBuildItem {
     private final Supplier<NormalPage> page;
 
-    public RoqFrontMatterSiteIndexBuildItem(Supplier<NormalPage> page) {
+    public RoqFrontMatterRecordedSiteIndexBuildItem(Supplier<NormalPage> page) {
         this.page = page;
     }
 

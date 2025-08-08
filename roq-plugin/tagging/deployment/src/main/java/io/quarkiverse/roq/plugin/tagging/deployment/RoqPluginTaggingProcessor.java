@@ -8,16 +8,18 @@ import java.util.*;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink.PageLinkData;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginateTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginatePageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.model.PageInfo;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -40,31 +42,31 @@ public class RoqPluginTaggingProcessor {
             RoqSiteConfig config,
             RoqTaggingConfig taggingConfig,
             RoqFrontMatterRootUrlBuildItem rootUrl,
-            List<RoqFrontMatterTemplateBuildItem> templates,
-            List<RoqFrontMatterDocumentTemplateBuildItem> documents,
+            List<RoqFrontMatterLayoutTemplateBuildItem> templates,
+            List<RoqFrontMatterDocumentBuildItem> documents,
             BuildProducer<RoqFrontMatterPublishDerivedCollectionBuildItem> derivedCollectionProducer,
-            BuildProducer<RoqFrontMatterPaginateTemplateBuildItem> paginatedPagesProducer,
-            BuildProducer<RoqFrontMatterPublishPageBuildItem> pagesProducer) {
+            BuildProducer<RoqFrontMatterPaginatePageBuildItem> paginatedPagesProducer,
+            BuildProducer<RoqFrontMatterPublishNormalPageBuildItem> pagesProducer) {
         this.taggingConfig = taggingConfig;
 
         // Let's find non page templates with the tagging data
-        final List<RoqFrontMatterTemplateBuildItem> taggingTemplates = templates.stream()
-                .filter(RoqFrontMatterTemplateBuildItem::isLayout)
-                .filter(i -> i.data().containsKey("tagging"))
+        final List<RoqFrontMatterLayoutTemplateBuildItem> taggingTemplates = templates.stream()
+                // We filter out theme layoutsw
+                .filter(i -> i.raw().isLayout() && i.data().containsKey("tagging"))
                 .toList();
 
         if (taggingTemplates.isEmpty() || documents.isEmpty()) {
             return;
         }
         final ConfiguredCollection collection = Objects
-                .requireNonNull(RoqFrontMatterDocumentTemplateBuildItem.getCollection(documents));
-        for (RoqFrontMatterTemplateBuildItem item : taggingTemplates) {
+                .requireNonNull(RoqFrontMatterDocumentBuildItem.getCollection(documents));
+        for (RoqFrontMatterLayoutTemplateBuildItem item : taggingTemplates) {
 
             // Let's find the collection we want tagging from and iterate on the document from this collection
             final Tagging tagging = readTagging(item.raw().id(), item.data());
             final Map<String, List<String>> derived = new HashMap<>();
 
-            for (RoqFrontMatterDocumentTemplateBuildItem document : documents.stream()
+            for (RoqFrontMatterDocumentBuildItem document : documents.stream()
                     .filter(d -> d.collection().id().equals(tagging.collection())).toList()) {
                 List<String> tags = resolveTags(document);
                 if (taggingConfig.lowercase()) {
@@ -74,7 +76,7 @@ public class RoqPluginTaggingProcessor {
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
                     derived.computeIfAbsent(tag, k -> new ArrayList<>())
-                            .add(document.raw().id());
+                            .add(document.template().source().id());
                 }
             }
 
@@ -92,21 +94,22 @@ public class RoqPluginTaggingProcessor {
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 
+                final TemplateSource templateSource = item.raw().templateSource()
+                        .changeId(tagCollection + "." + item.raw().templateSource().extension());
+                final PageSource pageSource = new PageSource(templateSource, false, null, PageFiles.empty());
                 final String link = TemplateLink.link(config.pathPrefixOrEmpty(),
                         tagging.link(),
                         DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE,
-                        new PageLinkData(item.raw().info(), tagCollection, data),
+                        new PageLinkData(pageSource, tagCollection, data),
                         Map.of(":tag", e::getKey));
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
-
-                PageInfo info = item.raw().info().changeId(tagCollection + "." + item.raw().info().sourceFileExtension());
 
                 // Dealing with pagination is as simple as those two lines:
                 if (data.containsKey(PAGINATE_KEY)) {
                     paginatedPagesProducer
-                            .produce(new RoqFrontMatterPaginateTemplateBuildItem(url, info, data, configuredCollection));
+                            .produce(new RoqFrontMatterPaginatePageBuildItem(url, pageSource, data, configuredCollection));
                 } else {
-                    pagesProducer.produce(new RoqFrontMatterPublishPageBuildItem(url, info, data, null));
+                    pagesProducer.produce(new RoqFrontMatterPublishNormalPageBuildItem(url, pageSource, data, null));
                 }
             }
         }
@@ -130,12 +133,12 @@ public class RoqPluginTaggingProcessor {
     record Tagging(String collection, String link) {
     }
 
-    private static List<String> resolveTags(RoqFrontMatterDocumentTemplateBuildItem document) {
+    private static List<String> resolveTags(RoqFrontMatterDocumentBuildItem document) {
         return getRawTags(document).stream().map(RoqTemplateExtension::slugify).toList();
     }
 
     @SuppressWarnings("unchecked")
-    private static List<String> getRawTags(RoqFrontMatterDocumentTemplateBuildItem document) {
+    private static List<String> getRawTags(RoqFrontMatterDocumentBuildItem document) {
         if (!document.data().containsKey("tags")) {
             return List.of();
         }

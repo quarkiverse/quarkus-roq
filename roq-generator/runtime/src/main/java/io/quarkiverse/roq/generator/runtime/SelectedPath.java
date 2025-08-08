@@ -5,7 +5,7 @@ import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
 
 import java.util.regex.Pattern;
 
-public record SelectedPath(String path, String outputPath, PageSource source) {
+public record SelectedPath(String path, String outputPath, Origin source) {
 
     private SelectedPath(SelectedPathBuilder builder) {
         this(prefixWithSlash(builder.path), builder.outputPath, builder.source);
@@ -33,7 +33,7 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
 
     public static class SelectedPathBuilder {
         String path;
-        PageSource source = PageSource.PROVIDED;
+        Origin source = Origin.PROVIDED;
         String outputPath = null;
 
         public SelectedPathBuilder path(String path) {
@@ -41,7 +41,7 @@ public record SelectedPath(String path, String outputPath, PageSource source) {
             return this;
         }
 
-        public SelectedPathBuilder source(PageSource source) {
+        public SelectedPathBuilder source(Origin source) {
             this.source = source;
             return this;
         }

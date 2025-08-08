@@ -1,12 +1,12 @@
 = Roq the basics
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: basics
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 By default, your site files should be located in the **project root directory** (or in the Java resources dir: `src/main/resources/`).
 
-include::_includes/directory-structure.adoc[]
+include::../../includes/directory-structure.adoc[]
 
 == Qute and FrontMatter
 
@@ -276,9 +276,9 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | The URL to this page
 | `http://example.com/about`
 
-| `page.info`
-| `PageInfo`
-| The page info (file name, ...)
+| `page.source`
+| `Origin`
+| The page source (file name, ...)
 |
 
 | `page.data`
@@ -323,7 +323,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 
 | `page.date`
 | `ZonedDateTime`
-| The publication date of the page
+| The publication date of the page or null
 | `2023-10-01T12:00:00Z`
 |===
 ====

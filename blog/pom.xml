@@ -120,7 +120,7 @@
                 <version>${quarkus.platform.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <targetDirectory>${project.basedir}/content/docs/_includes/configs</targetDirectory>
+                    <targetDirectory>${project.basedir}/includes/configs</targetDirectory>
                 </configuration>
             </plugin>
             <plugin>

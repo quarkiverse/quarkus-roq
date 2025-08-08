@@ -7,11 +7,11 @@ import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkus.builder.item.MultiBuildItem;
 
-public final class RoqFrontMatterCollectionBuildItem extends MultiBuildItem {
+public final class RoqFrontMatterRecordedCollectionBuildItem extends MultiBuildItem {
     private final ConfiguredCollection collection;
     private final List<Supplier<DocumentPage>> documents;
 
-    public RoqFrontMatterCollectionBuildItem(ConfiguredCollection collection, List<Supplier<DocumentPage>> documents) {
+    public RoqFrontMatterRecordedCollectionBuildItem(ConfiguredCollection collection, List<Supplier<DocumentPage>> documents) {
         this.collection = collection;
         this.documents = documents;
     }

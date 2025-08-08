@@ -1,9 +1,8 @@
-package io.quarkiverse.roq.frontmatter.deployment.scan;
+package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.parsePublishDate;
+import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.parsePublishDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
@@ -16,7 +15,7 @@ public class ParsePublishDateTest {
     @Test
     public void testDateInFilename() {
         // given
-        Path path = Path.of("2004-09-07-title.md");
+        String path = "2004-09-07-title.md";
         JsonObject frontMatter = JsonObject.of();
 
         // when
@@ -30,7 +29,7 @@ public class ParsePublishDateTest {
     @Test
     public void testDateInFrontMatter() {
         // given
-        Path path = Path.of("no-date-here.md");
+        String path = "no-date-here.md";
         JsonObject frontMatter = JsonObject.of("date", "2020-10-13");
 
         // when
@@ -44,7 +43,7 @@ public class ParsePublishDateTest {
     @Test
     public void testDateTimeInFrontMatter() {
         // given
-        Path path = Path.of("no-date-here.md");
+        String path = "no-date-here.md";
         JsonObject frontMatter = JsonObject.of("date", "2020-10-13 13:10");
 
         // when

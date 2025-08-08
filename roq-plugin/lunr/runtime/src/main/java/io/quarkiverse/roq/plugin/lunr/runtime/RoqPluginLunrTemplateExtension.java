@@ -29,7 +29,7 @@ public class RoqPluginLunrTemplateExtension {
     public static final String INDEX_BOOST_KEY = "search-boost";
 
     public static boolean search(Page page) {
-        return page.info().isHtml() && page.data().getBoolean("search", true);
+        return page.source().isTargetHtml() && page.data().getBoolean("search", true);
     }
 
     public static RawString searchIndex(Site site) {

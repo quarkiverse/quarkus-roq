@@ -8,8 +8,9 @@ import java.util.*;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.*;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -39,7 +40,8 @@ public class RoqFrontMatterProcessor {
     void bindQuteTemplates(
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
-            List<RoqFrontMatterRawTemplateBuildItem> roqFrontMatterTemplates,
+            List<RoqFrontMatterPageTemplateBuildItem> pageTemplatesItems,
+            List<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplatesItems,
             RoqFrontMatterOutputBuildItem roqOutput) {
         if (roqOutput == null) {
             return;
@@ -48,25 +50,33 @@ public class RoqFrontMatterProcessor {
         final Set<String> pageTemplates = new HashSet<>();
         final Set<String> layoutTemplates = new HashSet<>();
         // Produce generated Qute templates
-        for (RoqFrontMatterRawTemplateBuildItem item : roqFrontMatterTemplates) {
+        for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
             templatePathProducer
-                    .produce(TemplatePathBuildItem.builder().path(item.info().generatedTemplateId()).extensionInfo(FEATURE)
-                            .content(item.generatedTemplate()).build());
-            if (item.published()) {
-                // Add the template for just the content
-                final String contentTemplateId = resolveGeneratedContentTemplateId(item.info().generatedTemplateId());
-                templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
-                        .content(item.generatedContentTemplate()).build());
-                if (item.collection() != null) {
-                    docTemplates.add(contentTemplateId);
-                    docTemplates.add(item.info().generatedTemplateId());
-                } else {
-                    pageTemplates.add(contentTemplateId);
-                    pageTemplates.add(item.info().generatedTemplateId());
-                }
+                    .produce(
+                            TemplatePathBuildItem.builder().path(item.raw().templateSource().generatedQuteId())
+                                    .extensionInfo(FEATURE)
+                                    .content(item.raw().generatedTemplate()).build());
+            // Add the template for just the content
+            final String contentTemplateId = resolveGeneratedContentTemplateId(item.raw().templateSource().generatedQuteId());
+            templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
+                    .content(item.raw().generatedContentTemplate()).build());
+            if (item.raw().collection() != null) {
+                docTemplates.add(contentTemplateId);
+                docTemplates.add(item.raw().templateSource().generatedQuteId());
             } else {
-                layoutTemplates.add(item.info().generatedTemplateId());
+                pageTemplates.add(contentTemplateId);
+                pageTemplates.add(item.raw().templateSource().generatedQuteId());
             }
+
+        }
+
+        for (RoqFrontMatterLayoutTemplateBuildItem item : layoutTemplatesItems) {
+            templatePathProducer
+                    .produce(
+                            TemplatePathBuildItem.builder().path(item.raw().templateSource().generatedQuteId())
+                                    .extensionInfo(FEATURE)
+                                    .content(item.raw().generatedTemplate()).build());
+            layoutTemplates.add(item.raw().templateSource().generatedQuteId());
         }
 
         // Setup type-safety for generate templates

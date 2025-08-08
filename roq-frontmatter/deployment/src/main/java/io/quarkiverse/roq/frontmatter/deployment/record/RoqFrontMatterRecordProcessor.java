@@ -17,7 +17,8 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictExcept
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDocumentPageBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishNormalPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -33,8 +34,29 @@ import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
 
-class RoqFrontMatterInitProcessor {
-    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterInitProcessor.class);
+class RoqFrontMatterRecordProcessor {
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterRecordProcessor.class);
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void bindSources(
+            RoqFrontMatterRootUrlBuildItem rootUrlItem,
+            List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
+            BuildProducer<SyntheticBeanBuildItem> beansProducer,
+            RoqFrontMatterRecorder recorder) {
+        if (rootUrlItem == null) {
+            return;
+        }
+        final List<TemplateSource> list = rawTemplates.stream().map(RoqFrontMatterRawTemplateBuildItem::templateSource)
+                .toList();
+        Supplier<Sources> sources = recorder.createSources(list);
+        beansProducer.produce(SyntheticBeanBuildItem.configure(Sources.class)
+                .named("sources")
+                .scope(Singleton.class)
+                .unremovable()
+                .supplier(sources)
+                .done());
+    }
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
@@ -42,8 +64,8 @@ class RoqFrontMatterInitProcessor {
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
             List<RoqFrontMatterPublishDerivedCollectionBuildItem> generatedCollections,
-            BuildProducer<RoqFrontMatterCollectionBuildItem> collectionsProducer,
-            BuildProducer<RoqFrontMatterPageBuildItem> pagesProducer,
+            BuildProducer<RoqFrontMatterRecordedCollectionBuildItem> collectionsProducer,
+            BuildProducer<RoqFrontMatterRecordedPageBuildItem> pagesProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
             return;
@@ -59,13 +81,15 @@ class RoqFrontMatterInitProcessor {
                 final RoqUrl url = item.url();
                 final Supplier<DocumentPage> document = recorder.createDocument(item.collection().id(),
                         url,
-                        item.info(), item.data(), item.collection().hidden());
-                documentsById.put(item.info().id(), document);
+                        item.source(), item.data(), item.collection().hidden());
+                documentsById.put(item.source().id(), document);
                 pagesProducer
-                        .produce(new RoqFrontMatterPageBuildItem(item.info().id(), url, item.collection().hidden(), document));
+                        .produce(
+                                new RoqFrontMatterRecordedPageBuildItem(item.source().id(), url, item.collection().hidden(),
+                                        document));
                 docs.add(document);
             }
-            collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(e.getKey(), docs));
+            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(e.getKey(), docs));
         }
 
         // Derived collections (referencing existing documents)
@@ -78,7 +102,7 @@ class RoqFrontMatterInitProcessor {
                 }
                 docs.add(doc);
             }
-            collectionsProducer.produce(new RoqFrontMatterCollectionBuildItem(i.collection(), docs));
+            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(i.collection(), docs));
         }
     }
 
@@ -86,22 +110,22 @@ class RoqFrontMatterInitProcessor {
     @Record(ExecutionTime.STATIC_INIT)
     void bindPages(
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
-            List<RoqFrontMatterPublishPageBuildItem> pages,
-            BuildProducer<RoqFrontMatterNormalPageBuildItem> normalPagesProducer,
-            BuildProducer<RoqFrontMatterPageBuildItem> pagesProducer,
-            BuildProducer<RoqFrontMatterSiteIndexBuildItem> indexPageProducer,
+            List<RoqFrontMatterPublishNormalPageBuildItem> pages,
+            BuildProducer<RoqFrontMatterRecordedNormalPageBuildItem> normalPagesProducer,
+            BuildProducer<RoqFrontMatterRecordedPageBuildItem> pagesProducer,
+            BuildProducer<RoqFrontMatterRecordedSiteIndexBuildItem> indexPageProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
             return;
         }
-        for (RoqFrontMatterPublishPageBuildItem page : pages) {
+        for (RoqFrontMatterPublishNormalPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
-                    page.info(), page.data(), page.paginator());
-            pagesProducer.produce(new RoqFrontMatterPageBuildItem(page.info().id(), page.url(), false, recordedPage));
+                    page.source(), page.data(), page.paginator());
+            pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(page.source().id(), page.url(), false, recordedPage));
             normalPagesProducer
-                    .produce(new RoqFrontMatterNormalPageBuildItem(page.info().id(), page.url(), recordedPage));
-            if (page.info().isSiteIndex()) {
-                indexPageProducer.produce(new RoqFrontMatterSiteIndexBuildItem(recordedPage));
+                    .produce(new RoqFrontMatterRecordedNormalPageBuildItem(page.source().id(), page.url(), recordedPage));
+            if (page.source().isSiteIndex()) {
+                indexPageProducer.produce(new RoqFrontMatterRecordedSiteIndexBuildItem(recordedPage));
             }
         }
     }
@@ -111,10 +135,10 @@ class RoqFrontMatterInitProcessor {
     RoqFrontMatterOutputBuildItem bindSite(
             LaunchModeBuildItem launchMode,
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
-            RoqFrontMatterSiteIndexBuildItem indexPageItem,
-            List<RoqFrontMatterCollectionBuildItem> collectionItems,
-            List<RoqFrontMatterPageBuildItem> pageItems,
-            List<RoqFrontMatterNormalPageBuildItem> normalPageItems,
+            RoqFrontMatterRecordedSiteIndexBuildItem indexPageItem,
+            List<RoqFrontMatterRecordedCollectionBuildItem> collectionItems,
+            List<RoqFrontMatterRecordedPageBuildItem> pageItems,
+            List<RoqFrontMatterRecordedNormalPageBuildItem> normalPageItems,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
@@ -124,12 +148,14 @@ class RoqFrontMatterInitProcessor {
         if (indexPageItem == null) {
             throw new RoqSiteIndexNotFoundException(
                     "Site index page (index.html, index.md, etc.) not found. A site index is required by Roq. Please create one to continue.");
+
         }
         final Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
-                Collectors.toMap(RoqFrontMatterCollectionBuildItem::collection, RoqFrontMatterCollectionBuildItem::documents));
+                Collectors.toMap(RoqFrontMatterRecordedCollectionBuildItem::collection,
+                        RoqFrontMatterRecordedCollectionBuildItem::documents));
         final Supplier<RoqCollections> collectionsSupplier = recorder.createRoqCollections(collectionsMap);
         final List<Supplier<NormalPage>> pages = normalPageItems.stream()
-                .map(RoqFrontMatterNormalPageBuildItem::page)
+                .map(RoqFrontMatterRecordedNormalPageBuildItem::page)
                 .toList();
         final Supplier<Site> siteSupplier = recorder.createSite(rootUrlItem.rootUrl(), indexPageItem.page(), pages,
                 collectionsSupplier);
@@ -139,16 +165,16 @@ class RoqFrontMatterInitProcessor {
                 .unremovable()
                 .supplier(siteSupplier)
                 .done());
-        Map<String, RoqFrontMatterPageBuildItem> itemsMap = new HashMap<>();
+        Map<String, RoqFrontMatterRecordedPageBuildItem> itemsMap = new HashMap<>();
         Map<String, Supplier<? extends Page>> allPagesByPath = new HashMap<>();
-        for (RoqFrontMatterPageBuildItem i : pageItems) {
+        for (RoqFrontMatterRecordedPageBuildItem i : pageItems) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debugf("Published %spage '%s' on '%s'", i.hidden() ? "hidden " : "", i.id(), i.url().toString());
             }
             if (i.hidden()) {
                 continue;
             }
-            final RoqFrontMatterPageBuildItem prev = itemsMap.put(i.url().resourcePath(), i);
+            final RoqFrontMatterRecordedPageBuildItem prev = itemsMap.put(i.url().resourcePath(), i);
             allPagesByPath.put(i.url().resourcePath(), i.page());
             if (prev != null) {
                 if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {

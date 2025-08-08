@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.SOURCE_PATH;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.SOURCE_ROOT_PATH;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.TEMPLATE_ID;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
 
@@ -12,17 +13,19 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.quarkiverse.roq.frontmatter.runtime.model.Sources;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.qute.EngineBuilder;
 
 @ApplicationScoped
 public class RoqQuteEngineObserver {
 
-    private final Map<String, String> templatePathMapping;
+    private final Map<String, SourceFile> templatePathMapping;
 
     @Inject
-    public RoqQuteEngineObserver(Site site) {
-        this.templatePathMapping = initTemplatePathMapping(site);
+    public RoqQuteEngineObserver(Sources sources) {
+        this.templatePathMapping = initTemplatePathMapping(sources);
     }
 
     void configureEngine(@Observes EngineBuilder builder) {
@@ -38,19 +41,20 @@ public class RoqQuteEngineObserver {
             final String templateId = resolveOriginalTemplateId(templateInstance.getTemplate().getId());
             templateInstance.setAttribute(TEMPLATE_ID, templateId);
             if (templatePathMapping.containsKey(templateId)) {
-                final String pathString = templatePathMapping.get(templateId);
-                templateInstance.setAttribute(SOURCE_PATH, pathString);
+                final SourceFile sourceFile = templatePathMapping.get(templateId);
+                templateInstance.setAttribute(SOURCE_PATH, sourceFile.absolutePath());
+                templateInstance.setAttribute(SOURCE_ROOT_PATH, sourceFile.siteDirPath());
             }
         });
     }
 
-    private static Map<String, String> initTemplatePathMapping(Site site) {
-        if (site == null) {
+    private static Map<String, SourceFile> initTemplatePathMapping(Sources sources) {
+        if (sources == null) {
             return new HashMap<>();
         }
         // A template can be used in multiple pages
-        return site.allPages().stream()
-                .collect(Collectors.toMap(p -> p.info().generatedTemplateId(), p -> p.info().sourceFile(),
+        return sources.list().stream()
+                .collect(Collectors.toMap(TemplateSource::generatedQuteId, TemplateSource::file,
                         (a, b) -> a));
     }
 }

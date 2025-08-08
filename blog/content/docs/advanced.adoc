@@ -1,8 +1,8 @@
 = Roq Advanced Stuff
-include::_includes/attributes.adoc[]
+include::../../includes/attributes.adoc[]
 :doc-name: advanced
 
-include::_includes/edit-contrib.adoc[]
+include::../../includes/edit-contrib.adoc[]
 
 [#pagination]
 == Pagination
@@ -379,7 +379,7 @@ There are cases where you might not want your page content to be parsed by Qute,
 site.escaped-pages=posts/escaped**,my-page.html
 ----
 
-* Declare it in Front Matter by setting `escape: true` in your page data.
+* Set it in FrontMatter by adding `escape: true` in your page data (not working with layouts).
 
 * Escape inline content by wrapping the section with `\{|` and `|\}`, or by manually escaping Qute expressions using `&#92;{`.
 
@@ -501,32 +501,11 @@ $ quarkus update
 
 This will update the Quarkus version and extensions (including Roq) and make sure they are compatible together.
 
-
-=== Version migration guide
-
-==== Updating to Roq 1.7
-
-By re-implementing Asciidoc support, you may need to check a few things when updating:
-
-* Asciidoc files (.adoc and .asciidoc) will be escaped by default meaning no Qute parsing. Instead, it is possible to use asciidoc includes and vars instead (can be configured through `quarkus.asciidoc.qute=false`).
-* Config renamed `quarkus.asciidoctorj` -> `quarkus.asciidoc` (this is to be able to switch from one to the other asciidoc plugin)
-* `quarkus.asciidoc.qute` (instead of `quarkus.asciidoc.escape` in 1.7.0.CR1)
-* `:qute:` or `:qute: true` to enable Qute parsing per page
-* Remove config `quarkus.asciidoctorj.templates-dir` (toc can be handled by script).
-
-Search has also been improved:
-
-* Make sure your style is still valid with the new search result dom.
-
-Ignored files:
-
-* `site.ignored-files` now *extends* `site.default-ignored-files` instead of replacing it.
-The default ignore list was updated to allow files starting with `.` (except `DS_Store` and `Thumbs.db`).
-Check your config to ensure it still works as expected.
+The releases and migration info can be found xref:releases.adoc[here].
 
 == Site Configuration
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
 
 
-include::_includes/configs/quarkus-roq-frontmatter_site.adoc[]
+include::../../includes/configs/quarkus-roq-frontmatter_site.adoc[]

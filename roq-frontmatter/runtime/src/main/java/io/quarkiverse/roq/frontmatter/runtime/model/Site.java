@@ -55,7 +55,7 @@ public final class Site {
         this.data = data;
         this.pages = pages;
         this.collections = collections;
-        this.page = pages.stream().filter(p -> p.info().isSiteIndex()).findFirst().orElseThrow();
+        this.page = pages.stream().filter(p -> p.source().isSiteIndex()).findFirst().orElseThrow();
         this.pagesById = new LazyValue<>(() -> pages.stream().collect(Collectors.toMap(NormalPage::id, Function.identity())));
         this.documentsById = new LazyValue<>(() -> collections().collections().values().stream()
                 .flatMap(Collection::stream).collect(Collectors.toMap(DocumentPage::id, Function.identity(), (a, b) -> a)));
@@ -114,7 +114,7 @@ public final class Site {
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
-        path = normaliseName(path, page.info().files().slugified());
+        path = normaliseName(path, page.source().files().slugified());
         // Legacy images dir support
         if (fileExists(PathUtils.join("static/assets/images", path))) {
             return file(PathUtils.join("static/assets/images", path));
@@ -130,7 +130,7 @@ public final class Site {
      */
     public boolean imageExists(String name) {
         String path = String.valueOf(name);
-        path = normaliseName(path, page.info().files().slugified());
+        path = normaliseName(path, page.source().files().slugified());
         // Legacy images dir support
         if (fileExists(PathUtils.join("static/assets/images", path))) {
             return true;
@@ -142,7 +142,7 @@ public final class Site {
      * The site static files
      */
     public List<String> files() {
-        return page.info().files().names();
+        return page.source().files().names();
     }
 
     /**
@@ -151,7 +151,7 @@ public final class Site {
      * @param name the file name (or path under the public directory)
      */
     public boolean fileExists(Object name) {
-        return page.info().fileExists(name);
+        return page.source().fileExists(name);
     }
 
     /**
@@ -209,7 +209,7 @@ public final class Site {
     }
 
     /**
-     * Find a document by sourcePath
+     * Find a document by page path
      *
      * @param sourcePath the document source path (e.g. pages/first-page.html) or the generated source path for generated
      *        documents.
@@ -264,7 +264,7 @@ public final class Site {
         try {
             return pageContentCache.computeIfAbsent(page, p -> {
                 final Engine engine = Arc.container().instance(Engine.class).get();
-                final String id = resolveGeneratedContentTemplateId(page.info().generatedTemplateId());
+                final String id = resolveGeneratedContentTemplateId(page.source().generatedQuteId());
                 final Template template = engine.getTemplate(id);
                 if (template == null) {
                     return "";
@@ -276,7 +276,7 @@ public final class Site {
             });
         } catch (Exception e) {
             if (!(e instanceof IllegalStateException && e.getMessage().contains("Recursive"))) {
-                LOG.warnf(e, "Failed to render page content for file '%s'.", page.info().sourcePath());
+                LOG.warnf(e, "Failed to render page content for file '%s'.", page.source().file().absolutePath());
             }
         }
         return "";

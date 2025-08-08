@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
+import static io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter.ROOTDIR;
 import static org.asciidoctor.Options.BASEDIR;
 
 import java.io.IOException;
@@ -43,12 +44,13 @@ public class AsciidocJInclude extends IncludeProcessor {
         final String dir = reader.getDir();
         Charset charset = Charset.forName((String) document.getAttributes().getOrDefault("encoding", "UTF-8"));
         final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
+        final Path rootDir = Path.of(document.getOptions().getOrDefault(ROOTDIR, "").toString());
         Path p = Path.of(target);
         Path targetPath = p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target).normalize();
 
         if (safeLevel >= SafeMode.SAFE.getLevel()) {
-            if (!targetPath.startsWith(baseDir.normalize())) {
-                throw new SecurityException("Include path is outside baseDir in SAFE or higher mode: " + targetPath);
+            if (!targetPath.startsWith(rootDir.normalize())) {
+                throw new SecurityException("Include path is outside the root dir ('%s'): '%s'".formatted(rootDir, targetPath));
             }
         }
 

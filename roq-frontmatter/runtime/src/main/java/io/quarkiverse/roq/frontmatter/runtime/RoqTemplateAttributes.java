@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-public record RoqTemplateAttributes(String sourcePath,
+public record RoqTemplateAttributes(String sourceRootPath,
+        String sourcePath,
         String siteUrl,
         String sitePath,
         String pageUrl,
@@ -8,6 +9,7 @@ public record RoqTemplateAttributes(String sourcePath,
 
     public static final String TEMPLATE_ID = "templateId";
     public static final String SOURCE_PATH = "sourcePath";
+    public static final String SOURCE_ROOT_PATH = "sourceRootPath";
     public static final String PAGE_PATH = "pagePath";
     public static final String PAGE_URL = "pageUrl";
     public static final String SITE_PATH = "sitePath";

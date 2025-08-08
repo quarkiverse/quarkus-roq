@@ -21,6 +21,7 @@ import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
 public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
+    public static final String ROOTDIR = "root_dir";
 
     private final Asciidoctor asciidoctor;
     private Map<String, String> configuredAttributes;
@@ -67,6 +68,7 @@ public class AsciidoctorJConverter {
         if (templateAttributes.sourcePath() != null) {
             Path templateDir = Paths.get(templateAttributes.sourcePath()).getParent();
             optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());
+            optionsBuilder.option(ROOTDIR, templateAttributes.sourceRootPath());
         }
         return optionsBuilder
                 .safe(SafeMode.SAFE)

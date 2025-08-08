@@ -120,13 +120,13 @@ class RoqGeneratorProcessor {
             final String path = PathUtils.prefixWithSlash(e.getKey());
             addStaticFileIfPresent(generatedStaticResourcesMap, path, staticFiles);
             selectedPaths.add(SelectedPath.builder().path(path).outputPath(e.getValue())
-                    .source(PageSource.CONFIG).build());
+                    .source(Origin.CONFIG).build());
         }
         for (String p : config.paths().orElse(List.of())) {
             if (!isGlobPattern(p) && p.startsWith("/")) {
                 // fixed paths are directly added
                 addStaticFileIfPresent(generatedStaticResourcesMap, p, staticFiles);
-                selectedPaths.add(SelectedPath.builder().path(p).source(PageSource.CONFIG).build());
+                selectedPaths.add(SelectedPath.builder().path(p).source(Origin.CONFIG).build());
                 continue;
             }
             if (staticPaths != null) {
@@ -137,14 +137,14 @@ class RoqGeneratorProcessor {
                     if (matcher.matches(Path.of(path))) {
                         addStaticFileIfPresent(generatedStaticResourcesMap, path, staticFiles);
                         selectedPaths.add(
-                                SelectedPath.builder().source(PageSource.CONFIG).path(path).build());
+                                SelectedPath.builder().source(Origin.CONFIG).path(path).build());
                     }
                 }
             }
 
         }
         for (var e : selectedPathsFromBuildItem.entrySet()) {
-            selectedPaths.add(SelectedPath.builder().source(PageSource.BUILD_ITEM).path(e.getKey())
+            selectedPaths.add(SelectedPath.builder().source(Origin.BUILD_ITEM).path(e.getKey())
                     .outputPath(e.getValue()).build());
             addStaticFileIfPresent(generatedStaticResourcesMap, e.getKey(), staticFiles);
         }

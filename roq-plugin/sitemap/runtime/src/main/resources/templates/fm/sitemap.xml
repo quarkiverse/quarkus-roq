@@ -18,7 +18,7 @@
     {/if}
     {/for}
     {#for page in site.pages}
-    {#if page.info.isHtml && page.sitemap}
+    {#if page.source.isTargetHtml && page.sitemap}
     <url>
         <loc>{page.url.absolute}</loc>
         <lastmod>{page.lastModifiedAt.iso}</lastmod>
