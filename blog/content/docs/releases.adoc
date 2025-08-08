@@ -1,12 +1,13 @@
 = Roq Release Notes
 include::../../includes/attributes.adoc[]
+:description: Want to follow Roq’s progress and update your project safely? You’re in the right place.
 :doc-name: releases
 
 include::../../includes/edit-contrib.adoc[]
 
 We aim to keep the API stable, but since Roq is still young, breaking changes may happen. The good news: almost all breakage will be caught during build or xref:advanced.adoc#test-site-generation[site generation tests].
 
-Want to follow Roq’s progress and update your project safely? You’re in the right place.
+{description}
 
 == Roq 1.8
 
