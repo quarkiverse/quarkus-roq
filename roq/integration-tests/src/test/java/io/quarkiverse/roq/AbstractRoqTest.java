@@ -1,29 +1,35 @@
 package io.quarkiverse.roq;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
 import io.restassured.RestAssured;
 
-@QuarkusTest
-public class RoqTest {
+public abstract class AbstractRoqTest {
+
+    @Test
+    public void testHelloNoExt() {
+        RestAssured.given().when().get("/hello").then().statusCode(200).log().ifValidationFails()
+                .body(equalTo("Hello"));
+    }
+
+    @Test
+    public void testEmpty() {
+        RestAssured.given().when().get("/empty.txt").then().statusCode(200).log().ifValidationFails()
+                .body(emptyString());
+    }
 
     @Test
     public void testSpecialChars() {
-        RestAssured.when().get("/élo you$@").then().statusCode(200).log().ifValidationFails()
+        RestAssured.given().when().get("/élo you$@/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("élo you$@.html - Hello, world! I'm Roq"))
                 .body(containsString("This is a test layout:"))
                 .body(containsString("href=\"/%C3%A9lo%20you$@/\""))
                 .body(containsString("It should work fine"));
-    }
-
-    @Test
-    public void testErrorFilePage() {
-        RestAssured.when().get("/posts/error-file").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: Only page directories with an index can have attached files. Then add 'not-found.pdf' to the page directory to fix this error."));
     }
 
     @Test
@@ -36,43 +42,6 @@ public class RoqTest {
     public void testEscapedConfigPage() {
         RestAssured.when().get("/posts/escaped-config").then().statusCode(200).log().ifValidationFails().body(containsString(
                 "{foo} {{{{}}}}} bar {#if}"));
-    }
-
-    @Test
-    public void testErrorImagePage() {
-        RestAssured.when().get("/posts/error-image").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: File 'images/not-found.png' not found in public dir"));
-    }
-
-    @Test
-    public void testErrorImagePageDir() {
-        RestAssured.when().get("/posts/error-image-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "File 'images/not-found.png' not found in public dir"));
-    }
-
-    @Test
-    public void testErrorFilePageDir() {
-        RestAssured.when().get("/posts/error-file-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "Can't find 'not-found.pdf' in  'posts/error-file-dir' which has no attached static file."));
-    }
-
-    @Test
-    public void testErrorFilePageDirNotFound() {
-        RestAssured.when().get("/posts/error-image-not-found").then().statusCode(500).log().ifValidationFails()
-                .body(containsString(
-                        "File 'not-found.png' not found in 'posts/error-image-not-found' directory (found: hello.png)."));
-    }
-
-    @Test
-    public void testErrorImageSite() {
-        RestAssured.when().get("/error-image-site").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: File 'images/not-found.png' not found in public dir"));
-    }
-
-    @Test
-    public void testErrorStaticFileSite() {
-        RestAssured.when().get("/error-static-file").then().statusCode(500).log().ifValidationFails()
-                .body(containsString("RoqStaticFileException: File 'not-found.pdf' not found in public dir"));
     }
 
     @Test
@@ -133,5 +102,12 @@ public class RoqTest {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
                 .body(containsString("Ready to Roq my world!"));
+    }
+
+    public static class RoqAndRollProfile implements QuarkusTestProfile {
+        @Override
+        public String getConfigProfile() {
+            return "roq-and-roll";
+        }
     }
 }

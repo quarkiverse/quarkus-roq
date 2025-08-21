@@ -1,7 +1,5 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -112,7 +110,7 @@ public record RoqUrl(
         if (isFullPath(other.toString())) {
             return new RoqUrl(null, other.toString());
         }
-        return new RoqUrl(root(), PathUtils.join(resourcePath(), addTrailingSlashIfNoExt(other.toString())));
+        return new RoqUrl(root(), PathUtils.join(resourcePath(), other.toString()));
     }
 
     /**
@@ -156,7 +154,7 @@ public record RoqUrl(
         if (isFullPath(resourcePath)) {
             return new RoqUrl(null, resourcePath);
         }
-        return new RoqUrl(root, addTrailingSlashIfNoExt(resourcePath));
+        return new RoqUrl(root, resourcePath);
     }
 
 }
