@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -203,7 +204,7 @@ public class RoqFrontMatterScanProcessor {
                             TemplateType.THEME_LAYOUT);
                 });
 
-        // Scan for content in the classpath in the resource roq dir (could be classpath root)
+        // Scan for content in the classpath in the resource roq dir (could be classpath root or custom)
         roqProject.consumePathFromRoqResourceDir(config.contentDir(),
                 l -> {
                     watchResourceDir(watch, l);
@@ -399,6 +400,7 @@ public class RoqFrontMatterScanProcessor {
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
                                     .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)
+                                    .fullPath(p)
                                     .content(content)
                                     .parserConfig(parserConfig)
                                     .extensionInfo(RoqFrontMatterProcessor.FEATURE)
