@@ -128,7 +128,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
                         return Uni.createFrom()
                                 .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
                                 .chain(() -> Uni.createFrom().completionStage(fs
-                                        .writeFile(targetPath.toString(), r).toCompletionStage()))
+                                        .writeFile(targetPath.toString(), r != null ? r : Buffer.buffer()).toCompletionStage()))
                                 .invoke(() -> LOGGER.infof("Roq generated file %s", path.outputPath()));
                     }));
 
