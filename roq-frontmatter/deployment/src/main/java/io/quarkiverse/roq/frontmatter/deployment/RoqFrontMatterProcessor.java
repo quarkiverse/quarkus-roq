@@ -137,7 +137,7 @@ public class RoqFrontMatterProcessor {
             for (String path : roqOutput.allPagesByPath().keySet()) {
                 // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
                 final String selectedPath = getExtension(path) != null ? path : addTrailingSlash(path);
-                selectedPathProducer.produce(new SelectedPathBuildItem(selectedPath, null));
+                selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(selectedPath), null));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }

@@ -36,8 +36,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-testing</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

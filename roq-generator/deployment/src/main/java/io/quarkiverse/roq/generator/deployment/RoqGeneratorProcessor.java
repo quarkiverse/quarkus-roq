@@ -157,7 +157,7 @@ class RoqGeneratorProcessor {
             Map<String, StaticFile> staticFiles) {
         if (generatedStaticResourcesMap.containsKey(path)) {
             final GeneratedStaticResourceBuildItem generatedItem = generatedStaticResourcesMap.get(path);
-            if (generatedItem.isFile()) {
+            if (generatedItem.isFile() && generatedItem.getFile().getFileSystem().provider().getScheme().equals("file")) {
                 staticFiles.put(path,
                         new StaticFile(generatedItem.getFileAbsolutePath(), StaticFile.FetchType.FILE));
             } else {

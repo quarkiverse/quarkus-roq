@@ -112,7 +112,6 @@ public class RoqFrontMatterScanProcessor {
             RoqJacksonBuildItem jackson,
             QuteConfig quteConfig,
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
@@ -128,8 +127,7 @@ public class RoqFrontMatterScanProcessor {
                     watch,
                     dataModifications,
                     templatePathProducer,
-                    templateRootProducer,
-                    staticFilesProducer);
+                    templateRootProducer);
 
             Set<String> ids = items.stream().map(RoqFrontMatterRawTemplateBuildItem::id).collect(Collectors.toSet());
 
@@ -181,12 +179,11 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
-            BuildProducer<TemplateRootBuildItem> templateRootProducer,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer) throws IOException {
+            BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(
                 createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
-                        staticFilesProducer, templatePathProducer, items));
+                        templatePathProducer, items));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
@@ -230,7 +227,6 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFilesProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             List<RoqFrontMatterRawTemplateBuildItem> items) {
         return siteDir -> {
