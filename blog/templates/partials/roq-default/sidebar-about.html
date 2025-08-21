@@ -1,12 +1,12 @@
 <section class="about">
   {#if site.image}
   <div class="cover-author-image">
-    <a href="{site.url}"><img src="{site.image}" alt="{site.data.name}"></a>
+    <a href="{=site.url}"><img src="{=site.image}" alt="{=site.data.name}"></a>
   </div>
   {/if}
-  <div class="author-name">{site.data.name}</div>
+  <div class="author-name">{=site.data.name}</div>
   <div class="roq-version">
     <a href="https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-project-parent" rel="nofollow"><img src="https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square" alt="Version"  style="max-width: 100%;"></a>
   </div>
-  {#insert description}<p>{site.description}</p>{/}
+  {#insert description}<p>{=site.description}</p>{/}
 </section>
