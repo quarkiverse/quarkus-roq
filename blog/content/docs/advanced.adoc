@@ -283,6 +283,16 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 | `My-Page-Title`
 
 | All
+| `:name`
+| The slugified name of the file. If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| `my-blog-post`
+
+| All
+| `:Name`
+| The case-preserving slugified name of the file. If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| `My-Blog-Post`
+
+| All
 | `:ext`
 | The file extension with the dot. Empty for all files with html output (md, asciidoc, html, ...).
 | `.json`

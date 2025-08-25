@@ -66,7 +66,10 @@ public class TemplateLink {
                 Map.entry(":ext!",
                         () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
                 Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
-                Map.entry(":Slug", () -> resolveSlug(data)))); // Case-preserving slug
+                Map.entry(":Slug", () -> resolveSlug(data)),
+                Map.entry(":name", () -> slugify(removeDate(data.pageSource().baseFileName()), true, false)
+                        .toLowerCase()),
+                Map.entry(":Name", () -> slugify(removeDate(data.pageSource().baseFileName()), true, false)))); // Case-preserving slug
         if (other != null) {
             result.putAll(other);
         }
@@ -125,4 +128,7 @@ public class TemplateLink {
         return addTrailingSlashIfNoExt(removeLeadingSlash(PathUtils.join(basePath, link)));
     }
 
+    private static String removeDate(String path) {
+        return path.replaceAll("^\\d{4}-\\d{2}-\\d{2}-", "");
+    }
 }
