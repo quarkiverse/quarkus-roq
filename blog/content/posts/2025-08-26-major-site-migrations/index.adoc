@@ -16,6 +16,8 @@ The official WildFly project site, `wildfly.org`, has transitioned from its lega
 
 WildFly is a powerful, modular, and lightweight Java application server that provides all the tools you need to build robust enterprise applications.
 
+https://github.com/wildfly/wildfly.org/[window=_blank]
+
 --
 
 [.flex-block]
@@ -27,6 +29,8 @@ image:https://www.jbang.dev/assets/images/icon.png[link=https://jbang.dev,window
 Similarly, `jbang.dev`, the home of the JBang scripting tool, has now adopted Roq for its site generation instead of Jekyll.
 
 JBang let Students, Educators and Professional Developers create, edit and run self-contained source-only Java programs with unprecedented ease.
+
+https://github.com/jbangdev/jbang.dev[window=_blank]
 --
 
 == Roq's Enhanced AsciiDoc Support
