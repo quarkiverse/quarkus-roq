@@ -105,7 +105,7 @@ There are two implementations of Asciidoc for Roq:
 ----
 quarkus ext add quarkus-roq-plugin-asciidoc-jruby
 ----
-2. *Asciidoc (Java)*: Provides fast startup but does not support all Asciidoc options yet (based on https://github.com/yupiik/tools-maven-plugin/tree/master/asciidoc-java[asciidoc-java,window=_blank] which is actively maintained).
+2. *Asciidoc (Java)*: Provides fast startup but does not support all Asciidoc options yet (based on link:https://www.yupiik.io/projects.html[Yupiik,window=_blank] https://github.com/yupiik/tools-maven-plugin/tree/master/asciidoc-java[asciidoc-java,window=_blank] which is actively maintained).
 +
 [source,shell]
 ----
