@@ -2,6 +2,34 @@
   padding: 10px;
 }
 
+.page-content {
+
+  div.flex-block > .sectionbody {
+    display: flex;
+    align-items: flex-start;
+    gap: 2em;
+
+    @media only screen and (max-width : 768px) {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    &:first-child {
+      flex-shrink: 0; /* image container */
+    }
+
+    &:last-child {
+      flex: 1; /* text container */
+    }
+
+    img {
+      max-width: 300px;
+      display: block;
+    }
+  }
+
+}
+
 .about .author-name {
   margin-bottom: 0;
   padding-bottom: 0;

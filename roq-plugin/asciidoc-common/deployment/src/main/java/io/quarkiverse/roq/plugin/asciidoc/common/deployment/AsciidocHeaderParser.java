@@ -71,11 +71,14 @@ public class AsciidocHeaderParser {
             pageData.put(Page.FM_DESCRIPTION, header.attributes().get("description"));
         }
         if (!header.author().name().isBlank()) {
-            pageData.put("author", new JsonObject().put("name", header.author().name()).put("email", header.author().mail()));
+            pageData.put("author", header.author().name());
+            pageData.put("author-email", header.author().mail());
         }
         if (!header.revision().number().isBlank()) {
-            pageData.put("revision", new JsonObject().put("number", header.revision().number())
-                    .put("date", header.revision().date()).put("remark", header.revision().revmark()));
+            pageData.put("revision", new JsonObject()
+                    .put("number", header.revision().number())
+                    .put("date", header.revision().date())
+                    .put("remark", header.revision().revmark()));
         }
         if (attributes.containsKey("description")) {
             pageData.put(Page.FM_DESCRIPTION, attributes.get("description"));

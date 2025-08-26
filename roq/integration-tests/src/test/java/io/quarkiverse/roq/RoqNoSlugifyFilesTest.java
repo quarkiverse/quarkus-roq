@@ -15,9 +15,9 @@ public class RoqNoSlugifyFilesTest {
 
     @Test
     public void testPageDir() {
-        RestAssured.when().get("/posts/2010-08-05-hello-world").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/posts/hello-world").then().statusCode(200).log().ifValidationFails()
                 .body(containsString(
-                        "and an images: /images/hello.png, /images/hello.foo.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"));
+                        "and an images: /images/hello.png, /images/hello.foo.png and /posts/hello-world/hello-page.png and  /posts/hello-world/hello-page.png"));
         RestAssured.when().get("/images/hello.foo.png").then().statusCode(200).log().ifValidationFails();
     }
 

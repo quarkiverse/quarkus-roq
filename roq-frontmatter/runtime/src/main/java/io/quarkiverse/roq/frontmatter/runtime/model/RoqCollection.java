@@ -147,4 +147,18 @@ public class RoqCollection extends ArrayList<DocumentPage> {
         return resultMap;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+        RoqCollection that = (RoqCollection) o;
+        return Objects.equals(collection, that.collection);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), collection);
+    }
 }

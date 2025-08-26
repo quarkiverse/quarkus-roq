@@ -18,7 +18,7 @@ class TemplateLinkTest {
     @Test
     void testLink() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true);
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true, false);
 
         String generatedLink = pageLink("", ":year/:month/:day/:slug", new PageLinkData(templateSource, null, frontMatter));
         assertEquals("2024/08/27/my-first-blog-post/", generatedLink);
@@ -27,7 +27,7 @@ class TemplateLinkTest {
     @Test
     void testLinkExt() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true);
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true, false);
 
         String generatedLink = pageLink("", ":year/:month/:day/:slug:ext!",
                 new PageLinkData(templateSource, null, frontMatter));
@@ -41,7 +41,7 @@ class TemplateLinkTest {
     @Test
     void testLinkJson() {
         JsonObject frontMatter = new JsonObject();
-        final PageSource templateSource = createPageSource("bar/foo.json", false);
+        final PageSource templateSource = createPageSource("bar/foo.json", false, false);
 
         String generatedLink = pageLink("", ":path:ext", new PageLinkData(templateSource, null, frontMatter));
         assertEquals("bar/foo.json", generatedLink);
@@ -51,7 +51,7 @@ class TemplateLinkTest {
     void testPaginateLink() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
         final PageSource templateSource = createPageSource("posts/my-first-blog-post.md",
-                true);
+                true, false);
 
         String generatedLink = paginateLink("foo", null, new PaginateLinkData(templateSource, "posts", "3", frontMatter));
         assertEquals("foo/posts/page3/", generatedLink);
@@ -60,7 +60,7 @@ class TemplateLinkTest {
     @Test
     void testSlugCase() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
-        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true);
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true, false);
 
         PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
         assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:slug", data));
@@ -70,14 +70,34 @@ class TemplateLinkTest {
     @Test
     void testFileCase() {
         JsonObject frontMatter = new JsonObject().put("title", "This Is My Very First Blog Post");
-        final PageSource templateSource = createPageSource("posts/My-First-Blog-Post.md", true);
+        final PageSource templateSource = createPageSource("posts/My-First-Blog-Post.md", true, false);
 
         PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
         assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:name", data));
         assertEquals("2024/08/27/My-First-Blog-Post/", pageLink("", ":year/:month/:day/:Name", data));
     }
 
-    private PageSource createPageSource(String path, boolean isTargetHtml) {
+    @Test
+    void testFileCaseDate() {
+        JsonObject frontMatter = new JsonObject().put("title", "This Is My Very First Blog Post");
+        final PageSource templateSource = createPageSource("posts/2024-03-02-My-First-Blog-Post.md", true, false);
+
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+        assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:name", data));
+        assertEquals("2024/08/27/My-First-Blog-Post/", pageLink("", ":year/:month/:day/:Name", data));
+    }
+
+    @Test
+    void testFileIndexCaseDate() {
+        JsonObject frontMatter = new JsonObject().put("title", "This Is My Very First Blog Post");
+        final PageSource templateSource = createPageSource("posts/2024-03-02-My-First-Blog-Post/index.md", true, true);
+
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+        assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:name", data));
+        assertEquals("2024/08/27/My-First-Blog-Post/", pageLink("", ":year/:month/:day/:Name", data));
+    }
+
+    private PageSource createPageSource(String path, boolean isTargetHtml, boolean isIndex) {
         TemplateSource templateSource = TemplateSource.create(
                 path,
                 "markdown",
@@ -87,7 +107,7 @@ class TemplateLinkTest {
                 "",
                 false,
                 isTargetHtml,
-                false,
+                isIndex,
                 false);
 
         return new PageSource(templateSource, false,
