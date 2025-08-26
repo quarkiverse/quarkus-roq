@@ -274,22 +274,22 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 
 | All
 | `:slug`
-| The slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the file name.
+| The slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the name.
 | `my-page-title`
 
 | All
 | `:Slug`
-| The case-preserving slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the file name.
+| The case-preserving slugified title of the page, derived from the title. Defaults to the `slug` property in data, if available or using the slugified title, falling back to the name.
 | `My-Page-Title`
 
 | All
 | `:name`
-| The slugified name of the file. If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| The slugified name of the file (or directory if index). If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
 | `my-blog-post`
 
 | All
 | `:Name`
-| The case-preserving slugified name of the file. If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| The case-preserving slugified name of the file (or directory if index). If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
 | `My-Blog-Post`
 
 | All

@@ -43,11 +43,11 @@ public class RoqFrontMatterTest {
 
     @Test
     public void testDirPost() {
-        RestAssured.when().get("/bar/posts/2024-03-10-dir-post").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/bar/posts/dir-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("posts/2024-03-10-dir-post/index.html"))
                 .body("html.head.base.@href", equalTo("/foo/"))
                 .body("html.body.article.h1", equalTo("Hello!"));
-        RestAssured.when().get("/bar/posts/2024-03-10-dir-post/beer.svg").then().statusCode(200);
+        RestAssured.when().get("/bar/posts/dir-post/beer.svg").then().statusCode(200);
     }
 
     @Test

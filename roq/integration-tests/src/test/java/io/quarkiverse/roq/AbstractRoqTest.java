@@ -18,6 +18,12 @@ public abstract class AbstractRoqTest {
     }
 
     @Test
+    public void testNoContent() {
+        RestAssured.given().when().get("/posts/no-content").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("No Content"));
+    }
+
+    @Test
     public void testEmpty() {
         RestAssured.given().when().get("/empty.txt").then().statusCode(200).log().ifValidationFails()
                 .body(emptyString());
@@ -57,13 +63,13 @@ public abstract class AbstractRoqTest {
 
     @Test
     public void testPageDir() {
-        RestAssured.when().get("/posts/2010-08-05-hello-world").then().statusCode(200).log().ifValidationFails()
+        RestAssured.when().get("/posts/hello-world").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("posts/2010-08-05-hello-world/index.md - Hello, world! I'm Roq"))
                 .body(containsString("<h1 class=\"page-title\">posts/2010-08-05-hello-world/index.md"))
                 .body(containsString(
-                        "Here are the links: /posts/2010-08-05-hello-world/hello.pdf and /posts/2010-08-05-hello-world/hello.pdf"))
+                        "Here are the links: /posts/hello-world/hello.pdf and /posts/hello-world/hello.pdf"))
                 .body(containsString(
-                        "and an images: /images/hello.png, /images/hello.foo.png and /posts/2010-08-05-hello-world/hello-page.png and  /posts/2010-08-05-hello-world/hello-page.png"))
+                        "and an images: /images/hello.png, /images/hello.foo.png and /posts/hello-world/hello-page.png and  /posts/hello-world/hello-page.png"))
                 .body(containsString("page by path: /%C3%A9lo%20you$@/"))
                 .body(containsString("document by path: /posts/k8s-post/"));
         RestAssured.when().get("/images/hello.foo.png").then().statusCode(200).log().ifValidationFails();

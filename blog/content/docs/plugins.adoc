@@ -137,7 +137,7 @@ You may use includes files from all the site directory. Just make sure the inclu
 Asciidoc headers are parsed by Roq and used as page data:
 
 * `= Title` is used as page title.
-* author is available through `page.data.author.name` and `page.data.author.email`.
+* author is available through `page.data.author` for the name and `page.data.author-email` for the email.
 * revision is available through  `page.data.revision.number`, `page.data.revision.date` and  `page.data.revision.remark`.
 * attribute `:description:` is use as page description.
 * attributes starting with `page-` will be used as page data (`:page-image:` -> `image` in the data)

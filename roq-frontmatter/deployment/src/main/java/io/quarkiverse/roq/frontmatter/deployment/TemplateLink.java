@@ -1,9 +1,11 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
+import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.FILE_NAME_DATE_PATTERN;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.roq.util.PathUtils.*;
 import static io.quarkiverse.roq.util.PathUtils.slugify;
 
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -67,26 +69,32 @@ public class TemplateLink {
                         () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
                 Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
                 Map.entry(":Slug", () -> resolveSlug(data)),
-                Map.entry(":name", () -> slugify(removeDate(data.pageSource().baseFileName()), true, false)
+                Map.entry(":name", () -> slugify(resolveName(data), true, false)
                         .toLowerCase()),
-                Map.entry(":Name", () -> slugify(removeDate(data.pageSource().baseFileName()), true, false)))); // Case-preserving slug
+                Map.entry(":Name", () -> slugify(resolveName(data), true, false)))); // Case-preserving slug
         if (other != null) {
             result.putAll(other);
         }
         return result;
     }
 
+    private static String resolveName(LinkData data) {
+        final String name;
+        if (data.pageSource().isIndex()) {
+            final Path parent = Path.of(data.pageSource().path()).getParent();
+            name = parent != null ? parent.getFileName().toString() : "not-available";
+        } else {
+            name = data.pageSource().baseFileName();
+        }
+
+        return removeDate(name);
+    }
+
     public static String resolveSlug(LinkData data) {
         String title = data.data().getString("slug",
                 data.data().getString("title"));
         if (title == null || title.isBlank()) {
-            final String baseFileName = data.pageSource().baseFileName();
-            if ("index".equalsIgnoreCase(baseFileName)) {
-                // in this case we take the parent dir name
-                title = PathUtils.fileName(data.pageSource().path().replaceAll("/index\\..+", ""));
-            } else {
-                title = baseFileName;
-            }
+            title = resolveName(data);
         }
         return slugify(title);
     }
@@ -129,6 +137,6 @@ public class TemplateLink {
     }
 
     private static String removeDate(String path) {
-        return path.replaceAll("^\\d{4}-\\d{2}-\\d{2}-", "");
+        return FILE_NAME_DATE_PATTERN.matcher(path).replaceAll("");
     }
 }

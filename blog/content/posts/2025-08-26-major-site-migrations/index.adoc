@@ -1,0 +1,48 @@
+= Major Site Migrations Roq
+ia3andy
+:description: ✨ Two prominent websites have just migrated to Roq—any guesses who they might be?
+:image: https://images.unsplash.com/photo-1658220068838-90ac25ac8166?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+:page-tags: blogging, cool-stuff
+
+Two prominent websites have recently completed their migration to Roq: https://wildfly.org/[`wildfly.org`, window=_blank] and https://wildfly.org/[`jbang.dev`, window=_blank]. These migrations mark a significant milestone in the adoption of Roq as a modern static site generator.
+
+[.flex-block]
+== WildFly.org on the roq
+
+image:./wildfly-logo.svg[link=https://www.wildfly.org/,window=_blank,width=300px]
+
+--
+The official WildFly project site, `wildfly.org`, has transitioned from its legacy setup on Jekyll. This move brings faster build times, simplified deployment, and better integration with modern Java tooling.
+
+WildFly is a powerful, modular, and lightweight Java application server that provides all the tools you need to build robust enterprise applications.
+
+--
+
+[.flex-block]
+== JBang.dev is awesome right?
+
+image:https://www.jbang.dev/assets/images/icon.png[link=https://jbang.dev,window=_blank]
+
+--
+Similarly, `jbang.dev`, the home of the JBang scripting tool, has now adopted Roq for its site generation instead of Jekyll.
+
+JBang let Students, Educators and Professional Developers create, edit and run self-contained source-only Java programs with unprecedented ease.
+--
+
+== Roq's Enhanced AsciiDoc Support
+
+Roq now offers robust support for AsciiDoc content. This includes:
+
+- **Header parsing**: Roq can extract metadata from AsciiDoc headers, enabling dynamic routing and layout selection without FrontMatter header.
+- **Includes support**: Authors can modularize content using AsciiDoc includes, making documentation more maintainable and reusable.
+
+These features make Roq an excellent choice for documentation-heavy sites and technical blogs.
+
+link:{site-path}docs/plugins/#plugin-asciidoc[Read more about Roq with Asciidoc...]
+
+== More Sites Coming Soon!
+
+The momentum doesn't stop here. Several other sites are currently in the pipeline to migrate to Roq, signaling growing confidence in its capabilities and developer experience. With its blazing-fast builds and flexible content handling, Roq is quickly becoming the go-to solution for modern static site generation in the Java ecosystem.
+
+Stay tuned for more announcements!
+

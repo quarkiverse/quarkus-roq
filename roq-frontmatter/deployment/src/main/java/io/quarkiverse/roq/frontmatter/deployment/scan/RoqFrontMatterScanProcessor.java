@@ -68,7 +68,7 @@ import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
-    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---\\v", Pattern.DOTALL);
+    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
 
     private static final String LAYOUT_KEY = "layout";
     public static final String ESCAPE_KEY = "escape";

@@ -44,7 +44,7 @@ public class RoqFrontMatterDataProcessor {
     public static final String PAGINATE_KEY = "paginate";
     private static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
-    private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+    public static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-");
 
     @BuildStep
     void prepareData(VertxHttpBuildTimeConfig httpConfig,

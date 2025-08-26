@@ -98,13 +98,15 @@ public final class DocumentPage extends Page {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())
             return false;
+        if (!super.equals(o))
+            return false;
         DocumentPage that = (DocumentPage) o;
         return hidden == that.hidden && Objects.equals(collectionId, that.collectionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(collectionId, hidden);
+        return Objects.hash(super.hashCode(), collectionId, hidden);
     }
 
     @Override

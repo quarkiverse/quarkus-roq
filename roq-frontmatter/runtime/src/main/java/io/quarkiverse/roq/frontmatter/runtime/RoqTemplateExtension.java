@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.runtime;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
@@ -33,11 +34,43 @@ public class RoqTemplateExtension {
         return ceilDiv(count, 200);
     }
 
+    public static String contentAbstract(Page page) {
+        return contentAbstract(page, 75);
+    }
+
+    public static String contentAbstract(Page page, int limit) {
+        return contentAbstract(page.site().pageContent(page), limit);
+    }
+
+    public static String contentAbstract(String htmlContent, int limit) {
+        return wordLimit(stripHtml(htmlContent), limit);
+    }
+
     public static String stripHtml(String html) {
         if (html == null) {
             return null;
         }
         return STRIP_HTML_PATTERN.matcher(html).replaceAll("");
+    }
+
+    public static String wordLimit(String text, int limit) {
+        Matcher m = COUNT_WORDS.matcher(text);
+        int count = 0;
+        int end = -1;
+
+        while (m.find()) {
+            count++;
+            if (count == limit) {
+                end = m.end();
+                break;
+            }
+        }
+
+        if (end == -1 || end >= text.length()) {
+            return text;
+        } else {
+            return text.substring(0, end).trim() + "...";
+        }
     }
 
     public static String slugify(String text) {
