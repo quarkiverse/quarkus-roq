@@ -11,6 +11,9 @@ aside.sidebar.main {
   padding: 20px 10px;
   background-color: $white;
 
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
   section {
     margin: 0 0 40px;
     text-align: center;
