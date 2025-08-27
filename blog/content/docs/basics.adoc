@@ -385,6 +385,44 @@ bar: Roq
 
 Can be access with `{cdi:foo.bar}` in any template.
 
+== Template Extensions
+
+The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean. Roq has several built-in template extensions:
+
+[%header]
+|===
+| Method Name | Parent Type  | Return Type | Parameters | Description
+| `asStrings` | `String` or `JsonArray` | `List<String` | | Returns a list of `String`s created by splitting the provided `String`, or converting the `JsonArray` to a `List`. An empty `List` is returned for objects of other types.
+| `collection` | `RoqCollections` | `RoqCollection`| `String key`| Returns the `RoqCollection` for `key`
+| `contentAbstract` | `Page` or `String` | `String` | `int limit` | Returns an abstract for the given `Page` or HTML content. A `Page` is rendered to HTML first, then all HTML is stripped away (see `stripHtml`) and the first `limit` words (default: 75) are returned.
+| `mimeType` | `String` | `String`  | | Returns the mimetype for the specified file. A `null` is returned for unrecognized or invalid file names/types.
+| `numberOfWords` | `String` | `long` | | Returns the number of words in the given String
+| `readTime` | `Page` | `long` | | Returns the estimated number of minutes to read the given page
+| `slugify` | `String` | `String` | | Applies Roq's slug formatting to the given string
+| `stripHtml` | `String` | `String` | | Strips all HTML tags from the given string, returning plain text
+| `wordLimit` | `String` | `String` | `int limit` | Returns the first `limit` words in the given text.
+|===
+
+You can provide your own template extensions by adding a class to your projects `src/main/java` directory and annotating either class or the `public static` method with `@TemplateExtension`:
+
+[source,java]
+-----
+public class Extensions {
+    @TemplateExtension
+    public static String doSomething(String text) {
+        // ....
+    }
+}
+-----
+
+and then you can use that extension in your template:
+
+[source,asciidoc]
+-----
+{site.pageContent(page).doSomething}
+-----
+
+For more details, see the https://quarkus.io/guides/qute#template-extension-methods[Quarkus] and https://quarkus.io/guides/qute-reference#virtual_methods[Qute] documentation.
 
 == Collections
 
