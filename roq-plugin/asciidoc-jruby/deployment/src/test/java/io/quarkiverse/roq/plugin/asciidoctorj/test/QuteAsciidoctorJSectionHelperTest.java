@@ -24,7 +24,7 @@ public class QuteAsciidoctorJSectionHelperTest {
                                     Hello
                                     {/ascii}
                                     """),
-                            "templates/foo.txt"));
+                            "templates/foo.html"));
 
     @Inject
     Template foo;

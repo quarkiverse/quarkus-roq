@@ -16,8 +16,8 @@ public class QuteWebAsciidoctorJExtensionsTest {
     static final QuarkusUnitTest quarkusApp = new QuarkusUnitTest()
             .withApplicationRoot(
                     app -> app
-                            .addAsResource(new StringAsset("{data.asciidocify}"), "templates/foo.txt")
-                            .addAsResource(new StringAsset("{data.asciidocToHtml}"), "templates/bar.txt"));
+                            .addAsResource(new StringAsset("{data.asciidocify}"), "templates/foo.html")
+                            .addAsResource(new StringAsset("{data.asciidocToHtml}"), "templates/bar.html"));
 
     @Inject
     Engine engine;

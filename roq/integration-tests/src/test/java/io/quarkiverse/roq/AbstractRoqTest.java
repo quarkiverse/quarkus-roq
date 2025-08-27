@@ -3,6 +3,7 @@ package io.quarkiverse.roq;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,18 @@ public abstract class AbstractRoqTest {
                 .body(containsString("This is a test layout:"))
                 .body(containsString("href=\"/%C3%A9lo%20you$@/\""))
                 .body(containsString("It should work fine"));
+    }
+
+    @Test
+    public void testCollectionIndex() {
+        RestAssured.given().when().get("/posts/").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("This is the posts index"));
+    }
+
+    @Test
+    public void testCollectionSubIndex() {
+        RestAssured.given().when().get("/posts/sub-index/sub-file.txt").then().statusCode(200).log().ifValidationFails()
+                .body(is("Hello"));
     }
 
     @Test
