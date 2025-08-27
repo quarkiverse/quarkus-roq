@@ -409,6 +409,15 @@ Environment variable: `SITE_ROOT_PATH`
 
 TIP: For GitHub Pages, this is already detected and handled by the Roq GitHub Action, no need to do anything.
 
+== Debugging
+
+To debug errors, you may print debug information in the logs:
+
+[source,shell]
+----
+quarkus dev -Dquarkus.log.category.\"io.quarkiverse.roq.frontmatter\".level=DEBUG
+----
+
 == Testing
 
 All templates will be validated at generation. Sometimes, for example on Pull-Request, you want to detect issues before actual generation. Roq provides a way to generate the full site during the test phase.
