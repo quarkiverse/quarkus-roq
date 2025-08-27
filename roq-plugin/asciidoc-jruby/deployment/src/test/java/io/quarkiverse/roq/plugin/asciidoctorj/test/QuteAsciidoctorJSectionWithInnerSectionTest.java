@@ -31,7 +31,7 @@ public class QuteAsciidoctorJSectionWithInnerSectionTest {
                                     {/for}
                                     {/asciidoc}
                                     """),
-                            "templates/foo.txt"));
+                            "templates/foo.html"));
 
     @Inject
     Template foo;

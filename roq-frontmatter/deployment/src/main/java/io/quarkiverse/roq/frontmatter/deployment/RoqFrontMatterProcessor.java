@@ -146,7 +146,6 @@ public class RoqFrontMatterProcessor {
 
     @BuildStep
     void bindStaticFiles(
-            RoqSiteConfig config,
             LaunchModeBuildItem launchMode,
             BuildProducer<SelectedPathBuildItem> selectedPathProducer,
             List<RoqFrontMatterStaticFileBuildItem> staticFiles,
@@ -156,15 +155,17 @@ public class RoqFrontMatterProcessor {
             final String endpoint = prefixWithSlash(staticFile.link());
             final String prev = paths.put(endpoint, staticFile.filePath().toString());
             if (prev != null) {
+                String message = """
+                        Conflict detected: Multiple source files are targeting the same endpoint '%s':
+                          - '%s'
+                          - '%s'
+                        """.formatted(endpoint, prev, staticFile.filePath());
                 if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
-                    LOGGER.warnf(
-                            "Conflict detected: Duplicate path (%s) found in %s and %s. In development, the first occurrence will be kept, but this will cause an exception in normal mode.",
-                            endpoint, prev, staticFile.filePath());
+                    LOGGER.warn(message
+                            + "\nIn development, the first occurrence will be kept, but this will cause an exception in normal mode.");
                     continue;
                 } else {
-                    throw new RoqPathConflictException(
-                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(endpoint, prev,
-                                    staticFile.filePath()));
+                    throw new RoqPathConflictException(message);
                 }
             }
 

@@ -28,6 +28,7 @@ import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishNo
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateDebugPrinter;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
@@ -57,10 +58,23 @@ public class RoqFrontMatterDataProcessor {
             return;
         }
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Template definition: \n\n" + TemplateDebugPrinter.buildTreeString(rawTemplates));
+        }
+
         final var layoutsById = rawTemplates.stream()
                 .filter(i -> !i.type().isPage())
                 .collect(Collectors.toMap(RoqFrontMatterRawTemplateBuildItem::id, Function.identity(), (a, b) -> {
-                    throw new IllegalStateException("Multiple layouts found with id '" + a.id() + "', this is a bug.");
+                    throw new IllegalStateException(
+                            """
+
+                                    Multiple layouts found with id '%s'.
+                                     - '%s'
+                                     - '%s'
+                                    This usually happens when more than one 'layouts' directory provides a template with the same id. Please ensure layout IDs are unique across all themes and sources.
+                                    """
+                                    .formatted(a.id(), a.templateSource().file().absolutePath(),
+                                            b.templateSource().file().absolutePath()));
                 }));
         final RootUrl rootUrl = new RootUrl(config.urlOptional().orElse(""), httpConfig.rootPath());
         rootUrlProducer.produce(new RoqFrontMatterRootUrlBuildItem(rootUrl));
