@@ -43,7 +43,7 @@ public class RoqFrontMatterDataProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterDataProcessor.class);
     public static final String LINK_KEY = "link";
     public static final String PAGINATE_KEY = "paginate";
-    private static final String DRAFT_KEY = "draft";
+    public static final String DRAFT_KEY = "draft";
     private static final String DATE_KEY = "date";
     public static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-");
 

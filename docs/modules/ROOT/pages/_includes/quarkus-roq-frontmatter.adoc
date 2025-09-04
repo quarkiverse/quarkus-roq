@@ -319,6 +319,27 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`false`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft-directory]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft-directory[`site.draft-directory`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.draft-directory+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Directory under which all documents will be considered as drafts.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_DRAFT_DIRECTORY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_DRAFT_DIRECTORY+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`drafts`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-date-format]] [.property-path]##link:#quarkus-roq-frontmatter_site-date-format[`site.date-format`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.date-format+++[]
