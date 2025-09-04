@@ -495,7 +495,9 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 
 === Draft and Future
 
-To create a draft page or document, you can use frontmatter data `draft: true` to take the decision. Draft won't be visible when published unless you have the `%dev.site.draft=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode). 
+To create a draft page or document, you can use the frontmatter field `draft: true`. Drafts won’t be visible when published unless you set `%dev.site.draft=true` in your Quarkus configuration (the `%dev` makes it apply only in dev mode).
+
+You can also place draft documents (for collections) in a `drafts/` (e.g. `posts/drafts/`) directory.
 
 TIP: You may also start quarkus with the option: `quarkus dev -Dsite.draft`.
 
