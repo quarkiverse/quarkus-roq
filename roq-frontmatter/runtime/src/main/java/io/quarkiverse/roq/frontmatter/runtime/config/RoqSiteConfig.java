@@ -148,6 +148,12 @@ public interface RoqSiteConfig {
     boolean draft();
 
     /**
+     * Directory under which all documents will be considered as drafts.
+     */
+    @WithDefault("drafts")
+    String draftDirectory();
+
+    /**
      * Format for dates
      */
     @WithDefault("yyyy-MM-dd[ HH:mm][:ss][ Z]")

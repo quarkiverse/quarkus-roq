@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
+import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.DRAFT_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.resolveHeaderParsers;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter;
@@ -93,6 +94,17 @@ public class RoqFrontMatterScanProcessor {
                     && isPageEscaped(config).test(sourceData.relativePath())) {
                 sourceData.fm().put(ESCAPE_KEY, true);
             }
+            return sourceData.fm();
+        }));
+    }
+
+    @BuildStep
+    void amendDraftContent(RoqSiteConfig config,
+            BuildProducer<RoqFrontMatterDataModificationBuildItem> dataModificationProducer) {
+        dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
+            var isDraft = sourceData.type().isPage() && sourceData.collection() != null
+                    && sourceData.relativePath().contains(config.draftDirectory() + "/");
+            sourceData.fm().put(DRAFT_KEY, isDraft);
             return sourceData.fm();
         }));
     }
