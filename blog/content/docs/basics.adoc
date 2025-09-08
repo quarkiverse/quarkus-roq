@@ -131,22 +131,50 @@ You can split layouts into partial, reusable templates.
 
 For example:
 
-* `templates/partials/pagination.html`  
+➡️ `templates/partials/pagination.html`  
   can be included using: `{#include partials/pagination /}`
 
 == Tags
 
-**Tags** (User Tags) are custom reusable snippets of code, similar to small components.  
+Tags (User Tags) are custom reusable snippets of code, similar to small components.  
 They help reduce duplication and let you create reusable sections.
+
+For example, create a tag in `templates/partials/post-link.html`:
+
+[source,html]
+----
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage post}
+<div class="post-link">
+    <a href="{post.url}">
+      <img src="{post.image}" alt="{post.title}" class="post-image"/>
+      <h3>{post.title}</h3>
+      <p>{post.description}</p>
+    </a>
+</div>
+----
+
+You can then use it in another template like this :
+
+[source,html]
+----
+{#post-link post=site.document('posts/2025-09-08-my-article.md')/}
+----
+
+This would render a styled card linking to the given `DocumentPage` post.
+
+[TIP]
+====
+You can reference pages and documents by their source path.
 
 For example:
 
-* `templates/partials/post-link.html`  
-  with a `DocumentPage` parameter named `post`  
-  can be used as: `{#post-link post/}`  
-  to display a styled card linking to another post.
+* `site.document('posts/2025-09-08-my-article.md')`
+* `site.page('about.md')`
+==== 
 
 To learn more, see the https://quarkus.io/guides/qute-reference#user_tags[Qute User Tags guide,window=_blank].
+
+
 
 [#install-theme]
 == Install a theme
