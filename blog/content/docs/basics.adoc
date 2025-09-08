@@ -407,7 +407,6 @@ __{page.data.the-rope}!__ <3>
 
 You can use different markup languages in Roq content.
 
-
 === Markdown
 
 Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).  
@@ -421,8 +420,7 @@ If you don’t need Markdown, you can disable it by excluding the Markdown plugi
 === AsciiDoc
 
 AsciiDoc is also fully supported in Roq via the xref:plugins.adoc#plugin-asciidoc[AsciiDoc plugin].
-
-
+Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
 
 == Global data
 
