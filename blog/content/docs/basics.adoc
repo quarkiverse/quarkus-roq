@@ -12,19 +12,38 @@ include::../../includes/directory-structure.adoc[]
 
 All templates may use the awesome type-safe https://quarkus.io/guides/qute-reference[Qute] template engine.
 
-TIP: Type-safety doesn't make it more complex, it just means that using wrong variables and such will result in build error. This way it won't leak in production.
+[TIP]
+====
+Type-safety doesn't make it more complex—it just means that using wrong variables will result in a build error.  
+This prevents issues from leaking into production.
+====
 
-Templates for layout, documents and pages may also declare a FrontMatter (referred as FM data) header delimited by  two `---`.
-This header contains yaml data used to configure many things such as:
+Templates for layouts, documents, and pages may also declare a FrontMatter (FM) header, delimited by two `---`.  
+This header contains YAML data used to configure things like:
 
 * Routing
-* Data for the templates
+* Data for templates
 * Content generation
 * Pagination
 
+For example, a page template `blog-post.html` might start with:
+
+[source,yaml]
+----
+---
+title: "My First Blog Post"
+date: 2025-09-08
+author: "Andy"
+layout: post
+tags: qute, roq, tutorial
+---
+
+**Hello World**
+----
+
 == Content
 
-The `content/` directory contains the <<site index, site index page>> and all the <<pages>> and <<collections>> (such as blog posts). It may also contain attached static files (<<page-files>>).
+The `content/` directory contains the <<site-index, site index page>> and all the <<pages>> and <<collections>> (such as blog posts). It may also contain attached static files (<<page-files>>).
 Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or using <<Markup languages>>.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
@@ -35,11 +54,7 @@ NOTE: We sometimes refer to pages in collections as documents, documents are jus
 Layouts, partials, and user tags are templates and must use one of the following extensions:  
 `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
 
-[INFO]
-====
-`.md` and `.adoc` files are not parsed as templates.  
-Instead, you can use markup inside templates through Qute sections `{#md}` and `{#adoc}`, provided the corresponding <<Markup languages,plugins>> are available.
-====
+INFO: `.md` and `.adoc` files are not parsed as templates. Instead, you can use markup inside templates through Qute sections `{#md}` and `{#adoc}`, provided the corresponding <<Markup languages,plugins>> are available.
 
 === Layouts 
 
@@ -205,6 +220,7 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 
 It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
+[#site-index]
 == Site index
 
 Your site index page is required and should be located in `content/index.html` (you can also use a markup extension).
