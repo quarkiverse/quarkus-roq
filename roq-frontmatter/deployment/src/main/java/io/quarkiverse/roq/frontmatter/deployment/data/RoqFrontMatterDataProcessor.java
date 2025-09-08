@@ -96,7 +96,7 @@ public class RoqFrontMatterDataProcessor {
                 }
 
                 String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-                final boolean draft = data.getBoolean(DRAFT_KEY, false);
+                final boolean draft = Boolean.parseBoolean(data.getString(DRAFT_KEY, "false"));
                 if (!config.draft() && draft) {
                     continue;
                 }
