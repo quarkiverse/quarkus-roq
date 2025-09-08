@@ -25,10 +25,24 @@ This header contains yaml data used to configure many things such as:
 == Content
 
 The `content/` directory contains the index page and all the pages and collections (such as blog posts). It may also contain attached static files (<<page-files>>).
+Content be written in html or using <<Markup languages>>.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
-== Layouts 
+== Templates
+
+== Layouts, Partials, and User Tags
+
+Layouts, partials, and user tags are templates and must use one of the following extensions:  
+`html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
+
+[INFO]
+====
+`.md` and `.adoc` files are not parsed as templates.  
+Instead, you can use markup inside templates through Qute sections `{#md}` and `{#adoc}`, provided the corresponding <<Markup languages,plugins>> are available.
+====
+
+=== Layouts 
 
 For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
@@ -43,7 +57,7 @@ TIP: Roq layouts are using the Qute `include` section under the hood to achieve 
 
 NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/src/main/resources/templates[example templates]).
 
-=== How to create a layout page
+==== How to create a layout page
 
 If you’re using a theme, you can take advantage of its layouts, but you’re also free to add your own. Layouts are built on a powerful inheritance system, allowing flexibility and customization.
 
@@ -124,7 +138,7 @@ Then it will be rendered as followed:
 To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as mush as for the FrontMatter data.
 
 
-== Partials
+=== Partials
 
 You can split layouts into partial, reusable templates.  
 **Partials** make it easier to maintain different sections of your layouts. By default, they are located in `templates/partials/`.
@@ -134,7 +148,7 @@ For example:
 ➡️ `templates/partials/pagination.html`  
   can be included using: `{#include partials/pagination /}`
 
-== Tags
+=== Tags
 
 Tags (User Tags) are custom reusable snippets of code, similar to small components.  
 They help reduce duplication and let you create reusable sections.
@@ -394,13 +408,6 @@ __{page.data.the-rope}!__ <3>
 
 You can use different markup languages in Roq content.
 
-[WARNING]
-====
-Layouts, Partials and User tags must use one of the following extensions: 
-`html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
-
-Within templates, you can enable markup through Qute sections `{#md}` and `{#adoc}`, provided the corresponding plugins are available.
-====
 
 === Markdown
 
