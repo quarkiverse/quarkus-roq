@@ -24,7 +24,7 @@ This header contains yaml data used to configure many things such as:
 
 == Content
 
-The `content/` directory contains the index page and all the pages and collections (such as blog posts). It may also contain attached static files (<<page-files>>).
+The `content/` directory contains the <<site index, site index page>> and all the <<pages>> and <<collections>> (such as blog posts). It may also contain attached static files (<<page-files>>).
 Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or using <<Markup languages>>.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
