@@ -28,7 +28,7 @@ The `content/` directory contains the index page and all the pages and collectio
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
-== Layouts and Partials
+== Layouts 
 
 For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
@@ -39,12 +39,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 
 A layout may be specified in pages through the `layout` FrontMatter key (e.g. `layout: page`). By default, `posts` will use the `post` layout and normal pages the `page` layout (this can be configured through xref:advanced.adoc#quarkus-roq-frontmatter_site-page-layout[site configuration]).
 
-TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike partials, layouts can also define Frontmatter data, which is inherited along with the template structure.
-
-You can also prepare partial templates. They are located by default in `templates/partials/`. For example:
-
-* `pagination.html`
-* `head.html`
+TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike <<partials, partials>>, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
 NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/src/main/resources/templates[example templates]).
 
@@ -129,21 +124,29 @@ Then it will be rendered as followed:
 To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as mush as for the FrontMatter data.
 
 
+== Partials
 
-[#partials]
-=== What are `partials` ?
+You can split layouts into partial, reusable templates.  
+**Partials** make it easier to maintain different sections of your layouts. By default, they are located in `templates/partials/`.
 
-Partials work the other way around. They are bits of qute template fragment that cannot live by there own. You can include in any other templates. Let's say I want to have a description for each of my images. I can create an image.html partial in the `templates/partials/` directory:
+For example:
 
-[source,html]
-.title.html
-----
-<img src="https://supersimple.com/wp-content/uploads/head-shoulders-knees-and-toes-flashcards-726x1024.png" alt="Illustration" />
-----
+* `templates/partials/pagination.html`  
+  can be included using: `{#include partials/pagination /}`
 
-Then I can include it in my content page:
+== Tags
 
-`{#include partials/image /}`
+**Tags** (User Tags) are custom reusable snippets of code, similar to small components.  
+They help reduce duplication and let you create reusable sections.
+
+For example:
+
+* `templates/partials/post-link.html`  
+  with a `DocumentPage` parameter named `post`  
+  can be used as: `{#post-link post/}`  
+  to display a styled card linking to another post.
+
+To learn more, see the https://quarkus.io/guides/qute-reference#user_tags[Qute User Tags guide,window=_blank].
 
 [#install-theme]
 == Install a theme
@@ -359,17 +362,33 @@ __{page.data.the-rope}!__ <3>
 <2> you can add other FM data.
 <3> FM data is available through `page.data`.
 
-== Markup language
+== Markup languages
+
+You can use different markup languages in Roq content.
+
+[WARNING]
+====
+Layouts, Partials and User tags must use one of the following extensions: 
+`html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
+
+Within templates, you can enable markup through Qute sections `{#md}` and `{#adoc}`, provided the corresponding plugins are available.
+====
 
 === Markdown
 
-Roq already includes the Markdown plugin by default. To use Markdown markup language (based on https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]), on pages or documents, add the `.md` or `markdown` file extension and it will automatically work.
+Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).  
+To write pages or documents in Markdown, simply use the `.md` or `.markdown` file extension.
 
-TIP: If you don't want to use Markdown at all, you may disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
+[TIP]
+====
+If you don’t need Markdown, you can disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
+====
 
-=== Asciidoc
+=== AsciiDoc
 
-Asciidoc is also fully compatible with Roq using xref:plugins.adoc#plugin-asciidoc[plugins].
+AsciiDoc is also fully supported in Roq via the xref:plugins.adoc#plugin-asciidoc[AsciiDoc plugin].
+
+
 
 == Global data
 
