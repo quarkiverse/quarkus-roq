@@ -25,7 +25,7 @@ This header contains yaml data used to configure many things such as:
 == Content
 
 The `content/` directory contains the index page and all the pages and collections (such as blog posts). It may also contain attached static files (<<page-files>>).
-Content be written in html or using <<Markup languages>>.
+Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or using <<Markup languages>>.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
@@ -205,9 +205,9 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 
 It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
-== Site index template
+== Site index
 
-Your site index template is required and should be located in `content/index.html`.
+Your site index page is required and should be located in `content/index.html` (you can also use a markup extension).
 
 [source,html]
 .content/index.html
@@ -374,7 +374,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 
 == Pages
 
-Any template file without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
+Any <<content, content template file>> without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
 
 Let's create your first page and spice things up a bit by using Markdown (included by default with Roq).
 
