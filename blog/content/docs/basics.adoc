@@ -29,9 +29,8 @@ Content be written in html or using <<Markup languages>>.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
-== Templates
-
-== Layouts, Partials, and User Tags
+[#templates]
+== Templates (Layouts, Partials, and User Tags)
 
 Layouts, partials, and user tags are templates and must use one of the following extensions:  
 `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
