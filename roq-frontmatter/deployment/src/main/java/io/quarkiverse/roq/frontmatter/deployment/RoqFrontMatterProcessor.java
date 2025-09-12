@@ -4,6 +4,7 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.isLayoutSource
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.resolveGeneratedContentTemplateId;
 import static io.quarkiverse.roq.util.PathUtils.*;
 
+import java.nio.file.Path;
 import java.util.*;
 
 import org.jboss.logging.Logger;
@@ -16,6 +17,7 @@ import io.quarkiverse.roq.frontmatter.runtime.*;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
+import io.quarkiverse.web.bundler.deployment.items.QuteTemplateSourcePathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -42,7 +44,8 @@ public class RoqFrontMatterProcessor {
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
             List<RoqFrontMatterPageTemplateBuildItem> pageTemplatesItems,
             List<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplatesItems,
-            RoqFrontMatterOutputBuildItem roqOutput) {
+            RoqFrontMatterOutputBuildItem roqOutput,
+            BuildProducer<QuteTemplateSourcePathBuildItem> quteTemplateSourcePathBuildItemProducer) {
         if (roqOutput == null) {
             return;
         }
@@ -60,6 +63,10 @@ public class RoqFrontMatterProcessor {
             final String contentTemplateId = resolveGeneratedContentTemplateId(item.raw().templateSource().generatedQuteId());
             templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
                     .content(item.raw().generatedContentTemplate()).build());
+            quteTemplateSourcePathBuildItemProducer.produce(new QuteTemplateSourcePathBuildItem(
+                    item.raw().templateSource().generatedQuteId(), Path.of(item.raw().templateSource().file().absolutePath())));
+            quteTemplateSourcePathBuildItemProducer.produce(new QuteTemplateSourcePathBuildItem(
+                    contentTemplateId, Path.of(item.raw().templateSource().file().absolutePath())));
             if (item.raw().collection() != null) {
                 docTemplates.add(contentTemplateId);
                 docTemplates.add(item.raw().templateSource().generatedQuteId());

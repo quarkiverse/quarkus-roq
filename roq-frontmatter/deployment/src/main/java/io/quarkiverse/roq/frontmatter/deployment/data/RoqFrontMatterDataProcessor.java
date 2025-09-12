@@ -34,6 +34,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.web.bundler.deployment.items.ImagePathMapperBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
@@ -53,13 +54,18 @@ public class RoqFrontMatterDataProcessor {
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
             BuildProducer<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplateProducer,
             BuildProducer<RoqFrontMatterPageTemplateBuildItem> pageTemplatesProducer,
-            List<RoqFrontMatterRawTemplateBuildItem> rawTemplates) {
+            List<RoqFrontMatterRawTemplateBuildItem> rawTemplates,
+            BuildProducer<ImagePathMapperBuildItem> imagePathMapperBuildItemProducer) {
         if (rawTemplates.isEmpty()) {
             return;
         }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Template definition: \n\n" + TemplateDebugPrinter.buildTreeString(rawTemplates));
+        }
+
+        if (config.slugifyFiles()) {
+            imagePathMapperBuildItemProducer.produce(new ImagePathMapperBuildItem(PageFiles::slugifyFile));
         }
 
         final var layoutsById = rawTemplates.stream()

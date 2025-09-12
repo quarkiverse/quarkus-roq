@@ -123,6 +123,17 @@ public abstract class AbstractRoqTest {
                 .body(containsString("Ready to Roq my world!"));
     }
 
+    @Test
+    public void testImages() {
+        RestAssured.given().when().get("/posts/images").then().statusCode(200).log().ifValidationFails()
+                .body(containsString(
+                        "<img src=\"Fo.png\" srcset=\"/static/processed-images/1b139664/Fo_640.png 640w, /static/processed-images/1b139664/Fo_1024.png 1024w\"/><img src=\"/images/Fo.png\" srcset=\"/static/processed-images/1b139664/Fo_640.png 640w, /static/processed-images/1b139664/Fo_1024.png 1024w\"/></p>"));
+        RestAssured.given().when().get("/posts/Fo.png").then().statusCode(200).log().ifValidationFails();
+        RestAssured.given().when().get("/images/Fo.png").then().statusCode(200).log().ifValidationFails();
+        RestAssured.given().when().get("/static/processed-images/1b139664/Fo_640.png").then().statusCode(200).log()
+                .ifValidationFails();
+    }
+
     public static class RoqAndRollProfile implements QuarkusTestProfile {
         @Override
         public String getConfigProfile() {
