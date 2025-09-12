@@ -59,6 +59,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.web.bundler.deployment.items.ImageSourcePathBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
@@ -132,7 +133,8 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqSiteConfig siteConfig,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            BuildProducer<ImageSourcePathBuildItem> imageSourcePathBuildItemProducer) {
         try {
             dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             List<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject,
@@ -143,7 +145,8 @@ public class RoqFrontMatterScanProcessor {
                     watch,
                     dataModifications,
                     templatePathProducer,
-                    templateRootProducer);
+                    templateRootProducer,
+                    imageSourcePathBuildItemProducer);
 
             Set<String> ids = items.stream().map(RoqFrontMatterRawTemplateBuildItem::id).collect(Collectors.toSet());
 
@@ -195,11 +198,12 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
-            BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
+            BuildProducer<TemplateRootBuildItem> templateRootProducer,
+            BuildProducer<ImageSourcePathBuildItem> imageSourcePathBuildItemProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(
                 createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
-                        templatePathProducer, items));
+                        templatePathProducer, items, imageSourcePathBuildItemProducer));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
@@ -218,9 +222,11 @@ public class RoqFrontMatterScanProcessor {
         roqProject.consumePathFromRoqResourceDir(config.contentDir(),
                 l -> {
                     watchResourceDir(watch, l);
+                    Path siteDir = l.getPath().getParent();
                     scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
-                            l.getPath().getParent(),
+                            siteDir,
                             l.getPath());
+                    addImageSourcePaths(imageSourcePathBuildItemProducer, config, siteDir);
                 });
 
         // When the resource roq dir is not the classpath root
@@ -244,7 +250,8 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
-            List<RoqFrontMatterRawTemplateBuildItem> items) {
+            List<RoqFrontMatterRawTemplateBuildItem> items,
+            BuildProducer<ImageSourcePathBuildItem> imageSourcePathBuildItemProducer) {
         return siteDir -> {
             if (!Files.isDirectory(siteDir)) {
                 return;
@@ -262,7 +269,23 @@ public class RoqFrontMatterScanProcessor {
             watchDirectory(contentDir, watch);
             scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
                     contentDir);
+            addImageSourcePaths(imageSourcePathBuildItemProducer, config, siteDir);
         };
+    }
+
+    private static void addImageSourcePaths(
+            BuildProducer<ImageSourcePathBuildItem> imageSourcePathBuildItemProducer, RoqSiteConfig config,
+            Path siteDir) {
+        // Support legacy static dir
+        Path staticDir = siteDir.resolve(config.staticDir());
+        if (Files.isDirectory(staticDir)) {
+            imageSourcePathBuildItemProducer.produce(new ImageSourcePathBuildItem(staticDir));
+        }
+        // Public dir
+        Path publicDir = siteDir.resolve(config.publicDir());
+        if (Files.isDirectory(publicDir)) {
+            imageSourcePathBuildItemProducer.produce(new ImageSourcePathBuildItem(publicDir));
+        }
     }
 
     private static void scanContent(QuteConfig quteConfig, RoqSiteConfig config,
