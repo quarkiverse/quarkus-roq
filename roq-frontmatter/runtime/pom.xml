@@ -20,6 +20,11 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkiverse.web-bundler</groupId>
+            <artifactId>quarkus-web-bundler</artifactId>
+            <version>${quarkus-web-bundler.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>

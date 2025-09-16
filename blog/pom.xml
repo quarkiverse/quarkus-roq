@@ -14,6 +14,7 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>3.23.0</quarkus.platform.version>
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
+        <quarkus-web-bundler.version>999-SNAPSHOT</quarkus-web-bundler.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
     </properties>
@@ -81,7 +82,7 @@
         <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
             <artifactId>quarkus-web-bundler</artifactId>
-            <version>1.9.1</version>
+            <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mvnpm</groupId>
