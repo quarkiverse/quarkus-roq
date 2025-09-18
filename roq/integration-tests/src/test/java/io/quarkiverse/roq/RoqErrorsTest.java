@@ -31,14 +31,14 @@ public class RoqErrorsTest extends AbstractRoqTest {
     @Test
     public void testErrorFilePageDir() {
         RestAssured.when().get("/posts/error-file-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "Can't find 'not-found.pdf' in  'posts/error-file-dir' which has no attached static file."));
+                "Page 'posts/error-file-dir/index.md': can't find 'not-found.pdf' in  'posts/error-file-dir' which has no attached static file."));
     }
 
     @Test
     public void testErrorFilePageDirNotFound() {
         RestAssured.when().get("/posts/error-image-not-found").then().statusCode(500).log().ifValidationFails()
                 .body(containsString(
-                        "File 'not-found.png' not found in 'posts/error-image-not-found' directory (found: hello.png)."));
+                        " Page 'posts/error-image-not-found/index.md': file 'not-found.png' not found in 'posts/error-image-not-found' directory (found: hello.png)."));
     }
 
     @Test

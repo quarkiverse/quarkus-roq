@@ -26,7 +26,7 @@ Environment variable: `+++QUARKUS_ROQ_DATA_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++data+++`
+|`data`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-enforce-bean]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-enforce-bean[`quarkus.roq.data.enforce-bean`]##
 ifdef::add-copy-button-to-config-props[]
@@ -48,7 +48,7 @@ Environment variable: `+++QUARKUS_ROQ_DATA_ENFORCE_BEAN+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++false+++`
+|`false`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-log-data-beans]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-log-data-beans[`quarkus.roq.data.log-data-beans`]##
 ifdef::add-copy-button-to-config-props[]
@@ -69,7 +69,7 @@ Environment variable: `+++QUARKUS_ROQ_DATA_LOG_DATA_BEANS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`true`
 
 |===
 

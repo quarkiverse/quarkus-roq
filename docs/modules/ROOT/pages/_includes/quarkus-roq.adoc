@@ -70,7 +70,7 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_UNKNOWN_PROPERTIES+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`true`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans[`quarkus.roq.jackson.fail-on-empty-beans`]##
 ifdef::add-copy-button-to-config-props[]
@@ -91,7 +91,7 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_EMPTY_BEANS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`true`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums[`quarkus.roq.jackson.accept-case-insensitive-enums`]##
 ifdef::add-copy-button-to-config-props[]
@@ -112,7 +112,7 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_ACCEPT_CASE_INSENSITIVE_ENUMS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++false+++`
+|`false`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-property-naming-strategy]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-property-naming-strategy[`quarkus.roq.jackson.property-naming-strategy`]##
 ifdef::add-copy-button-to-config-props[]

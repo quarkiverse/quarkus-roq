@@ -48,8 +48,11 @@ public class SoftLazyValue<T> {
 
     public void clear() {
         lock.lock();
-        ref = null;
-        lock.unlock();
+        try {
+            ref = null;
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

@@ -1,19 +1,24 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.*;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.enterprise.inject.Vetoed;
+
+import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
@@ -30,6 +35,8 @@ import io.vertx.core.json.JsonObject;
 @Vetoed
 public class Page {
 
+    private static final Logger LOG = Logger.getLogger(Page.class);
+
     public static final String FM_TITLE = "title";
     public static final String FM_DESCRIPTION = "description";
 
@@ -38,6 +45,7 @@ public class Page {
     private final PageSource source;
     private final SoftLazyValue<String> contentLazy = new SoftLazyValue<>(this::resolveContentLazy);
     private final SoftLazyValue<String> rawContentLazy = new SoftLazyValue<>(this::resolveRawContentLazy);
+    private AtomicBoolean resolvingContent = new AtomicBoolean(false);
 
     protected Page(RoqUrl url, PageSource source, JsonObject data) {
         this.url = url;
@@ -71,7 +79,16 @@ public class Page {
      * Renders the inner content (without the layouts) of the given {@link Page} using the Qute template engine.
      */
     public String content() {
-        return contentLazy.get();
+        if (resolvingContent.getAndSet(true)) {
+            LOG.warnf("Recursive call to {page.content} detected in page: '%s'",
+                    sourcePath());
+            return ""; // or throw new IllegalStateException(...)
+        }
+        try {
+            return contentLazy.get();
+        } finally {
+            resolvingContent.set(false);
+        }
     }
 
     /**
@@ -83,15 +100,21 @@ public class Page {
     }
 
     private String resolveContentLazy() {
-        final Engine engine = Arc.container().instance(Engine.class).get();
-        final String id = source().template().generatedQuteContentTemplateId();
-        final Template template = engine.getTemplate(id);
-        if (template == null) {
-            return "";
+        try {
+            final Engine engine = Arc.container().instance(Engine.class).get();
+            final String id = source().template().generatedQuteContentTemplateId();
+            final Template template = engine.getTemplate(id);
+            if (template == null) {
+                return "";
+            }
+            return template.render(Map.of(
+                    "page", this,
+                    "site", site()));
+
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to render page content for page: '%s'", sourcePath());
         }
-        return template.render(Map.of(
-                "page", this,
-                "site", site()));
+        return "";
     }
 
     private String resolveRawContentLazy() {
@@ -99,10 +122,10 @@ public class Page {
         try (InputStream resource = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(templateResource)) {
             if (resource != null) {
-                return new String(resource.readAllBytes(), Charset.defaultCharset());
+                return new String(resource.readAllBytes(), StandardCharsets.UTF_8);
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Can't read '" + templateResource + "'");
+            throw new IllegalStateException("Can't read '" + templateResource + "'", e);
         }
         return "";
     }
@@ -257,8 +280,9 @@ public class Page {
         }
         final Path path = Path.of(this.sourcePath());
         final String dir = path.getParent() == null ? "/" : toUnixPath(path.getParent().toString());
-        return resolveFile(this, name, "Can't find '%s' in  '" + dir + "' which has no attached static file.",
-                "File '%s' not found in '" + dir + "' directory (found: %s).");
+        return resolveFile(this, name,
+                "Page '" + this.sourcePath() + "': can't find '%s' in  '" + dir + "' which has no attached static file.",
+                "Page '" + this.sourcePath() + "': file '%s' not found in '" + dir + "' directory (found: %s).");
     }
 
     /**
