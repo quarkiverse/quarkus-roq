@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-plugin-markdown-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>1.10.0</version>
     </parent>
     <artifactId>quarkus-roq-plugin-markdown-deployment</artifactId>
     <name>Quarkus Roq - Plugin - Markdown - Deployment</name>
