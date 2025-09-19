@@ -62,6 +62,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.paths.PathVisit;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
@@ -130,6 +131,7 @@ public class RoqFrontMatterScanProcessor {
             QuteConfig quteConfig,
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqSiteConfig siteConfig,
@@ -144,6 +146,7 @@ public class RoqFrontMatterScanProcessor {
                     watch,
                     dataModifications,
                     templatePathProducer,
+                    generatedResourceProducer,
                     templateRootProducer);
 
             Set<String> ids = items.stream().map(RoqFrontMatterRawTemplateBuildItem::id).collect(Collectors.toSet());
@@ -196,11 +199,12 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(
                 createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
-                        templatePathProducer, items));
+                        templatePathProducer, generatedResourceProducer, items));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
@@ -245,6 +249,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             List<RoqFrontMatterRawTemplateBuildItem> items) {
         return siteDir -> {
             if (!Files.isDirectory(siteDir)) {
@@ -254,7 +259,7 @@ public class RoqFrontMatterScanProcessor {
             // We scan Qute templates manually outside of resources for now
             final Path templatesDir = siteDir.resolve(TEMPLATES_DIR);
             watchDirectory(templatesDir, watch);
-            scanTemplates(quteConfig, config, watch, templatePathProducer, templatesDir);
+            scanTemplates(quteConfig, config, watch, templatePathProducer, generatedResourceProducer, templatesDir);
             // No need to ignore the template as it's not a template root
             scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
                     templatesDir,
@@ -388,6 +393,7 @@ public class RoqFrontMatterScanProcessor {
             RoqSiteConfig config,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             Path templatesRoot) {
         if (!Files.isDirectory(templatesRoot)) {
             return;
@@ -413,6 +419,10 @@ public class RoqFrontMatterScanProcessor {
                                         link);
                                 return;
                             }
+                            generatedResourceProducer
+                                    .produce(new GeneratedResourceBuildItem(
+                                            "templates/" + link,
+                                            content.getBytes(StandardCharsets.UTF_8)));
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
                                     .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)

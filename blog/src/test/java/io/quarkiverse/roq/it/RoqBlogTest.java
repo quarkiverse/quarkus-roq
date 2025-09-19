@@ -22,7 +22,8 @@ public class RoqBlogTest {
                 .everything().body(containsString(
                         TITLE))
                 .body(containsString(DESCRIPTION)).body(containsString("minute(s) read"))
-                .body(containsString("Page 1 of")).body(containsString("&copy; ROQ"));
+                .body(containsString("Page 1 of")).body(containsString("&copy; ROQ"))
+                .body(containsString("<a href=\"https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-project-parent\" rel=\"nofollow\">"));
     }
 
     @Test
