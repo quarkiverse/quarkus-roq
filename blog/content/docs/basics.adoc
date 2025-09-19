@@ -65,7 +65,7 @@ For your site, you will have one or more kind of pages, this is what we call "la
 * `post`: the layout for blog posts
 * `recipe`: the layout for recipes or whatever
 
-A layout may be specified in pages through the `layout` FrontMatter key (e.g. `layout: page`). By default, `posts` will use the `post` layout and normal pages the `page` layout (this can be configured through xref:advanced.adoc#quarkus-roq-frontmatter_site-page-layout[site configuration]).
+A layout may be specified in pages through the `layout` FrontMatter key (e.g., `layout: page`). By default (if the content of the file is not a full HTML page — i.e., it does not contain a `<html>` tag or `<!DOCTYPE` declaration), `posts` will use the `post` layout and normal pages will use the `page` layout. This can be configured through xref:advanced.adoc#quarkus-roq-frontmatter_site-page-layout[site configuration].
 
 TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike <<partials, partials>>, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
