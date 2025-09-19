@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_CONTENT_QUTE_PREFIX;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_PAGE_QUTE_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
 
 import java.util.function.Function;
@@ -66,7 +67,7 @@ public record TemplateSource(
     }
 
     public String generatedQuteTemplateId() {
-        return ROQ_GENERATED_QUTE_PREFIX + generatedQuteId;
+        return isLayout() ? ROQ_GENERATED_QUTE_PREFIX + generatedQuteId : ROQ_GENERATED_PAGE_QUTE_PREFIX + generatedQuteId;
     }
 
     public String generatedQuteContentTemplateId() {

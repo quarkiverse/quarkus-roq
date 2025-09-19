@@ -5,8 +5,9 @@ public final class RoqTemplates {
     private RoqTemplates() {
     }
 
-    public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-templates/full/";
-    public static final String ROQ_GENERATED_CONTENT_QUTE_PREFIX = "roq-templates/content/";
+    public static final String ROQ_GENERATED_QUTE_PREFIX = "roq-templates/";
+    public static final String ROQ_GENERATED_PAGE_QUTE_PREFIX = ROQ_GENERATED_QUTE_PREFIX + "full/";
+    public static final String ROQ_GENERATED_CONTENT_QUTE_PREFIX = ROQ_GENERATED_QUTE_PREFIX + "content/";
     public static final String LAYOUTS_DIR = "layouts";
     public static final String THEME_LAYOUTS_DIR_PREFIX = "theme-";
 
