@@ -39,7 +39,7 @@ public final class Pages {
     }
 
     public static RoqUrl resolvePublicFile(Page page, Object name) {
-        return resolveFile(page, name, "No file found in the public dir.",
+        return resolveFile(page, name, "File '%s' not found in public dir (public dir is empty).",
                 "File '%s' not found in public dir (found: %s).");
     }
 

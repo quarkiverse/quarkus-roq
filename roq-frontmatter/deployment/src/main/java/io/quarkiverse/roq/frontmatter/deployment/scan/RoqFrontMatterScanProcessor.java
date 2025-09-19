@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -479,8 +480,11 @@ public class RoqFrontMatterScanProcessor {
 
             final boolean isHtml = isTemplateTargetHtml(file);
 
-            final String defaultLayout = type.isPage() && isHtml
-                    ? collection != null ? collection.layout() : config.pageLayout().orElse(null)
+            final boolean isHtmlPartialPage = type.isPage() && isHtml && !(content.toLowerCase(Locale.ROOT).contains("<html")
+                    || content.toLowerCase(Locale.ROOT).contains("<!doctype"));
+
+            final String defaultLayout = isHtmlPartialPage
+                    ? (collection != null ? collection.layout() : config.pageLayout().orElse(null))
                     : null;
 
             final String layoutId = normalizedLayout(config.theme(),
