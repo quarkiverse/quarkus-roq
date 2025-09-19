@@ -79,11 +79,6 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.web-bundler</groupId>
-            <artifactId>quarkus-web-bundler</artifactId>
-            <version>1.9.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>
             <version>11.11.1</version>
@@ -199,8 +194,7 @@
                 </executions>
                 <configuration>
                     <systemPropertyVariables>
-                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner
-                        </native.image.path>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>

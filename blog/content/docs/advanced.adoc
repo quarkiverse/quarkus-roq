@@ -135,11 +135,16 @@ For example, adding your own `templates/partials/roq-default/pagination.html`
 will override the https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/default/src/main/resources/templates/partials/roq-default/pagination.html[one from the default Roq theme]
 
 
-*To override a theme layouts*, it is a tad more complex. You need to insert an extra layout layer. This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
+=== Overriding Layouts
 
-TIP: Roq layouts are leveraging https://quarkus.io/guides/qute-reference#include_helper[Qute includes] under the hood. It is possible to define insert sections which can define overridable default content.
+*To override a theme layout*, it is a tad more complex. You need to insert an extra layout layer.
+This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
 
-For example, let’s override the `roq-default` theme's main layout so that our customizations apply everywhere it is used.
+TIP: Roq layouts leverage https://quarkus.io/guides/qute-reference#include_helper[Qute include] under the hood.
+It is possible to define `insert` sections that provide overridable default content.
+
+==== Example
+Let’s override the `roq-default` theme’s main layout so that our customizations apply everywhere it is used.
 
 .templates/layouts/roq-default/main.html
 [source,html]
@@ -165,6 +170,24 @@ And here the footer
 <3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
 
 Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
+
+==== How it Works Internally
+
+Roq handles theme layouts in two layers:
+
+* The original *theme layouts* are always kept under `theme-layouts/...`.
+These are the base templates that overrides can extend for partial customization.
+* Roq also produces corresponding *site layouts* for each theme layout.
+Site layouts are the versions that your pages actually reference.
+
+When Roq builds your site, it checks for overrides:
+
+* **If you provide an override:**
+Roq uses your override as the site layout, while still keeping the theme’s original layout under `theme-layouts/...` for inheritance.
+* **If you don’t provide an override:**
+Roq copies the theme layout as the site layout, so it can be used directly.
+
+This mechanism ensures you only need to override the parts you want to customize—everything else automatically falls back to the theme.
 
 === Developing a theme
 
