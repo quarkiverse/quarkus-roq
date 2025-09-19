@@ -128,7 +128,6 @@ public class RoqFrontMatterProcessor {
 
             for (RoqFrontMatterLayoutTemplateBuildItem item : layoutTemplatesItems) {
                 final Path filePath = roqTemplatesOutputDir
-                        .resolve("layouts")
                         .resolve(item.raw().templateSource().generatedQuteId());
                 Files.createDirectories(filePath.getParent());
                 Files.writeString(filePath, item.raw().generatedTemplate());
