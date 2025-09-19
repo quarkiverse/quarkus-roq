@@ -1,18 +1,30 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.*;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
 import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
+import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
 import io.quarkus.arc.Arc;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -23,12 +35,17 @@ import io.vertx.core.json.JsonObject;
 @Vetoed
 public class Page {
 
+    private static final Logger LOG = Logger.getLogger(Page.class);
+
     public static final String FM_TITLE = "title";
     public static final String FM_DESCRIPTION = "description";
 
     private final RoqUrl url;
     private final JsonObject data;
     private final PageSource source;
+    private final SoftLazyValue<String> contentLazy = new SoftLazyValue<>(this::resolveContentLazy);
+    private final SoftLazyValue<String> rawContentLazy = new SoftLazyValue<>(this::resolveRawContentLazy);
+    private AtomicBoolean resolvingContent = new AtomicBoolean(false);
 
     protected Page(RoqUrl url, PageSource source, JsonObject data) {
         this.url = url;
@@ -59,10 +76,58 @@ public class Page {
     }
 
     /**
-     * The raw non rendered content
+     * Renders the inner content (without the layouts) of the given {@link Page} using the Qute template engine.
+     */
+    public String content() {
+        if (resolvingContent.getAndSet(true)) {
+            LOG.warnf("Recursive call to {page.content} detected in page: '%s'",
+                    sourcePath());
+            return ""; // or throw new IllegalStateException(...)
+        }
+        try {
+            return contentLazy.get();
+        } finally {
+            resolvingContent.set(false);
+        }
+    }
+
+    /**
+     * The content of the file or template, without any frontmatter header or layouts.
+     * If applicable, this includes the markup block (e.g. {@code <md>...</md>}).
      */
     public String rawContent() {
-        return source().rawContent();
+        return rawContentLazy.get();
+    }
+
+    private String resolveContentLazy() {
+        try {
+            final Engine engine = Arc.container().instance(Engine.class).get();
+            final String id = source().template().generatedQuteContentTemplateId();
+            final Template template = engine.getTemplate(id);
+            if (template == null) {
+                return "";
+            }
+            return template.render(Map.of(
+                    "page", this,
+                    "site", site()));
+
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to render page content for page: '%s'", sourcePath());
+        }
+        return "";
+    }
+
+    private String resolveRawContentLazy() {
+        final String templateResource = "/templates/" + source().template().generatedQuteContentTemplateId();
+        try (InputStream resource = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(templateResource)) {
+            if (resource != null) {
+                return new String(resource.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Can't read '" + templateResource + "'", e);
+        }
+        return "";
     }
 
     /**
@@ -111,7 +176,7 @@ public class Page {
     /**
      * Get the page default image which is attached to this page
      * or available in the public image dir for non directory pages.
-     *
+     * <p>
      * The image name is defined in the FM data with key `image` (or `img` or `picture`).
      *
      * @return the {@link RoqUrl} of the image or null if it is not defined.
@@ -215,8 +280,9 @@ public class Page {
         }
         final Path path = Path.of(this.sourcePath());
         final String dir = path.getParent() == null ? "/" : toUnixPath(path.getParent().toString());
-        return resolveFile(this, name, "Can't find '%s' in  '" + dir + "' which has no attached static file.",
-                "File '%s' not found in '" + dir + "' directory (found: %s).");
+        return resolveFile(this, name,
+                "Page '" + this.sourcePath() + "': can't find '%s' in  '" + dir + "' which has no attached static file.",
+                "Page '" + this.sourcePath() + "': file '%s' not found in '" + dir + "' directory (found: %s).");
     }
 
     /**

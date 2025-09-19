@@ -184,6 +184,13 @@ public interface RoqSiteConfig {
     @WithName("collections")
     Map<String, CollectionConfig> collectionsMap();
 
+    /**
+     * The directory where the generated templates should be created inside the output directory.
+     */
+    @WithDefault("roq-templates")
+    @Pattern(regexp = DIR_NAME_PATTERN)
+    String generatedTemplatesOutputDir();
+
     default List<ConfiguredCollection> collections() {
         if (collectionsMap().isEmpty()) {
             return DEFAULT_COLLECTIONS;

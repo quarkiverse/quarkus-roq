@@ -39,7 +39,7 @@ public class RoqTemplateExtension {
     }
 
     public static String contentAbstract(Page page, int limit) {
-        return contentAbstract(page.site().pageContent(page), limit);
+        return contentAbstract(page.content(), limit);
     }
 
     public static String contentAbstract(String htmlContent, int limit) {

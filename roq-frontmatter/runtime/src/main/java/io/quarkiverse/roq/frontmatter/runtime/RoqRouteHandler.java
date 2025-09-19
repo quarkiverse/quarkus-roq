@@ -115,7 +115,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         // Extract the real template path, e.g. /item.html -> web/item
         Page page = extractedPaths.computeIfAbsent(requestPath, this::extractTemplatePath);
         if (page != null) {
-            final String templateId = page.source().generatedQuteId();
+            final String templateId = page.source().template().generatedQuteTemplateId();
             Template template = templateProducer.get().getInjectableTemplate(templateId);
             TemplateInstance instance = template.instance();
             String contentType = template.getVariant().isPresent() ? template.getVariant().get().getContentType()

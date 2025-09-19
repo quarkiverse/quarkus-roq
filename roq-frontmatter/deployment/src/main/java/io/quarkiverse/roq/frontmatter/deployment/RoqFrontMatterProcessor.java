@@ -1,10 +1,19 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.isLayoutSourceTemplate;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.resolveGeneratedContentTemplateId;
-import static io.quarkiverse.roq.util.PathUtils.*;
+import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
+import static io.quarkiverse.roq.util.PathUtils.getExtension;
+import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
 
-import java.util.*;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.jboss.logging.Logger;
 
@@ -12,15 +21,29 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTempla
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.*;
+import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
+import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.deployment.pkg.builditem.BuildSystemTargetBuildItem;
+import io.quarkus.deployment.util.FileUtil;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.ValidationParserHookBuildItem;
 import io.quarkus.runtime.LaunchMode;
@@ -38,65 +61,112 @@ public class RoqFrontMatterProcessor {
 
     @BuildStep
     void bindQuteTemplates(
+            RoqSiteConfig roqSiteConfig,
+            BuildSystemTargetBuildItem buildSystemTargetBuildItem,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<ValidationParserHookBuildItem> validationParserHookProducer,
             List<RoqFrontMatterPageTemplateBuildItem> pageTemplatesItems,
             List<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplatesItems,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             RoqFrontMatterOutputBuildItem roqOutput) {
         if (roqOutput == null) {
             return;
         }
-        final Set<String> docTemplates = new HashSet<>();
-        final Set<String> pageTemplates = new HashSet<>();
-        final Set<String> layoutTemplates = new HashSet<>();
-        // Produce generated Qute templates
-        for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
-            templatePathProducer
-                    .produce(
-                            TemplatePathBuildItem.builder().path(item.raw().templateSource().generatedQuteId())
-                                    .extensionInfo(FEATURE)
-                                    .content(item.raw().generatedTemplate()).build());
-            // Add the template for just the content
-            final String contentTemplateId = resolveGeneratedContentTemplateId(item.raw().templateSource().generatedQuteId());
-            templatePathProducer.produce(TemplatePathBuildItem.builder().path(contentTemplateId).extensionInfo(FEATURE)
-                    .content(item.raw().generatedContentTemplate()).build());
-            if (item.raw().collection() != null) {
-                docTemplates.add(contentTemplateId);
-                docTemplates.add(item.raw().templateSource().generatedQuteId());
-            } else {
-                pageTemplates.add(contentTemplateId);
-                pageTemplates.add(item.raw().templateSource().generatedQuteId());
+        final Path roqTemplatesOutputDir = buildSystemTargetBuildItem.getOutputDirectory()
+                .resolve(roqSiteConfig.generatedTemplatesOutputDir());
+        try {
+            FileUtil.deleteDirectory(roqTemplatesOutputDir);
+            Files.createDirectories(roqTemplatesOutputDir);
+
+            final Set<String> docTemplates = new HashSet<>();
+            final Set<String> pageTemplates = new HashSet<>();
+            final Set<String> layoutTemplates = new HashSet<>();
+            // Produce generated Qute templates
+            for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
+                final Path filePath = roqTemplatesOutputDir
+                        .resolve("full")
+                        .resolve(item.raw().templateSource().generatedQuteId());
+                Files.createDirectories(filePath.getParent());
+                Files.writeString(filePath, item.raw().generatedTemplate());
+                generatedResourceProducer
+                        .produce(new GeneratedResourceBuildItem(
+                                "templates/" + item.raw().templateSource().generatedQuteTemplateId(),
+                                item.raw().generatedTemplate().getBytes(StandardCharsets.UTF_8)));
+                templatePathProducer
+                        .produce(TemplatePathBuildItem.builder()
+                                .fullPath(filePath)
+                                .path(item.raw().templateSource().generatedQuteTemplateId())
+                                .content(item.raw().generatedTemplate())
+                                .extensionInfo(FEATURE)
+                                .build());
+
+                // Add the template for the content
+                final Path contentFilePath = roqTemplatesOutputDir
+                        .resolve("content")
+                        .resolve(item.raw().templateSource().generatedQuteId());
+                Files.createDirectories(contentFilePath.getParent());
+                Files.writeString(contentFilePath, item.raw().generatedContentTemplate());
+                generatedResourceProducer
+                        .produce(new GeneratedResourceBuildItem(
+                                "templates/" + item.raw().templateSource().generatedQuteContentTemplateId(),
+                                item.raw().generatedContentTemplate().getBytes(StandardCharsets.UTF_8)));
+                templatePathProducer.produce(TemplatePathBuildItem.builder()
+                        .fullPath(contentFilePath)
+                        .path(item.raw().templateSource().generatedQuteContentTemplateId())
+                        .content(item.raw().generatedContentTemplate())
+                        .extensionInfo(FEATURE)
+                        .build());
+                if (item.raw().collection() != null) {
+                    docTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
+                    docTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
+                } else {
+                    pageTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
+                    pageTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
+                }
+
             }
 
+            for (RoqFrontMatterLayoutTemplateBuildItem item : layoutTemplatesItems) {
+                final Path filePath = roqTemplatesOutputDir
+                        .resolve("layouts")
+                        .resolve(item.raw().templateSource().generatedQuteId());
+                Files.createDirectories(filePath.getParent());
+                Files.writeString(filePath, item.raw().generatedTemplate());
+                generatedResourceProducer
+                        .produce(new GeneratedResourceBuildItem(
+                                "templates/" + item.raw().templateSource().generatedQuteTemplateId(),
+                                item.raw().generatedTemplate().getBytes(StandardCharsets.UTF_8)));
+                templatePathProducer
+                        .produce(TemplatePathBuildItem.builder()
+                                .path(item.raw().templateSource().generatedQuteTemplateId())
+                                .fullPath(filePath)
+                                .extensionInfo(FEATURE)
+                                .content(item.raw().generatedTemplate()).build());
+                layoutTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
+            }
+
+            // Setup type-safety for generate templates
+            validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
+                if (isLayoutSourceTemplate(c.getTemplateId())) {
+                    // Fixes https://github.com/quarkiverse/quarkus-roq/issues/530
+                    c.addContentFilter(s -> "");
+                    return;
+                }
+                if (docTemplates.contains(c.getTemplateId())) {
+                    c.addParameter("page", DocumentPage.class.getName());
+                    c.addParameter("site", Site.class.getName());
+                } else if (pageTemplates.contains(c.getTemplateId())) {
+                    c.addParameter("page", NormalPage.class.getName());
+                    c.addParameter("site", Site.class.getName());
+                } else if (layoutTemplates.contains(c.getTemplateId())) {
+                    c.addParameter("page", Page.class.getName());
+                    c.addParameter("site", Site.class.getName());
+                }
+            }));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        for (RoqFrontMatterLayoutTemplateBuildItem item : layoutTemplatesItems) {
-            templatePathProducer
-                    .produce(
-                            TemplatePathBuildItem.builder().path(item.raw().templateSource().generatedQuteId())
-                                    .extensionInfo(FEATURE)
-                                    .content(item.raw().generatedTemplate()).build());
-            layoutTemplates.add(item.raw().templateSource().generatedQuteId());
-        }
-
-        // Setup type-safety for generate templates
-        validationParserHookProducer.produce(new ValidationParserHookBuildItem(c -> {
-            if (isLayoutSourceTemplate(c.getTemplateId())) {
-                // Fixes https://github.com/quarkiverse/quarkus-roq/issues/530
-                c.addContentFilter(s -> "");
-                return;
-            }
-            if (docTemplates.contains(c.getTemplateId())) {
-                c.addParameter("page", DocumentPage.class.getName());
-                c.addParameter("site", Site.class.getName());
-            } else if (pageTemplates.contains(c.getTemplateId())) {
-                c.addParameter("page", NormalPage.class.getName());
-                c.addParameter("site", Site.class.getName());
-            } else if (layoutTemplates.contains(c.getTemplateId())) {
-                c.addParameter("page", Page.class.getName());
-                c.addParameter("site", Site.class.getName());
-            }
-        }));
     }
 
     @BuildStep

@@ -38,7 +38,7 @@ public class RoqQuteEngineObserver {
         });
 
         builder.addTemplateInstanceInitializer(templateInstance -> {
-            final String templateId = resolveOriginalTemplateId(templateInstance.getTemplate().getId());
+            final String templateId = templateInstance.getTemplate().getId();
             templateInstance.setAttribute(TEMPLATE_ID, templateId);
             if (templatePathMapping.containsKey(templateId)) {
                 final SourceFile sourceFile = templatePathMapping.get(templateId);
@@ -49,12 +49,17 @@ public class RoqQuteEngineObserver {
     }
 
     private static Map<String, SourceFile> initTemplatePathMapping(Sources sources) {
+        final Map<String, SourceFile> templatePathMapping = new HashMap<>();
         if (sources == null) {
-            return new HashMap<>();
+            return templatePathMapping;
         }
         // A template can be used in multiple pages
-        return sources.list().stream()
-                .collect(Collectors.toMap(TemplateSource::generatedQuteId, TemplateSource::file,
-                        (a, b) -> a));
+        templatePathMapping.putAll(sources.list().stream()
+                .collect(Collectors.toMap(TemplateSource::generatedQuteTemplateId, TemplateSource::file,
+                        (a, b) -> a)));
+        templatePathMapping.putAll(sources.list().stream()
+                .collect(Collectors.toMap(TemplateSource::generatedQuteContentTemplateId, TemplateSource::file,
+                        (a, b) -> a)));
+        return templatePathMapping;
     }
 }

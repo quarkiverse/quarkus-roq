@@ -487,6 +487,27 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`site.generated-templates-output-dir`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.generated-templates-output-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The directory where the generated templates should be created inside the output directory.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_GENERATED_TEMPLATES_OUTPUT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_GENERATED_TEMPLATES_OUTPUT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`roq-templates`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-path-prefix]] [.property-path]##link:#quarkus-roq-frontmatter_site-path-prefix[`site.path-prefix`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.path-prefix+++[]

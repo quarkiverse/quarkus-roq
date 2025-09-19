@@ -30,20 +30,12 @@ public record PageSource(
         return template.id();
     }
 
-    public String generatedQuteId() {
-        return template.generatedQuteId();
-    }
-
     public String path() {
         return template.path();
     }
 
     public SourceFile file() {
         return template.file();
-    }
-
-    public String rawContent() {
-        return template.rawContent();
     }
 
     public String markup() {
