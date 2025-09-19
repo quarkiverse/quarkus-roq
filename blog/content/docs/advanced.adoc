@@ -134,9 +134,6 @@ For example, adding your own `templates/partials/roq-default/pagination.html`
 
 will override the https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/default/src/main/resources/templates/partials/roq-default/pagination.html[one from the default Roq theme]
 
-
-=== Overriding Layouts
-
 *To override a theme layout*, it is a tad more complex. You need to insert an extra layout layer.
 This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
 
