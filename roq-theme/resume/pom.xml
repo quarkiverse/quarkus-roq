@@ -58,7 +58,7 @@
                     <dependency>
                         <groupId>org.mvnpm.at.tailwindcss</groupId>
                         <artifactId>browser</artifactId>
-                        <version>4.1.7</version>
+                        <version>4.1.13</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.fontsource</groupId>
