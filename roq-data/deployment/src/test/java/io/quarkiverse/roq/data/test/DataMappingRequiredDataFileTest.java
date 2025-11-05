@@ -12,7 +12,7 @@ public class DataMappingRequiredDataFileTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
-                    .addClass(DataMappingRequiredDataFileTest.Person.class))
+                    .addClass(Person.class))
             .assertException(throwable -> {
                 Assertions.assertThat(throwable)
                         .hasMessage("The @DataMapping#value(foo) is required, but there is no corresponding data file");

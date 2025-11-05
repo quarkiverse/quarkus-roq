@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -45,6 +46,7 @@ import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem.SourceData;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
@@ -70,11 +72,12 @@ import io.quarkus.qute.runtime.QuteConfig;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanProcessor.class);
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
 
     private static final String LAYOUT_KEY = "layout";
     public static final String ESCAPE_KEY = "escape";
+    private static final String LANG_KEY = "lang";
 
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
     public static final String TEMPLATES_DIR = "templates";
@@ -318,8 +321,7 @@ public class RoqFrontMatterScanProcessor {
                                 markupList,
                                 headerParserList,
                                 dataModifications,
-                                collection,
-                                type).accept(p);
+                                collection).accept(p, type);
                     });
         } catch (IOException e) {
             throw new RoqSiteScanningException(
@@ -375,19 +377,19 @@ public class RoqFrontMatterScanProcessor {
 
         // scan layouts and templates
         try (Stream<Path> stream = Files.walk(layoutsDir)) {
-            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, quteConfig, config,
+            final BiConsumer<Path, TemplateType> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, quteConfig,
+                    config,
                     watch,
                     markupList,
                     headerParserList,
                     dataModifications,
-                    null,
-                    type);
+                    null);
             stream
                     .filter(Files::isRegularFile)
                     .filter(not(isFileExcluded(templatesRoot.getParent(), config)))
                     .filter(isTemplate(quteConfig))
                     .filter(RoqFrontMatterScanProcessor::isTemplateTargetHtml)
-                    .forEach(layoutsConsumer);
+                    .forEach(path -> layoutsConsumer.accept(path, type));
 
         } catch (IOException e) {
             throw new RoqSiteScanningException(
@@ -463,7 +465,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private static Consumer<Path> addBuildItem(
+    private static BiConsumer<Path, TemplateType> addBuildItem(
             Path siteDir,
             Path referenceDir,
             List<RoqFrontMatterRawTemplateBuildItem> items,
@@ -473,9 +475,8 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
-            ConfiguredCollection collection,
-            TemplateType type) {
-        return file -> {
+            ConfiguredCollection collection) {
+        return (file, type) -> {
             final String relativePath = toUnixPath(siteDir.relativize(file).normalize().toString());
             String referencePath = toUnixPath(referenceDir.relativize(file).normalize().toString());
             SourceFile sourceFile = new SourceFile(toUnixPath(siteDir.normalize().toAbsolutePath().toString()), relativePath);
@@ -526,9 +527,21 @@ public class RoqFrontMatterScanProcessor {
             final String escapedContent = escapeFilter.apply(content);
             final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
             final String generatedTemplate = includeFilter.apply(contentWithMarkup);
+            TemplateType internalType = type;
+            ConfiguredCollection internalCollection = collection;
+
+            if (data.getString(LANG_KEY) != null &&
+                    !config.defaultLanguage().equals(data.getString(LANG_KEY)) &&
+                    TemplateType.DOCUMENT_PAGE == type) {
+                internalType = TemplateType.NORMAL_PAGE;
+                internalCollection = null;
+                data.put(RoqFrontMatterDataProcessor.LINK_KEY,
+                        "/%s/%s/%s".formatted(collection.id(), ":slug", data.getString(LANG_KEY)));
+
+            }
 
             final String fileName = fileName(referencePath);
-            var isIndex = type.isPage() && INDEX_FILES.contains(fileName);
+            var isIndex = internalType.isPage() && INDEX_FILES.contains(fileName);
             var isSiteIndex = isHtml && id.startsWith("index."); // the site index is at the root of the site
 
             TemplateSource source = TemplateSource.create(
@@ -537,7 +550,7 @@ public class RoqFrontMatterScanProcessor {
                     sourceFile,
                     referencePath,
                     templateOutputPath,
-                    type.isLayout() || type.isThemeLayout(),
+                    internalType.isLayout() || internalType.isThemeLayout(),
                     isHtml,
                     isIndex,
                     isSiteIndex);
@@ -562,7 +575,7 @@ public class RoqFrontMatterScanProcessor {
 
             }
 
-            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection,
+            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, internalType, data, internalCollection,
                     generatedTemplate,
                     contentWithMarkup, attachments));
 

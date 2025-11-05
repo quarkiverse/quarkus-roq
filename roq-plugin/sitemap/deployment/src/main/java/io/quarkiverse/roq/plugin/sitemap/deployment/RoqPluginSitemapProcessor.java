@@ -26,7 +26,7 @@ import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.runtime.LaunchMode;
 
 public class RoqPluginSitemapProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanProcessor.class);
     private static final String FEATURE = "roq-plugin-sitemap";
 
     @BuildStep

@@ -39,7 +39,7 @@ import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterDataProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterDataProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterDataProcessor.class);
     public static final String LINK_KEY = "link";
     public static final String PAGINATE_KEY = "paginate";
     public static final String DRAFT_KEY = "draft";

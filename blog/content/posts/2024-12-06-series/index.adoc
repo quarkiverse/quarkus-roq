@@ -3,6 +3,8 @@ title: Do you want to publish a blog post series ?
 image: https://images.unsplash.com/photo-1621571029036-1573d2b1dc5c?q=80&w=3731&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 description: Make your blog posts part of a series.
 author: jtama
+lang: en
+translations: plugin-series
 tags: guide, cool-stuff
 date: 2024-12-06 09:00:00 +0200
 series: roq-plugins
