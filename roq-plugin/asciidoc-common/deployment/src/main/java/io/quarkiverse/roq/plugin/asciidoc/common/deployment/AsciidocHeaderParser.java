@@ -27,7 +27,7 @@ import io.yupiik.asciidoc.parser.resolver.ContentResolver;
 import io.yupiik.asciidoc.parser.resolver.RelativeContentResolver;
 
 public class AsciidocHeaderParser {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(AsciidocHeaderParser.class);
+    private static final Logger LOGGER = Logger.getLogger(AsciidocHeaderParser.class);
 
     private static final ContentResolver EMPTY_CONTENT_RESOLVER = (ref, encoding) -> Optional.empty();
     private static final String QUTE_KEY = "qute";

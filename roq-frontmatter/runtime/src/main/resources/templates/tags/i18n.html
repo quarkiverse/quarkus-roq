@@ -1,0 +1,68 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+
+{#if page.hasTranslations()}
+<div class="language-switcher">
+  <div class="language-switcher-label">
+    <span>🌐 Languages:</span>
+  </div>
+  <div class="language-switcher-options">
+    {#for language in page.languages()}
+      {#if language.code == page.currentLanguage()}
+        <span class="language-current">{language.flag} {language.code.toString().toUpperCase()}</span>
+      {#else}
+        <a href="{language.url}" class="language-link">{language.flag} {language.code.toString().toUpperCase()}</a>
+      {/if}
+    {/for}
+  </div>
+</div>
+
+<style>
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.language-switcher-label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 14px;
+}
+
+.language-switcher-options {
+  display: flex;
+  gap: 8px;
+}
+
+.language-current {
+  padding: 4px 8px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.language-link {
+  padding: 4px 8px;
+  background-color: white;
+  color: #007bff;
+  text-decoration: none;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.language-link:hover {
+  background-color: #007bff;
+  color: white;
+}
+</style>
+{/if}
