@@ -40,7 +40,7 @@
         <quarkus.version>3.23.0</quarkus.version>
         <assertj.version>3.27.6</assertj.version>
         <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
-        <asciidoctorj.version>3.0.0</asciidoctorj.version>
+        <asciidoctorj.version>3.0.1</asciidoctorj.version>
         <asciidoctorj-diagram.version>3.0.1</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>1.9.3</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.12</asciidoc-java.version>
