@@ -37,7 +37,7 @@
             <plugin>
                 <groupId>io.mvnpm</groupId>
                 <artifactId>esbuild-maven-plugin</artifactId>
-                <version>0.0.2</version>
+                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <id>esbuild</id>
