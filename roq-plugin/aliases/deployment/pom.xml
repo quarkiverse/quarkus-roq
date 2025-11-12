@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-plugin-aliases-parent</artifactId>
-        <version>1.10.2</version>
+        <version>999-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-roq-plugin-aliases-deployment</artifactId>
     <name>Quarkus Roq - Plugin - Aliases - Deployment</name>
