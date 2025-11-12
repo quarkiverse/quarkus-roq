@@ -22,6 +22,7 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplate
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqI18NTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
@@ -51,7 +52,7 @@ import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointB
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 
 public class RoqFrontMatterProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterProcessor.class);
     public static final String FEATURE = "roq-frontmatter";
 
     @BuildStep
@@ -179,6 +180,7 @@ public class RoqFrontMatterProcessor {
                         RoqQuteEngineObserver.class,
                         RoqFrontMatterMessages.class,
                         RoqTemplateExtension.class,
+                        RoqI18NTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,
                         RoqUrl.class,
