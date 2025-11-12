@@ -6,6 +6,7 @@ import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -14,6 +15,7 @@ import jakarta.enterprise.event.Event;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
@@ -25,6 +27,7 @@ import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.qute.runtime.TemplateProducer;
+import io.quarkus.runtime.LocalesBuildTimeConfig;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
@@ -41,6 +44,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private static final Logger LOG = Logger.getLogger(RoqRouteHandler.class);
 
     private final List<String> compressMediaTypes;
+    private final RoqSiteConfig config;
+    private final LocalesBuildTimeConfig locales;
     // request path to template path
     private final Map<String, Supplier<? extends Page>> pages;
     private final Map<String, Page> extractedPaths;
@@ -53,11 +58,15 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final LazyValue<Site> site;
 
     public RoqRouteHandler(String rootPath, VertxHttpBuildTimeConfig httpBuildTimeConfig,
-            Map<String, Supplier<? extends Page>> pages) {
+            Map<String, Supplier<? extends Page>> pages,
+            RoqSiteConfig config,
+            LocalesBuildTimeConfig locales) {
         this.pages = pages;
         this.compressMediaTypes = httpBuildTimeConfig.enableCompression()
                 ? httpBuildTimeConfig.compressMediaTypes().orElse(List.of())
                 : null;
+        this.config = config;
+        this.locales = locales;
         this.extractedPaths = new ConcurrentHashMap<>();
         ArcContainer container = Arc.container();
         this.securityIdentityEvent = container.beanManager().getEvent().select(SecurityIdentity.class);
@@ -147,6 +156,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
             instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
             instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+            instance.setAttribute(TemplateInstance.LOCALE,
+                    getLocale(page, rc.request().getHeader(HttpHeaders.ACCEPT_LANGUAGE)));
             instance.renderAsync().whenComplete((r, t) -> {
                 if (t != null) {
                     Throwable rootCause = rootCause(t);
@@ -179,6 +190,20 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             return pages.get(link).get();
         }
         return null;
+    }
+
+    private String getLocale(Page page, String requestedLocale) {
+        Object pageLocale = page.data("locale");
+        if (pageLocale != null) {
+            return pageLocale.toString();
+        }
+        if (requestedLocale != null) {
+            return requestedLocale;
+        }
+        if (config.defaultLocale() != null) {
+            return config.defaultLocale();
+        }
+        return locales.defaultLocale().map(Locale::getDisplayLanguage).orElse(null);
     }
 
 }
