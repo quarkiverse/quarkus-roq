@@ -8,9 +8,9 @@
   <div class="language-switcher-options">
     {#for language in page.languages()}
       {#if language.code == page.currentLanguage()}
-        <span class="language-current">{language.flag} {language.code.toString().toUpperCase()}</span>
+        <span class="language-current">{language.flag} {language.code.toUpperCase()}</span>
       {#else}
-        <a href="{language.url}" class="language-link">{language.flag} {language.code.toString().toUpperCase()}</a>
+        <a href="{language.url}" class="language-link">{language.flag} {language.code.toUpperCase()}</a>
       {/if}
     {/for}
   </div>

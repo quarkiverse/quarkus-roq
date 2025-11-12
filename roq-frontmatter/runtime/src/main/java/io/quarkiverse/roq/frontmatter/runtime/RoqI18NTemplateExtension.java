@@ -9,12 +9,14 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkus.qute.TemplateExtension;
 
 /**
  * Template extension for the multilingual plugin.
  * Provides methods to access multilingual information from Qute templates.
  */
+@TemplateExtension
 public class RoqI18NTemplateExtension {
 
     // Frontmatter property names
@@ -103,7 +105,7 @@ public class RoqI18NTemplateExtension {
      * @param page the page to check
      * @return true if the page has translations, false otherwise
      */
-    @TemplateExtension
+
     public static boolean hasTranslations(Page page) {
         return getMultilingualData(page).findAny().isPresent();
     }
@@ -116,20 +118,14 @@ public class RoqI18NTemplateExtension {
      * @param page the page to get languages for
      * @return a list of language objects, or an empty list if no multilingual data is available
      */
-    @TemplateExtension
-    public static List<Map<String, Object>> languages(Page page) {
+    public static List<Language> languages(Page page) {
         // Dynamically find all pages with the same translation ID
         var pages = getMultilingualData(page);
         return pages
                 .map(doc -> {
                     String languageCode = getLanguageCode(doc);
                     String flag = languageFlag(languageCode);
-
-                    Map<String, Object> languageInfo = Map.of(
-                            "code", languageCode,
-                            "flag", flag,
-                            "url", doc.url());
-                    return languageInfo;
+                    return new Language(languageCode, flag, doc.url());
                 })
                 .toList();
     }
@@ -140,7 +136,6 @@ public class RoqI18NTemplateExtension {
      * @param page the page to get the current language for
      * @return the current language code, or null if no multilingual data is available
      */
-    @TemplateExtension
     public static String currentLanguage(Page page) {
         return page.data().getString(LANG_PROPERTY);
     }
@@ -193,5 +188,8 @@ public class RoqI18NTemplateExtension {
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    public record Language(String code, String flag, RoqUrl url) {
     }
 }
