@@ -559,9 +559,7 @@ public class RoqFrontMatterScanProcessor {
                     scanAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
                             file.getParent());
                 }
-
             }
-
             items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection,
                     generatedTemplate,
                     contentWithMarkup, attachments));
