@@ -20,6 +20,7 @@ layout: :theme/page
 <h1>Hello</h1>
 ----
 
+[#roq-theme-default]
 == Roq Theme default
 
 This is the default Roq theme for a site or a blog (used on this site):
@@ -63,14 +64,12 @@ Here is the list of partials you may override:
 │       └── sidebar-menu.html
 ----
 
-== Roq Theme resume (beta)
+[#roq-theme-resume]
+== Roq Theme resume
 
 Creating your own online resume has never been this easy with the Roq theme for a personal resume:
 
 image::themes/roq-resume.jpg[Roq Resume,500]
-
-
-NOTE: This theme is in beta as it uses TailWind browser which is not meant for production usage (heavy). We are working on adding Tailwind support to Roq.
 
 To install this theme, simply add the dependency to your pom.xml.
 [source,xml]

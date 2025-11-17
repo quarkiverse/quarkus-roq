@@ -1,7 +1,12 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,6 +109,56 @@ public class RoqTemplateExtension {
 
     public static String mimeType(String fileName) {
         return MimeMapping.getMimeTypeForFilename(fileName);
+    }
+
+    public static List<DocumentPage> limit(List<DocumentPage> list, int limit) {
+        return list.subList(0, Math.min(limit, list.size()));
+    }
+
+    public static List<DocumentPage> filter(List<DocumentPage> list, String key, Object value) {
+        return list.stream().filter(p -> Objects.equals(p.data().getValue(key), value)).toList();
+    }
+
+    /**
+     * @return future documents
+     */
+    public static List<DocumentPage> future(List<DocumentPage> list) {
+        return list.stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
+    }
+
+    /**
+     * @return past documents
+     */
+    public static List<DocumentPage> past(List<DocumentPage> list) {
+        return list.stream().filter(d -> d.date().isBefore(ZonedDateTime.now())).toList();
+    }
+
+    public static List<DocumentPage> randomise(List<DocumentPage> l) {
+        final ArrayList<DocumentPage> list = new ArrayList<>(l);
+        Collections.shuffle(list);
+        return list;
+    }
+
+    public static List<DocumentPage> sortBy(List<DocumentPage> list, String key, boolean reverse) {
+        Comparator<DocumentPage> comparing = Comparator.comparing(p -> p.data().getString(key));
+        if (reverse) {
+            comparing = comparing.reversed();
+        }
+        return list.stream().sorted(comparing).toList();
+    }
+
+    public static List<DocumentPage> sortByDate(List<DocumentPage> list, boolean reverse) {
+        Comparator<DocumentPage> comparing = Comparator.comparing(Page::date);
+        if (reverse) {
+            comparing = comparing.reversed();
+        }
+        return list.stream().sorted(comparing).toList();
+    }
+
+    public static List<DocumentPage> reverse(List<DocumentPage> l) {
+        List<DocumentPage> shallowCopy = l.subList(0, l.size());
+        Collections.reverse(shallowCopy);
+        return shallowCopy;
     }
 
     private static long ceilDiv(long x, long y) {

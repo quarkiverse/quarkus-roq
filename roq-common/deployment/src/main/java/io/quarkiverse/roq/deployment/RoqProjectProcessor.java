@@ -31,7 +31,7 @@ public class RoqProjectProcessor {
         }
         final RoqProjectBuildItem roqProject = new RoqProjectBuildItem(project, resourceDir);
         if (!roqProject.isActive()) {
-            LOG.warn("Not Roq site directory found. It is recommended to remove the quarkus-roq extension if not used.");
+            LOG.warn("Roq site directory not found. It is recommended to remove the quarkus-roq extension if not used.");
         }
         return roqProject;
     }
@@ -72,7 +72,7 @@ public class RoqProjectProcessor {
     private static Path findProjectRoot(Path outputDirectory) {
         Path currentPath = outputDirectory;
         do {
-            if (Files.exists(currentPath.resolve(Paths.get("src", "main")))
+            if (Files.isDirectory(currentPath.resolve(Paths.get("src", "main")))
                     || Files.exists(currentPath.resolve(Paths.get("config", "application.properties")))
                     || Files.exists(currentPath.resolve(Paths.get("config", "application.yaml")))
                     || Files.exists(currentPath.resolve(Paths.get("config", "application.yml")))) {

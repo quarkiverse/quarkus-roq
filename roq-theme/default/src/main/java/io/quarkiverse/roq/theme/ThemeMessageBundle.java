@@ -9,4 +9,13 @@ public interface ThemeMessageBundle {
     @Message(defaultValue = "Contact me")
     String contact_title();
 
+    @Message(defaultValue = "Roq! Where's my page?")
+    String notfound_title();
+
+    @Message(defaultValue = "If you are lost, find yourself")
+    String notfound_text();
+
+    @Message(defaultValue = "here")
+    String notfound_link();
+
 }

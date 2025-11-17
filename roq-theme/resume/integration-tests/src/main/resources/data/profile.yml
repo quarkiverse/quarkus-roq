@@ -1,0 +1,8 @@
+firstName: Iam
+lastName: Roq
+picture: site-icon.svg
+jobTitle: Static Site Generator
+city: Paques
+country: Paques
+bio: |
+  A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.

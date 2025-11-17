@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.data;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.getLayoutKey;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.getLayoutKey;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -10,7 +10,6 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -84,7 +83,7 @@ public class RoqFrontMatterDataProcessor {
             if (item.isPage()) {
                 // Parse date
                 ZonedDateTime date = parsePublishDate(item.templateSource().path(), data, config.dateFormat(),
-                        config.timeZone());
+                        config.timeZoneOrDefault());
                 final boolean noFuture = !config.future() && (item.collection() == null || !item.collection().future());
                 ZonedDateTime now = ZonedDateTime.now();
                 if (date != null && noFuture && date.isAfter(now)) {
@@ -189,7 +188,7 @@ public class RoqFrontMatterDataProcessor {
     }
 
     static ZonedDateTime parsePublishDate(String path, JsonObject frontMatter, String dateFormat,
-            Optional<String> timeZone) {
+            ZoneId zoneId) {
         String dateString;
         final boolean fromFileName;
         if (frontMatter.containsKey(DATE_KEY)) {
@@ -210,7 +209,7 @@ public class RoqFrontMatterDataProcessor {
                     .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
                     .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
                     .toFormatter()
-                    .withZone(timeZone.isPresent() ? ZoneId.of(timeZone.get()) : ZoneId.systemDefault())
+                    .withZone(zoneId)
                     .parse(dateString, ZonedDateTime::from);
         } catch (DateTimeParseException e) {
             if (fromFileName) {

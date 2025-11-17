@@ -1,0 +1,17 @@
+name: Roq Theme - Resume
+description: This is a Roq theme to create a resume
+metadata:
+  keywords:
+    - website
+    - theme
+    - resume
+    - tailwind
+    - css
+    - roq
+  guide: https://iamroq.com/docs/themes/#roq-theme-resume
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "site"
+  status: "preview"

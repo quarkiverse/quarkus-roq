@@ -95,11 +95,13 @@ class RoqFrontMatterPublishProcessor {
                 PageSource pageSource = pagination.source();
                 if (i > 1) {
                     pageSource = pageSource.changeId(
-                            PathUtils.removeExtension(pageSource.path()) + "_p" + i + "." + pageSource.extension());
+                            PathUtils.removeExtension(pageSource.id()) + "_p" + i + "." + pageSource.extension());
                 }
 
                 paginatedPages.add(new PageToPublish(paginatedUrl, pageSource, data));
             }
+
+            final List<RoqUrl> pagesUrl = paginatedPages.stream().map(PageToPublish::url).toList();
 
             for (int i = 1; i <= countPages; i++) {
                 Integer prev = i > 1 ? i - 1 : null;
@@ -119,7 +121,7 @@ class RoqFrontMatterPublishProcessor {
                 }
                 RoqUrl firstUrl = paginatedPages.get(0).url();
                 Paginator paginator = new Paginator(paginate.collection(), total, paginate.size(), countPages, i, firstUrl,
-                        prev, previousUrl, next, nextUrl);
+                        prev, previousUrl, next, nextUrl, pagesUrl);
                 pagesProducer.produce(new RoqFrontMatterPublishNormalPageBuildItem(currentPage.url(), currentPage.source(),
                         currentPage.data(), paginator));
             }

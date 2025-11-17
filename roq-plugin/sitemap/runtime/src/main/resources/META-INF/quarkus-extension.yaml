@@ -20,5 +20,5 @@ metadata:
   categories:
     - "web"
   config:
-    - "quarkus.roq"
+    - "site"
   status: "preview"

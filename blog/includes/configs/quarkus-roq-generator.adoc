@@ -40,7 +40,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATHS+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`/,/static/**`
+|`+++/+++`, `+++/static/**+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-enabled]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-enabled[`quarkus.roq.generator.path-replace.enabled`]##
 ifdef::add-copy-button-to-config-props[]
@@ -61,7 +61,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`false`
+|`+++false+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-allowed-regex]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-allowed-regex[`quarkus.roq.generator.path-replace.allowed-regex`]##
 ifdef::add-copy-button-to-config-props[]
@@ -84,7 +84,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_ALLOWED_REGEX+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`[^a-zA-Z0-9_\\/.\-]`
+|`+++[^a-zA-Z0-9_\\/.\-]+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-path-replace-replace-with]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-path-replace-replace-with[`quarkus.roq.generator.path-replace.replace-with`]##
 ifdef::add-copy-button-to-config-props[]
@@ -105,7 +105,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_PATH_REPLACE_REPLACE_WITH+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`-`
+|`+++-+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-custom-paths-custom-paths]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-custom-paths-custom-paths[`quarkus.roq.generator.custom-paths."custom-paths"`]##
 ifdef::add-copy-button-to-config-props[]
@@ -147,7 +147,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_OUTPUT_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`roq`
+|`+++roq+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-batch]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-batch[`quarkus.roq.generator.batch`]##
 ifdef::add-copy-button-to-config-props[]
@@ -168,7 +168,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_BATCH+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`false`
+|`+++false+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-timeout]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-timeout[`quarkus.roq.generator.timeout`]##
 ifdef::add-copy-button-to-config-props[]
@@ -189,7 +189,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_TIMEOUT+++`
 endif::add-copy-button-to-env-var[]
 --
 |long
-|`60`
+|`+++60+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-generator_quarkus-roq-generator-request-retry]] [.property-path]##link:#quarkus-roq-generator_quarkus-roq-generator-request-retry[`quarkus.roq.generator.request-retry`]##
 ifdef::add-copy-button-to-config-props[]
@@ -210,7 +210,7 @@ Environment variable: `+++QUARKUS_ROQ_GENERATOR_REQUEST_RETRY+++`
 endif::add-copy-button-to-env-var[]
 --
 |int
-|`10`
+|`+++10+++`
 
 |===
 

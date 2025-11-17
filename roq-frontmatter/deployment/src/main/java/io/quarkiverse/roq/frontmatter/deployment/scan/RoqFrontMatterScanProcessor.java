@@ -4,9 +4,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataP
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem.resolveHeaderParsers;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR_PREFIX;
 import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
 import static io.quarkiverse.roq.util.PathUtils.fileName;
@@ -28,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,7 +47,6 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModifica
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem.SourceData;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
-import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.Attachment;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterRawTemplateBuildItem.TemplateType;
@@ -60,15 +56,17 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.web.bundler.spi.items.WebBundlerWatchedDirBuildItem;
+import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.paths.PathVisit;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
-import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
@@ -120,7 +118,17 @@ public class RoqFrontMatterScanProcessor {
                 throw new RoqFrontMatterReadingException(
                         "Error reading YAML FrontMatter block (enclosed by '---') in file: %s".formatted(c.templatePath()));
             }
-        }, RoqFrontMatterScanProcessor::stripFrontMatter, FRONTMATTER_HEADER_PARSER_PRIORITY);
+        }, RoqFrontmatterTemplateUtils::stripFrontMatter, FRONTMATTER_HEADER_PARSER_PRIORITY);
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    void watch(RoqSiteConfig config, RoqProjectBuildItem roqProject,
+            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch) {
+        webBundlerWatch
+                .produce(new WebBundlerWatchedDirBuildItem(roqProject.project().roqDir().resolve(config.contentDir())));
+        webBundlerWatch
+                .produce(new WebBundlerWatchedDirBuildItem(roqProject.project().roqDir().resolve(config.publicDir())));
+        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqProject.project().roqDir().resolve(TEMPLATES_DIR)));
     }
 
     @BuildStep
@@ -132,6 +140,7 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             RoqSiteConfig siteConfig,
@@ -147,6 +156,7 @@ public class RoqFrontMatterScanProcessor {
                     dataModifications,
                     templatePathProducer,
                     generatedResourceProducer,
+                    nativeImageResourceProducer,
                     templateRootProducer);
 
             Set<String> ids = items.stream().map(RoqFrontMatterRawTemplateBuildItem::id).collect(Collectors.toSet());
@@ -200,11 +210,12 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(
                 createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
-                        templatePathProducer, generatedResourceProducer, items));
+                        templatePathProducer, generatedResourceProducer, nativeImageResourceProducer, items));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
@@ -250,6 +261,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             List<RoqFrontMatterRawTemplateBuildItem> items) {
         return siteDir -> {
             if (!Files.isDirectory(siteDir)) {
@@ -259,7 +271,8 @@ public class RoqFrontMatterScanProcessor {
             // We scan Qute templates manually outside of resources for now
             final Path templatesDir = siteDir.resolve(TEMPLATES_DIR);
             watchDirectory(templatesDir, watch);
-            scanTemplates(quteConfig, config, watch, templatePathProducer, generatedResourceProducer, templatesDir);
+            scanTemplates(quteConfig, config, watch, templatePathProducer, generatedResourceProducer,
+                    nativeImageResourceProducer, templatesDir);
             // No need to ignore the template as it's not a template root
             scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
                     templatesDir,
@@ -394,6 +407,7 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             Path templatesRoot) {
         if (!Files.isDirectory(templatesRoot)) {
             return;
@@ -423,6 +437,7 @@ public class RoqFrontMatterScanProcessor {
                                     .produce(new GeneratedResourceBuildItem(
                                             "templates/" + link,
                                             content.getBytes(StandardCharsets.UTF_8)));
+                            nativeImageResourceProducer.produce(new NativeImageResourceBuildItem("templates/" + link));
                             templatePathProducer.produce(TemplatePathBuildItem.builder()
                                     .priority(ROOT_ARCHIVE_PRIORITY)
                                     .path(link)
@@ -477,7 +492,7 @@ public class RoqFrontMatterScanProcessor {
                     templateContext);
             String cleanPath = replaceWhitespaceChars(referencePath);
             final String templateOutputPath = removeExtension(cleanPath)
-                    + resolveOutputExtension(markup != null, templateContext);
+                    + RoqFrontmatterTemplateUtils.resolveOutputExtension(markup != null, templateContext);
             String id = type.isPage() ? referencePath : removeExtension(referencePath);
 
             JsonObject data = new JsonObject();
@@ -497,7 +512,7 @@ public class RoqFrontMatterScanProcessor {
                     ? (collection != null ? collection.layout() : config.pageLayout().orElse(null))
                     : null;
 
-            final String layoutId = normalizedLayout(config.theme(),
+            final String layoutId = RoqFrontmatterTemplateUtils.normalizedLayout(config.theme(),
                     data.getString(LAYOUT_KEY),
                     defaultLayout);
 
@@ -507,7 +522,7 @@ public class RoqFrontMatterScanProcessor {
 
             final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
             final WrapperFilter escapeFilter = getEscapeFilter(escaped);
-            final WrapperFilter includeFilter = getIncludeFilter(layoutId);
+            final WrapperFilter includeFilter = RoqFrontmatterTemplateUtils.getIncludeFilter(layoutId);
             final String escapedContent = escapeFilter.apply(content);
             final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
             final String generatedTemplate = includeFilter.apply(contentWithMarkup);
@@ -630,77 +645,6 @@ public class RoqFrontMatterScanProcessor {
         return ESCAPE_FILTER;
     }
 
-    private static WrapperFilter getIncludeFilter(String layout) {
-        if (layout == null) {
-            return WrapperFilter.EMPTY;
-        }
-        String prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
-        return new WrapperFilter(prefix, "\n{/include}");
-    }
-
-    private static WrapperFilter getMarkupFilter(
-            Map<String, WrapperFilter> markups, String fileName) {
-        return find(markups, fileName,
-                WrapperFilter.EMPTY);
-    }
-
-    private static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
-        String normalized = layout;
-        if (normalized == null) {
-            normalized = defaultLayout;
-            if (normalized == null || normalized.isBlank() || "none".equalsIgnoreCase(normalized)) {
-                return null;
-            }
-            normalized = defaultLayout;
-            if (normalized.contains(":theme/") && theme.isEmpty()) {
-                normalized = normalized.replace(":theme/", "");
-            }
-        }
-
-        if (normalized.contains(":theme")) {
-            if (theme.isPresent()) {
-                normalized = normalized.replace(":theme", theme.get());
-            } else {
-                throw new RoqThemeConfigurationException(
-                        "No theme detected! Using ':theme' in 'layout: %s' is only possible with a theme installed as a dependency."
-                                .formatted(layout));
-            }
-        }
-
-        if (!normalized.contains(LAYOUTS_DIR_PREFIX)) {
-            normalized = PathUtils.join(LAYOUTS_DIR_PREFIX, normalized);
-        }
-        return removeExtension(normalized);
-    }
-
-    public static String getLayoutKey(Optional<String> theme, String resolvedLayout) {
-        String result = resolvedLayout;
-        if (result.startsWith(LAYOUTS_DIR_PREFIX)) {
-            result = result.substring(LAYOUTS_DIR_PREFIX.length());
-
-            if (theme.isPresent() && result.contains(theme.get())) {
-                result = result.replace(theme.get(), ":theme");
-            }
-        }
-        return result;
-    }
-
-    private static String resolveOutputExtension(boolean markupFound,
-            TemplateContext templateContext) {
-        if (markupFound) {
-            return ".html";
-        }
-        final String extension = templateContext.getExtension();
-        if (extension == null) {
-            return "";
-        }
-        final String mimeTypeForExtension = MimeMapping.getMimeTypeForExtension(extension);
-        if (mimeTypeForExtension != null) {
-            return "." + extension;
-        }
-        return ".html";
-    }
-
     private static Predicate<Path> isFileExcluded(Path siteDir, RoqSiteConfig config) {
         List<String> ignored = new ArrayList<>(config.defaultIgnoredFiles());
         config.ignoredFiles().ifPresent(ignored::addAll);
@@ -723,10 +667,6 @@ public class RoqFrontMatterScanProcessor {
             return content.substring(3, endOfFrontMatter).trim();
         }
         return "";
-    }
-
-    public static String stripFrontMatter(String content) {
-        return FRONTMATTER_PATTERN.matcher(content).replaceFirst("");
     }
 
     private static boolean hasFrontMatter(String content) {

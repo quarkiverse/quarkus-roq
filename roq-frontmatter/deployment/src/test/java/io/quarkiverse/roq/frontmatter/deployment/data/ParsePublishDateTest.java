@@ -3,8 +3,8 @@ package io.quarkiverse.roq.frontmatter.deployment.data;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.parsePublishDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ public class ParsePublishDateTest {
         JsonObject frontMatter = JsonObject.of();
 
         // when
-        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", Optional.of("GMT"))
+        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", ZoneId.of("GMT"))
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         // then
@@ -33,7 +33,7 @@ public class ParsePublishDateTest {
         JsonObject frontMatter = JsonObject.of("date", "2020-10-13");
 
         // when
-        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", Optional.of("GMT"))
+        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", ZoneId.of("GMT"))
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         // then
@@ -47,7 +47,7 @@ public class ParsePublishDateTest {
         JsonObject frontMatter = JsonObject.of("date", "2020-10-13 13:10");
 
         // when
-        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", Optional.of("GMT"))
+        String publishDate = parsePublishDate(path, frontMatter, "yyyy-MM-dd[ HH:mm][:ss][ Z]", ZoneId.of("GMT"))
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         // then

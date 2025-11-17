@@ -8,65 +8,27 @@
         <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>quarkus-roq-theme-resume</artifactId>
-    <name>Quarkus Roq - Theme - Resume (Beta)</name>
+    <artifactId>quarkus-roq-theme-resume-parent</artifactId>
+    <packaging>pom</packaging>
+    <name>Quarkus Roq - Theme - Resume</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-frontmatter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>deployment</module>
+        <module>runtime</module>
+    </modules>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>io.smallrye</groupId>
-                <artifactId>jandex-maven-plugin</artifactId>
-
-                <executions>
-                    <execution>
-                        <id>make-index</id>
-                        <goals>
-                            <goal>jandex</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>io.mvnpm</groupId>
-                <artifactId>esbuild-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <id>esbuild</id>
-                        <goals>
-                            <goal>esbuild</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <entryPoint>resume.js</entryPoint>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.mvnpm</groupId>
-                        <artifactId>alpinejs</artifactId>
-                        <version>3.15.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tailwindcss</groupId>
-                        <artifactId>browser</artifactId>
-                        <version>4.1.13</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.fontsource</groupId>
-                        <artifactId>inter</artifactId>
-                        <version>5.2.5</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-    </build>
+    <profiles>
+        <profile>
+            <id>it</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>integration-tests</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
