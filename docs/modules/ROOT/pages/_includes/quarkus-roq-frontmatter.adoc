@@ -424,6 +424,27 @@ endif::add-copy-button-to-env-var[]
 |string
 |`en`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-locale]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-locale[`site.default-locale`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.default-locale+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The default language to use when no language is specified in the frontmatter. This language will be used as a fallback for articles that don't have a 'locale' property.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_DEFAULT_LOCALE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_DEFAULT_LOCALE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`en`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-slugify-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-slugify-files[`site.slugify-files`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.slugify-files+++[]
