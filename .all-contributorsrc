@@ -168,6 +168,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "CodeSimcoe",
+      "name": "Clément de Tastes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110094118?v=4",
+      "profile": "https://github.com/CodeSimcoe",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
