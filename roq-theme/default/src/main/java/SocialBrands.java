@@ -11,6 +11,7 @@ public class SocialBrands {
             Map.entry("social-twitter", new SocialBrand("fa-brands fa-twitter", "https://twitter.com/")),
             Map.entry("social-github", new SocialBrand("fa-brands fa-github", "https://github.com/")),
             Map.entry("social-linkedin", new SocialBrand("fa-brands fa-linkedin", "https://in.linkedin.com/in/")),
+            Map.entry("social-linkedin-company", new SocialBrand("fa-brands fa-linkedin", "https://in.linkedin.com/company/")),
             Map.entry("social-facebook", new SocialBrand("fa-brands fa-facebook", "https://facebook.com/")),
             Map.entry("social-youtube", new SocialBrand("fa-brands fa-youtube", "https://youtube.com/")),
             Map.entry("social-discord", new SocialBrand("fa-brands fa-discord", "https://discord.gg/")),
