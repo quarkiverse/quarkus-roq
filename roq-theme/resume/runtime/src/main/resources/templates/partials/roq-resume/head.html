@@ -1,0 +1,16 @@
+
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}
+
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+<base href="{page.url.relative}">
+
+{#favicon site/}
+{#seo page site /}
+{#rss site /}
+
+{#bundle /}

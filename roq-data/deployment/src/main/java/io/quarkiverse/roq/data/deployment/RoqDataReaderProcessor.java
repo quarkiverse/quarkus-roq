@@ -32,6 +32,8 @@ import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.web.bundler.spi.items.WebBundlerWatchedDirBuildItem;
+import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
@@ -186,6 +188,12 @@ public class RoqDataReaderProcessor {
             }
         }
         return messages;
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    void watch(RoqDataConfig config, RoqProjectBuildItem roqProject,
+            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch) {
+        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqProject.project().roqDir().resolve(config.dir())));
     }
 
     public Collection<RoqDataBuildItem> scanDataFiles(RoqProjectBuildItem roqProject,

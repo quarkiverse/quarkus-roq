@@ -1,0 +1,13 @@
+name: Roq Plugin - Faker
+description: This plugin allows generating fake documents for dev and tests.
+metadata:
+  keywords:
+    - roq
+    - plugin
+  guide: https://iamroq.com/docs/plugins/#plugin-faker
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "quarkus.roq.faker"
+  status: "preview"

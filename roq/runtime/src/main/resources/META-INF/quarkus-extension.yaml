@@ -17,7 +17,7 @@ metadata:
   categories:
     - "web"
   config:
-    - "quarkus.roq"
+    - "site"
   status: "preview"
   codestart:
     name: "roq"

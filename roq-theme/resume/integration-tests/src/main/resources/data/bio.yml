@@ -1,0 +1,8 @@
+- title: Experience
+  items:
+  - header: "August 2024 to Present"
+    title: "Static Site Generator"
+    content: |
+      A bunch of Quarkus contributors started this new initiative to allow Static Site Generation with Quarkus (similar to Hugo, Jekyll, Lume, ...).
+      Quarkus already provides most of the pieces to create great web applications ([https://quarkus.io/guides/web][quarkus-web-docs]).
+      And Roq adds the missing pieces!

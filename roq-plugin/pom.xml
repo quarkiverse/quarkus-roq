@@ -26,5 +26,6 @@
         <module>sitemap</module>
         <module>lunr</module>
         <module>diagram</module>
+        <module>faker</module>
     </modules>
 </project>

@@ -1,0 +1,18 @@
+<!-- Favicon -->
+{#if site.data.containsKey('icon')}
+{#let icon=site.data.getString('icon')}
+<link rel="shortcut icon" href="{site.image(icon)}" type="{icon.mimeType}">
+{/let}
+{#else if site.data.containsKey('favicon')}
+{#let icon=site.data.getString('favicon')}
+<link rel="shortcut icon" href="{site.image(icon)}" type="{icon.mimeType}">
+{/let}
+{#else if site.imageExists('favicon.ico')}
+<link rel="shortcut icon" href="{site.image('favicon.ico')}" sizes="any" type="image/x-icon">
+{#else if site.imageExists('favicon.svg')}
+<link rel="shortcut icon" href="{site.image('favicon.svg')}" sizes="any" type="image/svg+xml">
+{#else if site.imageExists('favicon.png')}
+<link rel="shortcut icon" href="{site.image('favicon.png')}" type="image/png">
+{#else if site.imageExists('site-icon.svg')}
+<link rel="shortcut icon" href="{site.image('site-icon.svg')}" type="image/svg+xml">
+{/if}

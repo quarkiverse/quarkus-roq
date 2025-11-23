@@ -42,6 +42,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.pkg.builditem.BuildSystemTargetBuildItem;
 import io.quarkus.deployment.util.FileUtil;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
@@ -68,6 +69,7 @@ public class RoqFrontMatterProcessor {
             List<RoqFrontMatterPageTemplateBuildItem> pageTemplatesItems,
             List<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplatesItems,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             RoqFrontMatterOutputBuildItem roqOutput) {
         if (roqOutput == null) {
             return;
@@ -88,10 +90,12 @@ public class RoqFrontMatterProcessor {
                         .resolve(item.raw().templateSource().generatedQuteId());
                 Files.createDirectories(filePath.getParent());
                 Files.writeString(filePath, item.raw().generatedTemplate());
+                final String resourceName = "templates/" + item.raw().templateSource().generatedQuteTemplateId();
                 generatedResourceProducer
                         .produce(new GeneratedResourceBuildItem(
-                                "templates/" + item.raw().templateSource().generatedQuteTemplateId(),
+                                resourceName,
                                 item.raw().generatedTemplate().getBytes(StandardCharsets.UTF_8)));
+                nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(resourceName));
                 templatePathProducer
                         .produce(TemplatePathBuildItem.builder()
                                 .fullPath(filePath)
@@ -106,10 +110,12 @@ public class RoqFrontMatterProcessor {
                         .resolve(item.raw().templateSource().generatedQuteId());
                 Files.createDirectories(contentFilePath.getParent());
                 Files.writeString(contentFilePath, item.raw().generatedContentTemplate());
+                final String contentResourceName = "templates/" + item.raw().templateSource().generatedQuteContentTemplateId();
                 generatedResourceProducer
                         .produce(new GeneratedResourceBuildItem(
-                                "templates/" + item.raw().templateSource().generatedQuteContentTemplateId(),
+                                contentResourceName,
                                 item.raw().generatedContentTemplate().getBytes(StandardCharsets.UTF_8)));
+                nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(contentResourceName));
                 templatePathProducer.produce(TemplatePathBuildItem.builder()
                         .fullPath(contentFilePath)
                         .path(item.raw().templateSource().generatedQuteContentTemplateId())
@@ -131,10 +137,12 @@ public class RoqFrontMatterProcessor {
                         .resolve(item.raw().templateSource().generatedQuteId());
                 Files.createDirectories(filePath.getParent());
                 Files.writeString(filePath, item.raw().generatedTemplate());
+                final String resourceName = "templates/" + item.raw().templateSource().generatedQuteTemplateId();
                 generatedResourceProducer
                         .produce(new GeneratedResourceBuildItem(
-                                "templates/" + item.raw().templateSource().generatedQuteTemplateId(),
+                                resourceName,
                                 item.raw().generatedTemplate().getBytes(StandardCharsets.UTF_8)));
+                nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(resourceName));
                 templatePathProducer
                         .produce(TemplatePathBuildItem.builder()
                                 .path(item.raw().templateSource().generatedQuteTemplateId())

@@ -3,8 +3,14 @@ package io.quarkiverse.roq.plugin.tagging.deployment;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.LINK_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.PAGINATE_KEY;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
+import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
 import io.quarkiverse.roq.frontmatter.deployment.TemplateLink.PageLinkData;
@@ -13,13 +19,14 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTempla
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginatePageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishNormalPageBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
+import io.quarkiverse.roq.plugin.tagging.RoqTaggingQuteExtension;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -30,11 +37,21 @@ public class RoqPluginTaggingProcessor {
 
     private static final String FEATURE = "roq-plugin-tagging";
     public static final String DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE = "/:collection/";
-    private RoqTaggingConfig taggingConfig;
 
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    @BuildStep
+    void registerAdditionalBeans(RoqFrontMatterOutputBuildItem roqOutput,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        if (roqOutput == null) {
+            return;
+        }
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClasses(RoqTaggingQuteExtension.class)
+                .setUnremovable().build());
     }
 
     @BuildStep
@@ -47,11 +64,10 @@ public class RoqPluginTaggingProcessor {
             BuildProducer<RoqFrontMatterPublishDerivedCollectionBuildItem> derivedCollectionProducer,
             BuildProducer<RoqFrontMatterPaginatePageBuildItem> paginatedPagesProducer,
             BuildProducer<RoqFrontMatterPublishNormalPageBuildItem> pagesProducer) {
-        this.taggingConfig = taggingConfig;
 
         // Let's find non page templates with the tagging data
         final List<RoqFrontMatterLayoutTemplateBuildItem> taggingTemplates = templates.stream()
-                // We filter out theme layoutsw
+                // We filter out theme layouts
                 .filter(i -> i.raw().isLayout() && i.data().containsKey("tagging"))
                 .toList();
 
@@ -134,16 +150,7 @@ public class RoqPluginTaggingProcessor {
     }
 
     private static List<String> resolveTags(RoqFrontMatterDocumentBuildItem document) {
-        return getRawTags(document).stream().map(RoqTemplateExtension::slugify).toList();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<String> getRawTags(RoqFrontMatterDocumentBuildItem document) {
-        if (!document.data().containsKey("tags")) {
-            return List.of();
-        }
-        final Object tags = document.data().getValue("tags");
-        return RoqTemplateExtension.asStrings(tags);
+        return RoqTaggingQuteExtension.slugifiedTagStrings(document.data());
     }
 
 }

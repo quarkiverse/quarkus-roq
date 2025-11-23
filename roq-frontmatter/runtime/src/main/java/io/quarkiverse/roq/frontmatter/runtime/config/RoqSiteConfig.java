@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.config;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,6 +165,10 @@ public interface RoqSiteConfig {
      */
     @ConfigDocDefault("document timezone if provided or system timezone")
     Optional<String> timeZone();
+
+    default ZoneId timeZoneOrDefault() {
+        return timeZone().isPresent() ? ZoneId.of(timeZone().get()) : ZoneId.systemDefault();
+    }
 
     /**
      * The default language to use when no language is specified in the frontmatter.

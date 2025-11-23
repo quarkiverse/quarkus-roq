@@ -18,6 +18,7 @@ import io.quarkus.qute.TemplateData;
  * @param previous the url to the previous document page
  * @param nextIndex the next document page index 1-based
  * @param next the url to the next document page
+ * @param pagesUrl the url list of all the paginator pages
  */
 @TemplateData
 @Vetoed
@@ -31,7 +32,7 @@ public record Paginator(
         Integer previousIndex,
         RoqUrl previous,
         Integer nextIndex,
-        RoqUrl next) {
+        RoqUrl next, java.util.List<RoqUrl> pagesUrl) {
 
     public Integer prevIndex() {
         return previousIndex();

@@ -37,19 +37,26 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.23.0</quarkus.version>
-        <assertj.version>3.27.6</assertj.version>
+        <quarkus.version>3.29.4</quarkus.version>
         <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
         <asciidoctorj.version>3.0.1</asciidoctorj.version>
         <asciidoctorj-diagram.version>3.0.1</asciidoctorj-diagram.version>
-        <quarkus-web-bundler.version>1.9.3</quarkus-web-bundler.version>
+        <quarkus-web-bundler.version>2.0.0.CR5</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.12</asciidoc-java.version>
         <jandex.version>3.5.1</jandex.version>
         <jsoup.version>1.21.2</jsoup.version>
+        <assertj.version>3.27.6</assertj.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-bom</artifactId>

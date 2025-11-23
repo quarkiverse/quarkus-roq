@@ -4,17 +4,13 @@
 
 {#seo page site /}
 {#rss site /}
+{#favicon site/}
 
 <base href="{page.url.relative}">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-{#if site.data.containsKey('icon')}
-{#let icon=site.data.getString('icon')}
-<link rel="shortcut icon" href="{site.image(icon)}" type="{icon.mimeType}">
-{/let}
-{#else if site.imageExists('site-icon.svg')}
-<link rel="shortcut icon" href="{site.image('site-icon.svg')}" type="image/svg+xml">
-{/if}
+
+
 {#let color=site.data.getString('theme-color').or("#263959")}
 <meta name="theme-color" content="{color}">
 <meta name="msapplication-navbutton-color" content="{color}">

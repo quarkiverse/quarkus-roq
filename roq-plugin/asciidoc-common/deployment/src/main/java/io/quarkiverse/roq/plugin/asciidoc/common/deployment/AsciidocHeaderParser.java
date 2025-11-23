@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.ESCAPE_KEY;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.stripFrontMatter;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.stripFrontMatter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
