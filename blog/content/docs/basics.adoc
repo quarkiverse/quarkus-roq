@@ -495,7 +495,7 @@ The Qute templating language supports a concept called https://quarkus.io/guides
 | Returns the list in random order
 
 | ``jsonArray.asJsonObjects``
-| Returns a list of JsonObject. All items must be maps.
+| Returns a list of JsonObject. All items must be JSON objects.
 
 | ``collections.collection(key)``
 | Returns the collection for the given key
