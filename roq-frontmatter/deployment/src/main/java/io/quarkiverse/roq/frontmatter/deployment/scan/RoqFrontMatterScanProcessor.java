@@ -531,7 +531,7 @@ public class RoqFrontMatterScanProcessor {
             ConfiguredCollection internalCollection = collection;
 
             if (data.getString(LANG_KEY) != null &&
-                    !config.defaultLanguage().equals(data.getString(LANG_KEY)) &&
+                    !config.defaultLocale().equals(data.getString(LANG_KEY)) &&
                     TemplateType.DOCUMENT_PAGE == type) {
                 internalType = TemplateType.NORMAL_PAGE;
                 internalCollection = null;
