@@ -47,9 +47,9 @@ class RoqDataBeanProcessor {
                 ReflectiveClassBuildItem.builder(JsonObject.class).serialization().constructors().fields().methods().build());
 
         List<String> beans = new ArrayList<>(roqDataJsonBuildItems.size());
-        TreeMap<String, JsonObject> beansMap;
+        TreeMap<String, Object> beansMap;
 
-        var mapOfFolders = new HashMap<String, TreeMap<String, JsonObject>>();
+        var mapOfFolders = new HashMap<String, TreeMap<String, Object>>();
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
             if (roqData.getName().contains("_")) {
                 // Subfolder case
@@ -63,7 +63,7 @@ class RoqDataBeanProcessor {
                 var key = fileName.substring(fileName.indexOf("_") + 1);
 
                 var folderName = fileName.substring(0, fileName.lastIndexOf('_'));
-                mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, (JsonObject) roqData.getData());
+                mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, roqData.getData());
             } else {
                 // Files at the root of data folder
                 final Class<?> cl;
@@ -97,15 +97,15 @@ class RoqDataBeanProcessor {
         }
 
         // Register TreeMap beans
-        for (Map.Entry<String, TreeMap<String, JsonObject>> entry : mapOfFolders.entrySet()) {
+        for (Map.Entry<String, TreeMap<String, Object>> entry : mapOfFolders.entrySet()) {
+            var treeMapBean = new JsonObject(entry.getValue());
             beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
                     .scope(ApplicationScoped.class)
                     .named(entry.getKey())
-                    .runtimeValue(recorder.createRoqDataJson(new JsonObject((Map) entry.getValue())))
+                    .runtimeValue(recorder.createRoqDataJson(treeMapBean))
                     .unremovable()
                     .done());
-            beans.add("    - %s[name=%s]*".formatted(new JsonObject((Map) entry.getValue()).getClass().getName(),
-                    entry.getKey()));
+            beans.add("    - %s[name=%s]*".formatted(treeMapBean.getClass().getName(), entry.getKey()));
 
         }
 
