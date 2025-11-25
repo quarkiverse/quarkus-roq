@@ -24,33 +24,61 @@ public class RoqTemplateExtension {
     private static final Pattern COUNT_WORDS = Pattern.compile("\\b\\w+\\b");
     private static final Pattern STRIP_HTML_PATTERN = Pattern.compile("<[^>]*>");
 
+    /**
+     * Returns the number of words in the given text.<br>
+     * Example: "{'hello world'.numberOfWords}" → 2.
+     */
     public static long numberOfWords(String text) {
         return COUNT_WORDS.matcher(text).results().count();
     }
 
+    /**
+     * Returns the collection for the given key.<br>
+     * Example: "{site.collections.posts}".
+     */
     @TemplateExtension(matchName = "*", priority = QUTE_FALLBACK_PRIORITY)
     public static RoqCollection collection(RoqCollections collections, String key) {
         return collections.get(key);
     }
 
-    public static Object readTime(Page page) {
+    /**
+     * Returns the estimated reading time (in minutes) for the given page based on the page content.<br>
+     * Example: "{page.readTime}" → 4.
+     */
+    public static Long readTime(Page page) {
         final String text = stripHtml(page.site().pageContent(page));
         final long count = numberOfWords(text);
         return ceilDiv(count, 200);
     }
 
+    /**
+     * Returns the content abstract for the given page (75 first words), adds "..." if truncated.<br>
+     * Example: "{page.contentAbstract}".
+     */
     public static String contentAbstract(Page page) {
         return contentAbstract(page, 75);
     }
 
+    /**
+     * Returns the content abstract for the given page limited to the given limit in words, adds "..." if truncated.<br>
+     * Example: "{page.contentAbstract(10)}".
+     */
     public static String contentAbstract(Page page, int limit) {
         return contentAbstract(page.content(), limit);
     }
 
+    /**
+     * Returns the content abstract for the given html content limited to the given limit in words, adds "..." if truncated.<br>
+     * Example: "{'<div>Hello World</div>'.contentAbstract(10)}".
+     */
     public static String contentAbstract(String htmlContent, int limit) {
         return wordLimit(stripHtml(htmlContent), limit);
     }
 
+    /**
+     * Returns the text part of this string by stripping all html tags.<br>
+     * Example: "{'<div>Hello World</div>'.stripHtml}" → "Hello World".
+     */
     public static String stripHtml(String html) {
         if (html == null) {
             return null;
@@ -58,6 +86,10 @@ public class RoqTemplateExtension {
         return STRIP_HTML_PATTERN.matcher(html).replaceAll("");
     }
 
+    /**
+     * Returns the same text with a limit on the number of words, adds "..." if truncated.<br>
+     * Example: "{'Hello World'.wordLimit(1)}" → "Hello...".
+     */
     public static String wordLimit(String text, int limit) {
         Matcher m = COUNT_WORDS.matcher(text);
         int count = 0;
@@ -78,6 +110,10 @@ public class RoqTemplateExtension {
         }
     }
 
+    /**
+     * Returns the slugified version of the given text.<br>
+     * Example: "{'Hello World'.slugify}" → "Hello-World".
+     */
     public static String slugify(String text) {
         return PathUtils.slugify(text, false, false);
     }
@@ -107,38 +143,68 @@ public class RoqTemplateExtension {
         return List.of();
     }
 
+    /**
+     * Returns the Mime Type for the given file name based on the extension.<br>
+     * Example: "{'foo.pdf'.mimeType}" → "application/pdf".
+     */
     public static String mimeType(String fileName) {
         return MimeMapping.getMimeTypeForFilename(fileName);
     }
 
-    public static List<DocumentPage> limit(List<DocumentPage> list, int limit) {
+    /**
+     * Returns the same list with a limited number of items.<br>
+     * Example: "{list.limit(5)}" → Only the first 5 items of the list.
+     */
+    public static <T> List<T> limit(List<T> list, int limit) {
         return list.subList(0, Math.min(limit, list.size()));
     }
 
+    /**
+     * Returns a new list with the elements of the given list in random order.
+     */
+    public static <T> List<T> randomise(List<T> l) {
+        final ArrayList<T> list = new ArrayList<>(l);
+        Collections.shuffle(list);
+        return list;
+    }
+
+    /**
+     * Returns a new list with the elements of the given list in reverse order.
+     */
+    public static <T> List<T> reverse(List<T> l) {
+        List<T> copy = new ArrayList<>(l);
+        Collections.reverse(copy);
+        return copy;
+    }
+
+    /**
+     * Returns a new list with all the documents that matches the given value for the key (in the FM data).<br>
+     * Example: "{list.filter('author', 'john')}" → Only the documents where the author is john.
+     */
     public static List<DocumentPage> filter(List<DocumentPage> list, String key, Object value) {
         return list.stream().filter(p -> Objects.equals(p.data().getValue(key), value)).toList();
     }
 
     /**
-     * @return future documents
+     * Returns a new list containing only the documents dated in the future.<br>
+     * This only works when future is enabled on the collection.
      */
     public static List<DocumentPage> future(List<DocumentPage> list) {
         return list.stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
     }
 
     /**
-     * @return past documents
+     * Returns a new list containing only the documents dated in the past.
      */
     public static List<DocumentPage> past(List<DocumentPage> list) {
         return list.stream().filter(d -> d.date().isBefore(ZonedDateTime.now())).toList();
     }
 
-    public static List<DocumentPage> randomise(List<DocumentPage> l) {
-        final ArrayList<DocumentPage> list = new ArrayList<>(l);
-        Collections.shuffle(list);
-        return list;
-    }
-
+    /**
+     * Returns a new list with all documents sorted by the given front-matter field
+     * (String comparison). Sorting can be reversed.<br>
+     * Example: "{list.sortBy('author', true)}" → sorts by the "author" field in descending order.
+     */
     public static List<DocumentPage> sortBy(List<DocumentPage> list, String key, boolean reverse) {
         Comparator<DocumentPage> comparing = Comparator.comparing(p -> p.data().getString(key));
         if (reverse) {
@@ -147,18 +213,17 @@ public class RoqTemplateExtension {
         return list.stream().sorted(comparing).toList();
     }
 
+    /**
+     * Returns a new list with all documents sorted by their date.
+     * Sorting can be reversed using the {@code reverse} flag.<br>
+     * Example: {@code list.sortByDate(true)} → sorts by date in descending order.
+     */
     public static List<DocumentPage> sortByDate(List<DocumentPage> list, boolean reverse) {
         Comparator<DocumentPage> comparing = Comparator.comparing(Page::date);
         if (reverse) {
             comparing = comparing.reversed();
         }
         return list.stream().sorted(comparing).toList();
-    }
-
-    public static List<DocumentPage> reverse(List<DocumentPage> l) {
-        List<DocumentPage> shallowCopy = l.subList(0, l.size());
-        Collections.reverse(shallowCopy);
-        return shallowCopy;
     }
 
     private static long ceilDiv(long x, long y) {

@@ -25,7 +25,8 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
-import io.quarkiverse.roq.plugin.tagging.RoqTaggingQuteExtension;
+import io.quarkiverse.roq.plugin.tagging.RoqTaggingTemplateExtension;
+import io.quarkiverse.roq.plugin.tagging.RoqTaggingUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -50,7 +51,7 @@ public class RoqPluginTaggingProcessor {
             return;
         }
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses(RoqTaggingQuteExtension.class)
+                .addBeanClasses(RoqTaggingTemplateExtension.class)
                 .setUnremovable().build());
     }
 
@@ -150,7 +151,7 @@ public class RoqPluginTaggingProcessor {
     }
 
     private static List<String> resolveTags(RoqFrontMatterDocumentBuildItem document) {
-        return RoqTaggingQuteExtension.slugifiedTagStrings(document.data());
+        return RoqTaggingUtils.slugifiedTagStrings(document.data());
     }
 
 }

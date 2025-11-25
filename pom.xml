@@ -41,7 +41,7 @@
         <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
         <asciidoctorj.version>3.0.1</asciidoctorj.version>
         <asciidoctorj-diagram.version>3.0.1</asciidoctorj-diagram.version>
-        <quarkus-web-bundler.version>2.0.0.CR6</quarkus-web-bundler.version>
+        <quarkus-web-bundler.version>2.0.0.CR7</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.12</asciidoc-java.version>
         <jandex.version>3.5.2</jandex.version>
         <jsoup.version>1.21.2</jsoup.version>

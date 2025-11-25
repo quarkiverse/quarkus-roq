@@ -56,6 +56,19 @@ paginate: true
 
 ----
 
+This plugin also adds Qute Template Extension:
+
+[cols="1,2", options="header"]
+|===
+| Usage | Description
+
+| ``collection.allTags``
+| Returns a list of all tags from the collection, each tag slugified
+
+| ``collection.tagsCount``
+| Returns a list of all tags slugified (name) with their count (count) in the collection
+|===
+
 [#plugin-aliases]
 == Roq Plugin Aliases (Redirections)
 
