@@ -15,6 +15,7 @@ import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 @TemplateExtension
 public class RoqTemplateExtension {
@@ -152,11 +153,18 @@ public class RoqTemplateExtension {
     }
 
     /**
-     * Returns the same list with a limited number of items.<br>
-     * Example: "{list.limit(5)}" → Only the first 5 items of the list.
+     * Returns a list of JsonObject. All items must be Json objects.
      */
-    public static <T> List<T> limit(List<T> list, int limit) {
-        return list.subList(0, Math.min(limit, list.size()));
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static List<JsonObject> asJsonObjects(JsonArray jsonArray) {
+        return jsonArray.stream().map(item -> {
+            if (item instanceof JsonObject o) {
+                return o;
+            } else {
+                throw new RuntimeException(
+                        "asJsonObjects should only be called if all items are instance of JsonObject (not: %s)".formatted(item));
+            }
+        }).toList();
     }
 
     /**
@@ -166,15 +174,6 @@ public class RoqTemplateExtension {
         final ArrayList<T> list = new ArrayList<>(l);
         Collections.shuffle(list);
         return list;
-    }
-
-    /**
-     * Returns a new list with the elements of the given list in reverse order.
-     */
-    public static <T> List<T> reverse(List<T> l) {
-        List<T> copy = new ArrayList<>(l);
-        Collections.reverse(copy);
-        return copy;
     }
 
     /**

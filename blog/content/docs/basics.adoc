@@ -458,7 +458,10 @@ Can be access with `{cdi:foo.bar}` in any template.
 
 == Template Extensions
 
-The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean. Roq has several built-in template extensions (link:{roqjavadocmodelurl}RoqTemplateExtension.html[javadoc,window=_blank]):
+The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean:
+
+- Qute provides https://quarkus.io/guides/qute-reference#built-in-template-extension[built-in template extensions,window=_blank]
+- Roq has several built-in template extensions (link:{roqjavadocmodelurl}RoqTemplateExtension.html[javadoc,window=_blank]):
 
 [cols="1,2", options="header"]
 |===
@@ -488,14 +491,11 @@ The Qute templating language supports a concept called https://quarkus.io/guides
 | ``page.contentAbstract(limit)``
 | Returns the page content limited to `limit` words
 
-| ``list.limit(n)``
-| Returns only the first `n` items of the list
-
 | ``list.randomise``
 | Returns the list in random order
 
-| ``list.reverse``
-| Returns the list in reverse order
+| ``jsonArray.asJsonObjects``
+| Returns a list of JsonObject. All items must be JSON objects.
 
 | ``collections.collection(key)``
 | Returns the collection for the given key
