@@ -162,7 +162,8 @@ public class RoqTemplateExtension {
                 return o;
             } else {
                 throw new RuntimeException(
-                        "asJsonObjects should only be called if all items are instance of JsonObject (not: %s)".formatted(item));
+                        "asJsonObjects should only be called if all items are instance of JsonObject (not: %s)"
+                                .formatted(item));
             }
         }).toList();
     }
