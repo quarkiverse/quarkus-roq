@@ -156,8 +156,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
             instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
             instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
-            instance.setAttribute(TemplateInstance.LOCALE,
-                    getLocale(page, rc.request().getHeader(HttpHeaders.ACCEPT_LANGUAGE)));
+            instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
             instance.renderAsync().whenComplete((r, t) -> {
                 if (t != null) {
                     Throwable rootCause = rootCause(t);
@@ -192,13 +191,13 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         return null;
     }
 
-    private String getLocale(Page page, String requestedLocale) {
+    private String getLocale(Page page, RoutingContext rc) {
         Object pageLocale = page.data("locale");
         if (pageLocale != null) {
             return pageLocale.toString();
         }
-        if (requestedLocale != null) {
-            return requestedLocale;
+        if (!rc.acceptableLanguages().isEmpty()) {
+            return rc.acceptableLanguages().get(0).tag();
         }
         if (config.defaultLocale() != null) {
             return config.defaultLocale();
