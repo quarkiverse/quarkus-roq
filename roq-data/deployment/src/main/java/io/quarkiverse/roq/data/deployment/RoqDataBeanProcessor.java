@@ -1,5 +1,16 @@
 package io.quarkiverse.roq.data.deployment;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
+
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.RoqDataRecorder;
@@ -12,15 +23,6 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Singleton;
-import org.jboss.logging.Logger;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 class RoqDataBeanProcessor {
 
@@ -48,7 +50,7 @@ class RoqDataBeanProcessor {
         TreeMap<String, JsonObject> beansMap;
 
         var mapOfFolders = new HashMap<String, TreeMap<String, JsonObject>>();
-          for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
+        for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
             if (roqData.getName().contains("_")) {
                 // Subfolder case
                 // Test that there is only one level of subfolder
@@ -61,13 +63,7 @@ class RoqDataBeanProcessor {
                 var key = fileName.substring(fileName.indexOf("_") + 1);
 
                 var folderName = fileName.substring(0, fileName.lastIndexOf('_'));
-                if (mapOfFolders.containsKey(folderName)) {
-                    mapOfFolders.get(folderName).put(key, (JsonObject) roqData.getData());
-                } else {
-                    beansMap = new TreeMap<>();
-                    beansMap.put(key, (JsonObject) roqData.getData());
-                    mapOfFolders.put(folderName, beansMap);
-                }
+                mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, (JsonObject) roqData.getData());
             } else {
                 // Files at the root of data folder
                 final Class<?> cl;
@@ -102,13 +98,14 @@ class RoqDataBeanProcessor {
 
         // Register TreeMap beans
         for (Map.Entry<String, TreeMap<String, JsonObject>> entry : mapOfFolders.entrySet()) {
-            beansProducer.produce(SyntheticBeanBuildItem.configure(TreeMap.class)
+            beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
                     .scope(ApplicationScoped.class)
                     .named(entry.getKey())
-                    .runtimeValue(recorder.createRoqDataJson(entry.getValue()))
+                    .runtimeValue(recorder.createRoqDataJson(new JsonObject((Map) entry.getValue())))
                     .unremovable()
                     .done());
-            beans.add("    - %s[name=%s]*".formatted(TreeMap.class.getName(), entry.getKey()));
+            beans.add("    - %s[name=%s]*".formatted(new JsonObject((Map) entry.getValue()).getClass().getName(),
+                    entry.getKey()));
 
         }
 
