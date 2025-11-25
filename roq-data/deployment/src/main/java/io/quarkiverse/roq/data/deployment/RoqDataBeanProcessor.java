@@ -34,6 +34,7 @@ class RoqDataBeanProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void generateSyntheticBeans(RoqDataConfig config,
+
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<RoqDataBeanBuildItem> dataBeanBuildItems,
