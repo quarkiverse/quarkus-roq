@@ -6,4 +6,4 @@
 :idseparator: -
 :page-layout: doc
 :imagesdir: {site-path}images/docs
-:roqjavadocmodelurl: https://javadoc.io/doc/io.quarkiverse.roq/quarkus-roq-frontmatter/latest/io/quarkiverse/roq/frontmatter/runtime/model/
+:roqjavadocurl: https://javadoc.io/doc/io.quarkiverse.roq/quarkus-roq-frontmatter/latest/io/quarkiverse/roq/frontmatter/runtime/

@@ -1,3 +1,5 @@
+package io.quarkiverse.roq.theme;
+
 import java.util.Map;
 
 import io.quarkus.qute.TemplateGlobal;
