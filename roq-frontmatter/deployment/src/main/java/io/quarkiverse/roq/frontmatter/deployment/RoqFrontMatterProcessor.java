@@ -22,6 +22,7 @@ import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplate
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqI18NTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
@@ -187,6 +188,7 @@ public class RoqFrontMatterProcessor {
                         RoqQuteEngineObserver.class,
                         RoqFrontMatterMessages.class,
                         RoqTemplateExtension.class,
+                        RoqI18NTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,
                         RoqUrl.class,

@@ -178,15 +178,6 @@ public interface RoqSiteConfig {
     String defaultLocale();
 
     /**
-     * The default language to use when no language is specified in the frontmatter.
-     * This language will be used as a fallback for articles that don't have a 'lang' property.
-     * The value will be validate against the following pattern : ^[a-z]{2}(-[A-Z]{2})?$
-     */
-    @WithDefault("en")
-    @Pattern(regexp = "^[a-z]{2}(-[A-Z]{2})?$")
-    String defaultLanguage();
-
-    /**
      * Indicates whether file names in the public directory and files attached to pages should be slugified
      * (converted to a URL-friendly format).
      *
