@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
@@ -31,14 +32,14 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
     /**
      * Include template should not be published.
      */
-    private final TemplateType type;
+    private TemplateType type;
 
     /**
      * The FrontMatter data (it is not merged with parents at this stage).
      */
     private final JsonObject data;
 
-    private final ConfiguredCollection collection;
+    private ConfiguredCollection collection;
 
     /**
      * The generated Qute template with the layout include
@@ -85,6 +86,11 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
         return type;
     }
 
+    public void type(TemplateType type) {
+        Objects.requireNonNull(type);
+        this.type = type;
+    }
+
     public String id() {
         return templateSource.id();
     }
@@ -103,6 +109,10 @@ public final class RoqFrontMatterRawTemplateBuildItem extends MultiBuildItem {
 
     public ConfiguredCollection collection() {
         return collection;
+    }
+
+    public void collection(ConfiguredCollection collection) {
+        this.collection = collection;
     }
 
     public String collectionId() {
