@@ -64,6 +64,42 @@ Here is the list of partials you may override:
 │       └── sidebar-menu.html
 ----
 
+=== Social Brands
+
+The default theme provides built-in support for social media links with icons. You can easily add social media links to your site.
+
+To add social media links to your website, create or edit the website's index.html file:
+
+[source,yaml]
+----
+social-github: quarkiverse
+social-twitter: quarkusio
+social-linkedin: john-doe
+social-mastodon: https://mastodon.social/@username
+social-whatsapp: 5511999999999
+social-instagram: myproject
+social-telegram: mychannel
+----
+
+### Available Social Brand Keys
+
+- `social-twitter`
+- `social-github`
+- `social-linkedin`
+- `social-linkedin-company`
+- `social-facebook`
+- `social-youtube`
+- `social-discord`
+- `social-email`
+- `social-bluesky`
+- `social-mastodon` (requires full URL)
+- `social-slack` (requires full URL)
+- `social-whatsapp`
+- `social-instagram`
+- `social-telegram`
+
+NOTE: For Mastodon and Slack, you must provide the complete URL as these platforms don't have a standard prefix.
+
 [#roq-theme-resume]
 == Roq Theme resume
 
