@@ -47,7 +47,6 @@ class RoqDataBeanProcessor {
                 ReflectiveClassBuildItem.builder(JsonObject.class).serialization().constructors().fields().methods().build());
 
         List<String> beans = new ArrayList<>(roqDataJsonBuildItems.size());
-        TreeMap<String, Object> beansMap;
 
         var mapOfFolders = new HashMap<String, TreeMap<String, Object>>();
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
