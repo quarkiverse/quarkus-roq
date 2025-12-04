@@ -22,7 +22,7 @@
         <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
             <artifactId>quarkus-web-bundler</artifactId>
-            <version>1.9.1</version>
+            <version>2.0.0.CR8</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.qute.web</groupId>
