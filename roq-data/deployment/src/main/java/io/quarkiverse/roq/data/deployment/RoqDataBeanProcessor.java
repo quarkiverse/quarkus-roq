@@ -1,7 +1,10 @@
 package io.quarkiverse.roq.data.deployment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Singleton;
@@ -40,28 +43,47 @@ class RoqDataBeanProcessor {
             List<RoqDataBeanBuildItem> dataBeanBuildItems,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             RoqDataRecorder recorder) {
+
         reflectiveClassProducer.produce(
                 ReflectiveClassBuildItem.builder(JsonObject.class).serialization().constructors().fields().methods().build());
 
         List<String> beans = new ArrayList<>(roqDataJsonBuildItems.size());
 
+        var mapOfFolders = new HashMap<String, TreeMap<String, Object>>();
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
-            final Class<?> cl;
-            if (roqData.getData() instanceof JsonObject) {
-                cl = JsonObject.class;
-            } else if (roqData.getData() instanceof JsonArray) {
-                cl = JsonArray.class;
+            if (roqData.getName().contains("_")) {
+                // Subfolder case
+                // Test that there is only one level of subfolder
+                long count = roqData.getName().chars().filter(c -> c == '_').count();
+                if (count > 1) {
+                    LOG.info("Unsupported more than one subfolder %s".formatted(roqData.getName()));
+                }
+
+                var fileName = roqData.getName();
+                var key = fileName.substring(fileName.indexOf("_") + 1);
+
+                var folderName = fileName.substring(0, fileName.lastIndexOf('_'));
+                mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, roqData.getData());
             } else {
-                throw new IllegalStateException("Unsupported Json data bean type for %s".formatted(roqData.getName()));
+                // Files at the root of data folder
+                final Class<?> cl;
+                if (roqData.getData() instanceof JsonObject) {
+                    cl = JsonObject.class;
+                } else if (roqData.getData() instanceof JsonArray) {
+                    cl = JsonArray.class;
+                } else {
+                    throw new IllegalStateException("Unsupported Json data bean type for %s".formatted(roqData.getName()));
+                }
+                beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
+                        .scope(ApplicationScoped.class)
+                        .named(roqData.getName())
+                        .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                        .unremovable()
+                        .done());
+                beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));
             }
-            beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
-                    .scope(ApplicationScoped.class)
-                    .named(roqData.getName())
-                    .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
-                    .unremovable()
-                    .done());
-            beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));
         }
+
         for (RoqDataBeanBuildItem beanBuildItem : dataBeanBuildItems) {
             reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(beanBuildItem.getBeanClass()).serialization()
                     .constructors().fields().methods().build());
@@ -73,6 +95,20 @@ class RoqDataBeanProcessor {
                     .done());
             beans.add("    - %s[name=%s]".formatted(beanBuildItem.getBeanClass().getName(), beanBuildItem.getName()));
         }
+
+        // Register TreeMap beans
+        for (Map.Entry<String, TreeMap<String, Object>> entry : mapOfFolders.entrySet()) {
+            var treeMapBean = new JsonObject(entry.getValue());
+            beansProducer.produce(SyntheticBeanBuildItem.configure(JsonObject.class)
+                    .scope(ApplicationScoped.class)
+                    .named(entry.getKey())
+                    .runtimeValue(recorder.createRoqDataJson(treeMapBean))
+                    .unremovable()
+                    .done());
+            beans.add("    - %s[name=%s]*".formatted(treeMapBean.getClass().getName(), entry.getKey()));
+
+        }
+
         if (!beans.isEmpty() && config.logDataBeans()) {
             LOG.infof("Roq data beans%s: %n%s",
                     roqDataJsonBuildItems.isEmpty() ? "" : " (* add a @DataMapping to enable type-safety)",
