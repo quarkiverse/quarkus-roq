@@ -9,6 +9,17 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 {description}
 
+== Roq 2.0
+
+- 🕵️ Added lightning filesystem watcher for live reload
+- 📂 Allow `web` directory at the root of the Roq site
+- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...) 
+- ⚡️ [TailwindCSS](https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss) support without any config
+- 💫 Directory support for data and allow iterating on nested data files using the directory name
+
+→ Guide for migrating <<to-2-0>>
+
+
 == Roq 1.8
 
 Sorry for the breaking releases back to back but this includes a refactor to allow safely including files from the whole site directory when using AsciidocJ (requested by a user).
@@ -47,6 +58,12 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 1. xref:advanced.adoc#updating-roq[Make sur you update using Quarkus CLI]
 2. Make sure you implemented xref:advanced.adoc#test-site-generation[generation tests]
+
+=== to 2.0
+
+If you are using nested data, they are now mapped using `/`. E.g: `dir/bar.yml` is mapped to `dir/bar` instead of `dir_bar`.
+
+Please report any other issue while migrating.
 
 === to 1.8
 
