@@ -51,37 +51,37 @@ class RoqDataBeanProcessor {
 
         var mapOfFolders = new HashMap<String, TreeMap<String, Object>>();
         for (RoqDataJsonBuildItem roqData : roqDataJsonBuildItems) {
-            if (roqData.getName().contains("_")) {
-                // Subfolder case
+            if (roqData.getName().contains("/")) {
+                // Subfolder grouping case
                 // Test that there is only one level of subfolder
-                long count = roqData.getName().chars().filter(c -> c == '_').count();
-                if (count > 1) {
-                    LOG.info("Unsupported more than one subfolder %s".formatted(roqData.getName()));
+                long count = roqData.getName().chars().filter(c -> c == '/').count();
+                if (count == 1) {
+                    var fileName = roqData.getName();
+                    var key = fileName.substring(fileName.indexOf("/") + 1);
+                    var folderName = fileName.substring(0, fileName.lastIndexOf('/'));
+                    mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, roqData.getData());
+                } else if (count > 1) {
+                    LOG.debugf(
+                            "Deeply nested data files are not processed as grouped structure: %s (only one level of nesting is supported)",
+                            roqData.getName());
                 }
-
-                var fileName = roqData.getName();
-                var key = fileName.substring(fileName.indexOf("_") + 1);
-
-                var folderName = fileName.substring(0, fileName.lastIndexOf('_'));
-                mapOfFolders.computeIfAbsent(folderName, ignored -> new TreeMap<>()).put(key, roqData.getData());
-            } else {
-                // Files at the root of data folder
-                final Class<?> cl;
-                if (roqData.getData() instanceof JsonObject) {
-                    cl = JsonObject.class;
-                } else if (roqData.getData() instanceof JsonArray) {
-                    cl = JsonArray.class;
-                } else {
-                    throw new IllegalStateException("Unsupported Json data bean type for %s".formatted(roqData.getName()));
-                }
-                beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
-                        .scope(ApplicationScoped.class)
-                        .named(roqData.getName())
-                        .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
-                        .unremovable()
-                        .done());
-                beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));
             }
+            // Let's still add the file name mapping
+            final Class<?> cl;
+            if (roqData.getData() instanceof JsonObject) {
+                cl = JsonObject.class;
+            } else if (roqData.getData() instanceof JsonArray) {
+                cl = JsonArray.class;
+            } else {
+                throw new IllegalStateException("Unsupported Json data bean type for %s".formatted(roqData.getName()));
+            }
+            beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
+                    .scope(ApplicationScoped.class)
+                    .named(roqData.getName())
+                    .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                    .unremovable()
+                    .done());
+            beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));
         }
 
         for (RoqDataBeanBuildItem beanBuildItem : dataBeanBuildItems) {

@@ -28,6 +28,18 @@ public class RoqDataInjectableBeanLookingCustomLocationTest {
     JsonObject bar;
 
     @Inject
+    @Named("dir/bar")
+    JsonObject dirBar;
+
+    @Inject
+    @Named("dir/foo")
+    JsonObject dirFoo;
+
+    @Inject
+    @Named("dir")
+    JsonObject dir;
+
+    @Inject
     @Named("baz")
     JsonObject baz;
 
@@ -49,6 +61,14 @@ public class RoqDataInjectableBeanLookingCustomLocationTest {
     public void baz() {
         String fromYml = baz.getString("name");
         Assertions.assertEquals("Super Heroes from Yml custom", fromYml);
+    }
+
+    @Test
+    public void dir() {
+        Assertions.assertEquals("Super Heroes Foo from Yml in dir", dirFoo.getString("name"));
+        Assertions.assertEquals("Super Heroes Bar from Yaml in dir", dirBar.getString("name"));
+        Assertions.assertEquals("Super Heroes Foo from Yml in dir", dir.getJsonObject("foo").getString("name"));
+        Assertions.assertEquals("Super Heroes Bar from Yaml in dir", dir.getJsonObject("bar").getString("name"));
     }
 
 }

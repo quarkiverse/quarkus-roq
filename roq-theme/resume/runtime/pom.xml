@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
-            <artifactId>quarkus-web-bundler-tailwind-css</artifactId>
+            <artifactId>quarkus-web-bundler-tailwindcss</artifactId>
             <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
