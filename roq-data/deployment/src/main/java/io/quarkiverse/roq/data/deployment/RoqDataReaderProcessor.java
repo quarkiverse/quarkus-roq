@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.data.deployment;
 
+import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -226,7 +229,7 @@ public class RoqDataReaderProcessor {
             Path rootDir,
             Map<String, RoqDataBuildItem> items) {
         return file -> {
-            var name = rootDir.relativize(file).toString().replaceAll("\\..*", "").replaceAll("/", "_");
+            var name = toUnixPath(removeExtension(rootDir.relativize(file).toString()));
             if (items.containsKey(name)) {
                 throw new DataConflictException("Multiple data files found for the name: '%s'.".formatted(name));
             }
