@@ -14,7 +14,7 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 - 🕵️ Added lightning filesystem watcher for live reload
 - 📂 Allow `web` directory at the root of the Roq site
 - 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...) 
-- ⚡️ [TailwindCSS](https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss) support without any config
+- ⚡️ https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[TailwindCSS] support without any config
 - 💫 Directory support for data and allow iterating on nested data files using the directory name
 
 → Guide for migrating <<to-2-0>>
