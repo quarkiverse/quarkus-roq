@@ -74,6 +74,10 @@ function parseYAML(yaml) {
     const result = {};
     const fieldTypes = {};
     const lines = yaml.split('\n');
+    let currentKey = null;
+    let currentValue = null;
+    let indentLevel = 0;
+    let inArray = false;
     let arrayKey = null;
     let inMultilineString = false;
     let multilineKey = null;
