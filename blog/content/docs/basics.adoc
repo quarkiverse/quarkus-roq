@@ -259,7 +259,7 @@ TIP: There are different ways to link your pages as explained in the  link:{site
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
 
-* The `site` (link:{roqjavadocmodelurl}model/Site.html[javadoc,window=_blank]) variable allow to access site global info from any page, document, layout or partial.
+* The `site` (link:{roqjavadocurl}model/Site.html[javadoc,window=_blank]) variable allow to access site global info from any page, document, layout or partial.
 +
 .Show attributes
 [%collapsible]
@@ -326,7 +326,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-* The `page` (link:{roqjavadocmodelurl}model/Page.html[javadoc,window=_blank]) variable is available in pages, documents, layouts, and partials. It contains the info for the page it is used from.
+* The `page` (link:{roqjavadocurl}model/Page.html[javadoc,window=_blank]) variable is available in pages, documents, layouts, and partials. It contains the info for the page it is used from.
 +
 .Show attributes
 [%collapsible]
@@ -461,7 +461,7 @@ Can be access with `{cdi:foo.bar}` in any template.
 The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean:
 
 - Qute provides https://quarkus.io/guides/qute-reference#built-in-template-extension[built-in template extensions,window=_blank]
-- Roq has several built-in template extensions (link:{roqjavadocmodelurl}RoqTemplateExtension.html[javadoc,window=_blank]):
+- Roq has several built-in template extensions (link:{roqjavadocurl}RoqTemplateExtension.html[javadoc,window=_blank]):
 
 [cols="1,2", options="header"]
 |===
