@@ -5,14 +5,14 @@ import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
 
 import java.util.regex.Pattern;
 
-public record SelectedPath(String path, String outputPath, Origin source) {
+public record SelectedPath(String path, String outputPath, Origin source, String sourceFilePath) {
 
     private SelectedPath(SelectedPathBuilder builder) {
-        this(prefixWithSlash(builder.path), builder.outputPath, builder.source);
+        this(prefixWithSlash(builder.path), builder.outputPath, builder.source, builder.sourceFilePath);
     }
 
     public SelectedPath clean(PathReplaceConfig config) {
-        return new SelectedPath(path, cleanOutputPath(config, outputPath), source);
+        return new SelectedPath(path, cleanOutputPath(config, outputPath), source, sourceFilePath);
     }
 
     public static SelectedPathBuilder builder() {
@@ -35,6 +35,7 @@ public record SelectedPath(String path, String outputPath, Origin source) {
         String path;
         Origin source = Origin.PROVIDED;
         String outputPath = null;
+        String sourceFilePath = null;
 
         public SelectedPathBuilder path(String path) {
             this.path = path;
@@ -54,6 +55,11 @@ public record SelectedPath(String path, String outputPath, Origin source) {
 
         public SelectedPathBuilder outputPath(String outputPath) {
             this.outputPath = outputPath;
+            return this;
+        }
+
+        public SelectedPathBuilder sourceFilePath(String sourceFilePath) {
+            this.sourceFilePath = sourceFilePath;
             return this;
         }
 
