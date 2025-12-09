@@ -1,0 +1,24 @@
+= Roq 2.0 and Java Advent Calendar article
+ia3andy
+:description: An introduction to Roq 2.0, a Quarkus-inspired approach to static site generation in Java. Learn about its new foundation, plugin support, and live-reload feature through a practical tutorial.
+:image: roq-advent.png
+:page-tags: blogging, cool-stuff
+
+Hello fellow Roqers,
+
+I’m thrilled to announce that Roq 2.0 is here 🚀—and it’s a big one! 🔥
+
+Think of it like a new iPhone launch: most of the magic happens under the hood. Many changes aren’t immediately visible, but they’re packed with powerful developer features that make a huge difference.
+
+- 🕵️ Added lightning filesystem watcher for live reload
+- 📂 Allow `web` directory at the root of the Roq site
+- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...)
+- ⚡️ https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[TailwindCSS] support without any config
+- 💫 Directory support for data and allow iterating on nested data files using the directory name
+
+It might not look like much at first glance, but this release represents a long journey to build a solid foundation. That foundation now makes it possible to support plugins like TailwindCSS, Svelte, and Vue — true to the Quarkus spirit, with zero configuration required. I might write a blog post about Web Bundler 2.0, which makes all this possible. The native binding with architecture driven Maven/Gradle dependencies is pretty cool.. let me know in the comments if that would interest you.
+
+I’ve also spent time writing a https://ia3andy.github.io/the-code-site/posts/discover-roq-the-quarkus-way-for-static-site-generation-in-java/[tutorial] to showcase all these new features.
+It’s published in the https://www.javaadvent.com/calendar[Java Advent Calendar] alongside other cool Java content to explore this Christmas.
+
+Take care and happy coding! 🎄
