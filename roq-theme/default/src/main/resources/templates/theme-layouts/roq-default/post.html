@@ -51,8 +51,11 @@ asciidoc-attributes:
         {#let author=cdi:authors.get(page.data.author)}
         {#if author}
         <div class="author">
-          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}"
-            onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg';" />
+          {#if author.avatar}
+          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}" />
+          {#else}
+          <img src="{site.image('default-avatar.svg')}" alt="author-{page.data.author}" />
+          {/if}
           <div class="author-data">
             <a target="_blank" href="{author.profile}" class="author-name">{author.name}</a>
             <span class="author-job-title">{author.job}</span>
