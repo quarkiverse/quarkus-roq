@@ -15,9 +15,20 @@ public final class SelectedPathBuildItem extends MultiBuildItem {
      */
     private final String outputPath;
 
+    /**
+     * The source file path (absolute path to the source file on disk).
+     * Null for non-file-based paths (e.g., dynamic endpoints).
+     */
+    private final String sourceFilePath;
+
     public SelectedPathBuildItem(String path, String outputPath) {
+        this(path, outputPath, null);
+    }
+
+    public SelectedPathBuildItem(String path, String outputPath, String sourceFilePath) {
         this.path = path;
         this.outputPath = outputPath == null ? "" : outputPath;
+        this.sourceFilePath = sourceFilePath;
     }
 
     public String path() {
@@ -26,5 +37,9 @@ public final class SelectedPathBuildItem extends MultiBuildItem {
 
     public String outputPath() {
         return outputPath;
+    }
+
+    public String sourceFilePath() {
+        return sourceFilePath;
     }
 }
