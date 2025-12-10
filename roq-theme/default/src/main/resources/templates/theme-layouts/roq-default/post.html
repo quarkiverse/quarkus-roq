@@ -51,16 +51,18 @@ asciidoc-attributes:
         {#let author=cdi:authors.get(page.data.author)}
         {#if author}
         <div class="author">
-          {#if author.avatar}
-          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}" />
-          {#else}
-          <img src="{site.image('default-avatar.svg')}" alt="author-{page.data.author}" />
-          {/if}
-          <div class="author-data">
-            <a target="_blank" href="{author.profile}" class="author-name">{author.name}</a>
-            <span class="author-job-title">{author.job}</span>
-          </div>
-        </div>
+  {#if author.avatar}
+    <img src="{site.image(author.avatar)}" alt="author-{page.data.author}" />
+  {#else}
+    <img src="{site.image('default-avatar.svg')}" alt="author-{page.data.author}" />
+  {/if}
+
+  <div class="author-data">
+    <a target="_blank" href="{author.profile}" class="author-name">{author.name}</a>
+    <span class="author-job-title">{author.job}</span>
+  </div>
+</div>
+
         {/if}
         {/let}
         {/if}
