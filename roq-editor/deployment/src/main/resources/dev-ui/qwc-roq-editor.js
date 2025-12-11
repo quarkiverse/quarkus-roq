@@ -4,7 +4,7 @@ import './components/navigation-bar.js';
 import './components/posts-list.js';
 import './components/pages-list.js';
 import './components/tags-list.js';
-import './components/file-content-viewer.js';
+import './components/editor.js';
 
 export class QwcRoqEditor extends LitElement {
 
@@ -26,7 +26,7 @@ export class QwcRoqEditor extends LitElement {
 
     // Component properties
     static properties = {
-        "_pages": {state: true},
+        "_posts": {state: true},
         "_activeTab": {state: true},
         "_selectedPost": {state: true},
         "_fileContent": {state: true},
@@ -49,9 +49,9 @@ export class QwcRoqEditor extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
-          this._pages = [];
+          this._posts = [];
           jsonRpcResponse.result.forEach(c => {
-              this._pages.push(c);
+              this._posts.push(c);
           });
       });
     }
@@ -102,10 +102,9 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _renderPosts() {
-        const posts = this._getPosts();
         return html`
             <qwc-posts-list 
-                .posts="${posts}"
+                .posts="${this._posts}"
                 @add-new-post="${this._addNewPost}"
                 @post-clicked="${this._onPostClicked}">
             </qwc-posts-list>
@@ -113,9 +112,8 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _renderPages() {
-        const pages = this._getPages();
         return html`
-            <qwc-pages-list .pages="${pages}"></qwc-pages-list>
+            <qwc-pages-list .pages="${this._pages}"></qwc-pages-list>
         `;
     }
 
@@ -124,17 +122,6 @@ export class QwcRoqEditor extends LitElement {
         return html`
             <qwc-tags-list .tags="${tags}"></qwc-tags-list>
         `;
-    }
-
-    _getPosts() {
-        if (!this._pages) return [];
-        return this._pages.filter(page => 
-            page.path && (
-                page.path.includes('/posts/') || 
-                page.path.startsWith('/posts/') ||
-                (page.outputPath && page.outputPath.includes('/posts/'))
-            )
-        );
     }
 
     _getPages() {

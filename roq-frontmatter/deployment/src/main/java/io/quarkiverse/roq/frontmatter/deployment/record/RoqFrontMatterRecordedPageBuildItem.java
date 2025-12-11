@@ -11,19 +11,12 @@ public final class RoqFrontMatterRecordedPageBuildItem extends MultiBuildItem {
     private final RoqUrl url;
     private final boolean hidden;
     private final Supplier<? extends Page> page;
-    private final String sourceFilePath;
 
     public RoqFrontMatterRecordedPageBuildItem(String id, RoqUrl url, boolean hidden, Supplier<? extends Page> page) {
-        this(id, url, hidden, page, null);
-    }
-
-    public RoqFrontMatterRecordedPageBuildItem(String id, RoqUrl url, boolean hidden, Supplier<? extends Page> page,
-            String sourceFilePath) {
         this.id = id;
         this.url = url;
         this.hidden = hidden;
         this.page = page;
-        this.sourceFilePath = sourceFilePath;
     }
 
     public RoqUrl url() {
@@ -40,9 +33,5 @@ public final class RoqFrontMatterRecordedPageBuildItem extends MultiBuildItem {
 
     public Supplier<? extends Page> page() {
         return page;
-    }
-
-    public String sourceFilePath() {
-        return sourceFilePath;
     }
 }

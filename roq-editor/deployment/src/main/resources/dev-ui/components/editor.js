@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import '@vaadin/button';
 import '@vaadin/icon';
-import { Editor, StarterKit, Markdown, Image, Link, FloatingMenu, BubbleMenu } from '../editor.js';
+import { Editor, StarterKit, Markdown, Image, Link, FloatingMenu, BubbleMenu } from '../bundle.js';
 import { parseFrontmatter, combineFrontmatter, hasFrontmatter } from '../utils/frontmatter.js';
 import './frontmatter-panel.js';
 

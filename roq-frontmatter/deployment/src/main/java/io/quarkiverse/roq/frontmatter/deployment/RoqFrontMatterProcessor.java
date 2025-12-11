@@ -211,14 +211,10 @@ public class RoqFrontMatterProcessor {
 
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
-            Map<String, String> sourceFilePathsByPath = roqOutput.sourceFilePathsByPath();
-            for (var entry : roqOutput.allPagesByPath().entrySet()) {
-                String path = entry.getKey();
+            for (String path : roqOutput.allPagesByPath().keySet()) {
                 // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
                 final String selectedPath = getExtension(path) != null ? path : addTrailingSlash(path);
-                // Get the source file path from the map
-                String sourceFilePath = sourceFilePathsByPath.get(path);
-                selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(selectedPath), null, sourceFilePath));
+                selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(selectedPath), null));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }
