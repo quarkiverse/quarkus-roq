@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.generator.runtime.*;
-import io.quarkiverse.roq.generator.runtime.devui.RoqDevUiJsonRPCService;
+import io.quarkiverse.roq.generator.runtime.devui.RoqGeneratorJsonRPCService;
 import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
@@ -49,17 +49,12 @@ class RoqGeneratorProcessor {
                 .componentLink("qwc-roq-generator.js")
                 .icon("font-awesome-solid:link"));
 
-        pageBuildItem.addPage(Page.webComponentPageBuilder()
-                .title("Roq Editor")
-                .componentLink("qwc-roq-editor.js")
-                .icon("font-awesome-solid:pencil"));
-
         return pageBuildItem;
     }
 
     @BuildStep
     JsonRPCProvidersBuildItem createJsonRPCServiceForCache() {
-        return new JsonRPCProvidersBuildItem(RoqDevUiJsonRPCService.class);
+        return new JsonRPCProvidersBuildItem(RoqGeneratorJsonRPCService.class);
     }
 
     @BuildStep
@@ -90,12 +85,9 @@ class RoqGeneratorProcessor {
                 .collect(toMap(GeneratedStaticResourceBuildItem::getEndpoint, Function.identity()));
         final Map<String, String> selectedPathsFromBuildItems = selectedPaths.stream()
                 .collect(toMap(SelectedPathBuildItem::path, SelectedPathBuildItem::outputPath));
-        final Map<String, String> sourceFilePathsFromBuildItems = selectedPaths.stream()
-                .filter(item -> item.sourceFilePath() != null)
-                .collect(toMap(SelectedPathBuildItem::path, SelectedPathBuildItem::sourceFilePath));
         final Map<String, StaticFile> staticFiles = new HashMap<>();
         final RoqSelection buildSelectedPaths = getSelectedPaths(config, selectedPathsFromBuildItems,
-                sourceFilePathsFromBuildItems, generatedStaticResourcesMap, staticPaths, staticFiles);
+                generatedStaticResourcesMap, staticPaths, staticFiles);
         return new BuildSelectionBuildItem(staticFiles, buildSelectedPaths);
     }
 
@@ -119,7 +111,6 @@ class RoqGeneratorProcessor {
 
     private RoqSelection getSelectedPaths(RoqGeneratorConfig config,
             Map<String, String> selectedPathsFromBuildItem,
-            Map<String, String> sourceFilePathsFromBuildItem,
             Map<String, GeneratedStaticResourceBuildItem> generatedStaticResourcesMap,
             Set<String> staticPaths,
             Map<String, StaticFile> staticFiles) {
@@ -152,12 +143,9 @@ class RoqGeneratorProcessor {
 
         }
         for (var e : selectedPathsFromBuildItem.entrySet()) {
-            final String path = e.getKey();
-            final String outputPath = e.getValue();
-            final String sourceFilePath = sourceFilePathsFromBuildItem.get(path);
-            selectedPaths.add(SelectedPath.builder().source(Origin.BUILD_ITEM).path(path)
-                    .outputPath(outputPath).sourceFilePath(sourceFilePath).build());
-            addStaticFileIfPresent(generatedStaticResourcesMap, path, staticFiles);
+            selectedPaths.add(SelectedPath.builder().source(Origin.BUILD_ITEM).path(e.getKey())
+                    .outputPath(e.getValue()).build());
+            addStaticFileIfPresent(generatedStaticResourcesMap, e.getKey(), staticFiles);
         }
         return new RoqSelection(selectedPaths);
     }

@@ -89,10 +89,10 @@ export class PostCard extends LitElement {
             return html``;
         }
 
-        const title = PostUtils.extractPostTitle(this.post);
+        const title = this.post.title || '';
         const postUrl = this.post.path || '#';
         const fileType = PostUtils.extractFileType(this.post);
-        const path = this.post.path || '';
+        const description = this.post.description || '';
 
         return html`
             <article class="post-card" @click="${this._onCardClick}">
@@ -107,8 +107,8 @@ export class PostCard extends LitElement {
                             ? html`<span class="post-file-type">${fileType}</span>`
                             : html``
                         }
-                        ${path 
-                            ? html`<p class="post-path" title="${path}">${path}</p>`
+                        ${description 
+                            ? html`<p class="post-path" title="${description}">${description}</p>`
                             : html``
                         }
                     </div>

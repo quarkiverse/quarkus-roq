@@ -83,14 +83,10 @@ class RoqFrontMatterRecordProcessor {
                         url,
                         item.source(), item.data(), item.collection().hidden());
                 documentsById.put(item.source().id(), document);
-                String sourceFilePath = null;
-                if (item.source() != null && item.source().file() != null) {
-                    sourceFilePath = item.source().file().absolutePath();
-                }
                 pagesProducer
                         .produce(
                                 new RoqFrontMatterRecordedPageBuildItem(item.source().id(), url, item.collection().hidden(),
-                                        document, sourceFilePath));
+                                        document));
                 docs.add(document);
             }
             collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(e.getKey(), docs));
@@ -125,12 +121,7 @@ class RoqFrontMatterRecordProcessor {
         for (RoqFrontMatterPublishNormalPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.source(), page.data(), page.paginator());
-            String sourceFilePath = null;
-            if (page.source() != null && page.source().file() != null) {
-                sourceFilePath = page.source().file().absolutePath();
-            }
-            pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(page.source().id(), page.url(), false, recordedPage,
-                    sourceFilePath));
+            pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(page.source().id(), page.url(), false, recordedPage));
             normalPagesProducer
                     .produce(new RoqFrontMatterRecordedNormalPageBuildItem(page.source().id(), page.url(), recordedPage));
             if (page.source().isSiteIndex()) {
@@ -176,7 +167,6 @@ class RoqFrontMatterRecordProcessor {
                 .done());
         Map<String, RoqFrontMatterRecordedPageBuildItem> itemsMap = new HashMap<>();
         Map<String, Supplier<? extends Page>> allPagesByPath = new HashMap<>();
-        Map<String, String> sourceFilePathsByPath = new HashMap<>();
         for (RoqFrontMatterRecordedPageBuildItem i : pageItems) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debugf("Published %spage '%s' on '%s'", i.hidden() ? "hidden " : "", i.id(), i.url().toString());
@@ -186,9 +176,6 @@ class RoqFrontMatterRecordProcessor {
             }
             final RoqFrontMatterRecordedPageBuildItem prev = itemsMap.put(i.url().resourcePath(), i);
             allPagesByPath.put(i.url().resourcePath(), i.page());
-            if (i.sourceFilePath() != null) {
-                sourceFilePathsByPath.put(i.url().resourcePath(), i.sourceFilePath());
-            }
             if (prev != null) {
                 if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
                     LOGGER.warnf(
@@ -202,7 +189,7 @@ class RoqFrontMatterRecordProcessor {
                 }
             }
         }
-        return new RoqFrontMatterOutputBuildItem(allPagesByPath, sourceFilePathsByPath);
+        return new RoqFrontMatterOutputBuildItem(allPagesByPath);
     }
 
     @BuildStep
