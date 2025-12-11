@@ -72,7 +72,6 @@ export class QwcRoqEditor extends LitElement {
                         <qwc-file-content-viewer 
                             .content="${this._fileContent}"
                             .filePath="${this._selectedPost.path}"
-                            .sourceFilePath="${this._selectedPost.sourceFilePath}"
                             .loading="${this._loadingContent}"
                             @close-viewer="${this._closeViewer}"
                             @save-content="${this._onSaveContent}">
