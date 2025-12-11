@@ -1,18 +1,17 @@
-import { LitElement, html, css } from 'lit';
 import '@vaadin/button';
 import '@vaadin/icon';
-import { Editor, StarterKit, Markdown, Image, Link, FloatingMenu, BubbleMenu } from '../bundle.js';
-import { parseFrontmatter, combineFrontmatter, hasFrontmatter } from '../utils/frontmatter.js';
+import { LitElement, css, html } from 'lit';
+import { BubbleMenu, Editor, FloatingMenu, Image, Link, Markdown, StarterKit } from '../bundle.js';
+import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
+import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from './bubble-menu.js';
+import { attachFloatingMenuListeners, renderFloatingMenu } from './floating-menu.js';
 import './frontmatter-panel.js';
-import { renderFloatingMenu, attachFloatingMenuListeners } from './floating-menu.js';
-import { renderBubbleMenu, attachBubbleMenuListeners, updateBubbleMenu } from './bubble-menu.js';
-
+import { PostUtils } from './post-utils.js';
 export class FileContentEditor extends LitElement {
     
     static properties = {
         content: { type: String },
         filePath: { type: String },
-        sourceFilePath: { type: String },
         loading: { type: Boolean },
         saving: { type: Boolean },
         _editedContent: { state: true },
@@ -76,15 +75,12 @@ export class FileContentEditor extends LitElement {
         }
         .tiptap-editor {
             flex: 1;
-            font-family: 'Courier New', monospace;
-            font-size: var(--lumo-font-size-s);
             width: 100%;
             min-height: 0;
             padding: var(--lumo-space-m);
             border-radius: var(--lumo-border-radius-m);
             border: 1px solid var(--lumo-contrast-20pct);
             background: var(--lumo-contrast-5pct);
-            color: var(--lumo-body-text-color);
             box-sizing: border-box;
             overflow-y: auto;
         }
@@ -144,17 +140,6 @@ export class FileContentEditor extends LitElement {
             flex-direction: column;
             overflow: hidden;
             min-width: 0;
-        }
-        .frontmatter-panel {
-            width: 350px;
-            min-width: 300px;
-            max-width: 500px;
-            flex-shrink: 0;
-        }
-        .floating-menu,
-        .bubble-menu {
-            /* TipTap/Tippy extensions handle visibility automatically via shouldShow callbacks */
-            /* These containers are attachment points for Tippy - visibility is managed by the extensions */
         }
         .tiptap-menu {
             display: flex;
@@ -266,15 +251,11 @@ export class FileContentEditor extends LitElement {
                     // Get current content based on file type
                     const currentContent = isMarkdown
                         ? this._editor.getMarkdown()
-                        : this._editor.getHTML();
+                        : (this._isHtml() ? this._editor.getHTML() : this._editor.getText());
                     
                     if (currentContent !== this._bodyContent) {
                         this._isInitializing = true;
-                        if (isMarkdown) {
-                            this._editor.commands.setContent(this._bodyContent, { contentType: 'markdown' });
-                        } else {
-                            this._editor.commands.setContent(this._bodyContent);
-                        }
+                        this._setContent();
                         this._editedContent = this._bodyContent;
                         this._isDirty = false;
                         setTimeout(() => {
@@ -301,14 +282,32 @@ export class FileContentEditor extends LitElement {
     }
 
     _isMarkdownFile() {
-        // Use sourceFilePath if available (actual file path), otherwise fall back to filePath
-        const pathToCheck = this.sourceFilePath || this.filePath;
-        if (!pathToCheck) {
-            return false;
+        return PostUtils.extractFileType({ path: this.filePath}) === 'Markdown';
+    }
+
+    _isHtml() {
+        return PostUtils.extractFileType({ path: this.filePath }) === 'HTML';
+    }
+
+    _setContent() {
+        const isMarkdown = this._isMarkdownFile();
+        const isHtml = this._isHtml();
+        if (isMarkdown || isHtml) {
+            this._editor.commands.setContent(this._bodyContent, { contentType: isMarkdown ? 'markdown' : 'html' });
+        } else {
+            this._editor.commands.setContent({
+                type: 'doc',
+                content: this._bodyContent.split('\n\n').filter(line => line.trim() !== '').map(line => ({
+                    type: 'paragraph',
+                    content: [
+                        {
+                            type: 'text',
+                            text: line,
+                        },
+                    ],
+                })),
+            });
         }
-        const markdownExtensions = ['.md', '.markdown', '.mdown', '.mkd', '.mkdn'];
-        const lowerPath = pathToCheck.toLowerCase();
-        return markdownExtensions.some(ext => lowerPath.endsWith(ext));
     }
 
     _tryInitializeEditor() {
@@ -344,6 +343,7 @@ export class FileContentEditor extends LitElement {
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
         const isMarkdown = this._isMarkdownFile();
+        const isHtml = this._isHtml();
         
         const baseExtensions = isMarkdown 
             ? [StarterKit, Markdown.configure({ 
@@ -366,7 +366,7 @@ export class FileContentEditor extends LitElement {
         if (floatingMenuContainer) {
             extensions.push(FloatingMenu.configure({
                 element: floatingMenuContainer,
-                shouldShow: ({ view, state }) => {
+                shouldShow: ({ _, state }) => {
                     const { selection } = state;
                     const { $anchor, empty } = selection;
                     if (!empty || selection.from !== selection.to) {
@@ -389,7 +389,7 @@ export class FileContentEditor extends LitElement {
         if (bubbleMenuContainer) {
             extensions.push(BubbleMenu.configure({
                 element: bubbleMenuContainer,
-                shouldShow: ({ view, state }) => {
+                shouldShow: ({ _, state }) => {
                     const { selection } = state;
                     if (selection.empty || selection.from === selection.to) {
                         return false;
@@ -409,18 +409,19 @@ export class FileContentEditor extends LitElement {
             element: editorElement,
             extensions: extensions,
             content: initialContent,
-            contentType: isMarkdown ? 'markdown' : 'html',
+            contentType: isMarkdown ? 'markdown' : (isHtml ? 'html' : 'text'),
             editable: !this.saving,
             onUpdate: ({ editor }) => {
                 if (this._isInitializing) {
                     return;
                 }
                 
-                // For markdown files, get markdown text; for others, get HTML
                 if (isMarkdown) {
                     this._editedContent = editor.getMarkdown();
-                } else {
+                } else if (isHtml) {
                     this._editedContent = editor.getHTML();
+                } else {
+                    this._editedContent = editor.getText();
                 }
                 // Check if dirty by comparing combined Frontmatter + body with original
                 const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
@@ -441,7 +442,6 @@ export class FileContentEditor extends LitElement {
                 }
             },
             onSelectionUpdate: ({ editor }) => {
-                // Update menu visibility based on selection
                 const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
                 if (bubbleMenuContainer) {
                     updateBubbleMenu(bubbleMenuContainer, editor);
@@ -538,12 +538,10 @@ export class FileContentEditor extends LitElement {
                                         <div class="tiptap-editor"></div>
                                     </div>
                                 </div>
-                                <div class="frontmatter-panel">
-                                    <qwc-frontmatter-panel
-                                        .frontmatter="${this._frontmatter}"
-                                        @frontmatter-changed="${this._onFrontmatterChanged}">
-                                    </qwc-frontmatter-panel>
-                                </div>
+                                <qwc-frontmatter-panel
+                                    .frontmatter="${this._frontmatter}"
+                                    @frontmatter-changed="${this._onFrontmatterChanged}">
+                                </qwc-frontmatter-panel>
                             </div>
                         `
                     }
@@ -570,8 +568,10 @@ export class FileContentEditor extends LitElement {
             const isMarkdown = this._isMarkdownFile();
             if (isMarkdown) {
                 bodyContent = this._editor.getMarkdown();
-            } else {
+            } else if (this._isHtml()) {
                 bodyContent = this._editor.getHTML();
+            } else {
+                bodyContent = this._editor.getText();
             }
         } else {
             bodyContent = this._editedContent;
@@ -613,12 +613,7 @@ export class FileContentEditor extends LitElement {
                 if (this._editor && !this._editor.isDestroyed) {
                     // Set initialization flag to prevent false dirty state when resetting content
                     this._isInitializing = true;
-                    const isMarkdown = this._isMarkdownFile();
-                    if (isMarkdown) {
-                        this._editor.commands.setContent(this._bodyContent, { contentType: 'markdown' });
-                    } else {
-                        this._editor.commands.setContent(this._bodyContent);
-                    }
+                    this._setContent();
                     // Clear initialization flag after content reset
                     setTimeout(() => {
                         this._isInitializing = false;
