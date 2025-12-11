@@ -4,6 +4,8 @@ import '@vaadin/icon';
 import { Editor, StarterKit, Markdown, Image, Link, FloatingMenu, BubbleMenu } from '../bundle.js';
 import { parseFrontmatter, combineFrontmatter, hasFrontmatter } from '../utils/frontmatter.js';
 import './frontmatter-panel.js';
+import { renderFloatingMenu, attachFloatingMenuListeners } from './floating-menu.js';
+import { renderBubbleMenu, attachBubbleMenuListeners, updateBubbleMenu } from './bubble-menu.js';
 
 export class FileContentEditor extends LitElement {
     
@@ -336,8 +338,8 @@ export class FileContentEditor extends LitElement {
             return;
         }
 
-        floatingMenuContainer.innerHTML = this._renderFloatingMenu();
-        bubbleMenuContainer.innerHTML = this._renderBubbleMenu();
+        floatingMenuContainer.innerHTML = renderFloatingMenu();
+        bubbleMenuContainer.innerHTML = renderBubbleMenu();
 
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
@@ -427,7 +429,10 @@ export class FileContentEditor extends LitElement {
                 this._isDirty = combinedContent !== this._originalContent;
                 
                 // Update menu states
-                this._updateMenus();
+                const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
+                if (bubbleMenuContainer) {
+                    updateBubbleMenu(bubbleMenuContainer, editor);
+                }
             },
             editorProps: {
                 attributes: {
@@ -435,9 +440,12 @@ export class FileContentEditor extends LitElement {
                     class: 'tiptap-editor'
                 }
             },
-            onSelectionUpdate: () => {
+            onSelectionUpdate: ({ editor }) => {
                 // Update menu visibility based on selection
-                this._updateMenus();
+                const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
+                if (bubbleMenuContainer) {
+                    updateBubbleMenu(bubbleMenuContainer, editor);
+                }
             },
         });
         
@@ -457,136 +465,12 @@ export class FileContentEditor extends LitElement {
         const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
         
         if (floatingMenuContainer) {
-            this._attachFloatingMenuListeners(floatingMenuContainer);
+            attachFloatingMenuListeners(floatingMenuContainer, this._editor);
         }
         
         if (bubbleMenuContainer) {
-            this._attachBubbleMenuListeners(bubbleMenuContainer);
+            attachBubbleMenuListeners(bubbleMenuContainer, this._editor);
         }
-    }
-
-
-    _updateMenus() {
-        if (!this._editor) return;
-        
-        const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-        if (bubbleMenuContainer) {
-            // Update button states based on editor state
-            const buttons = bubbleMenuContainer.querySelectorAll('.tiptap-menu-button');
-            buttons.forEach(button => {
-                const command = button.dataset.command;
-                if (command) {
-                    const isActive = this._isCommandActive(command);
-                    button.classList.toggle('is-active', isActive);
-                }
-            });
-            
-            // Show/hide list buttons based on whether we're in a list
-            const isInList = this._editor.isActive('bulletList') || this._editor.isActive('orderedList');
-            const listElements = bubbleMenuContainer.querySelectorAll('[data-show-on-list]');
-            listElements.forEach(el => {
-                el.style.display = isInList ? '' : 'none';
-            });
-        }
-    }
-
-    _isCommandActive(command) {
-        if (!this._editor) return false;
-        
-        switch (command) {
-            case 'bold':
-                return this._editor.isActive('bold');
-            case 'italic':
-                return this._editor.isActive('italic');
-            case 'bulletList':
-                return this._editor.isActive('bulletList');
-            case 'orderedList':
-                return this._editor.isActive('orderedList');
-            default:
-                return false;
-        }
-    }
-
-    _renderFloatingMenu() {
-        return `
-            <div class="tiptap-menu">
-                <button class="tiptap-menu-button" data-command="heading" data-level="1" title="Heading 1">H1</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="2" title="Heading 2">H2</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="3" title="Heading 3">H3</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="4" title="Heading 4">H4</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="5" title="Heading 5">H5</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="6" title="Heading 6">H6</button>
-                <div class="tiptap-menu-separator"></div>
-                <button class="tiptap-menu-button" data-command="bulletList" title="Bullet List">• List</button>
-                <button class="tiptap-menu-button" data-command="orderedList" title="Ordered List">1. List</button>
-                <div class="tiptap-menu-separator"></div>
-                <button class="tiptap-menu-button" data-command="codeBlock" title="Code Block">Code</button>
-            </div>
-        `;
-    }
-
-    _renderBubbleMenu() {
-        return `
-            <div class="tiptap-menu">
-                <button class="tiptap-menu-button" data-command="bold" title="Bold">B</button>
-                <button class="tiptap-menu-button" data-command="italic" title="Italic">I</button>
-                <div class="tiptap-menu-separator"></div>
-                <button class="tiptap-menu-button" data-command="link" title="Link">Link</button>
-                <button class="tiptap-menu-button" data-command="image" title="Image">Image</button>
-                <div class="tiptap-menu-separator" data-show-on-list></div>
-                <button class="tiptap-menu-button" data-command="bulletList" data-show-on-list title="Bullet List">•</button>
-                <button class="tiptap-menu-button" data-command="orderedList" data-show-on-list title="Ordered List">1.</button>
-            </div>
-        `;
-    }
-
-    _attachFloatingMenuListeners(container) {
-        container.addEventListener('click', (e) => {
-            const button = e.target.closest('.tiptap-menu-button');
-            if (!button || !this._editor) return;
-            
-            const command = button.dataset.command;
-            const level = button.dataset.level;
-            
-            if (command === 'heading' && level) {
-                this._editor.chain().focus().toggleHeading({ level: parseInt(level) }).run();
-            } else if (command === 'bulletList') {
-                this._editor.chain().focus().toggleBulletList().run();
-            } else if (command === 'orderedList') {
-                this._editor.chain().focus().toggleOrderedList().run();
-            } else if (command === 'codeBlock') {
-                this._editor.chain().focus().toggleCodeBlock().run();
-            }
-        });
-    }
-
-    _attachBubbleMenuListeners(container) {
-        container.addEventListener('click', (e) => {
-            const button = e.target.closest('.tiptap-menu-button');
-            if (!button || !this._editor) return;
-            
-            const command = button.dataset.command;
-            
-            if (command === 'bold') {
-                this._editor.chain().focus().toggleBold().run();
-            } else if (command === 'italic') {
-                this._editor.chain().focus().toggleItalic().run();
-            } else if (command === 'link') {
-                const url = window.prompt('Enter URL:');
-                if (url) {
-                    this._editor.chain().focus().setLink({ href: url }).run();
-                }
-            } else if (command === 'image') {
-                const url = window.prompt('Enter image URL:');
-                if (url) {
-                    this._editor.chain().focus().setImage({ src: url }).run();
-                }
-            } else if (command === 'bulletList') {
-                this._editor.chain().focus().toggleBulletList().run();
-            } else if (command === 'orderedList') {
-                this._editor.chain().focus().toggleOrderedList().run();
-            }
-        });
     }
 
     render() {

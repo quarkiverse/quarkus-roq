@@ -26,7 +26,8 @@ public class RoqEditorJsonRPCService {
     public List<Source> getPosts() {
         return site.allPages().stream()
                 .filter(p -> p.sourcePath().startsWith("posts/"))
-                .sorted(Comparator.comparing(Page::date))
+                .distinct()
+                .sorted(Comparator.comparing(Page::date).reversed())
                 .map(p -> new Source(p.sourcePath(), p.title(), p.description())).toList();
     }
 

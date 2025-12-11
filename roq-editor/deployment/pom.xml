@@ -10,17 +10,6 @@
     <artifactId>quarkus-roq-editor-deployment</artifactId>
     <name>Quarkus Roq - Editor - Deployment</name>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>mvnpm.org</id>
-            <name>mvnpm</name>
-            <url>https://repo.mvnpm.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
