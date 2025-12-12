@@ -42,7 +42,8 @@ export class PostsList extends LitElement {
                         ${posts.map(post => html`
                             <qwc-post-card 
                                 .post="${post}"
-                                @post-clicked="${this._onPostClicked}">
+                                @post-clicked="${this._onPostClicked}"
+                                @post-delete="${this._onPostDelete}">
                             </qwc-post-card>
                         `)}
                     </div>
@@ -63,6 +64,17 @@ export class PostsList extends LitElement {
     _onPostClicked(e) {
         // Forward the event to parent component
         this.dispatchEvent(new CustomEvent('post-clicked', {
+            bubbles: true,
+            composed: true,
+            detail: e.detail
+        }));
+    }
+
+    _onPostDelete(e) {
+        // Stop the original event from bubbling further
+        e.stopPropagation();
+        // Forward the delete event to parent component
+        this.dispatchEvent(new CustomEvent('post-delete', {
             bubbles: true,
             composed: true,
             detail: e.detail

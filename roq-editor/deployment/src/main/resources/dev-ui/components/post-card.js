@@ -1,4 +1,6 @@
 import { LitElement, html, css } from 'lit';
+import '@vaadin/button';
+import '@vaadin/icon';
 import { PostUtils } from './post-utils.js';
 
 export class PostCard extends LitElement {
@@ -16,11 +18,30 @@ export class PostCard extends LitElement {
             overflow: hidden;
             transition: all 0.2s ease;
             cursor: pointer;
+            position: relative;
         }
         .post-card:hover {
             border-color: var(--lumo-primary-color);
             box-shadow: 0 2px 8px var(--lumo-primary-color-10pct);
             transform: translateY(-1px);
+        }
+        .delete-button {
+            position: absolute;
+            top: var(--lumo-space-s);
+            right: var(--lumo-space-s);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .post-card:hover .delete-button {
+            opacity: 1;
+        }
+        vaadin-button.delete-button {
+            --vaadin-button-background: var(--lumo-error-color-10pct);
+            --vaadin-button-color: var(--lumo-error-color);
+        }
+        vaadin-button.delete-button:hover {
+            --vaadin-button-background: var(--lumo-error-color);
+            --vaadin-button-color: var(--lumo-error-contrast-color);
         }
         .post-content {
             flex: 1;
@@ -96,6 +117,13 @@ export class PostCard extends LitElement {
 
         return html`
             <article class="post-card" @click="${this._onCardClick}">
+                <vaadin-button 
+                    class="delete-button" 
+                    theme="tertiary error icon"
+                    @click="${this._onDeleteClick}"
+                    title="Delete post">
+                    <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
+                </vaadin-button>
                 <div class="post-content">
                     <div class="post-header">
                         <h2 class="post-title">
@@ -129,6 +157,16 @@ export class PostCard extends LitElement {
         e.preventDefault();
         this.dispatchEvent(new CustomEvent('post-clicked', {
             bubbles: true,
+            composed: true,
+            detail: { post: this.post }
+        }));
+    }
+
+    _onDeleteClick(e) {
+        e.stopPropagation(); // Prevent triggering the card click
+        e.preventDefault(); // Prevent any default behavior
+        this.dispatchEvent(new CustomEvent('post-delete', {
+            bubbles: true, // Need to bubble to reach posts-list
             composed: true,
             detail: { post: this.post }
         }));
