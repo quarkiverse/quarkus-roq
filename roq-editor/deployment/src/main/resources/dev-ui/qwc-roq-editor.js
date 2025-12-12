@@ -113,7 +113,8 @@ export class QwcRoqEditor extends LitElement {
             <qwc-posts-list 
                 .posts="${this._posts}"
                 @add-new-post="${this._addNewPost}"
-                @post-clicked="${this._onPostClicked}">
+                @post-clicked="${this._onPostClicked}"
+                @post-delete="${this._onPostDelete}">
             </qwc-posts-list>
         `;
     }
@@ -160,9 +161,18 @@ export class QwcRoqEditor extends LitElement {
     _addNewPost() {
         showPrompt('Enter post title:', '').then(title => {
             if (title) {
-                // TODO: Implement actual post creation with the title
-                // For now, just show an alert with the title
-                alert(`Creating new post with title: ${title}`);
+                this.jsonRpc.createPost({ title: title }).then(jsonRpcResponse => {
+                    const result = jsonRpcResponse.result;
+                    console.log('result', result);
+                    if (result && !result.startsWith("Error")) {
+                        const newPost = { path: result, title: title, description: '' };
+                        this._onPostClicked({ detail: { post: newPost } });
+                    } else {
+                        alert('Error creating post: ' + result);
+                    }
+                }).catch(error => {
+                    alert('Error creating post: ' + error.message);
+                });
             }
         });
     }
@@ -202,7 +212,14 @@ export class QwcRoqEditor extends LitElement {
     _closeViewer() {
         this._selectedPost = null;
         this._fileContent = null;
-        this._loadingContent = false;
+        this._loadingContent = true;
+        this.jsonRpc.getPosts().then(jsonRpcResponse => {
+            this._posts = [];
+            jsonRpcResponse.result.forEach(c => {
+                this._posts.push(c);
+            });
+            this._loadingContent = false;
+        });
     }
 
     _onSaveContent(e) {
@@ -229,6 +246,32 @@ export class QwcRoqEditor extends LitElement {
                 editorElement.markSaveError();
             }
             alert('Error saving file: ' + error.message);
+        });
+    }
+
+    _onPostDelete(e) {
+        e.stopPropagation();
+        
+        const post = e.detail.post;
+        const postTitle = post.title || post.path || 'this post';
+        
+        if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        this.jsonRpc.deletePost({ path: post.path }).then(jsonRpcResponse => {
+            const result = jsonRpcResponse.result;
+            if (result === 'success' || result === true) {
+                const postIndex = this._posts.findIndex(p => p.path === post.path);
+                this._posts = [
+                    ...this._posts.slice(0, postIndex),
+                    ...this._posts.slice(postIndex + 1)
+                ];
+            } else {
+                alert('Error deleting post: ' + (result || 'Unknown error'));
+            }
+        }).catch(error => {
+            alert('Error deleting post: ' + error.message);
         });
     }
 
