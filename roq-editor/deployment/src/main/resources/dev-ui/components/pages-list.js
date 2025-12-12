@@ -27,22 +27,19 @@ export class PagesList extends LitElement {
             </div>
             ${pages.length > 0 
                 ? html`
-                    <vaadin-grid .items="${pages}" class="datatable" theme="no-border">
+                    <vaadin-grid .items="${pages}" 
+                                 class="datatable" 
+                                 theme="no-border"
+                                 @active-item-changed="${this._onRowClick}">
                         <vaadin-grid-column auto-width
                                             header="Path"
                                             flex-grow="1"
                                             ${columnBodyRenderer(this._pathRenderer, [])}>
                         </vaadin-grid-column>
                         <vaadin-grid-column auto-width
-                                            header="File"
+                                            header="Title"
                                             flex-grow="1"
-                                            ${columnBodyRenderer(this._fileRenderer, [])}>
-                        </vaadin-grid-column>
-                        <vaadin-grid-column path="source" flex-grow="0" width="10em"></vaadin-grid-column>
-                        <vaadin-grid-column header="Link"
-                                            width="6em"
-                                            flex-grow="0"
-                                            ${columnBodyRenderer(this._linkRenderer, [])}>
+                                            ${columnBodyRenderer(this._titleRenderer, [])}>
                         </vaadin-grid-column>
                     </vaadin-grid>
                 `
@@ -51,18 +48,24 @@ export class PagesList extends LitElement {
         `;
     }
 
-    _fileRenderer(page) {
-        return html`${page.outputPath}`;
+    _titleRenderer(page) {
+        return html`${page.title}`;
     }
 
     _pathRenderer(page) {
         return html`${page.path}`;
     }
 
-    _linkRenderer(page) {
-        return html`<a href="${page.path}" style="color: white" target="_blank">
-            <vaadin-icon class="linkOut" icon="font-awesome-solid:up-right-from-square"/>
-        </a>`;
+    _onRowClick(e) {
+        const page = e.detail.value;
+        if (page) {
+            // Dispatch event to parent component
+            this.dispatchEvent(new CustomEvent('page-clicked', {
+                bubbles: true,
+                composed: true,
+                detail: { page }
+            }));
+        }
     }
 }
 

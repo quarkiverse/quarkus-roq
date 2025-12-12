@@ -5,6 +5,7 @@ import './components/posts-list.js';
 import './components/pages-list.js';
 import './components/tags-list.js';
 import './components/editor.js';
+import { showPrompt } from './components/prompt-dialog.js';
 
 export class QwcRoqEditor extends LitElement {
 
@@ -52,6 +53,13 @@ export class QwcRoqEditor extends LitElement {
           this._posts = [];
           jsonRpcResponse.result.forEach(c => {
               this._posts.push(c);
+          });
+
+          this.jsonRpc.getPages().then(jsonRpcResponse => {
+            this._pages = [];
+            jsonRpcResponse.result.forEach(c => {
+                this._pages.push(c);
+            });
           });
       });
     }
@@ -112,7 +120,10 @@ export class QwcRoqEditor extends LitElement {
 
     _renderPages() {
         return html`
-            <qwc-pages-list .pages="${this._pages}"></qwc-pages-list>
+            <qwc-pages-list 
+                .pages="${this._pages}"
+                @page-clicked="${this._onPageClicked}">
+            </qwc-pages-list>
         `;
     }
 
@@ -147,8 +158,13 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _addNewPost() {
-        // TODO: Implement add new post functionality
-        alert("Add new post functionality - to be implemented");
+        showPrompt('Enter post title:', '').then(title => {
+            if (title) {
+                // TODO: Implement actual post creation with the title
+                // For now, just show an alert with the title
+                alert(`Creating new post with title: ${title}`);
+            }
+        });
     }
 
     _onPostClicked(e) {
@@ -159,6 +175,22 @@ export class QwcRoqEditor extends LitElement {
         
         // Fetch file content from backend
         this.jsonRpc.getFileContent({ path: post.path }).then(jsonRpcResponse => {
+            this._fileContent = jsonRpcResponse.result;
+            this._loadingContent = false;
+        }).catch(error => {
+            this._fileContent = "Error loading file content: " + error.message;
+            this._loadingContent = false;
+        });
+    }
+
+    _onPageClicked(e) {
+        const page = e.detail.page;
+        this._selectedPost = page;
+        this._loadingContent = true;
+        this._fileContent = null;
+        
+        // Fetch file content from backend
+        this.jsonRpc.getFileContent({ path: page.path }).then(jsonRpcResponse => {
             this._fileContent = jsonRpcResponse.result;
             this._loadingContent = false;
         }).catch(error => {

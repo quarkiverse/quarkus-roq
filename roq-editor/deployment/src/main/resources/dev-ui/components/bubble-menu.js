@@ -3,6 +3,8 @@
  * Appears when text is selected
  */
 
+import { showPrompt } from './prompt-dialog.js';
+
 export function renderBubbleMenu() {
     return `
         <div class="tiptap-menu">
@@ -32,15 +34,17 @@ export function attachBubbleMenuListeners(container, editor) {
         } else if (command === 'italic') {
             editor.chain().focus().toggleItalic().run();
         } else if (command === 'link') {
-            const url = window.prompt('Enter URL:');
-            if (url) {
-                editor.chain().focus().setLink({ href: url }).run();
-            }
+            showPrompt('Enter URL:', '').then(url => {
+                if (url) {
+                    editor.chain().focus().setLink({ href: url }).run();
+                }
+            });
         } else if (command === 'image') {
-            const url = window.prompt('Enter image URL:');
-            if (url) {
-                editor.chain().focus().setImage({ src: url }).run();
-            }
+            showPrompt('Enter image URL:', '').then(url => {
+                if (url) {
+                    editor.chain().focus().setImage({ src: url }).run();
+                }
+            });
         } else if (command === 'bulletList') {
             editor.chain().focus().toggleBulletList().run();
         } else if (command === 'orderedList') {
