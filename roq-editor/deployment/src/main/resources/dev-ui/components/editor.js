@@ -8,7 +8,7 @@ import { attachFloatingMenuListeners, renderFloatingMenu } from './floating-menu
 import './frontmatter-panel.js';
 import { PostUtils } from './post-utils.js';
 export class FileContentEditor extends LitElement {
-    
+
     static properties = {
         content: { type: String },
         filePath: { type: String },
@@ -95,6 +95,11 @@ export class FileContentEditor extends LitElement {
         }
         .tiptap-editor p {
             margin: 1em 0;
+        }
+        .tiptap-editor blockquote {
+            margin: 1em 0;
+            padding-left: 1em;
+            border-left: 2px solid var(--lumo-contrast-20pct);
         }
         .tiptap-editor p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
@@ -237,7 +242,7 @@ export class FileContentEditor extends LitElement {
                 this._frontmatter = parsed.frontmatter;
                 this._bodyContent = parsed.body;
                 this._originalContent = this.content;
-                
+
                 const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
                 if (panel) {
                     panel.frontmatter = this._frontmatter;
@@ -245,14 +250,14 @@ export class FileContentEditor extends LitElement {
                         panel._fieldTypes = { ...parsed.fieldTypes };
                     }
                 }
-                
+
                 if (this._editor && !this._editor.isDestroyed) {
                     const isMarkdown = this._isMarkdownFile();
                     // Get current content based on file type
                     const currentContent = isMarkdown
                         ? this._editor.getMarkdown()
                         : (this._isHtml() ? this._editor.getHTML() : this._editor.getText());
-                    
+
                     if (currentContent !== this._bodyContent) {
                         this._isInitializing = true;
                         this._setContent();
@@ -282,7 +287,7 @@ export class FileContentEditor extends LitElement {
     }
 
     _isMarkdownFile() {
-        return PostUtils.extractFileType({ path: this.filePath}) === 'Markdown';
+        return PostUtils.extractFileType({ path: this.filePath }) === 'Markdown';
     }
 
     _isHtml() {
@@ -297,15 +302,17 @@ export class FileContentEditor extends LitElement {
         } else {
             this._editor.commands.setContent({
                 type: 'doc',
-                content: this._bodyContent.split('\n\n').filter(line => line.trim() !== '').map(line => ({
-                    type: 'paragraph',
-                    content: [
-                        {
+                content: this._bodyContent.split('\n\n').map(block => {
+                    const content = block.split('\n');
+                    return ({
+                        type: 'paragraph',
+                        content: content.filter(line => line.trim() !== '').map((line, index) => ([{
                             type: 'text',
                             text: line,
                         },
-                    ],
-                })),
+                        index === content.length - 1 ? null : { type: 'hardBreak' } ])).flat().filter(Boolean),
+                    })
+                }),
             });
         }
     }
@@ -328,7 +335,7 @@ export class FileContentEditor extends LitElement {
 
         const floatingMenuContainer = this.shadowRoot.querySelector('.floating-menu');
         const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-        
+
         // If containers don't exist yet, wait for next render cycle
         if (!floatingMenuContainer || !bubbleMenuContainer) {
             requestAnimationFrame(() => {
@@ -344,15 +351,15 @@ export class FileContentEditor extends LitElement {
         const initialContent = this._editedContent || this._bodyContent || '';
         const isMarkdown = this._isMarkdownFile();
         const isHtml = this._isHtml();
-        
-        const baseExtensions = isMarkdown 
-            ? [StarterKit, Markdown.configure({ 
+
+        const baseExtensions = isMarkdown
+            ? [StarterKit, Markdown.configure({
                 html: false, // Don't parse HTML in markdown
                 transformPastedText: true,
                 transformCopiedText: true
             })]
             : [StarterKit];
-        
+
         // Build extensions array
         const extensions = [
             ...baseExtensions,
@@ -361,7 +368,7 @@ export class FileContentEditor extends LitElement {
                 openOnClick: false,
             }),
         ];
-        
+
         // Add FloatingMenu if container exists
         if (floatingMenuContainer) {
             extensions.push(FloatingMenu.configure({
@@ -385,7 +392,7 @@ export class FileContentEditor extends LitElement {
                 },
             }));
         }
-        
+
         if (bubbleMenuContainer) {
             extensions.push(BubbleMenu.configure({
                 element: bubbleMenuContainer,
@@ -415,7 +422,7 @@ export class FileContentEditor extends LitElement {
                 if (this._isInitializing) {
                     return;
                 }
-                
+
                 if (isMarkdown) {
                     this._editedContent = editor.getMarkdown();
                 } else if (isHtml) {
@@ -428,7 +435,7 @@ export class FileContentEditor extends LitElement {
                 const currentFrontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
                 const combinedContent = combineFrontmatter(currentFrontmatter, this._editedContent);
                 this._isDirty = combinedContent !== this._originalContent;
-                
+
                 // Update menu states
                 const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
                 if (bubbleMenuContainer) {
@@ -448,7 +455,7 @@ export class FileContentEditor extends LitElement {
                 }
             },
         });
-        
+
         setTimeout(() => {
             this._attachMenuListeners();
         }, 0);
@@ -460,14 +467,14 @@ export class FileContentEditor extends LitElement {
 
     _attachMenuListeners() {
         if (!this._editor) return;
-        
+
         const floatingMenuContainer = this.shadowRoot.querySelector('.floating-menu');
         const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-        
+
         if (floatingMenuContainer) {
             attachFloatingMenuListeners(floatingMenuContainer, this._editor);
         }
-        
+
         if (bubbleMenuContainer) {
             attachBubbleMenuListeners(bubbleMenuContainer, this._editor);
         }
@@ -527,9 +534,9 @@ export class FileContentEditor extends LitElement {
                     </div>
                 </div>
                 <div class="editor-content">
-                    ${isError 
-                        ? html`<div class="error">${this.content}</div>`
-                        : html`
+                    ${isError
+                ? html`<div class="error">${this.content}</div>`
+                : html`
                             <div class="editor-layout">
                                 <div class="editor-main">
                                     <div class="editor-wrapper">
@@ -544,7 +551,7 @@ export class FileContentEditor extends LitElement {
                                 </qwc-frontmatter-panel>
                             </div>
                         `
-                    }
+            }
                 </div>
             </div>
         `;
@@ -603,13 +610,13 @@ export class FileContentEditor extends LitElement {
                 const parsed = parseFrontmatter(this._originalContent);
                 this._frontmatter = parsed.frontmatter;
                 this._bodyContent = parsed.body;
-                
+
                 // Update Frontmatter panel
                 const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
                 if (panel) {
                     panel.frontmatter = this._frontmatter;
                 }
-                
+
                 if (this._editor && !this._editor.isDestroyed) {
                     // Set initialization flag to prevent false dirty state when resetting content
                     this._isInitializing = true;
@@ -642,7 +649,7 @@ export class FileContentEditor extends LitElement {
         // Get the saved content (which includes Frontmatter)
         const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
         const frontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
-        
+
         let bodyContent;
         if (this._editor && !this._editor.isDestroyed) {
             const isMarkdown = this._isMarkdownFile();
@@ -654,7 +661,7 @@ export class FileContentEditor extends LitElement {
         } else {
             bodyContent = this._editedContent;
         }
-        
+
         const savedContent = combineFrontmatter(frontmatter, bodyContent);
         this.content = savedContent;
         this._originalContent = savedContent;
