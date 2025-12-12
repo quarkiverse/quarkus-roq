@@ -32,6 +32,14 @@ public class RoqEditorJsonRPCService {
     }
 
     @Blocking
+    public List<Source> getPages() {
+        return site.allPages().stream()
+                .filter(p -> !p.sourcePath().startsWith("posts/") && !p.sourcePath().startsWith("theme-layout"))
+                .distinct()
+                .map(p -> new Source(p.sourcePath(), p.title(), p.description())).toList();
+    }
+
+    @Blocking
     public String getFileContent(String path) {
         String filePath;
         try {
