@@ -221,7 +221,6 @@ export class FileContentEditor extends LitElement {
         this._frontmatter = {};
         this._bodyContent = '';
         this._originalContent = '';
-        this._isInitializing = false;
     }
 
     firstUpdated() {
@@ -235,42 +234,35 @@ export class FileContentEditor extends LitElement {
             this._tryInitializeEditor();
         }
 
-        if (changedProperties.has('content') && this.content !== null && this.content !== undefined) {
-            const isError = this.content.startsWith('Error') || this.content.startsWith('File not found');
-            if (!isError) {
-                const parsed = parseFrontmatter(this.content);
-                this._frontmatter = parsed.frontmatter;
-                this._bodyContent = parsed.body;
-                this._originalContent = this.content;
+        if (changedProperties.has('content') && this._hasContent() && !this._isError()) {
+            const parsed = parseFrontmatter(this.content);
+            this._frontmatter = parsed.frontmatter;
+            this._bodyContent = parsed.body;
+            this._originalContent = this.content;
 
-                const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
-                if (panel) {
-                    panel.frontmatter = this._frontmatter;
-                    if (parsed.fieldTypes) {
-                        panel._fieldTypes = { ...parsed.fieldTypes };
-                    }
+            const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
+            if (panel) {
+                panel.frontmatter = this._frontmatter;
+                if (parsed.fieldTypes) {
+                    panel._fieldTypes = { ...parsed.fieldTypes };
                 }
+            }
 
-                if (this._editor && !this._editor.isDestroyed) {
-                    const isMarkdown = this._isMarkdownFile();
-                    // Get current content based on file type
-                    const currentContent = isMarkdown
-                        ? this._editor.getMarkdown()
-                        : (this._isHtml() ? this._editor.getHTML() : this._editor.getText());
+            if (this._editor && !this._editor.isDestroyed) {
+                const isMarkdown = this._isMarkdownFile();
+                // Get current content based on file type
+                const currentContent = isMarkdown
+                    ? this._editor.getMarkdown()
+                    : (this._isHtml() ? this._editor.getHTML() : this._editor.getText());
 
-                    if (currentContent !== this._bodyContent) {
-                        this._isInitializing = true;
-                        this._setContent();
-                        this._editedContent = this._bodyContent;
-                        this._isDirty = false;
-                        setTimeout(() => {
-                            this._isInitializing = false;
-                        }, 100);
-                    }
-                } else {
+                if (currentContent !== this._bodyContent) {
+                    this._setContent();
                     this._editedContent = this._bodyContent;
                     this._isDirty = false;
                 }
+            } else {
+                this._editedContent = this._bodyContent;
+                this._isDirty = false;
             }
         }
         if (changedProperties.has('saving') && this._editor && !this._editor.isDestroyed) {
@@ -294,6 +286,14 @@ export class FileContentEditor extends LitElement {
         return PostUtils.extractFileType({ path: this.filePath }) === 'HTML';
     }
 
+    _hasContent() {
+        return this.content != null && this.content !== undefined;
+    }
+
+    _isError() {
+        return this._hasContent() && (this.content.startsWith('Error') || this.content.startsWith('File not found'));
+    }
+
     _setContent() {
         const isMarkdown = this._isMarkdownFile();
         const isHtml = this._isHtml();
@@ -310,7 +310,7 @@ export class FileContentEditor extends LitElement {
                             type: 'text',
                             text: line,
                         },
-                        index === content.length - 1 ? null : { type: 'hardBreak' } ])).flat().filter(Boolean),
+                        index === content.length - 1 ? null : { type: 'hardBreak' }])).flat().filter(Boolean),
                     })
                 }),
             });
@@ -319,12 +319,7 @@ export class FileContentEditor extends LitElement {
 
     _tryInitializeEditor() {
         // Don't initialize if loading, no content, or error state
-        if (this.loading || !this.content || this.content === null || this.content === undefined) {
-            return;
-        }
-
-        const isError = this.content.startsWith('Error') || this.content.startsWith('File not found');
-        if (isError) {
+        if (this.loading || !this._hasContent() || this._isError()) {
             return;
         }
 
@@ -364,9 +359,6 @@ export class FileContentEditor extends LitElement {
         const extensions = [
             ...baseExtensions,
             Image,
-            Link.configure({
-                openOnClick: false,
-            }),
         ];
 
         // Add FloatingMenu if container exists
@@ -410,8 +402,6 @@ export class FileContentEditor extends LitElement {
             }));
         }
 
-        this._isInitializing = true;
-
         this._editor = new Editor({
             element: editorElement,
             extensions: extensions,
@@ -419,10 +409,6 @@ export class FileContentEditor extends LitElement {
             contentType: isMarkdown ? 'markdown' : (isHtml ? 'html' : 'text'),
             editable: !this.saving,
             onUpdate: ({ editor }) => {
-                if (this._isInitializing) {
-                    return;
-                }
-
                 if (isMarkdown) {
                     this._editedContent = editor.getMarkdown();
                 } else if (isHtml) {
@@ -456,28 +442,17 @@ export class FileContentEditor extends LitElement {
             },
         });
 
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             this._attachMenuListeners();
-        }, 0);
-
-        setTimeout(() => {
-            this._isInitializing = false;
-        }, 100);
+        });
     }
 
     _attachMenuListeners() {
-        if (!this._editor) return;
-
         const floatingMenuContainer = this.shadowRoot.querySelector('.floating-menu');
         const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
 
-        if (floatingMenuContainer) {
-            attachFloatingMenuListeners(floatingMenuContainer, this._editor);
-        }
-
-        if (bubbleMenuContainer) {
-            attachBubbleMenuListeners(bubbleMenuContainer, this._editor);
-        }
+        attachFloatingMenuListeners(floatingMenuContainer, this._editor);
+        attachBubbleMenuListeners(bubbleMenuContainer, this._editor);
     }
 
     render() {
@@ -498,11 +473,11 @@ export class FileContentEditor extends LitElement {
             `;
         }
 
-        if (this.content === null || this.content === undefined) {
+        if (!this._hasContent()) {
             return html``;
         }
 
-        const isError = this.content.startsWith('Error') || this.content.startsWith('File not found');
+        const isError = this._isError();
 
         return html`
             <div class="editor-container">
@@ -604,31 +579,25 @@ export class FileContentEditor extends LitElement {
     }
 
     _cancel() {
-        if (this._isDirty) {
-            if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
-                // Reset to original content
-                const parsed = parseFrontmatter(this._originalContent);
-                this._frontmatter = parsed.frontmatter;
-                this._bodyContent = parsed.body;
+        if (!this._isDirty) return;
+        
+        if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+            // Reset to original content
+            const parsed = parseFrontmatter(this._originalContent);
+            this._frontmatter = parsed.frontmatter;
+            this._bodyContent = parsed.body;
 
-                // Update Frontmatter panel
-                const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
-                if (panel) {
-                    panel.frontmatter = this._frontmatter;
-                }
-
-                if (this._editor && !this._editor.isDestroyed) {
-                    // Set initialization flag to prevent false dirty state when resetting content
-                    this._isInitializing = true;
-                    this._setContent();
-                    // Clear initialization flag after content reset
-                    setTimeout(() => {
-                        this._isInitializing = false;
-                    }, 100);
-                }
-                this._editedContent = this._bodyContent;
-                this._isDirty = false;
+            // Update Frontmatter panel
+            const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
+            if (panel) {
+                panel.frontmatter = this._frontmatter;
             }
+
+            if (this._editor && !this._editor.isDestroyed) {
+                this._setContent();
+            }
+            this._editedContent = this._bodyContent;
+            this._isDirty = false;
         }
     }
 
