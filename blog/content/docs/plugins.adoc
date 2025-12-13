@@ -210,7 +210,7 @@ asciidoc-attributes:
 [#toc]
 === Table of Content (TOC)
 
-To add a Table of Content, you can either use the Asciidoc solution and make it part of the content or add https://github.com/quarkiverse/quarkus-roq/blob/main/blog/src/main/resources/web/app/toc.js[this script] to your site (source: Antora).
+To add a Table of Content, you can either use the Asciidoc solution and make it part of the content or add https://github.com/quarkiverse/quarkus-roq/blob/main/blog/web/toc.js[this script] to your site (source: Antora).
 
 
 This will add a dynamic TOC in the `<aside class="toc sidebar"></aside>` of your layout. You can specify the title and content using `data-title` and `data-levels` attributes.
