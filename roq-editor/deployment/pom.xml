@@ -99,7 +99,7 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-floating-menu</artifactId>
+                        <artifactId>extension-drag-handle</artifactId>
                         <version>3.12.1</version>
                     </dependency>
                     <dependency>
@@ -287,6 +287,41 @@
                         <groupId>org.mvnpm</groupId>
                         <artifactId>prosemirror-tables</artifactId>
                         <version>1.8.3</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>isomorphic.js</artifactId>
+                        <version>0.2.5</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>y-protocols</artifactId>
+                        <version>1.0.6</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>yjs</artifactId>
+                        <version>13.6.27</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-collaboration</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-node-range</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>y-tiptap</artifactId>
+                        <version>3.0.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>lib0</artifactId>
+                        <version>0.2.115</version>
                     </dependency>
                 </dependencies>
             </plugin>
