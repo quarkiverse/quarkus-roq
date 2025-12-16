@@ -107,6 +107,26 @@
                         <artifactId>extension-bubble-menu</artifactId>
                         <version>3.12.1</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-table</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-table-row</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-table-cell</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-table-header</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
                     <!-- this can be removed when we have transitive dependencies -->
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
