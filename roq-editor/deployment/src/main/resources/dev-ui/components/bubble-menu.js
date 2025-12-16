@@ -34,9 +34,16 @@ export function attachBubbleMenuListeners(container, editor) {
         } else if (command === 'italic') {
             editor.chain().focus().toggleItalic().run();
         } else if (command === 'link') {
-            showPrompt('Enter URL:', '').then(url => {
+            // Get current link URL if selection is inside a link
+            const currentLinkAttrs = editor.getAttributes('link');
+            const currentUrl = currentLinkAttrs.href || '';
+            
+            showPrompt('Enter URL:', currentUrl).then(url => {
                 if (url) {
                     editor.chain().focus().setLink({ href: url }).run();
+                } else if (currentUrl) {
+                    // If user cleared the URL, remove the link
+                    editor.chain().focus().unsetLink().run();
                 }
             });
         } else if (command === 'image') {

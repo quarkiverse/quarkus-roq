@@ -1,7 +1,7 @@
 import '@vaadin/button';
 import '@vaadin/icon';
 import { LitElement, css, html } from 'lit';
-import { BubbleMenu, Editor, DragHandle, Image, Markdown, StarterKit } from '../bundle.js';
+import { BubbleMenu, Editor, DragHandle, Image, Link, Markdown, StarterKit, Table, TableRow, TableCell, TableHeader } from '../bundle.js';
 import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
 import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from './bubble-menu.js';
 import { initializeGutterMenu } from './gutter-menu.js';
@@ -156,6 +156,27 @@ export class FileContentEditor extends LitElement {
             margin: 1em 0;
             padding-left: 1em;
             border-left: 2px solid var(--lumo-contrast-20pct);
+        }
+        .tiptap-editor table {
+            border-collapse: collapse;
+            margin: 1em 0;
+            width: 100%;
+            border: 1px solid var(--lumo-contrast-20pct);
+            border-radius: var(--lumo-border-radius-m);
+            overflow: hidden;
+        }
+        .tiptap-editor table td,
+        .tiptap-editor table th {
+            border: 1px solid var(--lumo-contrast-20pct);
+            padding: var(--lumo-space-xs) var(--lumo-space-s);
+            text-align: left;
+        }
+        .tiptap-editor table th {
+            background: var(--lumo-contrast-10pct);
+            font-weight: 600;
+        }
+        .tiptap-editor table tr:nth-child(even) {
+            background: var(--lumo-contrast-5pct);
         }
         .tiptap-editor p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
@@ -386,17 +407,24 @@ export class FileContentEditor extends LitElement {
         const isMarkdown = this._isMarkdownFile();
 
         const baseExtensions = isMarkdown
-            ? [StarterKit, Markdown.configure({
-                html: false, // Don't parse HTML in markdown
+            ? [StarterKit.configure({ link: false }), Markdown.configure({
+                html: false,
                 transformPastedText: true,
-                transformCopiedText: true
+                transformCopiedText: true,
+                markedOptions: {
+                    gfm: true
+                }
             })]
-            : [StarterKit];
+            : [StarterKit.configure({ link: false })];
 
         // Build extensions array
         const extensions = [
             ...baseExtensions,
+            ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell] : []),
             Image,
+            Link.configure({
+                openOnClick: false,
+            }),
             DragHandle.configure({
                 dragHandleWidth: 24,
             }),

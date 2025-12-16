@@ -6,5 +6,9 @@ import { Image } from '@tiptap/extension-image'
 import { Link } from '@tiptap/extension-link'
 import { BubbleMenu } from '@tiptap/extension-bubble-menu'
 import { DragHandle } from '@tiptap/extension-drag-handle'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 
-export { Editor, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle };
+export { Editor, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader };
