@@ -7,6 +7,7 @@ import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from '.
 import { initializeGutterMenu } from './gutter-menu.js';
 import './frontmatter-panel.js';
 import { PostUtils } from './post-utils.js';
+import '@qomponent/qui-code-block';
 
 export class FileContentEditor extends LitElement {
 
@@ -308,7 +309,7 @@ export class FileContentEditor extends LitElement {
                 // Get current content based on file type
                 const currentContent = isMarkdown
                     ? this._editor.getMarkdown()
-                    : (this._isHtml() ? this._editor.getHTML() : this._editor.getText());
+                    : this._editor.getHTML();
 
                 if (currentContent !== this._bodyContent) {
                     this._setContent();
@@ -354,26 +355,7 @@ export class FileContentEditor extends LitElement {
     }
 
     _setContent() {
-        const isMarkdown = this._isMarkdownFile();
-        const isHtml = this._isHtml();
-        if (isMarkdown || isHtml) {
-            this._editor.commands.setContent(this._bodyContent, { contentType: isMarkdown ? 'markdown' : 'html' });
-        } else {
-            this._editor.commands.setContent({
-                type: 'doc',
-                content: this._bodyContent.split('\n\n').map(block => {
-                    const content = block.split('\n');
-                    return ({
-                        type: 'paragraph',
-                        content: content.filter(line => line.trim() !== '').map((line, index) => ([{
-                            type: 'text',
-                            text: line,
-                        },
-                        index === content.length - 1 ? null : { type: 'hardBreak' }])).flat().filter(Boolean),
-                    })
-                }),
-            });
-        }
+        this._editor.commands.setContent(this._bodyContent, { contentType: this._isMarkdownFile() ? 'markdown' : 'html' });
     }
 
     _tryInitializeEditor() {
@@ -402,7 +384,6 @@ export class FileContentEditor extends LitElement {
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
         const isMarkdown = this._isMarkdownFile();
-        const isHtml = this._isHtml();
 
         const baseExtensions = isMarkdown
             ? [StarterKit, Markdown.configure({
@@ -447,10 +428,8 @@ export class FileContentEditor extends LitElement {
             onUpdate: ({ editor }) => {
                 if (isMarkdown) {
                     this._editedContent = editor.getMarkdown();
-                } else if (isHtml) {
-                    this._editedContent = editor.getHTML();
                 } else {
-                    this._editedContent = editor.getText();
+                    this._editedContent = editor.getHTML();
                 }
                 // Check if dirty by comparing combined Frontmatter + body with original
                 const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
@@ -475,42 +454,42 @@ export class FileContentEditor extends LitElement {
                         return false; // Let default handler deal with external drops
                     }
 
-                    const coords = view.posAtCoords({ 
-                        left: event.clientX, 
-                        top: event.clientY 
+                    const coords = view.posAtCoords({
+                        left: event.clientX,
+                        top: event.clientY
                     });
-                    
+
                     if (!coords || coords.pos === null || coords.pos === undefined) {
                         return false;
                     }
 
                     const pos = coords.pos;
                     const $pos = view.state.doc.resolve(pos);
-                    
+
                     // Check if we're inside a paragraph (not at block boundaries)
                     const parent = $pos.parent;
                     const isParagraph = parent.type.name === 'paragraph';
                     const isAtParagraphStart = isParagraph && $pos.parentOffset === 0;
                     const isAtParagraphEnd = isParagraph && $pos.parentOffset === parent.content.size;
                     const isInsideParagraph = isParagraph && !isAtParagraphStart && !isAtParagraphEnd;
-                    
+
                     // We want to allow drops only:
                     // 1. At depth 1 (between top-level blocks) - this is the document level
                     // 2. At the start or end of a paragraph (block boundaries)
                     // 3. At document start/end
-                    
+
                     let targetPos = pos;
-                    
+
                     // Always ensure we're inserting between blocks (not inside them)
                     // This prevents drops inside paragraphs and ensures clean insertion
                     if (isInsideParagraph) {
                         // Prevent drop inside paragraph - find nearest block boundary
                         const paragraphStart = $pos.start($pos.depth);
                         const paragraphEnd = $pos.end($pos.depth);
-                        
+
                         // Find which boundary is closer, then get position between blocks
                         const isCloserToStart = Math.abs(pos - paragraphStart) < Math.abs(pos - paragraphEnd);
-                        
+
                         if (isCloserToStart) {
                             // Insert before paragraph - get position at depth 1
                             targetPos = paragraphStart > 0 ? paragraphStart : 0;
@@ -542,22 +521,22 @@ export class FileContentEditor extends LitElement {
                             targetPos = pos;
                         }
                     }
-                    
+
                     // Ensure targetPos is valid
                     if (targetPos < 0) targetPos = 0;
                     if (targetPos > view.state.doc.content.size) targetPos = view.state.doc.content.size;
-                    
+
                     // Perform the drop
                     const tr = view.state.tr;
                     const { from, to } = view.state.selection;
-                    
+
                     // Delete the dragged content if it's a move
                     if (moved && from !== undefined && to !== undefined) {
                         // Only delete if we're not dropping on the same position
                         if (targetPos < from || targetPos > to) {
                             const deleteSize = to - from;
                             const adjustedPos = targetPos > to ? targetPos - deleteSize : targetPos;
-                            
+
                             tr.delete(from, to);
                             // Use replaceRange to ensure clean insertion at block boundary
                             tr.replace(adjustedPos, adjustedPos, slice);
@@ -568,7 +547,7 @@ export class FileContentEditor extends LitElement {
                     } else {
                         tr.replace(targetPos, targetPos, slice);
                     }
-                    
+
                     view.dispatch(tr);
                     return true; // Handled
                 },
@@ -579,11 +558,11 @@ export class FileContentEditor extends LitElement {
                             return false;
                         }
 
-                        const coords = view.posAtCoords({ 
-                            left: event.clientX, 
-                            top: event.clientY 
+                        const coords = view.posAtCoords({
+                            left: event.clientX,
+                            top: event.clientY
                         });
-                        
+
                         if (!coords || coords.pos === null || coords.pos === undefined) {
                             return false;
                         }
@@ -591,19 +570,19 @@ export class FileContentEditor extends LitElement {
                         const pos = coords.pos;
                         const $pos = view.state.doc.resolve(pos);
                         const parent = $pos.parent;
-                        
+
                         // Check if we're inside a paragraph (not at boundaries)
                         if (parent.type.name === 'paragraph') {
                             const isAtStart = $pos.parentOffset === 0;
                             const isAtEnd = $pos.parentOffset === parent.content.size;
-                            
+
                             // If we're inside the paragraph (not at start or end), prevent drop
                             if (!isAtStart && !isAtEnd) {
                                 event.dataTransfer.dropEffect = 'none';
                                 return true; // Prevent drop inside paragraph
                             }
                         }
-                        
+
                         return false;
                     }
                 }
@@ -699,7 +678,7 @@ export class FileContentEditor extends LitElement {
                 <div class="editor-content">
                     ${isError
                 ? html`<div class="error">${this.content}</div>`
-                : html`
+                : this._isHtml() || this._isMarkdownFile() ? html`
                             <div class="editor-layout">
                                 <div class="editor-main">
                                     <div class="editor-wrapper">
@@ -712,6 +691,11 @@ export class FileContentEditor extends LitElement {
                                     @frontmatter-changed="${this._onFrontmatterChanged}">
                                 </qwc-frontmatter-panel>
                             </div>
+                        `: html`
+                            <qui-code-block
+                                .mode="asciidoc"
+                                .content=${this.content}
+                            ></qui-code-block>
                         `
             }
                 </div>
@@ -737,10 +721,8 @@ export class FileContentEditor extends LitElement {
             const isMarkdown = this._isMarkdownFile();
             if (isMarkdown) {
                 bodyContent = this._editor.getMarkdown();
-            } else if (this._isHtml()) {
-                bodyContent = this._editor.getHTML();
             } else {
-                bodyContent = this._editor.getText();
+                bodyContent = this._editor.getHTML();
             }
         } else {
             bodyContent = this._editedContent;
@@ -767,7 +749,7 @@ export class FileContentEditor extends LitElement {
 
     _cancel() {
         if (!this._isDirty) return;
-        
+
         if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
             // Reset to original content
             const parsed = parseFrontmatter(this._originalContent);
