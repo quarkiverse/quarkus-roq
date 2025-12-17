@@ -4,6 +4,8 @@
  * Provides "+" button for creating new blocks and drag handle for reordering
  */
 
+import { renderFloatingMenu } from './floating-menu.js';
+
 export function initializeGutterMenu(editorElement, editor) {
     if (!editorElement || !editor) {
         return;
@@ -76,22 +78,8 @@ export function initializeGutterMenu(editorElement, editor) {
     floatingMenu.style.pointerEvents = 'auto';
     editorWrapper.appendChild(floatingMenu);
 
-    // Render floating menu content
-    floatingMenu.innerHTML = `
-        <div class="tiptap-menu">
-            <button class="tiptap-menu-button" data-command="heading" data-level="1" title="Heading 1">H1</button>
-            <button class="tiptap-menu-button" data-command="heading" data-level="2" title="Heading 2">H2</button>
-            <button class="tiptap-menu-button" data-command="heading" data-level="3" title="Heading 3">H3</button>
-            <button class="tiptap-menu-button" data-command="heading" data-level="4" title="Heading 4">H4</button>
-            <button class="tiptap-menu-button" data-command="heading" data-level="5" title="Heading 5">H5</button>
-            <button class="tiptap-menu-button" data-command="heading" data-level="6" title="Heading 6">H6</button>
-            <div class="tiptap-menu-separator"></div>
-            <button class="tiptap-menu-button" data-command="bulletList" title="Bullet List">• List</button>
-            <button class="tiptap-menu-button" data-command="orderedList" title="Ordered List">1. List</button>
-            <div class="tiptap-menu-separator"></div>
-            <button class="tiptap-menu-button" data-command="codeBlock" title="Code Block">Code</button>
-        </div>
-    `;
+    // Render floating menu content using shared function
+    floatingMenu.innerHTML = renderFloatingMenu();
 
     let currentBlockElement = null;
     let hideTimeout = null;
@@ -489,4 +477,150 @@ export function initializeGutterMenu(editorElement, editor) {
 
     // Return cleanup function
     return cleanup;
+}
+
+/**
+ * Handle drop events for block dragging
+ * Only handles drops if we're dragging blocks internally
+ */
+export function handleDrop(view, event, slice, moved) {
+    // Only handle drops if we're dragging blocks internally
+    if (!moved) {
+        return false; // Let default handler deal with external drops
+    }
+
+    const coords = view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY
+    });
+
+    if (!coords || coords.pos === null || coords.pos === undefined) {
+        return false;
+    }
+
+    const pos = coords.pos;
+    const $pos = view.state.doc.resolve(pos);
+
+    // Check if we're inside a paragraph (not at block boundaries)
+    const parent = $pos.parent;
+    const isParagraph = parent.type.name === 'paragraph';
+    const isAtParagraphStart = isParagraph && $pos.parentOffset === 0;
+    const isAtParagraphEnd = isParagraph && $pos.parentOffset === parent.content.size;
+    const isInsideParagraph = isParagraph && !isAtParagraphStart && !isAtParagraphEnd;
+
+    // We want to allow drops only:
+    // 1. At depth 1 (between top-level blocks) - this is the document level
+    // 2. At the start or end of a paragraph (block boundaries)
+    // 3. At document start/end
+
+    let targetPos = pos;
+
+    // Always ensure we're inserting between blocks (not inside them)
+    // This prevents drops inside paragraphs and ensures clean insertion
+    if (isInsideParagraph) {
+        // Prevent drop inside paragraph - find nearest block boundary
+        const paragraphStart = $pos.start($pos.depth);
+        const paragraphEnd = $pos.end($pos.depth);
+
+        // Find which boundary is closer, then get position between blocks
+        const isCloserToStart = Math.abs(pos - paragraphStart) < Math.abs(pos - paragraphEnd);
+
+        if (isCloserToStart) {
+            // Insert before paragraph - get position at depth 1
+            targetPos = paragraphStart > 0 ? paragraphStart : 0;
+        } else {
+            // Insert after paragraph - get position after the paragraph block
+            targetPos = paragraphEnd;
+        }
+    } else {
+        // At a block boundary - ensure we're inserting between blocks
+        // If at start of block, insert before it; if at end, insert after
+        if (isAtParagraphStart && $pos.depth > 1) {
+            // At start of nested block - insert before it
+            targetPos = $pos.start($pos.depth);
+        } else if (isAtParagraphEnd && $pos.depth > 1) {
+            // At end of nested block - insert after it
+            targetPos = $pos.after($pos.depth);
+        } else if ($pos.depth === 1) {
+            // At depth 1 - we're between blocks, use position as is
+            // But ensure we're at a valid insertion point
+            if ($pos.parentOffset === 0 && pos > 0) {
+                // At start of block - insert before it
+                targetPos = pos;
+            } else {
+                // At end or middle - use position as is
+                targetPos = pos;
+            }
+        } else {
+            // Use position as is if it's valid
+            targetPos = pos;
+        }
+    }
+
+    // Ensure targetPos is valid
+    if (targetPos < 0) targetPos = 0;
+    if (targetPos > view.state.doc.content.size) targetPos = view.state.doc.content.size;
+
+    // Perform the drop
+    const tr = view.state.tr;
+    const { from, to } = view.state.selection;
+
+    // Delete the dragged content if it's a move
+    if (moved && from !== undefined && to !== undefined) {
+        // Only delete if we're not dropping on the same position
+        if (targetPos < from || targetPos > to) {
+            const deleteSize = to - from;
+            const adjustedPos = targetPos > to ? targetPos - deleteSize : targetPos;
+
+            tr.delete(from, to);
+            // Use replaceRange to ensure clean insertion at block boundary
+            tr.replace(adjustedPos, adjustedPos, slice);
+        } else {
+            // Dropping on same position, just cancel
+            return true;
+        }
+    } else {
+        tr.replace(targetPos, targetPos, slice);
+    }
+
+    view.dispatch(tr);
+    return true; // Handled
+}
+
+/**
+ * Handle dragover events for block dragging
+ * Prevents drops inside paragraphs (only allows at block boundaries)
+ */
+export function handleDragOver(view, event) {
+    // Only handle internal drags
+    if (!view.dragging || !view.dragging.slice) {
+        return false;
+    }
+
+    const coords = view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY
+    });
+
+    if (!coords || coords.pos === null || coords.pos === undefined) {
+        return false;
+    }
+
+    const pos = coords.pos;
+    const $pos = view.state.doc.resolve(pos);
+    const parent = $pos.parent;
+
+    // Check if we're inside a paragraph (not at boundaries)
+    if (parent.type.name === 'paragraph') {
+        const isAtStart = $pos.parentOffset === 0;
+        const isAtEnd = $pos.parentOffset === parent.content.size;
+
+        // If we're inside the paragraph (not at start or end), prevent drop
+        if (!isAtStart && !isAtEnd) {
+            event.dataTransfer.dropEffect = 'none';
+            return true; // Prevent drop inside paragraph
+        }
+    }
+
+    return false;
 }
