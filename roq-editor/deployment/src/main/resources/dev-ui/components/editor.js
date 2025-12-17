@@ -433,7 +433,11 @@ export class FileContentEditor extends LitElement {
         if (bubbleMenuContainer) {
             extensions.push(BubbleMenu.configure({
                 element: bubbleMenuContainer,
-                shouldShow: ({ _, state }) => {
+                shouldShow: ({ view, state }) => {
+                    // Don't show bubble menu when dragging
+                    if (view.dragging) {
+                        return false;
+                    }
                     const { selection } = state;
                     if (selection.empty || selection.from === selection.to) {
                         return false;
