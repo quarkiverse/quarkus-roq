@@ -554,6 +554,8 @@ public class RoqFrontMatterScanProcessor {
                     scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments,
                             siteDir.resolve(config.publicDir()),
                             siteDir.resolve(config.publicDir()));
+                    // Theme resources
+                    scanThemeAttachments(config, attachments);
                 } else {
                     // Attachments are in the index parent dir
                     scanAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
@@ -599,6 +601,42 @@ public class RoqFrontMatterScanProcessor {
         } catch (IOException e) {
             throw new RoqSiteScanningException(
                     "Error scanning static attachment files in directory: %s".formatted(attachmentDir), e);
+        }
+    }
+
+    private static void scanThemeAttachments(RoqSiteConfig config, List<Attachment> attachments) {
+        final Set<String> existing = attachments.stream().map(Attachment::name).collect(Collectors.toSet());
+
+        RoqProjectBuildItem.visitRuntimeResources(config.staticDir(), p -> {
+            scanThemeResources(config, p, config.staticDir(), existing, attachments);
+        });
+
+        RoqProjectBuildItem.visitRuntimeResources(config.publicDir(), p -> {
+            scanThemeResources(config, p, config.publicDir(), existing, attachments);
+        });
+    }
+
+    private static void scanThemeResources(RoqSiteConfig config, PathVisit p, String rootDir, Set<String> existing,
+            List<Attachment> attachments) {
+        if (Files.isDirectory(p.getPath())) {
+            try (Stream<Path> stream = Files.walk(p.getPath())) {
+                stream.filter(Files::isRegularFile).forEach(file -> {
+                    String name = resolveAttachmentLink(config, file, p.getPath());
+                    if (existing.add(name)) {
+                        attachments.add(new Attachment(name, file));
+                    }
+                });
+            } catch (IOException e) {
+                throw new RoqSiteScanningException("Error scanning theme resources in " + p.getPath(), e);
+            }
+        } else if (Files.isRegularFile(p.getPath())) {
+            String name = p.getRelativePath();
+            if (name.startsWith(rootDir + "/")) {
+                name = name.substring(rootDir.length() + 1);
+            }
+            if (existing.add(name)) {
+                attachments.add(new Attachment(name, p.getPath()));
+            }
         }
     }
 
