@@ -10,6 +10,28 @@
     <artifactId>quarkus-roq-editor-deployment</artifactId>
     <name>Quarkus Roq - Editor - Deployment</name>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>mvnpm.org</id>
+            <name>mvnpm</name>
+            <url>https://repo.mvnpm.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>mvnpm.org</id>
+            <name>mvnpm</name>
+            <url>https://repo.mvnpm.org/maven2</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -125,6 +147,11 @@
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-table-header</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-code-block-lowlight</artifactId>
                         <version>3.12.1</version>
                     </dependency>
                     <!-- this can be removed when we have transitive dependencies -->
@@ -342,6 +369,36 @@
                         <groupId>org.mvnpm</groupId>
                         <artifactId>lib0</artifactId>
                         <version>0.2.115</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>lowlight</artifactId>
+                        <version>3.3.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>highlight.js</artifactId>
+                        <version>11.11.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.types</groupId>
+                        <artifactId>hast</artifactId>
+                        <version>3.0.4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>devlop</artifactId>
+                        <version>1.1.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.types</groupId>
+                        <artifactId>unist</artifactId>
+                        <version>3.0.3</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>dequal</artifactId>
+                        <version>2.0.3</version>
                     </dependency>
                 </dependencies>
             </plugin>
