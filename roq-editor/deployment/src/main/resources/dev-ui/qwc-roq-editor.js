@@ -67,23 +67,23 @@ export class QwcRoqEditor extends LitElement {
     /**
      * Called when it needs to render the components
      * @returns {*}
-     */
-    render() {
-        return html`
-            <qwc-navigation-bar 
+     * <qwc-navigation-bar 
                 .activeTab="${this._activeTab}"
                 @tab-changed="${this._onTabChanged}">
             </qwc-navigation-bar>
+     */
+    render() {
+        return html`
             <div class="content-area">
                 ${this._selectedPost && this._fileContent !== null 
                     ? html`
-                        <qwc-file-content-viewer 
-                            .content="${this._fileContent}"
+                        <qwc-editor 
                             .filePath="${this._selectedPost.path}"
                             .loading="${this._loadingContent}"
                             @close-viewer="${this._closeViewer}"
+                            .content="${this._fileContent}"
                             @save-content="${this._onSaveContent}">
-                        </qwc-file-content-viewer>
+                        </qwc-editor>
                     `
                     : this._renderContent()
                 }

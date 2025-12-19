@@ -604,10 +604,11 @@ export class FileContentEditor extends LitElement {
                                 </qwc-frontmatter-panel>
                             </div>
                         `: html`
-                            <qui-code-block
-                                .mode="asciidoc"
-                                .content=${this.content}
-                            ></qui-code-block>
+                            <qui-code-block showlinenumbers editable
+                                mode="adoc"
+                                .content=${this._bodyContent}
+                                @value-changed="${this._onCodeBlockChange}">
+                            </qui-code-block>
                         `
             }
                 </div>
@@ -620,6 +621,14 @@ export class FileContentEditor extends LitElement {
         // Update dirty state
         const combinedContent = combineFrontmatter(this._frontmatter, this._editedContent);
         this._isDirty = combinedContent !== this._originalContent;
+    }
+
+    _onCodeBlockChange(e) {
+        const codeBlock = e.target;
+        const newContent = codeBlock.value || codeBlock.content || '';
+        
+        this._editedContent = newContent;
+        this._isDirty = newContent !== this._originalContent;
     }
 
     _save() {
@@ -733,5 +742,5 @@ export class FileContentEditor extends LitElement {
     }
 }
 
-customElements.define('qwc-file-content-viewer', FileContentEditor);
+customElements.define('qwc-editor', FileContentEditor);
 
