@@ -1,7 +1,7 @@
 import '@vaadin/button';
 import '@vaadin/icon';
 import { LitElement, css, html } from 'lit';
-import { BubbleMenu, Editor, DragHandle, Image, Link, Markdown, StarterKit, Table, TableRow, TableCell, TableHeader } from '../bundle.js';
+import { BubbleMenu, Editor, DragHandle, Image, Link, Markdown, StarterKit, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight } from '../bundle.js';
 import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
 import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from './bubble-menu.js';
 import { initializeGutterMenu, handleDrop, handleDragOver } from './gutter-menu.js';
@@ -298,6 +298,7 @@ export class FileContentEditor extends LitElement {
         this._frontmatter = {};
         this._bodyContent = '';
         this._originalContent = '';
+        this._isInitializing = false;
     }
 
     firstUpdated() {
@@ -333,9 +334,15 @@ export class FileContentEditor extends LitElement {
                     : this._editor.getHTML();
 
                 if (currentContent !== this._bodyContent) {
+                    // Set flag to prevent dirty state during content update
+                    this._isInitializing = true;
                     this._setContent();
                     this._editedContent = this._bodyContent;
                     this._isDirty = false;
+                    // Clear flag after content is set
+                    requestAnimationFrame(() => {
+                        this._isInitializing = false;
+                    });
                 }
             } else {
                 this._editedContent = this._bodyContent;
@@ -405,22 +412,24 @@ export class FileContentEditor extends LitElement {
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
         const isMarkdown = this._isMarkdownFile();
+        
+        // Set flag to prevent dirty state during initialization
+        this._isInitializing = true;
 
         const baseExtensions = isMarkdown
-            ? [StarterKit.configure({ link: false }), Markdown.configure({
-                html: false,
-                transformPastedText: true,
-                transformCopiedText: true,
-                markedOptions: {
-                    gfm: true
-                }
-            })]
-            : [StarterKit.configure({ link: false })];
-
+        ? [StarterKit.configure({ link: false, codeBlock: false }), Markdown.configure({
+            html: true,
+            transformPastedText: true,
+            transformCopiedText: true,
+            markedOptions: {
+                gfm: true
+            }
+        })]
+        : [StarterKit.configure({ link: false })];
         // Build extensions array
         const extensions = [
             ...baseExtensions,
-            ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell] : []),
+            ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell, ConfCodeBlockLowlight] : []),
             Image,
             Link.configure({
                 openOnClick: false,
@@ -463,11 +472,14 @@ export class FileContentEditor extends LitElement {
                 } else {
                     this._editedContent = editor.getHTML();
                 }
-                // Check if dirty by comparing combined Frontmatter + body with original
-                const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
-                const currentFrontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
-                const combinedContent = combineFrontmatter(currentFrontmatter, this._editedContent);
-                this._isDirty = combinedContent !== this._originalContent;
+                // Skip dirty check during initialization
+                if (!this._isInitializing) {
+                    // Check if dirty by comparing combined Frontmatter + body with original
+                    const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
+                    const currentFrontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
+                    const combinedContent = combineFrontmatter(currentFrontmatter, this._editedContent);
+                    this._isDirty = combinedContent !== this._originalContent;
+                }
 
                 // Update menu states
                 const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
@@ -500,6 +512,8 @@ export class FileContentEditor extends LitElement {
                 if (!this._gutterMenuCleanup) {
                     this._initializeGutterMenu();
                 }
+                // Clear initialization flag after editor is fully set up
+                this._isInitializing = false;
             }, 200);
         });
     }
@@ -661,7 +675,12 @@ export class FileContentEditor extends LitElement {
             }
 
             if (this._editor && !this._editor.isDestroyed) {
+                // Set flag to prevent dirty state during content reset
+                this._isInitializing = true;
                 this._setContent();
+                requestAnimationFrame(() => {
+                    this._isInitializing = false;
+                });
             }
             this._editedContent = this._bodyContent;
             this._isDirty = false;
