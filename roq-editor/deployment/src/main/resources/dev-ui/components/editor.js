@@ -4,7 +4,7 @@ import { LitElement, css, html } from 'lit';
 import { BubbleMenu, Editor, DragHandle, Image, Link, Markdown, StarterKit, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight } from '../bundle.js';
 import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
 import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from './bubble-menu.js';
-import { initializeGutterMenu, handleDrop, handleDragOver } from './gutter-menu.js';
+import { initializeGutterMenu } from './gutter-menu.js';
 import './frontmatter-panel.js';
 import { PostUtils } from './post-utils.js';
 import '@qomponent/qui-code-block';
@@ -90,55 +90,6 @@ export class FileContentEditor extends LitElement {
         }
         .tiptap-editor > div {
             padding-left: 50px;
-        }
-        .gutter-menu {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            gap: var(--lumo-space-xs);
-            z-index: 10;
-            pointer-events: auto;
-        }
-        .gutter-menu-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: 1px solid var(--lumo-contrast-20pct);
-            background: var(--lumo-base-color);
-            color: var(--lumo-body-text-color);
-            cursor: pointer;
-            border-radius: var(--lumo-border-radius-s);
-            font-size: var(--lumo-font-size-s);
-            font-weight: 600;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        .gutter-menu-button:hover {
-            background: var(--lumo-primary-color-10pct);
-            border-color: var(--lumo-primary-color);
-            color: var(--lumo-primary-color);
-        }
-        .gutter-add-button {
-            font-size: var(--lumo-font-size-l);
-            line-height: 1;
-        }
-        .gutter-drag-button {
-            font-size: var(--lumo-font-size-xs);
-            line-height: 1.2;
-            cursor: grab;
-        }
-        .gutter-drag-button:active {
-            cursor: grabbing;
-        }
-        .gutter-floating-menu {
-            position: absolute;
-            z-index: 20;
-            pointer-events: auto;
-        }
-        .gutter-floating-menu .tiptap-menu {
-            margin: 0;
         }
         .tiptap-editor:focus {
             outline: none;
@@ -492,10 +443,6 @@ export class FileContentEditor extends LitElement {
                     'data-placeholder': 'Edit file content...',
                     class: 'tiptap-editor'
                 },
-                handleDrop: handleDrop,
-                handleDOMEvents: {
-                    dragover: handleDragOver
-                }
             },
             onSelectionUpdate: ({ editor }) => {
                 const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
