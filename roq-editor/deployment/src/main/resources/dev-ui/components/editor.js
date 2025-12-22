@@ -1,15 +1,17 @@
+import '@qomponent/qui-code-block';
 import '@vaadin/button';
 import '@vaadin/icon';
 import { LitElement, css, html } from 'lit';
-import { BubbleMenu, Editor, DragHandle, Image, Link, Markdown, StarterKit, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight } from '../bundle.js';
+import { BubbleMenu, ConfCodeBlockLowlight, ContextProvider, DragHandle, Editor, Image, Link, Markdown, StarterKit, Table, TableCell, TableHeader, TableRow } from '../bundle.js';
 import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
-import { attachBubbleMenuListeners, renderBubbleMenu, updateBubbleMenu } from './bubble-menu.js';
-import { initializeGutterMenu } from './gutter-menu.js';
+import { editorContext } from './editor-context.js';
+import './bubble-menu.js';
+import './floating-menu.js';
 import './frontmatter-panel.js';
+import './gutter-menu.js';
 import { PostUtils } from './post-utils.js';
-import '@qomponent/qui-code-block';
 
-export class FileContentEditor extends LitElement {
+export class RoqEditor extends LitElement {
 
     static properties = {
         content: { type: String },
@@ -250,6 +252,11 @@ export class FileContentEditor extends LitElement {
         this._bodyContent = '';
         this._originalContent = '';
         this._isInitializing = false;
+
+        this._provider = new ContextProvider(this, {
+            context: editorContext,
+            initialValue: { editor: null, editorElement: null }
+          });
     }
 
     firstUpdated() {
@@ -344,7 +351,7 @@ export class FileContentEditor extends LitElement {
             return;
         }
 
-        const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
+        const bubbleMenuContainer = this.shadowRoot.querySelector('qwc-bubble-menu');
 
         // If container doesn't exist yet, wait for next render cycle
         if (!bubbleMenuContainer) {
@@ -353,8 +360,6 @@ export class FileContentEditor extends LitElement {
             });
             return;
         }
-
-        bubbleMenuContainer.innerHTML = renderBubbleMenu();
 
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
@@ -430,11 +435,7 @@ export class FileContentEditor extends LitElement {
                     this._isDirty = combinedContent !== this._originalContent;
                 }
 
-                // Update menu states
-                const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-                if (bubbleMenuContainer) {
-                    updateBubbleMenu(bubbleMenuContainer, editor);
-                }
+                // Menu states are updated automatically via context consumer
             },
             editorProps: {
                 attributes: {
@@ -443,37 +444,18 @@ export class FileContentEditor extends LitElement {
                 },
             },
             onSelectionUpdate: ({ editor }) => {
-                const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-                if (bubbleMenuContainer) {
-                    updateBubbleMenu(bubbleMenuContainer, editor);
-                }
+                // Menu states are updated automatically via context consumer
             },
         });
 
+        this._provider.setValue({ editor: this._editor, editorElement: this._editorElement });
+
         requestAnimationFrame(() => {
-            this._attachMenuListeners();
             // Delay gutter menu initialization to ensure editor is fully ready
             setTimeout(() => {
-                this._initializeGutterMenu();
                 this._isInitializing = false;
             }, 200);
         });
-    }
-
-    _attachMenuListeners() {
-        const bubbleMenuContainer = this.shadowRoot.querySelector('.bubble-menu');
-
-        attachBubbleMenuListeners(bubbleMenuContainer, this._editor);
-    }
-
-    _initializeGutterMenu() {
-        if (this._editor && this._editorElement) {
-            try {
-                initializeGutterMenu(this._editorElement, this._editor);
-            } catch (e) {
-                console.error('Error initializing gutter menu:', e);
-            }
-        }
     }
 
     render() {
@@ -533,11 +515,13 @@ export class FileContentEditor extends LitElement {
                     ${isError
                 ? html`<div class="error">${this.content}</div>`
                 : this._isHtml() || this._isMarkdownFile() ? html`
-                            <qwc-gutter-menu id="gutter-menu"></qwc-gutter-menu>
+                            <qwc-gutter-menu id="gutter-menu">
+                                <qwc-floating-menu></qwc-floating-menu>
+                            </qwc-gutter-menu>
                             <div class="editor-layout">
                                 <div class="editor-main">
                                     <div class="editor-wrapper">
-                                        <div class="bubble-menu"></div>
+                                        <qwc-bubble-menu></qwc-bubble-menu>
                                         <div class="tiptap-editor"></div>
                                     </div>
                                 </div>
@@ -685,5 +669,5 @@ export class FileContentEditor extends LitElement {
     }
 }
 
-customElements.define('qwc-editor', FileContentEditor);
+customElements.define('qwc-editor', RoqEditor);
 

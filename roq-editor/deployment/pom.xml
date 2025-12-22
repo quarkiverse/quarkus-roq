@@ -154,6 +154,11 @@
                         <artifactId>extension-code-block-lowlight</artifactId>
                         <version>3.12.1</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.lit</groupId>
+                        <artifactId>context</artifactId>
+                        <version>1.1.6</version>
+                    </dependency>
                     <!-- this can be removed when we have transitive dependencies -->
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
@@ -399,6 +404,16 @@
                         <groupId>org.mvnpm</groupId>
                         <artifactId>dequal</artifactId>
                         <version>2.0.3</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.lit</groupId>
+                        <artifactId>reactive-element</artifactId>
+                        <version>2.1.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.lit-labs</groupId>
+                        <artifactId>ssr-dom-shim</artifactId>
+                        <version>1.4.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
