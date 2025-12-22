@@ -16,7 +16,6 @@ export class FloatingMenu extends LitElement {
         super();
         this.visible = false;
         this.pos = null;
-        this._editorContext = null;
         
         this._editorConsumer = new ContextConsumer(this, {
             context: editorContext,

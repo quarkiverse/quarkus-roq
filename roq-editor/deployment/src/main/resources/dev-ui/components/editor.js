@@ -9,6 +9,7 @@ import './bubble-menu.js';
 import './floating-menu.js';
 import './frontmatter-panel.js';
 import './gutter-menu.js';
+import './toolbar.js';
 import { PostUtils } from './post-utils.js';
 
 export class RoqEditor extends LitElement {
@@ -22,7 +23,8 @@ export class RoqEditor extends LitElement {
         _isDirty: { state: true },
         _frontmatter: { state: true },
         _bodyContent: { state: true },
-        _originalContent: { state: true }
+        _originalContent: { state: true },
+        _activeTab: { state: true }
     };
 
     static styles = css`
@@ -152,16 +154,6 @@ export class RoqEditor extends LitElement {
             border-radius: var(--lumo-border-radius-m);
             border: 1px solid var(--lumo-error-color-50pct);
         }
-        .read-only-content {
-            font-family: 'Courier New', monospace;
-            font-size: var(--lumo-font-size-s);
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            background: var(--lumo-contrast-5pct);
-            padding: var(--lumo-space-m);
-            border-radius: var(--lumo-border-radius-m);
-            border: 1px solid var(--lumo-contrast-20pct);
-        }
         .editor-layout {
             display: flex;
             flex-direction: row;
@@ -176,44 +168,14 @@ export class RoqEditor extends LitElement {
             overflow: hidden;
             min-width: 0;
         }
-        .tiptap-menu {
+        .editor-panel {
             display: flex;
-            gap: var(--lumo-space-xs);
-            background: var(--lumo-base-color);
-            border: 1px solid var(--lumo-contrast-20pct);
-            border-radius: var(--lumo-border-radius-m);
-            padding: var(--lumo-space-xs);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
         }
-        .tiptap-menu-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--lumo-space-xs) var(--lumo-space-s);
-            border: none;
-            background: transparent;
-            color: var(--lumo-body-text-color);
-            cursor: pointer;
-            border-radius: var(--lumo-border-radius-s);
-            font-size: var(--lumo-font-size-s);
-            min-width: 32px;
-            height: 32px;
-        }
-        .tiptap-menu-button:hover {
-            background: var(--lumo-contrast-10pct);
-        }
-        .tiptap-menu-button.is-active {
-            background: var(--lumo-primary-color-10pct);
-            color: var(--lumo-primary-color);
-        }
-        .tiptap-menu-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .tiptap-menu-separator {
-            width: 1px;
-            background: var(--lumo-contrast-20pct);
-            margin: var(--lumo-space-xs) 0;
+        .editor-panel[hidden] {
+            display: none;
         }
         pre {
             background-color: var(--lumo-shade-30pct);
@@ -252,11 +214,12 @@ export class RoqEditor extends LitElement {
         this._bodyContent = '';
         this._originalContent = '';
         this._isInitializing = false;
+        this._activeTab = 'editor';
 
         this._provider = new ContextProvider(this, {
             context: editorContext,
             initialValue: { editor: null, editorElement: null }
-          });
+        });
     }
 
     firstUpdated() {
@@ -364,20 +327,20 @@ export class RoqEditor extends LitElement {
         this._editorElement = editorElement;
         const initialContent = this._editedContent || this._bodyContent || '';
         const isMarkdown = this._isMarkdownFile();
-        
+
         // Set flag to prevent dirty state during initialization
         this._isInitializing = true;
 
         const baseExtensions = isMarkdown
-        ? [StarterKit.configure({ link: false, codeBlock: false }), Markdown.configure({
-            html: true,
-            transformPastedText: true,
-            transformCopiedText: true,
-            markedOptions: {
-                gfm: true
-            }
-        })]
-        : [StarterKit.configure({ link: false })];
+            ? [StarterKit.configure({ link: false, codeBlock: false }), Markdown.configure({
+                html: true,
+                transformPastedText: true,
+                transformCopiedText: true,
+                markedOptions: {
+                    gfm: true
+                }
+            })]
+            : [StarterKit.configure({ link: false })];
 
         // Build extensions array
         const extensions = [
@@ -436,6 +399,8 @@ export class RoqEditor extends LitElement {
                 }
 
                 // Menu states are updated automatically via context consumer
+                // Request update to refresh undo/redo button states
+                this.requestUpdate();
             },
             editorProps: {
                 attributes: {
@@ -445,6 +410,8 @@ export class RoqEditor extends LitElement {
             },
             onSelectionUpdate: ({ editor }) => {
                 // Menu states are updated automatically via context consumer
+                // Request update to refresh undo/redo button states
+                this.requestUpdate();
             },
         });
 
@@ -514,28 +481,34 @@ export class RoqEditor extends LitElement {
                 <div class="editor-content">
                     ${isError
                 ? html`<div class="error">${this.content}</div>`
-                : this._isHtml() || this._isMarkdownFile() ? html`
+                : html`
+                        <qwc-toolbar 
+                            previewUrl="${this._getPreviewUrl()}" 
+                            .activeTab="${this._activeTab}"
+                            @tab-changed="${this._onTabChanged}">
+                        </qwc-toolbar>
+                        <div class="editor-panel" ?hidden="${this._activeTab === 'preview'}">
                             <qwc-gutter-menu id="gutter-menu">
                                 <qwc-floating-menu></qwc-floating-menu>
                             </qwc-gutter-menu>
                             <div class="editor-layout">
-                                <div class="editor-main">
+                                ${this._isHtml() || this._isMarkdownFile() ? html`<div class="editor-main">
                                     <div class="editor-wrapper">
                                         <qwc-bubble-menu></qwc-bubble-menu>
                                         <div class="tiptap-editor"></div>
                                     </div>
-                                </div>
+                                </div>` : html`
+                        <qui-code-block showlinenumbers editable
+                            mode="adoc"
+                            .content=${this._bodyContent}
+                            @value-changed="${this._onCodeBlockChange}">
+                        </qui-code-block>`}
                                 <qwc-frontmatter-panel
                                     .frontmatter="${this._frontmatter}"
                                     @frontmatter-changed="${this._onFrontmatterChanged}">
                                 </qwc-frontmatter-panel>
                             </div>
-                        `: html`
-                            <qui-code-block showlinenumbers editable
-                                mode="adoc"
-                                .content=${this._bodyContent}
-                                @value-changed="${this._onCodeBlockChange}">
-                            </qui-code-block>
+                        </div>
                         `
             }
                 </div>
@@ -550,10 +523,15 @@ export class RoqEditor extends LitElement {
         this._isDirty = combinedContent !== this._originalContent;
     }
 
+    _onTabChanged(e) {
+        this._activeTab = e.detail.tab;
+        this.requestUpdate();
+    }
+
     _onCodeBlockChange(e) {
         const codeBlock = e.target;
         const newContent = codeBlock.value || codeBlock.content || '';
-        
+
         this._editedContent = newContent;
         this._isDirty = newContent !== this._originalContent;
     }
@@ -667,6 +645,14 @@ export class RoqEditor extends LitElement {
     markSaveError() {
         this.saving = false;
     }
+
+    _getPreviewUrl() {
+        if (!this.filePath || !this._frontmatter) {
+            return null;
+        }
+        return PostUtils.generatePreviewUrl(this._frontmatter, this.filePath);
+    }
+
 }
 
 customElements.define('qwc-editor', RoqEditor);
