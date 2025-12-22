@@ -70,7 +70,7 @@ export class FloatingMenu extends LitElement {
         this.visible = false;
         this.editor = null;
         this.editorElement = null;
-        this.currentBlockElement = null;
+        this.pos = null;
     }
 
     firstUpdated() {
@@ -101,24 +101,23 @@ export class FloatingMenu extends LitElement {
     /**
      * Position the floating menu relative to a block element
      */
-    position(blockElement) {
-        if (!blockElement || !this.editorElement) {
-            this.hide();
-            return;
-        }
+    position(e) {
+        const coords = this.editor.view.posAtCoords({
+            left: e.clientX,
+            top: e.clientY
+        });
+        this.pos = coords.pos;
 
-        // Show first to get accurate dimensions
         this.show();
         
         // Use requestAnimationFrame to ensure the element is rendered before getting dimensions
         requestAnimationFrame(() => {
-            const rect = blockElement.getBoundingClientRect();
             const editorRect = this.editorElement.getBoundingClientRect();
             const menuRect = this.getBoundingClientRect();
 
             // Position above the block, aligned with the gutter menu
-            const top = rect.top - editorRect.top + this.editorElement.scrollTop - menuRect.height - 5;
-            const left = rect.left - editorRect.left - 10;
+            const top = e.clientY - editorRect.top + this.editorElement.scrollTop - menuRect.height - 5;
+            const left = e.clientX - editorRect.left - 10;
 
             this.style.top = `${top}px`;
             this.style.left = `${left}px`;
@@ -142,11 +141,11 @@ export class FloatingMenu extends LitElement {
     /**
      * Toggle the floating menu visibility
      */
-    toggle(blockElement) {
+    toggle(e) {
         if (this.visible) {
             this.hide();
         } else {
-            this.position(blockElement);
+            this.position(e);
         }
     }
 
@@ -157,13 +156,13 @@ export class FloatingMenu extends LitElement {
         // Use composedPath to find the button in Shadow DOM
         const path = e.composedPath();
         const button = path.find(el => el.classList && el.classList.contains('tiptap-menu-button'));
-        if (!button || !this.editor || !this.currentBlockElement) return;
+        if (!button || !this.editor) return;
 
         const command = button.dataset.command;
         const level = button.dataset.level;
 
         // Get position after current block
-        const pos = this.editor.view.posAtDOM(this.currentBlockElement, 0);
+        const pos = this.pos;
         if (pos === null) return;
 
         if (command === 'bulletList') {
@@ -203,7 +202,7 @@ export class FloatingMenu extends LitElement {
                     type: command, 
                     attrs: { level: parseInt(level) } 
                 })
-                .setTextSelection(pos - 1)
+                .setTextSelection(pos + 1)
                 .run();
         }
 
