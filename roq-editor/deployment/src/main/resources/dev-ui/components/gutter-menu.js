@@ -74,7 +74,6 @@ export class GutterMenu extends LitElement {
     }
 
     get floatingMenu() {
-        // Find the floating menu as a slotted child element
         return this.querySelector('qwc-floating-menu');
     }
 
