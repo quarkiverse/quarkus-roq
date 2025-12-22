@@ -307,10 +307,6 @@ export class FileContentEditor extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        if (this._gutterMenuCleanup) {
-            this._gutterMenuCleanup();
-            this._gutterMenuCleanup = null;
-        }
         if (this._editor && !this._editor.isDestroyed) {
             this._editor.destroy();
             this._editor = null;
@@ -377,6 +373,7 @@ export class FileContentEditor extends LitElement {
             }
         })]
         : [StarterKit.configure({ link: false })];
+
         // Build extensions array
         const extensions = [
             ...baseExtensions,
@@ -386,6 +383,7 @@ export class FileContentEditor extends LitElement {
                 openOnClick: false,
             }),
             DragHandle.configure({
+                render: () => this.shadowRoot.getElementById('gutter-menu'),
                 dragHandleWidth: 24,
             }),
         ];
@@ -415,7 +413,7 @@ export class FileContentEditor extends LitElement {
             element: editorElement,
             extensions: extensions,
             content: initialContent,
-            contentType: isMarkdown ? 'markdown' : (isHtml ? 'html' : 'text'),
+            contentType: isMarkdown ? 'markdown' : 'html',
             editable: !this.saving,
             onUpdate: ({ editor }) => {
                 if (isMarkdown) {
@@ -456,10 +454,7 @@ export class FileContentEditor extends LitElement {
             this._attachMenuListeners();
             // Delay gutter menu initialization to ensure editor is fully ready
             setTimeout(() => {
-                if (!this._gutterMenuCleanup) {
-                    this._initializeGutterMenu();
-                }
-                // Clear initialization flag after editor is fully set up
+                this._initializeGutterMenu();
                 this._isInitializing = false;
             }, 200);
         });
@@ -472,9 +467,9 @@ export class FileContentEditor extends LitElement {
     }
 
     _initializeGutterMenu() {
-        if (this._editor && this._editorElement && !this._gutterMenuCleanup) {
+        if (this._editor && this._editorElement) {
             try {
-                this._gutterMenuCleanup = initializeGutterMenu(this._editorElement, this._editor);
+                initializeGutterMenu(this._editorElement, this._editor);
             } catch (e) {
                 console.error('Error initializing gutter menu:', e);
             }
@@ -538,6 +533,7 @@ export class FileContentEditor extends LitElement {
                     ${isError
                 ? html`<div class="error">${this.content}</div>`
                 : this._isHtml() || this._isMarkdownFile() ? html`
+                            <qwc-gutter-menu id="gutter-menu"></qwc-gutter-menu>
                             <div class="editor-layout">
                                 <div class="editor-main">
                                     <div class="editor-wrapper">
