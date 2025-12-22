@@ -4,14 +4,25 @@
  */
 
 import { LitElement, css, html } from 'lit';
+import { editorContext } from './editor-context.js';
+import { ContextConsumer } from '../bundle.js';
 
 export class FloatingMenu extends LitElement {
     static properties = {
         visible: { type: Boolean, reflect: true },
-        editor: { type: Object },
-        editorElement: { type: Object },
-        currentBlockElement: { type: Object }
     };
+
+    constructor() {
+        super();
+        this.visible = false;
+        this.pos = null;
+        this._editorContext = null;
+        
+        this._editorConsumer = new ContextConsumer(this, {
+            context: editorContext,
+            subscribe: true
+          });
+    }
 
     static styles = css`
         :host {
@@ -19,6 +30,9 @@ export class FloatingMenu extends LitElement {
             z-index: 20;
             pointer-events: auto;
             display: none;
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 5px;
         }
         :host([visible]) {
             display: block;
@@ -65,12 +79,12 @@ export class FloatingMenu extends LitElement {
         }
     `;
 
-    constructor() {
-        super();
-        this.visible = false;
-        this.editor = null;
-        this.editorElement = null;
-        this.pos = null;
+    get editor() {
+        return this._editorConsumer.value?.editor || null;
+    }
+
+    get editorElement() {
+        return this._editorConsumer.value?.editorElement || null;
     }
 
     firstUpdated() {
@@ -100,8 +114,11 @@ export class FloatingMenu extends LitElement {
 
     /**
      * Position the floating menu relative to a block element
+     * Now uses CSS positioning relative to parent gutter menu
      */
     position(e) {
+        if (!this.editor || !this.editorElement) return;
+        
         const coords = this.editor.view.posAtCoords({
             left: e.clientX,
             top: e.clientY
@@ -109,19 +126,6 @@ export class FloatingMenu extends LitElement {
         this.pos = coords.pos;
 
         this.show();
-        
-        // Use requestAnimationFrame to ensure the element is rendered before getting dimensions
-        requestAnimationFrame(() => {
-            const editorRect = this.editorElement.getBoundingClientRect();
-            const menuRect = this.getBoundingClientRect();
-
-            // Position above the block, aligned with the gutter menu
-            const top = e.clientY - editorRect.top + this.editorElement.scrollTop - menuRect.height - 5;
-            const left = e.clientX - editorRect.left - 10;
-
-            this.style.top = `${top}px`;
-            this.style.left = `${left}px`;
-        });
     }
 
     /**
