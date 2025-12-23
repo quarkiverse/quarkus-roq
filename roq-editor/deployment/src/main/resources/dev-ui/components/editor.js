@@ -247,11 +247,26 @@ export class RoqEditor extends LitElement {
             context: editorContext,
             initialValue: { editor: null, editorElement: null }
         });
+
+        this._handleKeyDown = this._handleKeyDown.bind(this);
     }
 
     firstUpdated() {
         // Initialize editor after first render if content is available
         this._tryInitializeEditor();
+        
+        window.addEventListener('keydown', this._handleKeyDown, true);
+    }
+
+    _handleKeyDown(e) {
+        // Check for Mod+S (Ctrl+S on Windows/Linux, Cmd+S on Mac)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            this._save();
+            return false;
+        }
     }
 
     updated(changedProperties) {
@@ -304,6 +319,7 @@ export class RoqEditor extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        window.removeEventListener('keydown', this._handleKeyDown, true);
         if (this._editor && !this._editor.isDestroyed) {
             this._editor.destroy();
             this._editor = null;
