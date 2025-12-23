@@ -107,6 +107,7 @@ export class FloatingMenu extends LitElement {
                 <button class="tiptap-menu-button" data-command="orderedList" title="Ordered List">1. List</button>
                 <div class="tiptap-menu-separator"></div>
                 <button class="tiptap-menu-button" data-command="codeBlock" title="Code Block">Code</button>
+                <button class="tiptap-menu-button" data-command="quteBlock" title="Qute Block">Qute</button>
             </div>
         `;
     }
@@ -195,6 +196,15 @@ export class FloatingMenu extends LitElement {
                             content: []
                         }]
                     }]
+                })
+                .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'quteBlock') {
+            this.editor.chain()
+                .focus()
+                .insertContentAt(pos, {
+                    type: 'quteBlock',
+                    content: []
                 })
                 .setTextSelection(pos + 1)
                 .run();
