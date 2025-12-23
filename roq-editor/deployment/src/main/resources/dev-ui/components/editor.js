@@ -11,6 +11,7 @@ import './frontmatter-panel.js';
 import './gutter-menu.js';
 import './toolbar.js';
 import { PostUtils } from './post-utils.js';
+import { QuteBlock } from './qute-block.js';
 
 export class RoqEditor extends LitElement {
 
@@ -92,7 +93,7 @@ export class RoqEditor extends LitElement {
             overflow-y: auto;
             position: relative;
         }
-        .tiptap-editor > div {
+        .tiptap-editor .tiptap {
             padding-left: 50px;
         }
         .tiptap-editor:focus {
@@ -177,7 +178,7 @@ export class RoqEditor extends LitElement {
         .editor-panel[hidden] {
             display: none;
         }
-        pre {
+        .tiptap > pre {
             background-color: var(--lumo-shade-30pct);
             border: 1px solid var(--lumo-contrast-20pct);
             border-radius: var(--lumo-border-radius-m);
@@ -200,6 +201,32 @@ export class RoqEditor extends LitElement {
             background: transparent;
             border: none;
             padding: 0;
+        }
+        
+        /* Qute Template Block Styles */
+        .tiptap-editor [data-qute] {
+            border: 1px solid var(--lumo-primary-color-50pct);
+            border-radius: var(--lumo-border-radius-m);
+            margin: 1em 0;
+            background: var(--lumo-primary-color-10pct);
+        }
+        .tiptap-editor .qute-template-label {
+            background: var(--lumo-primary-color);
+            color: var(--lumo-primary-contrast-color);
+            padding: 0.25em 0.75em;
+            font-size: var(--lumo-font-size-xs);
+            font-weight: 600;
+            border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0;
+            user-select: none;
+        }
+        .tiptap-editor .qute-template-content {
+            padding: 0.75em 1em;
+            font-family: var(--lumo-font-family-monospace);
+            font-size: 0.9em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            outline: none;
+            word-break: break-word;
         }
     `;
 
@@ -346,6 +373,7 @@ export class RoqEditor extends LitElement {
         const extensions = [
             ...baseExtensions,
             ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell, ConfCodeBlockLowlight] : []),
+            QuteBlock,
             Image,
             Link.configure({
                 openOnClick: false,
