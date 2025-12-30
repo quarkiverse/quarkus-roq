@@ -12,6 +12,7 @@ import './gutter-menu.js';
 import './toolbar.js';
 import { PostUtils } from './post-utils.js';
 import { QuteBlock } from './qute-block.js';
+import { hljsTheme } from './hljs-theme.js';
 
 export class RoqEditor extends LitElement {
 
@@ -28,7 +29,9 @@ export class RoqEditor extends LitElement {
         _activeTab: { state: true }
     };
 
-    static styles = css`
+    static styles = [
+        hljsTheme,
+        css`
         :host {
             display: block;
             height: 100%;
@@ -228,7 +231,7 @@ export class RoqEditor extends LitElement {
             outline: none;
             word-break: break-word;
         }
-    `;
+    `];
 
     constructor() {
         super();
