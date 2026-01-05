@@ -49,6 +49,11 @@ export class QwcRoqEditor extends LitElement {
      */
     connectedCallback() {
         super.connectedCallback();
+        const showSidebar = location.search.includes('showSidebar');
+        if (!showSidebar) {
+            document.querySelector('qwc-menu').style.display = 'none';
+        }
+
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
           this._posts = [];
           jsonRpcResponse.result.forEach(c => {
