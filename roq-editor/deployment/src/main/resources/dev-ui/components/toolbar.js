@@ -1,22 +1,18 @@
 import { LitElement, css, html } from 'lit';
 import { ContextConsumer } from '../bundle.js';
 import { editorContext } from './editor-context.js';
-import './preview-panel.js';
 
 export class Toolbar extends LitElement {
 
   static properties = {
-    previewUrl: { type: String },
-    activeTab: { type: String, reflect: true, attribute: 'active-tab' }
+    activeTab: { type: String, reflect: true, attribute: 'active-tab' },
+    showEditorTab: { type: Boolean }
   };
 
   static styles = css`
         :host {
             display: flex;
             flex-direction: column;
-        }
-        :host([active-tab="preview"]) {
-            height: 100%;
         }
         .tabs {
             display: flex;
@@ -54,8 +50,8 @@ export class Toolbar extends LitElement {
   constructor() {
     super();
     this.activeTab = 'editor';
+    this.showEditorTab = true;
     this._editor = null;
-    this.previewUrl = null;
 
     this._editorConsumer = new ContextConsumer(this, {
       context: editorContext,
@@ -100,10 +96,16 @@ export class Toolbar extends LitElement {
   render() {
     return html`
             <div class="tabs">
+                ${this.showEditorTab ? html`
                 <button 
                     class="tab ${this.activeTab === 'editor' ? 'active' : ''}"
                     @click="${() => this._onTabClick('editor')}">
                     Editor
+                </button>` : ''}
+                <button 
+                    class="tab ${this.activeTab === 'code' ? 'active' : ''}"
+                    @click="${() => this._onTabClick('code')}">
+                    Code
                 </button>
                 <button 
                     class="tab ${this.activeTab === 'preview' ? 'active' : ''}"
@@ -111,7 +113,7 @@ export class Toolbar extends LitElement {
                     Preview
                 </button>
             </div>
-            ${this.activeTab === "editor" ? html`
+            ${this.showEditorTab && this.activeTab !== "preview" ? html`
                 <div class="editor-toolbar">
                     <vaadin-button 
                         theme="tertiary" 
@@ -124,8 +126,8 @@ export class Toolbar extends LitElement {
                         ?disabled="${!this._canRedo()}"
                         @click="${this._redo}">
                         <vaadin-icon icon="font-awesome-solid:arrow-rotate-right" slot="prefix"></vaadin-icon>
-                    </vaadin-button>
-                </div>` : html`<qwc-preview-panel .previewUrl="${this.previewUrl}"></qwc-preview-panel>`}
+                    </vaadin:button>
+                </div>` : ''}
         `;
   }
 }

@@ -7,6 +7,7 @@ import { LitElement, css, html } from 'lit';
 import { editorContext } from './editor-context.js';
 import { ContextConsumer } from '../bundle.js';
 import { showPrompt } from './prompt-dialog.js';
+import './heading-dropdown.js';
 
 export class BubbleMenu extends LitElement {
     static properties = {
@@ -46,25 +47,14 @@ export class BubbleMenu extends LitElement {
             margin: 0;
         }
         .tiptap-menu-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--lumo-space-xs) var(--lumo-space-s);
-            border: none;
-            background: transparent;
-            color: var(--lumo-body-text-color);
-            cursor: pointer;
-            border-radius: var(--lumo-border-radius-s);
-            font-size: var(--lumo-font-size-s);
-            min-width: 32px;
-            height: 32px;
+            font-size: var(--lumo-font-size-xxs);
         }
         .tiptap-menu-button:hover {
             background: var(--lumo-contrast-10pct);
         }
         .tiptap-menu-button.is-active {
             background: var(--lumo-primary-color-10pct);
-            color: var(--lumo-primary-color);
+            color: var(--lumo-body-text-color);
         }
         .tiptap-menu-button:disabled {
             opacity: 0.5;
@@ -157,28 +147,43 @@ export class BubbleMenu extends LitElement {
     render() {
         return html`
             <div class="tiptap-menu">
-                <button 
-                    class="tiptap-menu-button ${this._isCommandActive('bold') ? 'is-active' : ''}" 
+                <qwc-heading-dropdown mode="toggle"></qwc-heading-dropdown>
+                <div class="tiptap-menu-separator"></div>
+                <vaadin-button theme="icon" class="tiptap-menu-button ${this._isCommandActive('bold') ? 'is-active' : ''}" 
                     data-command="bold" 
-                    title="Bold">B</button>
-                <button 
-                    class="tiptap-menu-button ${this._isCommandActive('italic') ? 'is-active' : ''}" 
+                    title="Bold">
+                       <vaadin-icon icon="font-awesome-solid:bold"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon"
+                    class="tiptap-menu-button  ${this._isCommandActive('italic') ? 'is-active' : ''}" 
                     data-command="italic" 
-                    title="Italic">I</button>
+                    title="Italic">
+                       <vaadin-icon icon="font-awesome-solid:italic"></vaadin-icon>
+                </vaadin-button>
+                <div class="tiptap-menu-separator"></div>
+                <vaadin-button class="tiptap-menu-button" theme="icon" data-command="link" title="Link">
+                       <vaadin-icon icon="font-awesome-solid:link"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button class="tiptap-menu-button" theme="icon"data-command="image" title="Image">
+                       <vaadin-icon icon="font-awesome-solid:image"></vaadin-icon>
+                </vaadin-button>
                 <div class="tiptap-menu-separator ${this._isInList ? 'show' : ''}" data-show-on-list></div>
-                <button class="tiptap-menu-button" data-command="link" title="Link">Link</button>
-                <button class="tiptap-menu-button" data-command="image" title="Image">Image</button>
-                <div class="tiptap-menu-separator ${this._isInList ? 'show' : ''}" data-show-on-list></div>
-                <button 
+                <vaadin-button 
                     class="tiptap-menu-button ${this._isCommandActive('bulletList') ? 'is-active' : ''} ${this._isInList ? 'show' : ''}" 
                     data-command="bulletList" 
                     data-show-on-list 
-                    title="Bullet List">•</button>
-                <button 
+                    theme="icon"
+                    title="Bullet List">
+                       <vaadin-icon icon="font-awesome-solid:list"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button 
                     class="tiptap-menu-button ${this._isCommandActive('orderedList') ? 'is-active' : ''} ${this._isInList ? 'show' : ''}" 
                     data-command="orderedList" 
                     data-show-on-list 
-                    title="Ordered List">1.</button>
+                    theme="icon"
+                    title="Ordered List">
+                       <vaadin-icon icon="font-awesome-solid:list-ol"></vaadin-icon>
+                </vaadin-button>
             </div>
         `;
     }
@@ -245,8 +250,9 @@ export class BubbleMenu extends LitElement {
             this.editor.chain().focus().toggleOrderedList().run();
         }
         
-        // Update button states after command
+        // Update button states after command and force re-render
         this._updateButtonStates();
+        this.requestUpdate();
     }
 }
 

@@ -6,6 +6,7 @@
 import { LitElement, css, html } from 'lit';
 import { editorContext } from './editor-context.js';
 import { ContextConsumer } from '../bundle.js';
+import './heading-dropdown.js';
 
 export class FloatingMenu extends LitElement {
     static properties = {
@@ -96,20 +97,35 @@ export class FloatingMenu extends LitElement {
     render() {
         return html`
             <div class="tiptap-menu">
-                <button class="tiptap-menu-button" data-command="heading" data-level="1" title="Heading 1">H1</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="2" title="Heading 2">H2</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="3" title="Heading 3">H3</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="4" title="Heading 4">H4</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="5" title="Heading 5">H5</button>
-                <button class="tiptap-menu-button" data-command="heading" data-level="6" title="Heading 6">H6</button>
+                <qwc-heading-dropdown 
+                    mode="insert" 
+                    .insertPos="${this.pos}"
+                    @heading-inserted="${this._onContentInserted}"
+                    @paragraph-inserted="${this._onContentInserted}"
+                ></qwc-heading-dropdown>
                 <div class="tiptap-menu-separator"></div>
-                <button class="tiptap-menu-button" data-command="bulletList" title="Bullet List">• List</button>
-                <button class="tiptap-menu-button" data-command="orderedList" title="Ordered List">1. List</button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="bulletList" title="Bullet List">
+                    <vaadin-icon icon="font-awesome-solid:list"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="orderedList" title="Ordered List">
+                    <vaadin-icon icon="font-awesome-solid:list-ol"></vaadin-icon>
+                </vaadin-button>
                 <div class="tiptap-menu-separator"></div>
-                <button class="tiptap-menu-button" data-command="codeBlock" title="Code Block">Code</button>
-                <button class="tiptap-menu-button" data-command="quteBlock" title="Qute Block">Qute</button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="codeBlock" title="Code Block">
+                    <vaadin-icon icon="font-awesome-solid:code"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="quteBlock" title="Qute Block">
+                    <vaadin-icon icon="font-awesome-solid:window-maximize"></vaadin-icon>
+                </vaadin-button>
             </div>
         `;
+    }
+
+    /**
+     * Handle content inserted from heading dropdown
+     */
+    _onContentInserted() {
+        this.hide();
     }
 
     /**
@@ -163,7 +179,6 @@ export class FloatingMenu extends LitElement {
         if (!button || !this.editor) return;
 
         const command = button.dataset.command;
-        const level = button.dataset.level;
 
         // Get position after current block
         const pos = this.pos;
@@ -208,12 +223,11 @@ export class FloatingMenu extends LitElement {
                 })
                 .setTextSelection(pos + 1)
                 .run();
-        } else {
+        } else if (command === 'codeBlock') {
             this.editor.chain()
                 .focus()
-                .insertContentAt(pos, { 
-                    type: command, 
-                    attrs: { level: parseInt(level) } 
+                .insertContentAt(pos, {
+                    type: 'codeBlock'
                 })
                 .setTextSelection(pos + 1)
                 .run();
