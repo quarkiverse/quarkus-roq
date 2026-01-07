@@ -9,6 +9,7 @@ import './bubble-menu.js';
 import './floating-menu.js';
 import './frontmatter-panel.js';
 import './gutter-menu.js';
+import './preview-panel.js';
 import './toolbar.js';
 import { PostUtils } from './post-utils.js';
 import { QuteBlock } from './qute-block.js';
@@ -76,14 +77,6 @@ export class RoqEditor extends LitElement {
             padding: var(--lumo-space-m);
             background: var(--lumo-base-color);
         }
-        .editor-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            overflow: hidden;
-            position: relative;
-        }
         .tiptap-editor {
             flex: 1;
             width: 100%;
@@ -95,6 +88,7 @@ export class RoqEditor extends LitElement {
             box-sizing: border-box;
             overflow-y: auto;
             position: relative;
+            cursor: text;
         }
         .tiptap-editor .tiptap {
             padding-left: 50px;
@@ -181,6 +175,30 @@ export class RoqEditor extends LitElement {
         .editor-panel[hidden] {
             display: none;
         }
+        .editor-main[hidden] {
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            flex: 0;
+        }
+        .code-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .code-panel[hidden] {
+            display: none;
+        }
+        .preview-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .preview-container[hidden] {
+            display: none;
+        }
         .tiptap > pre {
             background-color: var(--lumo-shade-30pct);
             border: 1px solid var(--lumo-contrast-20pct);
@@ -252,6 +270,9 @@ export class RoqEditor extends LitElement {
         });
 
         this._handleKeyDown = this._handleKeyDown.bind(this);
+        
+        // Non-reactive storage for code block content to avoid cursor jumping
+        this._codeBlockContent = '';
     }
 
     firstUpdated() {
@@ -283,6 +304,14 @@ export class RoqEditor extends LitElement {
             this._frontmatter = parsed.frontmatter;
             this._bodyContent = parsed.body;
             this._originalContent = this.content;
+            
+            // Default to 'code' tab for AsciiDoc files since tiptap doesn't support it
+            if (this._isAsciidocFile() && this._activeTab === 'editor') {
+                this._activeTab = 'code';
+            }
+            
+            // Initialize code block content
+            this._codeBlockContent = parsed.body;
 
             const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
             if (panel) {
@@ -335,6 +364,14 @@ export class RoqEditor extends LitElement {
 
     _isHtml() {
         return PostUtils.extractFileType({ path: this.filePath }) === 'HTML';
+    }
+
+    _isAsciidocFile() {
+        return PostUtils.extractFileType({ path: this.filePath }) === 'AsciiDoc';
+    }
+
+    _supportsVisualEditor() {
+        return this._isMarkdownFile() || this._isHtml();
     }
 
     _hasContent() {
@@ -406,20 +443,9 @@ export class RoqEditor extends LitElement {
         if (bubbleMenuContainer) {
             extensions.push(BubbleMenu.configure({
                 element: bubbleMenuContainer,
-                shouldShow: ({ view, state }) => {
-                    // Don't show bubble menu when dragging
-                    if (view.dragging) {
-                        return false;
-                    }
-                    const { selection } = state;
-                    if (selection.empty || selection.from === selection.to) {
-                        return false;
-                    }
-                    return true;
-                },
+                shouldShow: ({ state: { selection } }) => !selection.empty,
                 tippyOptions: {
-                    placement: 'top',
-                    offset: [0, 8],
+                    showOnCreate: false,
                 },
             }));
         }
@@ -530,26 +556,31 @@ export class RoqEditor extends LitElement {
                 ? html`<div class="error">${this.content}</div>`
                 : html`
                         <qwc-toolbar 
-                            previewUrl="${this._getPreviewUrl()}" 
                             .activeTab="${this._activeTab}"
+                            .showEditorTab="${this._supportsVisualEditor()}"
                             @tab-changed="${this._onTabChanged}">
                         </qwc-toolbar>
+                        <div class="preview-container" ?hidden="${this._activeTab !== 'preview'}">
+                            <qwc-preview-panel .previewUrl="${this._getPreviewUrl()}"></qwc-preview-panel>
+                        </div>
                         <div class="editor-panel" ?hidden="${this._activeTab === 'preview'}">
-                            <qwc-gutter-menu id="gutter-menu">
-                                <qwc-floating-menu></qwc-floating-menu>
-                            </qwc-gutter-menu>
                             <div class="editor-layout">
-                                ${this._isHtml() || this._isMarkdownFile() ? html`<div class="editor-main">
-                                    <div class="editor-wrapper">
+                                ${this._supportsVisualEditor() ? html`
+                                <div class="editor-main" ?hidden="${this._activeTab !== 'editor'}">
+                                    <div class="tiptap-editor">
                                         <qwc-bubble-menu></qwc-bubble-menu>
-                                        <div class="tiptap-editor"></div>
+                                        <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;">
+                                            <qwc-floating-menu></qwc-floating-menu>
+                                        </qwc-gutter-menu>
                                     </div>
-                                </div>` : html`
-                        <qui-code-block showlinenumbers editable
-                            mode="adoc"
-                            .content=${this._bodyContent}
-                            @value-changed="${this._onCodeBlockChange}">
-                        </qui-code-block>`}
+                                </div>` : ''}
+                                <div class="code-panel" ?hidden="${this._activeTab !== 'code'}">
+                                    <qui-code-block showlinenumbers editable
+                                        mode="${PostUtils.getFileExtension(this.filePath)}"
+                                        .content=${this._codeBlockContent || this._editedContent}
+                                        @value-changed="${this._onCodeBlockChange}">
+                                    </qui-code-block>
+                                </div>
                                 <qwc-frontmatter-panel
                                     .frontmatter="${this._frontmatter}"
                                     @frontmatter-changed="${this._onFrontmatterChanged}">
@@ -571,7 +602,37 @@ export class RoqEditor extends LitElement {
     }
 
     _onTabChanged(e) {
-        this._activeTab = e.detail.tab;
+        const newTab = e.detail.tab;
+        const previousTab = this._activeTab;
+        
+        // If switching from code, sync the code block content to _editedContent
+        if (previousTab === 'code') {
+            const codeBlock = this.shadowRoot.querySelector('qui-code-block');
+            if (codeBlock) {
+                this._editedContent = codeBlock.value || codeBlock.content || this._codeBlockContent;
+            }
+        }
+        
+        // If switching from code to editor, update tiptap with code changes
+        if (previousTab === 'code' && newTab === 'editor' && this._editor && !this._editor.isDestroyed) {
+            this._isInitializing = true;
+            const isMarkdown = this._isMarkdownFile();
+            this._editor.commands.setContent(this._editedContent, { contentType: isMarkdown ? 'markdown' : 'html' });
+            requestAnimationFrame(() => {
+                this._isInitializing = false;
+            });
+        }
+        
+        // If switching from editor to code, ensure _editedContent is up to date
+        if (previousTab === 'editor' && newTab === 'code' && this._editor && !this._editor.isDestroyed) {
+            const isMarkdown = this._isMarkdownFile();
+            this._editedContent = isMarkdown ? this._editor.getMarkdown() : this._editor.getHTML();
+        }
+        
+        // Update code block content for next render
+        this._codeBlockContent = this._editedContent;
+        
+        this._activeTab = newTab;
         this.requestUpdate();
     }
 
@@ -579,8 +640,19 @@ export class RoqEditor extends LitElement {
         const codeBlock = e.target;
         const newContent = codeBlock.value || codeBlock.content || '';
 
-        this._editedContent = newContent;
-        this._isDirty = newContent !== this._originalContent;
+        // Store in non-reactive variable to avoid cursor jumping
+        this._codeBlockContent = newContent;
+        
+        // Check dirty state by comparing combined content with original
+        const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
+        const currentFrontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
+        const combinedContent = combineFrontmatter(currentFrontmatter, newContent);
+        const newIsDirty = combinedContent !== this._originalContent;
+        
+        // Only trigger re-render if dirty state actually changed
+        if (this._isDirty !== newIsDirty) {
+            this._isDirty = newIsDirty;
+        }
     }
 
     _save() {
@@ -588,9 +660,13 @@ export class RoqEditor extends LitElement {
             return;
         }
 
-        // Get body content from editor if available, otherwise use _editedContent
+        // Get body content based on active tab
         let bodyContent;
-        if (this._editor && !this._editor.isDestroyed) {
+        if (this._activeTab === 'code') {
+            // Read directly from code block
+            const codeBlock = this.shadowRoot.querySelector('qui-code-block');
+            bodyContent = codeBlock ? (codeBlock.value || codeBlock.content || this._codeBlockContent) : this._codeBlockContent;
+        } else if (this._editor && !this._editor.isDestroyed) {
             const isMarkdown = this._isMarkdownFile();
             if (isMarkdown) {
                 bodyContent = this._editor.getMarkdown();

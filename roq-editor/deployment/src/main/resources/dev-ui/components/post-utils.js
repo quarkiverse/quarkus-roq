@@ -2,14 +2,20 @@
  * Utility functions for extracting post data from path information
  */
 export class PostUtils {
-    
+
+    static getFileExtension(path) {
+        const match = path.match(/\.([^.]+)$/);
+        if (match) {
+            return match[1].toLowerCase();
+        }
+        return null;
+    }
 
     static extractFileType(post) {
         // Extract file extension from path
         const path = post.path || '';
-        const match = path.match(/\.([^.]+)$/);
-        if (match) {
-            const ext = match[1].toLowerCase();
+        const ext = this.getFileExtension(path);
+        if (ext) {
             // Map common extensions
             const extMap = {
                 'md': 'Markdown',
