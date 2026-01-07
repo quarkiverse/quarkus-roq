@@ -250,6 +250,16 @@ export class RoqEditor extends LitElement {
             outline: none;
             word-break: break-word;
         }
+        .tiptap-editor a {
+            color: var(--lumo-primary-text-color);
+            text-decoration-color: var(--lumo-primary-color-50pct);
+            text-underline-offset: 2px;
+            transition: color 0.15s ease, text-decoration-color 0.15s ease;
+        }
+        .tiptap-editor a:hover {
+            color: var(--lumo-primary-color);
+            text-decoration-color: var(--lumo-primary-color);
+        }
     `];
 
     constructor() {
