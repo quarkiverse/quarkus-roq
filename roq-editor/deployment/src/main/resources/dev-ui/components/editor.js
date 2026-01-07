@@ -20,6 +20,7 @@ export class RoqEditor extends LitElement {
     static properties = {
         content: { type: String },
         filePath: { type: String },
+        previewUrl: { type: String },
         loading: { type: Boolean },
         saving: { type: Boolean },
         _editedContent: { state: true },
@@ -608,6 +609,11 @@ export class RoqEditor extends LitElement {
     _onTabChanged(e) {
         const newTab = e.detail.tab;
         const previousTab = this._activeTab;
+
+        if (newTab === "previewNewTab") {
+            window.open(this._getPreviewUrl(), '_blank');
+            return;
+        }
         
         // If switching from code, sync the code block content to _editedContent
         if (previousTab === 'code') {
@@ -774,10 +780,7 @@ export class RoqEditor extends LitElement {
     }
 
     _getPreviewUrl() {
-        if (!this.filePath || !this._frontmatter) {
-            return null;
-        }
-        return PostUtils.generatePreviewUrl(this._frontmatter, this.filePath);
+        return this.previewUrl;
     }
 
 }

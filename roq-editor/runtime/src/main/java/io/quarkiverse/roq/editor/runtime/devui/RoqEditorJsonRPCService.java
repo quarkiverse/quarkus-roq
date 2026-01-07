@@ -32,14 +32,14 @@ public class RoqEditorJsonRPCService {
                 .filter(p -> p.sourcePath().startsWith("posts/"))
                 .distinct()
                 .sorted(Comparator.comparing(Page::date).reversed())
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description())).toList();
+                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path())).toList();
     }
 
     @Blocking
     public List<Source> getPages() {
         return site.pages().stream()
                 .filter(p -> !p.sourcePath().startsWith("theme-layout"))
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description())).distinct().toList();
+                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path())).distinct().toList();
     }
 
     @Blocking
@@ -82,23 +82,29 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public String saveFileContent(String path, String content) {
         if (content == null) {
-            return "Content parameter is required";
+            return "Error: Content parameter is required";
         }
 
         String filePath;
         try {
             filePath = getPagePath(path);
         } catch (Exception e) {
-            return e.getMessage();
+            return "Error: " + e.getMessage();
         }
 
         try {
             Files.writeString(Path.of(filePath), content, StandardCharsets.UTF_8);
             LOG.infof("Successfully saved file: %s", filePath);
+
+            // Return the preview URL for this page
+            var page = site.page(path);
+            if (page != null) {
+                return page.url().path();
+            }
             return "success";
         } catch (Exception e) {
             LOG.errorf(e, "Error saving source file for path: %s", filePath);
-            return "Error saving source file: " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 

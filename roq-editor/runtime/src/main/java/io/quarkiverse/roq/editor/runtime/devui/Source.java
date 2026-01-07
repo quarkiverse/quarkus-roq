@@ -1,4 +1,4 @@
 package io.quarkiverse.roq.editor.runtime.devui;
 
-public record Source(String path, String title, String description) {
+public record Source(String path, String title, String description, String url) {
 }

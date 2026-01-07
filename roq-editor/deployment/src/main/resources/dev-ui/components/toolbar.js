@@ -112,6 +112,9 @@ export class Toolbar extends LitElement {
                     @click="${() => this._onTabClick('preview')}">
                     Preview
                 </button>
+                <vaadin-button theme="icon" @click="${() => this._onTabClick('previewNewTab')}">
+                    <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
+                </vaadin-button>
             </div>
             ${this.showEditorTab && this.activeTab !== "preview" ? html`
                 <div class="editor-toolbar">

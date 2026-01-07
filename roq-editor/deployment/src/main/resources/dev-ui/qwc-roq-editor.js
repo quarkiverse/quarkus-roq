@@ -84,6 +84,7 @@ export class QwcRoqEditor extends LitElement {
                     ? html`
                         <qwc-editor 
                             .filePath="${this._selectedPost.path}"
+                            .previewUrl="${this._selectedPost.url}"
                             .loading="${this._loadingContent}"
                             @close-viewer="${this._closeViewer}"
                             .content="${this._fileContent}"
@@ -233,18 +234,26 @@ export class QwcRoqEditor extends LitElement {
         
         // Save file content to backend
         this.jsonRpc.saveFileContent({ path: filePath, content: content }).then(jsonRpcResponse => {
-            if (jsonRpcResponse.result === 'success' || jsonRpcResponse.result === true) {
-                // Update the content and mark as saved
-                this._fileContent = content;
-                if (editorElement && editorElement.markSaved) {
-                    editorElement.markSaved();
-                }
-            } else {
+            const result = jsonRpcResponse.result;
+            // Check if result is an error (starts with "Error:")
+            if (result && result.startsWith && result.startsWith('Error:')) {
                 // Handle error
                 if (editorElement && editorElement.markSaveError) {
                     editorElement.markSaveError();
                 }
-                alert('Error saving file: ' + (jsonRpcResponse.result || 'Unknown error'));
+                alert('Error saving file: ' + result);
+            } else {
+                // Success - result contains the new preview URL
+                this._fileContent = content;
+                
+                // Update the selected post with the new preview URL
+                if (result && this._selectedPost) {
+                    this._selectedPost = { ...this._selectedPost, url: result };
+                }
+                
+                if (editorElement && editorElement.markSaved) {
+                    editorElement.markSaved();
+                }
             }
         }).catch(error => {
             if (editorElement && editorElement.markSaveError) {
