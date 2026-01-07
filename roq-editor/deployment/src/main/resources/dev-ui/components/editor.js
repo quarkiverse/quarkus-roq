@@ -191,6 +191,11 @@ export class RoqEditor extends LitElement {
         .code-panel[hidden] {
             display: none;
         }
+        .code-panel qui-themed-code-block {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
         .preview-container {
             flex: 1;
             display: flex;
@@ -580,11 +585,11 @@ export class RoqEditor extends LitElement {
                                     </div>
                                 </div>` : ''}
                                 <div class="code-panel" ?hidden="${this._activeTab !== 'code'}">
-                                    <qui-code-block showlinenumbers editable
+                                    <qui-themed-code-block showlinenumbers editable
                                         mode="${PostUtils.getFileExtension(this.filePath)}"
                                         .content=${this._codeBlockContent || this._editedContent}
                                         @value-changed="${this._onCodeBlockChange}">
-                                    </qui-code-block>
+                                    </qui-themed-code-block>
                                 </div>
                                 <qwc-frontmatter-panel
                                     .frontmatter="${this._frontmatter}"
