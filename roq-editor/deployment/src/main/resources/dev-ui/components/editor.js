@@ -490,6 +490,10 @@ export class RoqEditor extends LitElement {
 
         this._provider.setValue({ editor: this._editor, editorElement: this._editorElement });
 
+        // Reset selection to end of document to prevent initial full-document selection
+        // This is needed because contentType: 'markdown' can cause the entire doc to be selected
+        this._editor.commands.setTextSelection(this._editor.state.doc.content.size);
+
         requestAnimationFrame(() => {
             // Delay gutter menu initialization to ensure editor is fully ready
             setTimeout(() => {
@@ -568,7 +572,7 @@ export class RoqEditor extends LitElement {
                                 ${this._supportsVisualEditor() ? html`
                                 <div class="editor-main" ?hidden="${this._activeTab !== 'editor'}">
                                     <div class="tiptap-editor">
-                                        <qwc-bubble-menu></qwc-bubble-menu>
+                                        <qwc-bubble-menu style="visibility: hidden;"></qwc-bubble-menu>
                                         <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;">
                                             <qwc-floating-menu></qwc-floating-menu>
                                         </qwc-gutter-menu>
