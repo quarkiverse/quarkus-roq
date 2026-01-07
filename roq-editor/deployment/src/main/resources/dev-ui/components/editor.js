@@ -83,9 +83,6 @@ export class RoqEditor extends LitElement {
             width: 100%;
             min-height: 0;
             padding: var(--lumo-space-m);
-            border-radius: var(--lumo-border-radius-m);
-            border: 1px solid var(--lumo-contrast-20pct);
-            background: var(--lumo-contrast-5pct);
             box-sizing: border-box;
             overflow-y: auto;
             position: relative;
@@ -96,8 +93,6 @@ export class RoqEditor extends LitElement {
         }
         .tiptap-editor:focus {
             outline: none;
-            border-color: var(--lumo-primary-color);
-            box-shadow: 0 0 0 2px var(--lumo-primary-color-10pct);
         }
         .tiptap-editor:disabled {
             opacity: 0.6;
