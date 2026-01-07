@@ -190,6 +190,7 @@ export class RoqEditor extends LitElement {
             flex: 1;
             min-height: 0;
             overflow: auto;
+            cursor: text;
         }
         .preview-container {
             flex: 1;
