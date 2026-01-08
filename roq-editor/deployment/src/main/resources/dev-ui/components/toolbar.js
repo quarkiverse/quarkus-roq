@@ -21,6 +21,9 @@ export class Toolbar extends LitElement {
             padding: 0 var(--lumo-space-m);
             background: var(--lumo-base-color);
         }
+        .tabs vaadin-button {
+            font-size: var(--lumo-font-size-xxs);
+        }
         .tab {
             padding: var(--lumo-space-s) var(--lumo-space-m);
             border: none;
@@ -44,6 +47,9 @@ export class Toolbar extends LitElement {
             padding: var(--lumo-space-s) var(--lumo-space-m);
             border-bottom: 1px solid var(--lumo-contrast-20pct);
             background: var(--lumo-base-color);
+        }
+        .editor-toolbar vaadin-button {
+            font-size: var(--lumo-font-size-xxs);
         }
     `;
 

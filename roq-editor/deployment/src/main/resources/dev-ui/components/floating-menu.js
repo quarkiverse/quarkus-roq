@@ -50,18 +50,7 @@ export class FloatingMenu extends LitElement {
             margin: 0;
         }
         .tiptap-menu-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--lumo-space-xs) var(--lumo-space-s);
-            border: none;
-            background: transparent;
-            color: var(--lumo-body-text-color);
-            cursor: pointer;
-            border-radius: var(--lumo-border-radius-s);
-            font-size: var(--lumo-font-size-s);
-            min-width: 32px;
-            height: 32px;
+            font-size: var(--lumo-font-size-xxs);
         }
         .tiptap-menu-button:hover {
             background: var(--lumo-contrast-10pct);
