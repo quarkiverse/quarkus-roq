@@ -103,6 +103,24 @@ export class PostCard extends LitElement {
             font-weight: 500;
             text-transform: uppercase;
         }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--lumo-space-s);
+            font-size: var(--lumo-font-size-xs);
+            color: var(--lumo-contrast-60pct);
+            margin-top: var(--lumo-space-xs);
+        }
+        .post-filename {
+            font-family: var(--lumo-font-family-mono);
+            color: var(--lumo-contrast-50pct);
+        }
+        .post-date {
+            color: var(--lumo-contrast-60pct);
+        }
+        .meta-separator {
+            color: var(--lumo-contrast-30pct);
+        }
     `;
 
     render() {
@@ -114,6 +132,8 @@ export class PostCard extends LitElement {
         const postUrl = this.post.path || '#';
         const fileType = PostUtils.extractFileType(this.post);
         const description = this.post.description || '';
+        const filename = this.post.filename || '';
+        const date = this.post.date || '';
 
         return html`
             <article class="post-card" @click="${this._onCardClick}">
@@ -129,6 +149,20 @@ export class PostCard extends LitElement {
                         <h2 class="post-title">
                             <a href="${postUrl}" @click="${this._onPostClick}">${title}</a>
                         </h2>
+                        <div class="post-meta">
+                            ${filename 
+                                ? html`<span class="post-filename">${filename}</span>`
+                                : html``
+                            }
+                            ${filename && date 
+                                ? html`<span class="meta-separator">•</span>`
+                                : html``
+                            }
+                            ${date 
+                                ? html`<span class="post-date">${date}</span>`
+                                : html``
+                            }
+                        </div>
                     </div>
                     <div class="post-footer">
                         ${fileType 

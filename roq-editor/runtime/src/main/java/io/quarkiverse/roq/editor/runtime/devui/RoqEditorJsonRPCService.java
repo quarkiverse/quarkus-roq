@@ -5,9 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,6 +24,7 @@ import io.smallrye.common.annotation.Blocking;
 @ApplicationScoped
 public class RoqEditorJsonRPCService {
     private static final Logger LOG = Logger.getLogger(RoqEditorJsonRPCService.class);
+    private static final DateTimeFormatter DATE_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("yyyy, MMM d", Locale.ENGLISH);
 
     @Inject
     private Site site;
@@ -32,14 +35,25 @@ public class RoqEditorJsonRPCService {
                 .filter(p -> p.sourcePath().startsWith("posts/"))
                 .distinct()
                 .sorted(Comparator.comparing(Page::date).reversed())
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path())).toList();
+                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
+                        p.sourcePath(), formatDate(p.date())))
+                .toList();
     }
 
     @Blocking
     public List<Source> getPages() {
         return site.pages().stream()
                 .filter(p -> !p.sourcePath().startsWith("theme-layout"))
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path())).distinct().toList();
+                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
+                        p.sourcePath(), formatDate(p.date())))
+                .distinct().toList();
+    }
+
+    private String formatDate(ZonedDateTime date) {
+        if (date == null) {
+            return "";
+        }
+        return DATE_DISPLAY_FORMAT.format(date);
     }
 
     @Blocking
