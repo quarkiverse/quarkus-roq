@@ -125,16 +125,17 @@ public class RoqEditorJsonRPCService {
 
     /**
      * Moves a post directory when date or title changes.
-     * Returns the new file path, or the original if no move was needed.
+     * Returns both the new file path and relative path, or the originals if no move was needed.
      */
-    private Path movePostIfNeeded(Path currentFilePath, String newDate, String newSlug) throws IOException {
+    private MoveResult movePostIfNeeded(Path currentFilePath, String newDate, String newSlug, String originalPath)
+            throws IOException {
         Path currentDir = currentFilePath.getParent();
         String currentDirName = currentDir.getFileName().toString();
 
         Matcher matcher = POST_DIR_PATTERN.matcher(currentDirName);
         if (!matcher.matches()) {
             // Not a standard post directory, skip moving
-            return currentFilePath;
+            return new MoveResult(currentFilePath, originalPath);
         }
 
         String currentDate = matcher.group(1);
@@ -146,7 +147,7 @@ public class RoqEditorJsonRPCService {
 
         // Check if move is needed
         if (targetDate.equals(currentDate) && targetSlug.equals(currentSlug)) {
-            return currentFilePath;
+            return new MoveResult(currentFilePath, originalPath);
         }
 
         String newDirName = targetDate + "-" + targetSlug;
@@ -159,35 +160,46 @@ public class RoqEditorJsonRPCService {
         Files.move(currentDir, newDir);
         LOG.infof("Moved post directory from %s to %s", currentDir, newDir);
 
-        return newDir.resolve(currentFilePath.getFileName());
+        // Return both the new file path and relative path
+        String fileName = currentFilePath.getFileName().toString();
+        Path newFilePath = newDir.resolve(fileName);
+        String newRelativePath = "posts/" + newDirName + "/" + fileName;
+        return new MoveResult(newFilePath, newRelativePath);
     }
 
     @Blocking
-    public String saveFileContent(String path, String content, String date, String title) {
+    public SaveResult saveFileContent(String path, String content, String date, String title) {
         if (content == null) {
-            return "Error: Content parameter is required";
+            return new SaveResult(null, "Error: Content parameter is required");
         }
 
         try {
             Path filePath = resolvePagePath(path);
 
-            // Move post if date or title changed
+            // Move post if date or title changed, returns new path and new file location
             String newDate = parseDisplayDate(date);
             String newSlug = toSlug(title);
-            filePath = movePostIfNeeded(filePath, newDate, newSlug);
+            MoveResult moveResult = movePostIfNeeded(filePath, newDate, newSlug, path);
 
-            Files.writeString(filePath, content, StandardCharsets.UTF_8);
-            LOG.infof("Successfully saved file: %s", filePath);
+            Files.writeString(moveResult.filePath(), content, StandardCharsets.UTF_8);
+            LOG.infof("Successfully saved file: %s", moveResult.filePath());
 
-            // Return the preview URL for this page
-            var page = site.page(path);
-            if (page != null) {
-                return page.url().path();
-            }
-            return "success";
+            return new SaveResult(moveResult.relativePath(), null);
         } catch (Exception e) {
             LOG.errorf(e, "Error saving file for path: %s", path);
-            return "Error: " + e.getMessage();
+            return new SaveResult(null, "Error: " + e.getMessage());
+        }
+    }
+
+    private record MoveResult(Path filePath, String relativePath) {
+    }
+
+    /**
+     * Result of a save operation.
+     */
+    public record SaveResult(String path, String error) {
+        public boolean isError() {
+            return error != null && !error.isEmpty();
         }
     }
 

@@ -1,5 +1,6 @@
 import { LitElement, html, css} from 'lit';
 import { JsonRpc } from 'jsonrpc';
+import { connectionState } from 'connection-state';
 import './components/navigation-bar.js';
 import './components/posts-list.js';
 import './components/pages-list.js';
@@ -10,6 +11,10 @@ import { showPrompt } from './components/prompt-dialog.js';
 export class QwcRoqEditor extends LitElement {
 
     jsonRpc = new JsonRpc(this);
+    
+    // Track connection state for refreshing preview URL after hot reload
+    _previousConnectionState = null;
+    _pendingPreviewRefresh = false;
 
     // Component style
     static styles = css`
@@ -67,6 +72,63 @@ export class QwcRoqEditor extends LitElement {
             });
           });
       });
+      
+      // Subscribe to connection state changes for preview URL refresh after hot reload
+      this._previousConnectionState = connectionState.current?.isConnected ?? false;
+      this._connectionStateObserver = () => this._onConnectionStateChange();
+      connectionState.addObserver(this._connectionStateObserver);
+    }
+    
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this._connectionStateObserver) {
+            connectionState.removeObserver(this._connectionStateObserver);
+        }
+    }
+    
+    _onConnectionStateChange() {
+        const currentConnected = connectionState.current?.isConnected ?? false;
+        const wasConnected = this._previousConnectionState;
+        
+        // Detect reconnection: was not connected, now connected
+        if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPost) {
+            this._pendingPreviewRefresh = false;
+            this._refreshPreviewUrl();
+        }
+        
+        this._previousConnectionState = currentConnected;
+    }
+    
+    _refreshPreviewUrl() {
+        if (!this._selectedPost) return;
+        
+        const currentPath = this._selectedPost.path;
+        
+        // Fetch fresh posts and pages to get the updated URL
+        Promise.all([
+            this.jsonRpc.getPosts(),
+            this.jsonRpc.getPages()
+        ]).then(([postsResponse, pagesResponse]) => {
+            const posts = postsResponse.result || [];
+            const pages = pagesResponse.result || [];
+            
+            // Look in both posts and pages for the updated URL
+            let updatedItem = posts.find(p => p.path === currentPath);
+            if (!updatedItem) {
+                updatedItem = pages.find(p => p.path === currentPath);
+            }
+            
+            if (updatedItem && updatedItem.url) {
+                // Update selected post/page with fresh URL
+                this._selectedPost = { ...this._selectedPost, url: updatedItem.url };
+            }
+            
+            // Also update the lists
+            this._posts = posts;
+            this._pages = pages;
+        }).catch(error => {
+            console.error('Error refreshing preview URL:', error);
+        });
     }
 
     /**
@@ -236,21 +298,28 @@ export class QwcRoqEditor extends LitElement {
         // Save file content to backend
         this.jsonRpc.saveFileContent({ path: filePath, content: content, date: date, title: title }).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
-            // Check if result is an error (starts with "Error:")
-            if (result && result.startsWith && result.startsWith('Error:')) {
+            // Check if result contains an error
+            if (result && result.error) {
                 // Handle error
                 if (editorElement && editorElement.markSaveError) {
                     editorElement.markSaveError();
                 }
-                alert('Error saving file: ' + result);
+                alert('Error saving file: ' + result.error);
             } else {
-                // Success - result contains the new preview URL
+                // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
                 
-                // Update the selected post with the new preview URL
-                if (result && this._selectedPost) {
-                    this._selectedPost = { ...this._selectedPost, url: result };
+                if (result && result.path && this._selectedPost) {
+                    this._selectedPost = { ...this._selectedPost, path: result.path };
+                    // Also update the editor's filePath property
+                    if (editorElement) {
+                        editorElement.filePath = result.path;
+                    }
                 }
+                
+                // Mark that we need to refresh preview URL after connection restores
+                // The URL will be fetched fresh after indexing completes
+                this._pendingPreviewRefresh = true;
                 
                 if (editorElement && editorElement.markSaved) {
                     editorElement.markSaved();
