@@ -8,6 +8,7 @@ export class FrontmatterPanel extends LitElement {
     
     static properties = {
         frontmatter: { type: Object },
+        date: { type: String },
         _fields: { state: true }
     };
 
@@ -114,11 +115,20 @@ export class FrontmatterPanel extends LitElement {
             border-color: var(--lumo-primary-color);
             box-shadow: 0 0 0 2px var(--lumo-primary-color-10pct);
         }
+        .date-field {
+            margin-bottom: var(--lumo-space-m);
+            padding-bottom: var(--lumo-space-m);
+            border-bottom: 1px solid var(--lumo-contrast-10pct);
+        }
+        .date-field vaadin-text-field {
+            width: 100%;
+        }
     `;
 
     constructor() {
         super();
         this.frontmatter = {};
+        this.date = '';  // Date from file path, displayed but not stored in _fields
         this._fields = {};
         this._fieldTypes = {}; // Store field types: { fieldName: 'textarea' | 'text' | 'number' | 'boolean' | 'array' }
         this._newFieldKey = '';
@@ -153,6 +163,15 @@ export class FrontmatterPanel extends LitElement {
                     <h3 class="panel-title">Frontmatter</h3>
                 </div>
                 <div class="fields-container">
+                    <div class="date-field">
+                        <label class="field-label">Date</label>
+                        <vaadin-text-field
+                            type="text"
+                            value="${this.date || ''}"
+                            placeholder="YYYY, MMM D"
+                            @input="${this._onDateInput}">
+                        </vaadin-text-field>
+                    </div>
                     ${Object.keys(this._fields).length === 0
                         ? html`
                             <div class="empty-state">
@@ -375,6 +394,11 @@ export class FrontmatterPanel extends LitElement {
         this.requestUpdate();
     }
 
+    _onDateInput(e) {
+        this.date = e.target.value;
+        this._notifyChange();
+    }
+
     _onNewFieldKeyInput(e) {
         this._newFieldKey = e.target.value;
     }
@@ -432,6 +456,10 @@ export class FrontmatterPanel extends LitElement {
 
     getFrontmatter() {
         return { ...this._fields };
+    }
+
+    getDate() {
+        return this.date || '';
     }
 
     getFieldTypes() {

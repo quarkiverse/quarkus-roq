@@ -21,6 +21,7 @@ export class RoqEditor extends LitElement {
         content: { type: String },
         filePath: { type: String },
         previewUrl: { type: String },
+        date: { type: String },
         loading: { type: Boolean },
         saving: { type: Boolean },
         _editedContent: { state: true },
@@ -28,6 +29,7 @@ export class RoqEditor extends LitElement {
         _frontmatter: { state: true },
         _bodyContent: { state: true },
         _originalContent: { state: true },
+        _originalDate: { state: true },
         _activeTab: { state: true }
     };
 
@@ -267,6 +269,7 @@ export class RoqEditor extends LitElement {
         this._frontmatter = {};
         this._bodyContent = '';
         this._originalContent = '';
+        this._originalDate = '';
         this._isInitializing = false;
         this._activeTab = 'editor';
 
@@ -310,6 +313,7 @@ export class RoqEditor extends LitElement {
             this._frontmatter = parsed.frontmatter;
             this._bodyContent = parsed.body;
             this._originalContent = this.content;
+            this._originalDate = this.date || '';
 
             // Default to 'code' tab for AsciiDoc files since tiptap doesn't support it
             if (this._isAsciidocFile() && this._activeTab === 'editor') {
@@ -593,6 +597,7 @@ export class RoqEditor extends LitElement {
                                 </div>
                                 <qwc-frontmatter-panel
                                     .frontmatter="${this._frontmatter}"
+                                    .date="${this.date}"
                                     @frontmatter-changed="${this._onFrontmatterChanged}">
                                 </qwc-frontmatter-panel>
                             </div>
@@ -606,9 +611,13 @@ export class RoqEditor extends LitElement {
 
     _onFrontmatterChanged(e) {
         this._frontmatter = e.detail.frontmatter;
-        // Update dirty state
+        // Update dirty state - check both content and date
+        const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
+        const currentDate = panel ? panel.getDate() : this.date;
         const combinedContent = combineFrontmatter(this._frontmatter, this._editedContent);
-        this._isDirty = combinedContent !== this._originalContent;
+        const contentChanged = combinedContent !== this._originalContent;
+        const dateChanged = currentDate !== this._originalDate;
+        this._isDirty = contentChanged || dateChanged;
     }
 
     _onTabChanged(e) {
@@ -692,10 +701,12 @@ export class RoqEditor extends LitElement {
             bodyContent = this._editedContent;
         }
 
-        // Get Frontmatter from panel
+        // Get Frontmatter and date from panel
         const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
         const frontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
         const fieldTypes = panel ? panel.getFieldTypes() : {};
+        const date = panel ? panel.getDate() : this.date;
+        const title = frontmatter.title || '';
 
         // Combine Frontmatter and body content
         const contentToSave = combineFrontmatter(frontmatter, bodyContent, fieldTypes);
@@ -706,7 +717,9 @@ export class RoqEditor extends LitElement {
             composed: true,
             detail: {
                 content: contentToSave,
-                filePath: this.filePath
+                filePath: this.filePath,
+                date: date,
+                title: title
             }
         }));
     }
@@ -756,6 +769,7 @@ export class RoqEditor extends LitElement {
         // Get the saved content (which includes Frontmatter)
         const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
         const frontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
+        const currentDate = panel ? panel.getDate() : this.date;
 
         let bodyContent;
         if (this._editor && !this._editor.isDestroyed) {
@@ -772,6 +786,7 @@ export class RoqEditor extends LitElement {
         const savedContent = combineFrontmatter(frontmatter, bodyContent);
         this.content = savedContent;
         this._originalContent = savedContent;
+        this._originalDate = currentDate;
         this._bodyContent = bodyContent;
         this._frontmatter = frontmatter;
         this._editedContent = bodyContent;

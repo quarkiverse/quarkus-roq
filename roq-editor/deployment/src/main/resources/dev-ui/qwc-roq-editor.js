@@ -85,6 +85,7 @@ export class QwcRoqEditor extends LitElement {
                         <qwc-editor 
                             .filePath="${this._selectedPost.path}"
                             .previewUrl="${this._selectedPost.url}"
+                            .date="${this._selectedPost.date}"
                             .loading="${this._loadingContent}"
                             @close-viewer="${this._closeViewer}"
                             .content="${this._fileContent}"
@@ -229,11 +230,11 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _onSaveContent(e) {
-        const { content, filePath } = e.detail;
+        const { content, filePath, date, title } = e.detail;
         const editorElement = e.target;
         
         // Save file content to backend
-        this.jsonRpc.saveFileContent({ path: filePath, content: content }).then(jsonRpcResponse => {
+        this.jsonRpc.saveFileContent({ path: filePath, content: content, date: date, title: title }).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result is an error (starts with "Error:")
             if (result && result.startsWith && result.startsWith('Error:')) {
