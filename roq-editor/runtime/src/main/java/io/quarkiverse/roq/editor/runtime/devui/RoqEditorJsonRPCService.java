@@ -137,7 +137,8 @@ public class RoqEditorJsonRPCService {
             // Create file with frontmatter template
             String frontmatter = "---\n" +
                     "title: \"" + title + "\"\n" +
-                    "tags:\n" +
+                    "image: \n" +
+                    "description: \n" +
                     "---\n";
             Files.writeString(postFile, frontmatter, StandardCharsets.UTF_8);
 
