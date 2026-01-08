@@ -47,7 +47,6 @@ export class RoqEditor extends LitElement {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--lumo-space-m);
             border-bottom: 1px solid var(--lumo-contrast-20pct);
             background: var(--lumo-base-color);
         }
@@ -75,14 +74,12 @@ export class RoqEditor extends LitElement {
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding: var(--lumo-space-m);
             background: var(--lumo-base-color);
         }
         .tiptap-editor {
             flex: 1;
             width: 100%;
             min-height: 0;
-            padding: var(--lumo-space-m);
             box-sizing: border-box;
             overflow-y: auto;
             position: relative;
@@ -97,9 +94,6 @@ export class RoqEditor extends LitElement {
         .tiptap-editor:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-        }
-        .tiptap-editor p {
-            margin: 1em 0;
         }
         .tiptap-editor blockquote {
             margin: 1em 0;
@@ -282,7 +276,7 @@ export class RoqEditor extends LitElement {
         });
 
         this._handleKeyDown = this._handleKeyDown.bind(this);
-        
+
         // Non-reactive storage for code block content to avoid cursor jumping
         this._codeBlockContent = '';
     }
@@ -290,7 +284,7 @@ export class RoqEditor extends LitElement {
     firstUpdated() {
         // Initialize editor after first render if content is available
         this._tryInitializeEditor();
-        
+
         window.addEventListener('keydown', this._handleKeyDown, true);
     }
 
@@ -316,12 +310,12 @@ export class RoqEditor extends LitElement {
             this._frontmatter = parsed.frontmatter;
             this._bodyContent = parsed.body;
             this._originalContent = this.content;
-            
+
             // Default to 'code' tab for AsciiDoc files since tiptap doesn't support it
             if (this._isAsciidocFile() && this._activeTab === 'editor') {
                 this._activeTab = 'code';
             }
-            
+
             // Initialize code block content
             this._codeBlockContent = parsed.body;
 
@@ -625,7 +619,7 @@ export class RoqEditor extends LitElement {
             window.open(this._getPreviewUrl(), '_blank');
             return;
         }
-        
+
         // If switching from code, sync the code block content to _editedContent
         if (previousTab === 'code') {
             const codeBlock = this.shadowRoot.querySelector('qui-code-block');
@@ -633,7 +627,7 @@ export class RoqEditor extends LitElement {
                 this._editedContent = codeBlock.value || codeBlock.content || this._codeBlockContent;
             }
         }
-        
+
         // If switching from code to editor, update tiptap with code changes
         if (previousTab === 'code' && newTab === 'editor' && this._editor && !this._editor.isDestroyed) {
             this._isInitializing = true;
@@ -643,16 +637,16 @@ export class RoqEditor extends LitElement {
                 this._isInitializing = false;
             });
         }
-        
+
         // If switching from editor to code, ensure _editedContent is up to date
         if (previousTab === 'editor' && newTab === 'code' && this._editor && !this._editor.isDestroyed) {
             const isMarkdown = this._isMarkdownFile();
             this._editedContent = isMarkdown ? this._editor.getMarkdown() : this._editor.getHTML();
         }
-        
+
         // Update code block content for next render
         this._codeBlockContent = this._editedContent;
-        
+
         this._activeTab = newTab;
         this.requestUpdate();
     }
@@ -663,13 +657,13 @@ export class RoqEditor extends LitElement {
 
         // Store in non-reactive variable to avoid cursor jumping
         this._codeBlockContent = newContent;
-        
+
         // Check dirty state by comparing combined content with original
         const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
         const currentFrontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
         const combinedContent = combineFrontmatter(currentFrontmatter, newContent);
         const newIsDirty = combinedContent !== this._originalContent;
-        
+
         // Only trigger re-render if dirty state actually changed
         if (this._isDirty !== newIsDirty) {
             this._isDirty = newIsDirty;
