@@ -17,6 +17,8 @@ export class HeadingDropdown extends LitElement {
         insertPos: { type: Number },
         /** Currently selected value */
         _selectedValue: { state: true },
+        /** Whether the dropdown is open */
+        opened: { type: Boolean, reflect: true },
     };
 
     constructor() {
@@ -25,6 +27,7 @@ export class HeadingDropdown extends LitElement {
         this.insertPos = null;
         this._selectedValue = 'paragraph';
         this._isUpdatingFromEditor = false;
+        this.opened = false;
         
         this._items = [
             { label: 'Paragraph', value: 'paragraph' },
@@ -183,6 +186,15 @@ export class HeadingDropdown extends LitElement {
         }
     }
 
+    _handleOpenedChanged(e) {
+        this.opened = e.detail.value;
+        this.dispatchEvent(new CustomEvent('dropdown-opened-changed', {
+            bubbles: true,
+            composed: true,
+            detail: { opened: this.opened }
+        }));
+    }
+
     render() {
         return html`
             <vaadin-combo-box
@@ -192,6 +204,7 @@ export class HeadingDropdown extends LitElement {
                 item-value-path="value"
                 .value="${this._selectedValue}"
                 @change="${this._handleChange}"
+                @opened-changed="${this._handleOpenedChanged}"
             ></vaadin-combo-box>
         `;
     }

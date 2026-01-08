@@ -11,12 +11,14 @@ import './heading-dropdown.js';
 export class FloatingMenu extends LitElement {
     static properties = {
         visible: { type: Boolean, reflect: true },
+        _dropdownOpen: { state: true },
     };
 
     constructor() {
         super();
         this.visible = false;
         this.pos = null;
+        this._dropdownOpen = false;
         
         this._editorConsumer = new ContextConsumer(this, {
             context: editorContext,
@@ -92,6 +94,14 @@ export class FloatingMenu extends LitElement {
         this.addEventListener('click', this._handleClick.bind(this));
         this.addEventListener('mouseenter', this._handleMouseEnter.bind(this));
         this.addEventListener('mouseleave', this._handleMouseLeave.bind(this));
+        this.addEventListener('dropdown-opened-changed', this._handleDropdownOpenedChanged.bind(this));
+    }
+
+    /**
+     * Handle dropdown opened state changes
+     */
+    _handleDropdownOpenedChanged(e) {
+        this._dropdownOpen = e.detail.opened;
     }
 
     render() {
@@ -245,10 +255,12 @@ export class FloatingMenu extends LitElement {
     }
 
     /**
-     * Handle mouse leave - hide menu
+     * Handle mouse leave - hide menu unless dropdown is open
      */
     _handleMouseLeave() {
-        this.hide();
+        if (!this._dropdownOpen) {
+            this.hide();
+        }
     }
 }
 
