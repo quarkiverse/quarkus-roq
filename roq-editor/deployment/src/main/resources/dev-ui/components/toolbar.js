@@ -44,7 +44,6 @@ export class Toolbar extends LitElement {
         .editor-toolbar {
             display: flex;
             gap: var(--lumo-space-s);
-            padding: var(--lumo-space-s) var(--lumo-space-m);
             border-bottom: 1px solid var(--lumo-contrast-20pct);
             background: var(--lumo-base-color);
         }
