@@ -3,12 +3,13 @@ import '@vaadin/text-field';
 import '@vaadin/text-area';
 import '@vaadin/button';
 import '@vaadin/icon';
+import '@vaadin/date-picker';
 
 export class FrontmatterPanel extends LitElement {
     
     static properties = {
         frontmatter: { type: Object },
-        date: { type: String },
+        date: { type: String },  // Initial date from file path (used as fallback if not in frontmatter)
         _fields: { state: true }
     };
 
@@ -120,7 +121,7 @@ export class FrontmatterPanel extends LitElement {
             padding-bottom: var(--lumo-space-m);
             border-bottom: 1px solid var(--lumo-contrast-10pct);
         }
-        .date-field vaadin-text-field {
+        .date-field vaadin-date-picker {
             width: 100%;
         }
     `;
@@ -128,7 +129,7 @@ export class FrontmatterPanel extends LitElement {
     constructor() {
         super();
         this.frontmatter = {};
-        this.date = '';  // Date from file path, displayed but not stored in _fields
+        this.date = '';  // Initial date from file path (used as fallback if not in frontmatter)
         this._fields = {};
         this._fieldTypes = {}; // Store field types: { fieldName: 'textarea' | 'text' | 'number' | 'boolean' | 'array' }
         this._newFieldKey = '';
@@ -136,12 +137,21 @@ export class FrontmatterPanel extends LitElement {
     }
 
     updated(changedProperties) {
-        if (changedProperties.has('frontmatter')) {
+        if (changedProperties.has('frontmatter') || changedProperties.has('date')) {
             this._fields = { ...this.frontmatter };
+            
+            // If frontmatter doesn't have a date but we have one from file path, use it
+            if (!this._fields.date && this.date) {
+                // Convert the date from file path to yyyy-MM-dd format if needed
+                this._fields.date = this._parseAndFormatDate(this.date);
+            }
+            
             // Infer field types from values if not already set
             for (const [key, value] of Object.entries(this._fields)) {
                 if (!this._fieldTypes[key]) {
-                    if (Array.isArray(value)) {
+                    if (key === 'date') {
+                        this._fieldTypes[key] = 'date';
+                    } else if (Array.isArray(value)) {
                         this._fieldTypes[key] = 'array';
                     } else if (typeof value === 'boolean') {
                         this._fieldTypes[key] = 'boolean';
@@ -155,6 +165,40 @@ export class FrontmatterPanel extends LitElement {
             }
         }
     }
+    
+    /**
+     * Parse a date string and return it in yyyy-MM-dd format.
+     * Handles various input formats.
+     */
+    _parseAndFormatDate(dateStr) {
+        if (!dateStr) return '';
+        
+        // If already in yyyy-MM-dd format, return as is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return dateStr;
+        }
+        
+        // If it has time component (yyyy-MM-dd HH:mm), extract just the date
+        const dateOnlyMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (dateOnlyMatch) {
+            return dateOnlyMatch[1];
+        }
+        
+        try {
+            // Create date at noon local time to avoid timezone boundary issues
+            const date = new Date(dateStr + ' 12:00:00');
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        } catch (e) {
+            // Fallback: return original string
+        }
+        
+        return dateStr;
+    }
 
     render() {
         return html`
@@ -165,22 +209,21 @@ export class FrontmatterPanel extends LitElement {
                 <div class="fields-container">
                     <div class="date-field">
                         <label class="field-label">Date</label>
-                        <vaadin-text-field
-                            type="text"
-                            value="${this.date || ''}"
-                            placeholder="YYYY, MMM D"
-                            @input="${this._onDateInput}">
-                        </vaadin-text-field>
+                        <vaadin-date-picker
+                            .value="${this._getDatePickerValue()}"
+                            @change="${this._onDateChange}"
+                            clear-button-visible>
+                        </vaadin-date-picker>
                     </div>
-                    ${Object.keys(this._fields).length === 0
+                    ${Object.keys(this._fields).filter(k => k !== 'date').length === 0
                         ? html`
                             <div class="empty-state">
                                 No Frontmatter fields. Add fields below.
                             </div>
                         `
-                        : Object.entries(this._fields).map(([key, value]) => 
-                            this._renderField(key, value)
-                        )
+                        : Object.entries(this._fields)
+                            .filter(([key]) => key !== 'date')
+                            .map(([key, value]) => this._renderField(key, value))
                     }
                     <div class="add-field-section">
                         <div class="field-label">Add Field</div>
@@ -394,9 +437,30 @@ export class FrontmatterPanel extends LitElement {
         this.requestUpdate();
     }
 
-    _onDateInput(e) {
-        this.date = e.target.value;
+    /**
+     * Get the date value for the date picker in yyyy-MM-dd format.
+     */
+    _getDatePickerValue() {
+        const dateValue = this._fields.date;
+        if (!dateValue) return '';
+        
+        // Extract just the date part if it includes time
+        return this._parseAndFormatDate(dateValue);
+    }
+    
+    _onDateChange(e) {
+        const value = e.target.value;
+        if (value) {
+            // Store in yyyy-MM-dd format in frontmatter
+            this._fields.date = value;
+            this._fieldTypes.date = 'date';
+        } else {
+            // Clear date if empty
+            delete this._fields.date;
+            delete this._fieldTypes.date;
+        }
         this._notifyChange();
+        this.requestUpdate();
     }
 
     _onNewFieldKeyInput(e) {
@@ -459,7 +523,7 @@ export class FrontmatterPanel extends LitElement {
     }
 
     getDate() {
-        return this.date || '';
+        return this._fields.date || '';
     }
 
     getFieldTypes() {

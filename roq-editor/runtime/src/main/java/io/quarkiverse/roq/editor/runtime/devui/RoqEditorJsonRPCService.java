@@ -108,17 +108,28 @@ public class RoqEditorJsonRPCService {
     }
 
     /**
-     * Parses a display date (e.g., "2025, Mar 24") to a file name date (e.g., "2025-03-24").
+     * Parses a date string to a file name date format (yyyy-MM-dd).
+     * Accepts multiple formats:
+     * - ISO format: "2025-03-24"
+     * - Display format: "2025, Mar 24"
      */
-    private String parseDisplayDate(String displayDate) {
-        if (displayDate == null || displayDate.isBlank()) {
+    private String parseDisplayDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
             return null;
         }
+
+        // First, try ISO format (yyyy-MM-dd) - used by date picker
+        if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
+            // Extract just the date portion if it includes time
+            return dateStr.substring(0, 10);
+        }
+
+        // Then try the display format (yyyy, MMM d)
         try {
-            var temporal = DATE_DISPLAY_FORMAT.parse(displayDate);
+            var temporal = DATE_DISPLAY_FORMAT.parse(dateStr);
             return FILE_NAME_DATE_FORMAT.format(temporal);
         } catch (DateTimeParseException e) {
-            LOG.warnf("Could not parse date: %s", displayDate);
+            LOG.warnf("Could not parse date: %s", dateStr);
             return null;
         }
     }
