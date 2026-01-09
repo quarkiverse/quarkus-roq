@@ -33,6 +33,7 @@ export class SlashMenu extends LitElement {
             min-width: 200px;
             max-height: 300px;
             overflow-y: auto;
+            background: var(--lumo-base-color);
         }
         .slash-menu-label {
             font-size: var(--lumo-font-size-xxs);
