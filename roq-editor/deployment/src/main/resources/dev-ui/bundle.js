@@ -1,4 +1,4 @@
-import { Editor, Node, mergeAttributes } from '@tiptap/core'
+import { Editor, Extension, Node, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { Image } from '@tiptap/extension-image'
@@ -10,11 +10,12 @@ import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
-import {common, createLowlight} from 'lowlight'
+import Suggestion from '@tiptap/suggestion'
+import { common, createLowlight } from 'lowlight'
 import { createContext, ContextProvider, ContextConsumer } from '@lit/context'
 
 const ConfCodeBlockLowlight = CodeBlockLowlight.configure({
     lowlight: createLowlight(common)
 })
 
-export { Editor, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, createContext, ContextProvider, ContextConsumer };
+export { Editor, Extension, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, Suggestion, createContext, ContextProvider, ContextConsumer };

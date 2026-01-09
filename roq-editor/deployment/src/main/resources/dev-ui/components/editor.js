@@ -13,6 +13,7 @@ import './preview-panel.js';
 import './toolbar.js';
 import { PostUtils } from './post-utils.js';
 import { QuteBlock } from './qute-block.js';
+import { SlashCommand } from './slash-command.js';
 import { hljsTheme } from '../hljs-theme.js';
 
 export class RoqEditor extends LitElement {
@@ -257,6 +258,14 @@ export class RoqEditor extends LitElement {
             color: var(--lumo-primary-color);
             text-decoration-color: var(--lumo-primary-color);
         }
+        span.suggestion.is-empty::after {
+            content: attr(data-decoration-content);
+        }
+        span.suggestion {
+            background: var(--lumo-primary-color-10pct);
+            border-radius: var(--lumo-border-radius-m);
+            outline: 5.5px solid var(--lumo-primary-color-10pct);
+        }
     `];
 
     constructor() {
@@ -448,6 +457,7 @@ export class RoqEditor extends LitElement {
                 render: () => this.shadowRoot.getElementById('gutter-menu'),
                 dragHandleWidth: 24,
             }),
+            SlashCommand,
         ];
 
         if (bubbleMenuContainer) {

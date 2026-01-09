@@ -10,6 +10,10 @@
     <artifactId>quarkus-roq-editor-deployment</artifactId>
     <name>Quarkus Roq - Editor - Deployment</name>
 
+    <properties>
+        <tiptap.version>3.12.1</tiptap.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -80,57 +84,62 @@
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>core</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>starter-kit</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>markdown</artifactId>
-                        <version>3.13.0</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-image</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-drag-handle</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-bubble-menu</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-table</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-table-row</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-table-cell</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-table-header</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-code-block-lowlight</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>suggestion</artifactId>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.lit</groupId>
@@ -140,88 +149,88 @@
                     <!-- this can be removed when we have transitive dependencies -->
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-blockquote</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-code</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-code-block</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-bold</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-document</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-hard-break</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-heading</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-italic</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-horizontal-rule</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-paragraph</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-list</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-strike</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-text</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-underline</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-link</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extensions</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>pm</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-text</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-underline</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extensions</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-blockquote</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-code</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-code-block</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-bold</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-strike</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-document</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-hard-break</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-heading</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-italic</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-horizontal-rule</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-paragraph</artifactId>
+                        <version>${tiptap.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-list</artifactId>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
@@ -336,12 +345,12 @@
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-collaboration</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
                         <artifactId>extension-node-range</artifactId>
-                        <version>3.12.1</version>
+                        <version>${tiptap.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tiptap</groupId>
