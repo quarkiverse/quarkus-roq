@@ -641,7 +641,7 @@ export class RoqEditor extends LitElement {
 
         // If switching from code, sync the code block content to _editedContent
         if (previousTab === 'code') {
-            const codeBlock = this.shadowRoot.querySelector('qui-code-block');
+            const codeBlock = this.shadowRoot.querySelector('qui-themed-code-block');
             if (codeBlock) {
                 this._editedContent = codeBlock.value || codeBlock.content || this._codeBlockContent;
             }
@@ -698,7 +698,7 @@ export class RoqEditor extends LitElement {
         let bodyContent;
         if (this._activeTab === 'code') {
             // Read directly from code block
-            const codeBlock = this.shadowRoot.querySelector('qui-code-block');
+            const codeBlock = this.shadowRoot.querySelector('qui-themed-code-block');
             bodyContent = codeBlock ? (codeBlock.value || codeBlock.content || this._codeBlockContent) : this._codeBlockContent;
         } else if (this._editor && !this._editor.isDestroyed) {
             const isMarkdown = this._isMarkdownFile();
