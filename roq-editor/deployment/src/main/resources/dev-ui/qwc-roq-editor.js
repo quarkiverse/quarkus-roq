@@ -36,7 +36,8 @@ export class QwcRoqEditor extends LitElement {
         "_activeTab": {state: true},
         "_selectedPost": {state: true},
         "_fileContent": {state: true},
-        "_loadingContent": {state: true}
+        "_loadingContent": {state: true},
+        "_dateFormat": {state: true}
     }
 
     constructor() {
@@ -45,6 +46,7 @@ export class QwcRoqEditor extends LitElement {
         this._selectedPost = null;
         this._fileContent = null;
         this._loadingContent = false;
+        this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
     }
 
     // Components callbacks
@@ -58,6 +60,11 @@ export class QwcRoqEditor extends LitElement {
         if (!showSidebar) {
             document.querySelector('qwc-menu').style.display = 'none';
         }
+
+        // Fetch the configured date format from the server
+        this.jsonRpc.getDateFormat().then(jsonRpcResponse => {
+            this._dateFormat = jsonRpcResponse.result;
+        });
 
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
           this._posts = [];
@@ -148,6 +155,7 @@ export class QwcRoqEditor extends LitElement {
                             .filePath="${this._selectedPost.path}"
                             .previewUrl="${this._selectedPost.url}"
                             .date="${this._selectedPost.date}"
+                            .dateFormat="${this._dateFormat}"
                             .loading="${this._loadingContent}"
                             @close-viewer="${this._closeViewer}"
                             .content="${this._fileContent}"

@@ -23,6 +23,7 @@ export class RoqEditor extends LitElement {
         filePath: { type: String },
         previewUrl: { type: String },
         date: { type: String },
+        dateFormat: { type: String },
         loading: { type: Boolean },
         saving: { type: Boolean },
         _editedContent: { state: true },
@@ -608,6 +609,7 @@ export class RoqEditor extends LitElement {
                                 <qwc-frontmatter-panel
                                     .frontmatter="${this._frontmatter}"
                                     .date="${this.date}"
+                                    .dateFormat="${this.dateFormat}"
                                     @frontmatter-changed="${this._onFrontmatterChanged}">
                                 </qwc-frontmatter-panel>
                             </div>

@@ -3,13 +3,14 @@ import '@vaadin/text-field';
 import '@vaadin/text-area';
 import '@vaadin/button';
 import '@vaadin/icon';
-import '@vaadin/date-picker';
+import '@vaadin/date-time-picker';
 
 export class FrontmatterPanel extends LitElement {
     
     static properties = {
         frontmatter: { type: Object },
         date: { type: String },  // Initial date from file path (used as fallback if not in frontmatter)
+        dateFormat: { type: String },  // Date format from server config (e.g., "yyyy-MM-dd[ HH:mm][:ss][ Z]")
         _fields: { state: true }
     };
 
@@ -121,7 +122,7 @@ export class FrontmatterPanel extends LitElement {
             padding-bottom: var(--lumo-space-m);
             border-bottom: 1px solid var(--lumo-contrast-10pct);
         }
-        .date-field vaadin-date-picker {
+        .date-field vaadin-date-time-picker {
             width: 100%;
         }
     `;
@@ -130,6 +131,7 @@ export class FrontmatterPanel extends LitElement {
         super();
         this.frontmatter = {};
         this.date = '';  // Initial date from file path (used as fallback if not in frontmatter)
+        this.dateFormat = 'yyyy-MM-dd';  // Default date format, will be overridden by server config
         this._fields = {};
         this._fieldTypes = {}; // Store field types: { fieldName: 'textarea' | 'text' | 'number' | 'boolean' | 'array' }
         this._newFieldKey = '';
@@ -209,11 +211,10 @@ export class FrontmatterPanel extends LitElement {
                 <div class="fields-container">
                     <div class="date-field">
                         <label class="field-label">Date</label>
-                        <vaadin-date-picker
-                            .value="${this._getDatePickerValue()}"
-                            @change="${this._onDateChange}"
-                            clear-button-visible>
-                        </vaadin-date-picker>
+                        <vaadin-date-time-picker
+                            .value="${this._getDateTimePickerValue()}"
+                            @change="${this._onDateChange}">
+                        </vaadin-date-time-picker>
                     </div>
                     ${Object.keys(this._fields).filter(k => k !== 'date').length === 0
                         ? html`
@@ -438,21 +439,61 @@ export class FrontmatterPanel extends LitElement {
     }
 
     /**
-     * Get the date value for the date picker in yyyy-MM-dd format.
+     * Get the date value for the date-time picker in ISO format (yyyy-MM-ddTHH:mm).
      */
-    _getDatePickerValue() {
+    _getDateTimePickerValue() {
         const dateValue = this._fields.date;
         if (!dateValue) return '';
         
-        // Extract just the date part if it includes time
-        return this._parseAndFormatDate(dateValue);
+        // Parse the date value and convert to ISO format for the picker
+        return this._parseDateToISO(dateValue);
+    }
+    
+    /**
+     * Parse a date string (in various formats) to ISO format for the date-time picker.
+     */
+    _parseDateToISO(dateStr) {
+        if (!dateStr) return '';
+        
+        // If already in ISO format (yyyy-MM-ddTHH:mm), return as is
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateStr)) {
+            return dateStr.substring(0, 16); // Truncate to yyyy-MM-ddTHH:mm
+        }
+        
+        // If in yyyy-MM-dd format, add default time
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return dateStr + 'T00:00';
+        }
+        
+        // If in yyyy-MM-dd HH:mm format, convert to ISO
+        const spaceMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
+        if (spaceMatch) {
+            return spaceMatch[1] + 'T' + spaceMatch[2];
+        }
+        
+        // Try to parse as a date
+        try {
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        } catch (e) {
+            // Fallback
+        }
+        
+        return '';
     }
     
     _onDateChange(e) {
         const value = e.target.value;
         if (value) {
-            // Store in yyyy-MM-dd format in frontmatter
-            this._fields.date = value;
+            // Format the date according to the server's date format
+            this._fields.date = this._formatDateForOutput(value);
             this._fieldTypes.date = 'date';
         } else {
             // Clear date if empty
@@ -461,6 +502,49 @@ export class FrontmatterPanel extends LitElement {
         }
         this._notifyChange();
         this.requestUpdate();
+    }
+    
+    /**
+     * Format a date-time picker value (ISO format) according to the server's date format.
+     * @param {string} isoValue - ISO format date string (yyyy-MM-ddTHH:mm)
+     */
+    _formatDateForOutput(isoValue) {
+        if (!isoValue) return '';
+        
+        const date = new Date(isoValue);
+        if (isNaN(date.getTime())) return isoValue;
+        
+        // Calculate timezone offset
+        const tzOffset = -date.getTimezoneOffset();
+        const tzSign = tzOffset >= 0 ? '+' : '-';
+        const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0');
+        const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, '0');
+        
+        // Token map: Java DateTimeFormatter pattern -> value
+        const tokens = {
+            'yyyy': String(date.getFullYear()),
+            'yy': String(date.getFullYear()).slice(-2),
+            'MM': String(date.getMonth() + 1).padStart(2, '0'),
+            'dd': String(date.getDate()).padStart(2, '0'),
+            'HH': String(date.getHours()).padStart(2, '0'),
+            'mm': String(date.getMinutes()).padStart(2, '0'),
+            'ss': String(date.getSeconds()).padStart(2, '0'),
+            'Z': `${tzSign}${tzHours}${tzMinutes}`
+        };
+        
+        let result = this.dateFormat || 'yyyy-MM-dd';
+        
+        // Remove brackets - treat optional parts as required since we have values
+        result = result.replace(/\[([^\]]+)\]/g, '$1');
+        
+        // Replace tokens (longest first to avoid partial matches like 'yy' matching inside 'yyyy')
+        Object.keys(tokens)
+            .sort((a, b) => b.length - a.length)
+            .forEach(token => {
+                result = result.replaceAll(token, tokens[token]);
+            });
+        
+        return result;
     }
 
     _onNewFieldKeyInput(e) {

@@ -20,6 +20,7 @@ import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.util.PathUtils;
@@ -34,6 +35,9 @@ public class RoqEditorJsonRPCService {
 
     @Inject
     private Site site;
+
+    @Inject
+    private RoqSiteConfig config;
 
     @Blocking
     public List<Source> getPosts() {
@@ -156,12 +160,12 @@ public class RoqEditorJsonRPCService {
         String targetDate = (newDate != null && !newDate.isBlank()) ? newDate : currentDate;
         String targetSlug = (newSlug != null && !newSlug.isBlank()) ? newSlug : currentSlug;
 
-        // Check if move is needed
-        if (targetDate.equals(currentDate) && targetSlug.equals(currentSlug)) {
+        String newDirName = targetDate + "-" + targetSlug;
+
+        if (newDirName.equals(currentDirName)) {
             return new MoveResult(currentFilePath, originalPath);
         }
 
-        String newDirName = targetDate + "-" + targetSlug;
         Path newDir = currentDir.getParent().resolve(newDirName);
 
         if (Files.exists(newDir)) {
@@ -238,8 +242,8 @@ public class RoqEditorJsonRPCService {
             String frontmatter = """
                     ---
                     title: "%s"
-                    image:\s
-                    description:\s
+                    image: ""\s
+                    description: ""\s
                     ---
                     """.formatted(title);
             Files.writeString(postFile, frontmatter, StandardCharsets.UTF_8);
@@ -306,5 +310,14 @@ public class RoqEditorJsonRPCService {
             return Path.of(absolutePath).getParent();
         }
         return null;
+    }
+
+    /**
+     * Returns the configured date format from RoqSiteConfig.
+     * This format is used for parsing and formatting dates in frontmatter.
+     */
+    @Blocking
+    public String getDateFormat() {
+        return config.dateFormat();
     }
 }
