@@ -116,6 +116,9 @@ export class FloatingMenu extends LitElement {
                 <vaadin-button theme="icon" class="tiptap-menu-button" data-command="quteBlock" title="Qute Block">
                     <vaadin-icon icon="font-awesome-solid:window-maximize"></vaadin-icon>
                 </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="table" title="Table">
+                    <vaadin-icon icon="font-awesome-solid:table"></vaadin-icon>
+                </vaadin-button>
             </div>
         `;
     }
@@ -229,6 +232,12 @@ export class FloatingMenu extends LitElement {
                     type: 'codeBlock'
                 })
                 .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'table') {
+            this.editor.chain()
+                .focus()
+                .setTextSelection(pos)
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
                 .run();
         }
 

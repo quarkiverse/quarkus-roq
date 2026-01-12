@@ -85,6 +85,13 @@ const BLOCK_TYPES = [
         command: ({ editor, range }) => {
             editor.chain().focus().deleteRange(range).insertContent({ type: 'quteBlock' }).run();
         }
+    },
+    {
+        label: 'Table',
+        icon: '▦',
+        command: ({ editor, range }) => {
+            editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+        }
     }
 ];
 

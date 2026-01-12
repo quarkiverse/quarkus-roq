@@ -7,6 +7,7 @@ import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
 import { editorContext } from './editor-context.js';
 import './bubble-menu.js';
 import './floating-menu.js';
+import './table-menu.js';
 import './frontmatter-panel.js';
 import './gutter-menu.js';
 import './preview-panel.js';
@@ -464,7 +465,11 @@ export class RoqEditor extends LitElement {
         if (bubbleMenuContainer) {
             extensions.push(BubbleMenu.configure({
                 element: bubbleMenuContainer,
-                shouldShow: ({ state: { selection } }) => !selection.empty,
+                shouldShow: ({ state: { selection }, editor }) => {
+                    // Don't show when in a table - use table menu instead
+                    if (editor.isActive('table')) return false;
+                    return !selection.empty;
+                },
                 tippyOptions: {
                     showOnCreate: false,
                 },
@@ -594,6 +599,7 @@ export class RoqEditor extends LitElement {
                                 <div class="editor-main" ?hidden="${this._activeTab !== 'editor'}">
                                     <div class="tiptap-editor">
                                         <qwc-bubble-menu style="visibility: hidden;"></qwc-bubble-menu>
+                                        <qwc-table-menu></qwc-table-menu>
                                         <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;">
                                             <qwc-floating-menu></qwc-floating-menu>
                                         </qwc-gutter-menu>
