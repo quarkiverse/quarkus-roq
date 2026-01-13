@@ -121,7 +121,7 @@ export class Toolbar extends LitElement {
                     <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
                 </vaadin-button>
             </div>
-            ${this.showEditorTab && this.activeTab !== "preview" ? html`
+            ${this.showEditorTab && this.activeTab === "editor" ? html`
                 <div class="editor-toolbar">
                     <vaadin-button 
                         theme="tertiary" 
