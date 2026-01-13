@@ -242,10 +242,11 @@ public class RoqEditorJsonRPCService {
             String frontmatter = """
                     ---
                     title: "%s"
+                    date: "%s"
                     image: ""\s
                     description: ""\s
                     ---
-                    """.formatted(title);
+                    """.formatted(title, FILE_NAME_DATE_FORMAT.format(LocalDate.now()));
             Files.writeString(postFile, frontmatter, StandardCharsets.UTF_8);
 
             String relativePath = "posts/" + dirName + "/index.md";
