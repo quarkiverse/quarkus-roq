@@ -44,4 +44,4 @@ Start Dev-Mode
 quarkus dev
 ```
 
-🚀 Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
+🚀 Hit `c` (like CMS) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)

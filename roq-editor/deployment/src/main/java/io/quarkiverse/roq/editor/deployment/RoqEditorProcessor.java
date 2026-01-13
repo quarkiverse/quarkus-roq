@@ -38,7 +38,7 @@ class RoqEditorProcessor {
             return;
         }
         if (context == null) {
-            context = ConsoleStateManager.INSTANCE.createContext("HTTP");
+            context = ConsoleStateManager.INSTANCE.createContext("Roq");
         }
         Config c = ConfigProvider.getConfig();
         String host = c.getOptionalValue("quarkus.http.host", String.class).orElse("localhost");
@@ -52,7 +52,7 @@ class RoqEditorProcessor {
 
         String protocol = isInsecureDisabled ? "https" : "http";
         context.reset(new ConsoleCommand('c', "Open the Roq Editor in a browser", null,
-                () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/roq-editor", host, port)));
+                () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/quarkus-roq-editor/roq-editor", host, port)));
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
