@@ -293,6 +293,8 @@ export class RoqEditor extends LitElement {
 
         // Non-reactive storage for code block content to avoid cursor jumping
         this._codeBlockContent = '';
+        // Track if code block content needs to be set (on tab switch or file load)
+        this._needsCodeBlockContentUpdate = true;
     }
 
     firstUpdated() {
@@ -300,6 +302,24 @@ export class RoqEditor extends LitElement {
         this._tryInitializeEditor();
 
         window.addEventListener('keydown', this._handleKeyDown, true);
+
+        // Set initial code block content if starting on code tab
+        if (this._activeTab === 'code' && this._needsCodeBlockContentUpdate) {
+            requestAnimationFrame(() => this._updateCodeBlockContent());
+        }
+    }
+
+    _updateCodeBlockContent() {
+        const codeBlock = this.shadowRoot.querySelector('#code-editor');
+        if (codeBlock) {
+            const content = this._codeBlockContent || this._editedContent || this._bodyContent;
+            codeBlock.content = content;
+            // Also set value in case the component uses that for its internal state
+            if (codeBlock.value !== undefined) {
+                codeBlock.value = content;
+            }
+            this._needsCodeBlockContentUpdate = false;
+        }
     }
 
     _handleKeyDown(e) {
@@ -333,6 +353,7 @@ export class RoqEditor extends LitElement {
 
             // Initialize code block content
             this._codeBlockContent = parsed.body;
+            this._needsCodeBlockContentUpdate = true;
 
             const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
             if (panel) {
@@ -367,6 +388,10 @@ export class RoqEditor extends LitElement {
         }
         if (changedProperties.has('saving') && this._editor && !this._editor.isDestroyed) {
             this._editor.setEditable(!this.saving);
+        }
+
+        if (this._needsCodeBlockContentUpdate) {
+            this._updateCodeBlockContent();
         }
     }
 
@@ -606,9 +631,8 @@ export class RoqEditor extends LitElement {
                                     </div>
                                 </div>` : ''}
                                 <div class="code-panel" ?hidden="${this._activeTab !== 'code'}">
-                                    <qui-themed-code-block showlinenumbers editable
+                                    <qui-themed-code-block id="code-editor" showlinenumbers editable
                                         mode="${PostUtils.getFileExtension(this.filePath)}"
-                                        .content=${this._codeBlockContent || this._editedContent}
                                         @value-changed="${this._onCodeBlockChange}">
                                     </qui-themed-code-block>
                                 </div>
@@ -673,6 +697,10 @@ export class RoqEditor extends LitElement {
 
         // Update code block content for next render
         this._codeBlockContent = this._editedContent;
+
+        if (newTab === 'code') {
+            this._needsCodeBlockContentUpdate = true;
+        }
 
         this._activeTab = newTab;
         this.requestUpdate();
@@ -750,6 +778,8 @@ export class RoqEditor extends LitElement {
             const parsed = parseFrontmatter(this._originalContent);
             this._frontmatter = parsed.frontmatter;
             this._bodyContent = parsed.body;
+            this._codeBlockContent = parsed.body;
+            this._needsCodeBlockContentUpdate = true;
 
             // Update Frontmatter panel
             const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
@@ -767,6 +797,8 @@ export class RoqEditor extends LitElement {
             }
             this._editedContent = this._bodyContent;
             this._isDirty = false;
+
+            this._updateCodeBlockContent();
         }
     }
 
