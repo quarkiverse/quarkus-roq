@@ -18,7 +18,7 @@ export class Toolbar extends LitElement {
             display: flex;
             gap: var(--lumo-space-xs);
             border-bottom: 1px solid var(--lumo-contrast-20pct);
-            padding: 0 var(--lumo-space-m);
+            padding: 0;
             background: var(--lumo-base-color);
         }
         .tabs vaadin-button {

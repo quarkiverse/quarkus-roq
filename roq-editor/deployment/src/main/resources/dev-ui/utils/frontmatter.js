@@ -301,7 +301,7 @@ function stringifyValue(value) {
     }
     if (typeof value === 'string') {
         // Quote if contains special characters or starts/ends with whitespace
-        if (/[:#|>!@%&*{}\[\]]/.test(value) || /^\s|\s$/.test(value)) {
+        if (value.length === 0 || /[:#|>!@%&*{}\[\]]/.test(value) || /^\s|\s$/.test(value)) {
             return `"${value.replace(/"/g, '\\"')}"`;
         }
         return value;

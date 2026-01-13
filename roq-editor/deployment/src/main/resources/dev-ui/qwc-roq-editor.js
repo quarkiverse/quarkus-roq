@@ -99,7 +99,6 @@ export class QwcRoqEditor extends LitElement {
         
         // Detect reconnection: was not connected, now connected
         if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPost) {
-            this._pendingPreviewRefresh = false;
             this._refreshPreviewUrl();
         }
         
@@ -128,6 +127,8 @@ export class QwcRoqEditor extends LitElement {
             if (updatedItem && updatedItem.url) {
                 // Update selected post/page with fresh URL
                 this._selectedPost = { ...this._selectedPost, url: updatedItem.url };
+                this._pendingPreviewRefresh = false;
+                console.log('new url detected for preview',  updatedItem.url);
             }
             
             // Also update the lists
@@ -242,6 +243,7 @@ export class QwcRoqEditor extends LitElement {
                     const result = jsonRpcResponse.result;
                     console.log('result', result);
                     if (result && !result.startsWith("Error")) {
+                        this._pendingPreviewRefresh = true;
                         const newPost = { path: result, title: title, description: '' };
                         this._onPostClicked({ detail: { post: newPost } });
                     } else {

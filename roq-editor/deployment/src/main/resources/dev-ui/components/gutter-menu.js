@@ -19,6 +19,7 @@ export class GutterMenu extends LitElement {
             display: flex;
             flex-direction: row;
             gap: 2px;
+            padding-right: 5px;
             position: relative;
             transition-property: top;
             transition-duration: .2s;
