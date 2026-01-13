@@ -184,7 +184,7 @@ public class Page {
      */
     public RoqUrl image() {
         final String img = getImgFromData(data());
-        if (img == null) {
+        if (img == null || img.isEmpty()) {
             return null;
         }
         return image(img);
