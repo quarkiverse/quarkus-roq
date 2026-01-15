@@ -66,78 +66,74 @@ export function combineFrontmatter(frontmatter, body, fieldTypes = {}) {
 }
 
 /**
+ * Block scalar indicator pattern
+ * Matches: |, |-, |+, >, >-, >+, and variants with explicit indentation like |2, >2-
+ * Groups: [1] = style (| or >), [2] = indentation indicator (optional digit), [3] = chomping (- or + or empty)
+ */
+const BLOCK_SCALAR_PATTERN = /^([|>])(\d)?([+-])?$/;
+
+/**
  * Simple YAML parser for basic key-value pairs
- * Handles strings, numbers, booleans, arrays, nested objects, and multi-line strings with |
+ * Handles strings, numbers, booleans, arrays, nested objects, and block scalars (| and >)
+ * Supports block chomping indicators: clip (default), strip (-), keep (+)
  * @returns {Object} { frontmatter: Object, fieldTypes: Object }
  */
 function parseYAML(yaml) {
     const result = {};
     const fieldTypes = {};
     const lines = yaml.split('\n');
-    let currentKey = null;
-    let currentValue = null;
-    let indentLevel = 0;
-    let inArray = false;
     let arrayKey = null;
-    let inMultilineString = false;
-    let multilineKey = null;
-    let multilineContent = [];
-    let multilineIndent = 0;
+    
+    // Block scalar state
+    let inBlockScalar = false;
+    let blockScalarKey = null;
+    let blockScalarContent = [];
+    let blockScalarIndent = 0;
+    let blockScalarStyle = '|';   // '|' = literal, '>' = folded
+    let blockScalarChomping = ''; // '' = clip, '-' = strip, '+' = keep
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
         const leadingSpaces = line.length - line.trimStart().length;
         
-        if (inMultilineString) {
-            if (multilineIndent === -1) {
+        if (inBlockScalar) {
+            if (blockScalarIndent === -1) {
+                // First content line after block scalar indicator - set indentation and add content
                 if (trimmed !== '') {
-                    multilineIndent = leadingSpaces;
+                    blockScalarIndent = leadingSpaces;
+                    blockScalarContent.push(line.substring(blockScalarIndent));
+                    continue;
                 } else {
-                    multilineContent.push('');
+                    blockScalarContent.push('');
                     continue;
                 }
             }
             
-            // Check if we've reached the end of the multi-line string
-            // End conditions:
-            // 1. Non-empty line that starts a new key-value pair (contains ':' not at start/end)
-            // 2. Non-empty line with less indentation than the content
-            const isNewKeyValue = trimmed !== '' && trimmed.includes(':') && 
-                                  trimmed.indexOf(':') > 0 && 
-                                  trimmed.indexOf(':') < trimmed.length - 1 &&
-                                  !trimmed.startsWith('- '); // Not an array item
-            
-            if (isNewKeyValue) {
-                // End of multi-line string - new key-value pair detected
-                result[multilineKey] = multilineContent.join('\n');
-                fieldTypes[multilineKey] = 'textarea';
-                inMultilineString = false;
-                multilineKey = null;
-                multilineContent = [];
-                multilineIndent = 0;
-                // Don't continue - process this line as a new key-value pair below
-            } else if (trimmed !== '' && leadingSpaces < multilineIndent) {
-                // End of multi-line string - indentation decreased
-                result[multilineKey] = multilineContent.join('\n');
-                fieldTypes[multilineKey] = 'textarea';
-                inMultilineString = false;
-                multilineKey = null;
-                multilineContent = [];
-                multilineIndent = 0;
+            // Check if we've reached the end of the block scalar
+            // Block scalars end when indentation decreases below content level
+            if (trimmed !== '' && leadingSpaces < blockScalarIndent) {
+                // End of block scalar - indentation decreased
+                result[blockScalarKey] = processBlockScalar(blockScalarContent, blockScalarStyle, blockScalarChomping);
+                fieldTypes[blockScalarKey] = 'textarea';
+                inBlockScalar = false;
+                blockScalarKey = null;
+                blockScalarContent = [];
+                blockScalarIndent = 0;
                 // Don't continue - process this line below
             } else if (trimmed === '') {
-                // Empty line within multi-line string - preserve it
-                multilineContent.push('');
+                // Empty line within block scalar - preserve it
+                blockScalarContent.push('');
                 continue;
-            } else if (leadingSpaces >= multilineIndent) {
-                // Continue multi-line string - remove the base indentation
-                multilineContent.push(line.substring(multilineIndent));
+            } else {
+                // Continue block scalar - remove the base indentation
+                // Content with proper indentation is part of the string, even if it contains colons
+                blockScalarContent.push(line.substring(blockScalarIndent));
                 continue;
             }
         }
         
-        // Skip empty lines (unless we're in a multi-line string)
+        // Skip empty lines (unless we're in a block scalar)
         if (!trimmed) {
             continue;
         }
@@ -160,14 +156,16 @@ function parseYAML(yaml) {
             const key = line.substring(0, colonIndex).trim();
             const value = line.substring(colonIndex + 1).trim();
             
-            // Check if this is a multi-line string (key: |)
-            if (value === '|' || value === '|+') {
-                multilineKey = key;
-                // Content lines after | are typically indented 2 spaces relative to the key start
-                // We'll detect the actual indentation from the next non-empty line
-                multilineIndent = -1; // Will be set from first content line
-                multilineContent = [];
-                inMultilineString = true;
+            // Check if this is a block scalar (|, |-, |+, >, >-, >+, etc.)
+            const blockMatch = value.match(BLOCK_SCALAR_PATTERN);
+            if (blockMatch) {
+                blockScalarKey = key;
+                blockScalarStyle = blockMatch[1];        // '|' or '>'
+                blockScalarChomping = blockMatch[3] || ''; // '-', '+', or ''
+                // blockMatch[2] is explicit indentation indicator (rarely used, we auto-detect)
+                blockScalarIndent = -1; // Will be set from first content line
+                blockScalarContent = [];
+                inBlockScalar = true;
                 continue;
             }
             
@@ -176,7 +174,6 @@ function parseYAML(yaml) {
                 result[key] = [];
                 fieldTypes[key] = 'array';
                 arrayKey = key;
-                inArray = true;
             } else {
                 const parsedValue = parseValue(value);
                 result[key] = parsedValue;
@@ -189,17 +186,111 @@ function parseYAML(yaml) {
                     fieldTypes[key] = 'text';
                 }
                 arrayKey = null;
-                inArray = false;
             }
         }
     }
     
-    if (inMultilineString && multilineKey) {
-        result[multilineKey] = multilineContent.join('\n');
-        fieldTypes[multilineKey] = 'textarea';
+    // Handle block scalar at end of document
+    if (inBlockScalar && blockScalarKey) {
+        result[blockScalarKey] = processBlockScalar(blockScalarContent, blockScalarStyle, blockScalarChomping);
+        fieldTypes[blockScalarKey] = 'textarea';
     }
 
     return { frontmatter: result, fieldTypes };
+}
+
+/**
+ * Process block scalar content based on style and chomping
+ * @param {string[]} lines - Content lines
+ * @param {string} style - '|' for literal, '>' for folded
+ * @param {string} chomping - '' for clip, '-' for strip, '+' for keep
+ * @returns {string} Processed string
+ */
+function processBlockScalar(lines, style, chomping) {
+    if (lines.length === 0) {
+        return '';
+    }
+    
+    let content;
+    
+    if (style === '>') {
+        // Folded style: single newlines become spaces, multiple newlines preserved
+        content = foldLines(lines);
+    } else {
+        // Literal style: preserve newlines as-is
+        content = lines.join('\n');
+    }
+    
+    // Apply chomping
+    if (chomping === '-') {
+        // Strip: remove all trailing newlines
+        content = content.replace(/\n+$/, '');
+    } else if (chomping === '+') {
+        // Keep: preserve all trailing newlines
+        // The join already added \n between lines, so trailing empty strings add trailing newlines
+    } else {
+        // Clip (default): single trailing newline
+        content = content.replace(/\n+$/, '');
+        // Note: we don't add the trailing newline since in frontmatter context it's usually not needed
+    }
+    
+    return content;
+}
+
+/**
+ * Fold lines according to YAML folded style rules
+ * - Single newlines become spaces
+ * - Multiple consecutive newlines are preserved (minus one)
+ * - Lines that start with whitespace are not folded (literal)
+ * @param {string[]} lines - Content lines
+ * @returns {string} Folded content
+ */
+function foldLines(lines) {
+    if (lines.length === 0) return '';
+    if (lines.length === 1) return lines[0];
+    
+    const result = [];
+    let i = 0;
+    
+    while (i < lines.length) {
+        const line = lines[i];
+        
+        if (line === '') {
+            // Empty line - preserve as newline
+            result.push('\n');
+            i++;
+        } else if (line.startsWith(' ') || line.startsWith('\t')) {
+            // Line starts with whitespace - keep literal (no folding)
+            if (result.length > 0 && !result[result.length - 1].endsWith('\n')) {
+                result.push('\n');
+            }
+            result.push(line);
+            result.push('\n');
+            i++;
+        } else {
+            // Regular line - fold with next regular lines
+            let segment = line;
+            i++;
+            
+            while (i < lines.length) {
+                const nextLine = lines[i];
+                if (nextLine === '' || nextLine.startsWith(' ') || nextLine.startsWith('\t')) {
+                    // End of foldable segment
+                    break;
+                }
+                // Fold: join with space
+                segment += ' ' + nextLine;
+                i++;
+            }
+            
+            if (result.length > 0 && !result[result.length - 1].endsWith('\n')) {
+                result.push('\n');
+            }
+            result.push(segment);
+        }
+    }
+    
+    return result.join('');
 }
 
 /**
