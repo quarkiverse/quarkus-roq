@@ -1,0 +1,16 @@
+name: Roq Editor
+description: Rich-Text Content editor for Roq.
+metadata:
+  keywords:
+    - roq
+    - editor
+    - cms
+    - dev-io
+    - dev
+  guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-editor.html
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "site"
+  status: "preview"
