@@ -7,10 +7,8 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -29,7 +27,6 @@ import io.smallrye.common.annotation.Blocking;
 @ApplicationScoped
 public class RoqEditorJsonRPCService {
     private static final Logger LOG = Logger.getLogger(RoqEditorJsonRPCService.class);
-    private static final DateTimeFormatter DATE_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("yyyy, MMM d", Locale.ENGLISH);
     private static final DateTimeFormatter FILE_NAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final Pattern POST_DIR_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-(.+)");
 
@@ -63,7 +60,7 @@ public class RoqEditorJsonRPCService {
         if (date == null) {
             return "";
         }
-        return DATE_DISPLAY_FORMAT.format(date);
+        return FILE_NAME_DATE_FORMAT.format(date);
     }
 
     @Blocking
@@ -112,45 +109,20 @@ public class RoqEditorJsonRPCService {
     }
 
     /**
-     * Parses a date string to a file name date format (yyyy-MM-dd).
-     * Accepts multiple formats:
-     * - ISO format: "2025-03-24"
-     * - Display format: "2025, Mar 24"
-     */
-    private String parseDisplayDate(String dateStr) {
-        if (dateStr == null || dateStr.isBlank()) {
-            return null;
-        }
-
-        // First, try ISO format (yyyy-MM-dd) - used by date picker
-        if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
-            // Extract just the date portion if it includes time
-            return dateStr.substring(0, 10);
-        }
-
-        // Then try the display format (yyyy, MMM d)
-        try {
-            var temporal = DATE_DISPLAY_FORMAT.parse(dateStr);
-            return FILE_NAME_DATE_FORMAT.format(temporal);
-        } catch (DateTimeParseException e) {
-            LOG.warnf("Could not parse date: %s", dateStr);
-            return null;
-        }
-    }
-
-    /**
      * Moves a post directory when date or title changes.
      * Returns both the new file path and relative path, or the originals if no move was needed.
      */
-    private MoveResult movePostIfNeeded(Path currentFilePath, String newDate, String newSlug, String originalPath)
+    private MoveResult movePostIfNeeded(Path currentFilePath, String newDate, String newSlug, String originalPath,
+            Boolean syncPath)
             throws IOException {
-        Path currentDir = currentFilePath.getParent();
-        String currentDirName = currentDir.getFileName().toString();
+        boolean isDirPost = currentFilePath.getFileName().toString().startsWith("index.");
+        Path currentPath = isDirPost ? currentFilePath.getParent() : currentFilePath;
+        String currentName = currentPath.getFileName().toString();
 
-        Matcher matcher = POST_DIR_PATTERN.matcher(currentDirName);
-        if (!matcher.matches()) {
+        Matcher matcher = POST_DIR_PATTERN.matcher(currentName);
+        if ((syncPath != null && !syncPath) || !matcher.matches()) {
             // Not a standard post directory, skip moving
-            return new MoveResult(currentFilePath, originalPath);
+            return new MoveResult(currentFilePath, originalPath, false);
         }
 
         String currentDate = matcher.group(1);
@@ -160,61 +132,68 @@ public class RoqEditorJsonRPCService {
         String targetDate = (newDate != null && !newDate.isBlank()) ? newDate : currentDate;
         String targetSlug = (newSlug != null && !newSlug.isBlank()) ? newSlug : currentSlug;
 
-        String newDirName = targetDate + "-" + targetSlug;
+        final String extension = isDirPost ? "" : "." + PathUtils.getExtension(currentName);
+        String newName = targetDate + "-" + targetSlug + extension;
 
-        if (newDirName.equals(currentDirName)) {
-            return new MoveResult(currentFilePath, originalPath);
+        if (newName.equals(currentName)) {
+            return new MoveResult(currentFilePath, originalPath, false);
         }
-
-        Path newDir = currentDir.getParent().resolve(newDirName);
-
-        if (Files.exists(newDir)) {
-            throw new IOException("Target directory already exists: " + newDir);
-        }
-
-        Files.move(currentDir, newDir);
-        LOG.infof("Moved post directory from %s to %s", currentDir, newDir);
-
+        Path newPath = currentPath.getParent().resolve(newName);
         // Return both the new file path and relative path
         String fileName = currentFilePath.getFileName().toString();
-        Path newFilePath = newDir.resolve(fileName);
-        String newRelativePath = "posts/" + newDirName + "/" + fileName;
-        return new MoveResult(newFilePath, newRelativePath);
+        Path newFilePath = isDirPost ? newPath.resolve(fileName) : newPath;
+        String newRelativePath = currentPath.getParent().getParent().relativize(newPath).toString();
+
+        if (syncPath == null) {
+            return new MoveResult(newFilePath, newRelativePath, true);
+        }
+
+        if (Files.exists(newPath)) {
+            throw new IOException("Target already exists: " + newPath);
+        }
+
+        Files.move(currentPath, newPath);
+        LOG.infof("Moved post from %s to %s", currentPath, newPath);
+
+        return new MoveResult(newFilePath, newRelativePath, false);
     }
 
     @Blocking
-    public SaveResult saveFileContent(String path, String content, String date, String title) {
+    public SaveResult saveFileContent(String path, String content, String date, String title, Boolean syncPath) {
         if (content == null) {
-            return new SaveResult(null, "Error: Content parameter is required");
+            return new SaveResult(null, false, "Error: Content parameter is required");
         }
 
         try {
             Path filePath = resolvePagePath(path);
 
             // Move post if date or title changed, returns new path and new file location
-            String newDate = parseDisplayDate(date);
             String newSlug = toSlug(title);
-            MoveResult moveResult = movePostIfNeeded(filePath, newDate, newSlug, path);
+            MoveResult moveResult = movePostIfNeeded(filePath, date, newSlug, path, syncPath);
+
+            if (moveResult.syncPathRequest) {
+                return new SaveResult(moveResult.relativePath(), true, null);
+            }
 
             Files.writeString(moveResult.filePath(), content, StandardCharsets.UTF_8);
             LOG.infof("Successfully saved file: %s", moveResult.filePath());
 
-            return new SaveResult(moveResult.relativePath(), null);
+            return new SaveResult(moveResult.relativePath(), false, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error saving file for path: %s", path);
-            return new SaveResult(null, "Error: " + e.getMessage());
+            return new SaveResult(null, false, "Error: " + e.getMessage());
         }
     }
 
-    private record MoveResult(Path filePath, String relativePath) {
+    private record MoveResult(Path filePath, String relativePath, boolean syncPathRequest) {
     }
 
     /**
      * Result of a save operation.
      */
-    public record SaveResult(String path, String error) {
+    public record SaveResult(String path, boolean syncPathRequest, String errorMessage) {
         public boolean isError() {
-            return error != null && !error.isEmpty();
+            return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 

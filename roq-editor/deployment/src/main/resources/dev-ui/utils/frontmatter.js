@@ -76,6 +76,40 @@ function inferFieldTypes(frontmatter) {
 }
 
 /**
+ * Parse a date string and return it in yyyy-MM-dd format.
+ * Handles various input formats.
+ */
+export function parseAndFormatDate(dateStr) {
+    if (!dateStr) return '';
+
+    // If already in yyyy-MM-dd format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+
+    // If it has time component (yyyy-MM-dd HH:mm), extract just the date
+    const dateOnlyMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (dateOnlyMatch) {
+        return dateOnlyMatch[1];
+    }
+
+    try {
+        // Create date at noon local time to avoid timezone boundary issues
+        const date = new Date(dateStr + ' 12:00:00');
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    } catch (e) {
+        // Fallback: return original string
+    }
+
+    return dateStr;
+}
+
+/**
  * Combines Frontmatter and body content
  * @param {Object} frontmatter - The frontmatter object
  * @param {string} body - The body content

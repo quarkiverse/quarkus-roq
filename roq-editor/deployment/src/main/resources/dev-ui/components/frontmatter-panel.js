@@ -4,6 +4,7 @@ import '@vaadin/text-area';
 import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/date-time-picker';
+import { parseAndFormatDate } from '../utils/frontmatter.js';
 
 export class FrontmatterPanel extends LitElement {
     
@@ -19,6 +20,7 @@ export class FrontmatterPanel extends LitElement {
             display: block;
             height: 100%;
             overflow: hidden;
+            max-width: 450px;
         }
         .panel-container {
             display: flex;
@@ -145,7 +147,7 @@ export class FrontmatterPanel extends LitElement {
             // If frontmatter doesn't have a date but we have one from file path, use it
             if (!this._fields.date && this.date) {
                 // Convert the date from file path to yyyy-MM-dd format if needed
-                this._fields.date = this._parseAndFormatDate(this.date);
+                this._fields.date = parseAndFormatDate(this.date);
             }
             
             // Infer field types from values if not already set
@@ -166,40 +168,6 @@ export class FrontmatterPanel extends LitElement {
                 }
             }
         }
-    }
-    
-    /**
-     * Parse a date string and return it in yyyy-MM-dd format.
-     * Handles various input formats.
-     */
-    _parseAndFormatDate(dateStr) {
-        if (!dateStr) return '';
-        
-        // If already in yyyy-MM-dd format, return as is
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-            return dateStr;
-        }
-        
-        // If it has time component (yyyy-MM-dd HH:mm), extract just the date
-        const dateOnlyMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
-        if (dateOnlyMatch) {
-            return dateOnlyMatch[1];
-        }
-        
-        try {
-            // Create date at noon local time to avoid timezone boundary issues
-            const date = new Date(dateStr + ' 12:00:00');
-            if (!isNaN(date.getTime())) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-        } catch (e) {
-            // Fallback: return original string
-        }
-        
-        return dateStr;
     }
 
     render() {

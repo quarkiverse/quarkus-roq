@@ -3,7 +3,7 @@ import '@vaadin/button';
 import '@vaadin/icon';
 import { LitElement, css, html } from 'lit';
 import { BubbleMenu, ConfCodeBlockLowlight, ContextProvider, DragHandle, Editor, Image, Link, Markdown, StarterKit, Table, TableCell, TableHeader, TableRow } from '../bundle.js';
-import { combineFrontmatter, parseFrontmatter } from '../utils/frontmatter.js';
+import {combineFrontmatter, parseAndFormatDate, parseFrontmatter} from '../utils/frontmatter.js';
 import { editorContext } from './editor-context.js';
 import './bubble-menu.js';
 import './floating-menu.js';
@@ -755,7 +755,7 @@ export class RoqEditor extends LitElement {
         const panel = this.shadowRoot.querySelector('qwc-frontmatter-panel');
         const frontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
         const fieldTypes = panel ? panel.getFieldTypes() : {};
-        const date = panel ? panel.getDate() : this.date;
+        const date = parseAndFormatDate(panel ? panel.getDate() : this.date);
         const title = frontmatter.title || '';
 
         // Combine Frontmatter and body content

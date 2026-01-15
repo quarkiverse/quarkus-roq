@@ -301,29 +301,36 @@ export class QwcRoqEditor extends LitElement {
         });
     }
 
-    _onSaveContent(e) {
+    _onSaveContent(e, syncPath) {
         const { content, filePath, date, title } = e.detail;
-        const editorElement = e.target;
+        const detail = e.detail;
+        const target = e.target;
         
         // Save file content to backend
-        this.jsonRpc.saveFileContent({ path: filePath, content: content, date: date, title: title }).then(jsonRpcResponse => {
+        this.jsonRpc.saveFileContent({ path: filePath, content, date, title, syncPath }).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result && result.error) {
                 // Handle error
-                if (editorElement && editorElement.markSaveError) {
-                    editorElement.markSaveError();
+                if (target && target.markSaveError) {
+                    target.markSaveError();
                 }
-                alert('Error saving file: ' + result.error);
+                alert('Error saving file: ' + result.errorMessage);
             } else {
+                if (result.syncPathRequest) {
+                    let syncPath = confirm(`The file name seems to be out of sync with the title and date:\n\n-> ok to save: '${result.path}'\n\n-> cancel to keep: '${filePath}'`);
+                    this._onSaveContent({ target, detail }, syncPath);
+                    return;
+                }
+
                 // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
                 
                 if (result && result.path && this._selectedPost) {
                     this._selectedPost = { ...this._selectedPost, path: result.path };
                     // Also update the editor's filePath property
-                    if (editorElement) {
-                        editorElement.filePath = result.path;
+                    if (target) {
+                        target.filePath = result.path;
                     }
                 }
                 
@@ -331,13 +338,13 @@ export class QwcRoqEditor extends LitElement {
                 // The URL will be fetched fresh after indexing completes
                 this._pendingPreviewRefresh = true;
                 
-                if (editorElement && editorElement.markSaved) {
-                    editorElement.markSaved();
+                if (target && target.markSaved) {
+                    target.markSaved();
                 }
             }
         }).catch(error => {
-            if (editorElement && editorElement.markSaveError) {
-                editorElement.markSaveError();
+            if (target && target.markSaveError) {
+                target.markSaveError();
             }
             alert('Error saving file: ' + error.message);
         });
