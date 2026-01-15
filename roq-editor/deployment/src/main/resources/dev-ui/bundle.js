@@ -13,9 +13,10 @@ import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 import Suggestion from '@tiptap/suggestion'
 import { common, createLowlight } from 'lowlight'
 import { createContext, ContextProvider, ContextConsumer } from '@lit/context'
+import { parse as yamlParse, stringify as yamlStringify } from 'yaml'
 
 const ConfCodeBlockLowlight = CodeBlockLowlight.configure({
     lowlight: createLowlight(common)
 })
 
-export { Editor, Extension, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, Suggestion, createContext, ContextProvider, ContextConsumer };
+export { Editor, Extension, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, Suggestion, createContext, ContextProvider, ContextConsumer, yamlParse, yamlStringify };
