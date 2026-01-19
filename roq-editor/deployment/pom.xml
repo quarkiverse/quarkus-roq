@@ -81,7 +81,6 @@
                     <entryPoint>bundle.js</entryPoint>
                 </configuration>
                 <dependencies>
-
                     <dependency>
                         <groupId>org.mvnpm.at.lit</groupId>
                         <artifactId>context</artifactId>

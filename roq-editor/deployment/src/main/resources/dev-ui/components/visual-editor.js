@@ -12,15 +12,16 @@ import './frontmatter-panel.js';
 import './gutter-menu.js';
 import './preview-panel.js';
 import './toolbar.js';
-import { PostUtils } from './post-utils.js';
-import { QuteBlock } from './qute-block.js';
+import { RawBlock } from './raw-block.js';
 import { SlashCommand } from './slash-command.js';
 import { hljsTheme } from '../hljs-theme.js';
 
-export class RoqEditor extends LitElement {
+export class RoqVisualEditor extends LitElement {
 
     static properties = {
         content: { type: String },
+        markup: { type: String },
+        fileExtension: { type: String },
         filePath: { type: String },
         previewUrl: { type: String },
         date: { type: String },
@@ -226,14 +227,14 @@ export class RoqEditor extends LitElement {
             padding: 0;
         }
         
-        /* Qute Template Block Styles */
-        .tiptap-editor [data-qute] {
+        /* Raw Block Styles */
+        .tiptap-editor [data-raw] {
             border: 1px solid var(--lumo-primary-color-50pct);
             border-radius: var(--lumo-border-radius-m);
             margin: 1em 0;
             background: var(--lumo-primary-color-10pct);
         }
-        .tiptap-editor .qute-template-label {
+        .tiptap-editor .raw-block-label {
             background: var(--lumo-primary-color);
             color: var(--lumo-primary-contrast-color);
             padding: 0.25em 0.75em;
@@ -242,7 +243,7 @@ export class RoqEditor extends LitElement {
             border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0;
             user-select: none;
         }
-        .tiptap-editor .qute-template-content {
+        .tiptap-editor .raw-block-content {
             padding: 0.75em 1em;
             font-family: var(--lumo-font-family-monospace);
             font-size: 0.9em;
@@ -340,17 +341,17 @@ export class RoqEditor extends LitElement {
             this._tryInitializeEditor();
         }
 
+        if (this.markup === 'asciidoc') {
+            this.content = "Error: AsciiDoc is not supported in Visual Editor";
+            return;
+        }
+
         if (changedProperties.has('content') && this._hasContent() && !this._isError()) {
             const parsed = parseFrontmatter(this.content);
             this._frontmatter = parsed.frontmatter;
             this._bodyContent = parsed.body;
             this._originalContent = this.content;
             this._originalDate = this.date || '';
-
-            // Default to 'code' tab for AsciiDoc files since tiptap doesn't support it
-            if (this._isAsciidocFile() && this._activeTab === 'editor') {
-                this._activeTab = 'code';
-            }
 
             // Initialize code block content
             this._codeBlockContent = parsed.body;
@@ -406,19 +407,11 @@ export class RoqEditor extends LitElement {
     }
 
     _isMarkdownFile() {
-        return PostUtils.extractFileType({ path: this.filePath }) === 'Markdown';
+        return this.markup === 'markdown';
     }
 
     _isHtml() {
-        return PostUtils.extractFileType({ path: this.filePath }) === 'HTML';
-    }
-
-    _isAsciidocFile() {
-        return PostUtils.extractFileType({ path: this.filePath }) === 'AsciiDoc';
-    }
-
-    _supportsVisualEditor() {
-        return this._isMarkdownFile() || this._isHtml();
+        return this.markup === 'html';
     }
 
     _hasContent() {
@@ -476,7 +469,7 @@ export class RoqEditor extends LitElement {
         const extensions = [
             ...baseExtensions,
             ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell, ConfCodeBlockLowlight] : []),
-            QuteBlock,
+            RawBlock,
             Image,
             Link.configure({
                 openOnClick: false,
@@ -616,7 +609,7 @@ export class RoqEditor extends LitElement {
                 : html`
                         <qwc-toolbar 
                             .activeTab="${this._activeTab}"
-                            .showEditorTab="${this._supportsVisualEditor()}"
+                            .showEditorTab=${true}
                             @tab-changed="${this._onTabChanged}">
                         </qwc-toolbar>
                         <div class="preview-container" ?hidden="${this._activeTab !== 'preview'}">
@@ -624,19 +617,18 @@ export class RoqEditor extends LitElement {
                         </div>
                         <div class="editor-panel" ?hidden="${this._activeTab === 'preview'}">
                             <div class="editor-layout">
-                                ${this._supportsVisualEditor() ? html`
-                                <div class="editor-main" ?hidden="${this._activeTab !== 'editor'}">
-                                    <div class="tiptap-editor">
-                                        <qwc-bubble-menu style="visibility: hidden; position: absolute;"></qwc-bubble-menu>
-                                        <qwc-table-menu></qwc-table-menu>
-                                        <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;">
-                                            <qwc-floating-menu></qwc-floating-menu>
-                                        </qwc-gutter-menu>
-                                    </div>
-                                </div>` : ''}
+                              <div class="editor-main" ?hidden="${this._activeTab !== 'editor'}">
+                                <div class="tiptap-editor">
+                                  <qwc-bubble-menu style="visibility: hidden; position: absolute;"></qwc-bubble-menu>
+                                  <qwc-table-menu></qwc-table-menu>
+                                  <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;">
+                                    <qwc-floating-menu></qwc-floating-menu>
+                                  </qwc-gutter-menu>
+                                </div>
+                              </div>
                                 <div class="code-panel" ?hidden="${this._activeTab !== 'code'}">
                                     <qui-themed-code-block id="code-editor" showlinenumbers editable
-                                        mode="${PostUtils.getFileExtension(this.filePath)}"
+                                        mode="this.fileExtension"
                                         @value-changed="${this._onCodeBlockChange}">
                                     </qui-themed-code-block>
                                 </div>
@@ -859,5 +851,5 @@ export class RoqEditor extends LitElement {
 
 }
 
-customElements.define('qwc-editor', RoqEditor);
+customElements.define('qwc-visual-editor', RoqVisualEditor);
 

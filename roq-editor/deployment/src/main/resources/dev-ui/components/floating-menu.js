@@ -113,7 +113,7 @@ export class FloatingMenu extends LitElement {
                 <vaadin-button theme="icon" class="tiptap-menu-button" data-command="codeBlock" title="Code Block">
                     <vaadin-icon icon="font-awesome-solid:code"></vaadin-icon>
                 </vaadin-button>
-                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="quteBlock" title="Qute Block">
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="rawBlock" title="Raw Block">
                     <vaadin-icon icon="font-awesome-solid:window-maximize"></vaadin-icon>
                 </vaadin-button>
                 <vaadin-button theme="icon" class="tiptap-menu-button" data-command="table" title="Table">
@@ -216,11 +216,11 @@ export class FloatingMenu extends LitElement {
                 })
                 .setTextSelection(pos + 1)
                 .run();
-        } else if (command === 'quteBlock') {
+        } else if (command === 'rawBlock') {
             this.editor.chain()
                 .focus()
                 .insertContentAt(pos, {
-                    type: 'quteBlock',
+                    type: 'rawBlock',
                     content: []
                 })
                 .setTextSelection(pos + 1)

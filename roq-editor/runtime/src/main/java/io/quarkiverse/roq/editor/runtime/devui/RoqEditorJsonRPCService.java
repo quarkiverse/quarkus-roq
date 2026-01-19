@@ -19,6 +19,7 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.util.PathUtils;
@@ -39,28 +40,20 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public List<Source> getPosts() {
         return site.allPages().stream()
-                .filter(p -> p.sourcePath().startsWith("posts/"))
+                .filter(p -> p instanceof DocumentPage d && "posts".equals(d.collection().id()))
                 .distinct()
                 .sorted(Comparator.comparing(Page::date).reversed())
                 .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
-                        p.sourcePath(), formatDate(p.date())))
+                        p.sourcePath(), p.source().extension(), markup(p), formatDate(p.date())))
                 .toList();
     }
 
     @Blocking
     public List<Source> getPages() {
         return site.pages().stream()
-                .filter(p -> !p.sourcePath().startsWith("theme-layout"))
                 .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
-                        p.sourcePath(), formatDate(p.date())))
+                        p.sourcePath(), p.source().extension(), markup(p), formatDate(p.date())))
                 .distinct().toList();
-    }
-
-    private String formatDate(ZonedDateTime date) {
-        if (date == null) {
-            return "";
-        }
-        return FILE_NAME_DATE_FORMAT.format(date);
     }
 
     @Blocking
@@ -96,6 +89,17 @@ public class RoqEditorJsonRPCService {
             }
         }
         throw new Exception("Path not found: " + path);
+    }
+
+    private static String markup(Page page) {
+        return page.source().markup() != null ? page.source().markup() : page.source().extension();
+    }
+
+    private String formatDate(ZonedDateTime date) {
+        if (date == null) {
+            return "";
+        }
+        return FILE_NAME_DATE_FORMAT.format(date);
     }
 
     /**
@@ -165,20 +169,24 @@ public class RoqEditorJsonRPCService {
         }
 
         try {
-            Path filePath = resolvePagePath(path);
+            String relativePath = path;
+            Path filePath = resolvePagePath(relativePath);
+            if (title != null && date != null) {
+                // Move post if date or title changed, returns new path and new file location
+                String newSlug = toSlug(title);
+                MoveResult moveResult = movePostIfNeeded(filePath, date, newSlug, path, syncPath);
 
-            // Move post if date or title changed, returns new path and new file location
-            String newSlug = toSlug(title);
-            MoveResult moveResult = movePostIfNeeded(filePath, date, newSlug, path, syncPath);
-
-            if (moveResult.syncPathRequest) {
-                return new SaveResult(moveResult.relativePath(), true, null);
+                if (moveResult.syncPathRequest) {
+                    return new SaveResult(moveResult.relativePath(), true, null);
+                }
+                filePath = moveResult.filePath;
+                relativePath = moveResult.relativePath;
             }
 
-            Files.writeString(moveResult.filePath(), content, StandardCharsets.UTF_8);
-            LOG.infof("Successfully saved file: %s", moveResult.filePath());
+            Files.writeString(filePath, content, StandardCharsets.UTF_8);
+            LOG.infof("Successfully saved file: %s", filePath);
 
-            return new SaveResult(moveResult.relativePath(), false, null);
+            return new SaveResult(relativePath, false, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error saving file for path: %s", path);
             return new SaveResult(null, false, "Error: " + e.getMessage());

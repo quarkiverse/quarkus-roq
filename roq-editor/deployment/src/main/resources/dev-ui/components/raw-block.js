@@ -1,8 +1,8 @@
 import { Node, mergeAttributes } from '../bundle.js';
 import { html, render } from 'lit';
 
-export const QuteBlock = Node.create({
-  name: 'quteBlock',
+export const RawBlock = Node.create({
+  name: 'rawBlock',
   group: 'block',
   atom: true,
   selectable: false,
@@ -21,14 +21,14 @@ export const QuteBlock = Node.create({
 
   parseHTML() {
     return [
-      { tag: 'div[data-qute]' },
+      { tag: 'div[data-raw]' },
     ]
   },
 
   renderHTML({ HTMLAttributes, node }) {
     return [
       'div',
-      mergeAttributes({ 'data-qute': '' }, this.options.HTMLAttributes, HTMLAttributes),
+      mergeAttributes({ 'data-raw': '' }, this.options.HTMLAttributes, HTMLAttributes),
       node.attrs.content || ''
     ]
   },
@@ -36,8 +36,8 @@ export const QuteBlock = Node.create({
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const dom = document.createElement('div')
-      dom.setAttribute('data-qute', '')
-      dom.classList.add('qute-block')
+      dom.setAttribute('data-raw', '')
+      dom.classList.add('raw-block')
 
       const stopPropagation = (e) => e.stopPropagation()
 
@@ -60,9 +60,9 @@ export const QuteBlock = Node.create({
       }
 
       const template = html`
-        <div class="qute-template-label" contenteditable="false">Qute Template</div>
+        <div class="raw-block-label" contenteditable="false">Raw Block</div>
         <pre 
-          class="qute-template-content" 
+          class="raw-block-content" 
           contenteditable="true"
           @keydown=${stopPropagation}
           @keyup=${stopPropagation}
@@ -75,12 +75,12 @@ export const QuteBlock = Node.create({
 
       render(template, dom)
 
-      const contentElement = dom.querySelector('.qute-template-content')
+      const contentElement = dom.querySelector('.raw-block-content')
 
       return {
         dom,
         update: (updatedNode) => {
-          if (updatedNode.type.name !== 'quteBlock') return false
+          if (updatedNode.type.name !== 'rawBlock') return false
           if (contentElement.textContent !== updatedNode.attrs.content) {
             contentElement.textContent = updatedNode.attrs.content || ''
           }
@@ -92,6 +92,6 @@ export const QuteBlock = Node.create({
 
   renderMarkdown: (node) => {
     const content = node.attrs?.content || ''
-    return `<div data-qute>\n${content}\n</div>\n`
+    return `<div data-raw>\n${content}\n</div>\n`
   },
 })

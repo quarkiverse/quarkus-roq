@@ -1,7 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import '@vaadin/button';
 import '@vaadin/icon';
-import { PostUtils } from './post-utils.js';
 
 export class PostCard extends LitElement {
     
@@ -92,7 +91,7 @@ export class PostCard extends LitElement {
             flex: 1;
             min-width: 0;
         }
-        .post-file-type {
+        .post-markup {
             display: inline-flex;
             align-items: center;
             padding: 2px var(--lumo-space-xs);
@@ -130,7 +129,7 @@ export class PostCard extends LitElement {
 
         const title = this.post.title || '';
         const postUrl = this.post.path || '#';
-        const fileType = PostUtils.extractFileType(this.post);
+        const markup = this.post.markup;
         const description = this.post.description || '';
         const filename = this.post.filename || '';
         const date = this.post.date || '';
@@ -165,8 +164,8 @@ export class PostCard extends LitElement {
                         </div>
                     </div>
                     <div class="post-footer">
-                        ${fileType 
-                            ? html`<span class="post-file-type">${fileType}</span>`
+                        ${markup 
+                            ? html`<span class="post-markup">${markup.toUpperCase()}</span>`
                             : html``
                         }
                         ${description 

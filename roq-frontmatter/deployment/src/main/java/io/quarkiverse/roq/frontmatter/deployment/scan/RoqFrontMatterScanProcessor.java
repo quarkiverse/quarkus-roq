@@ -533,7 +533,7 @@ public class RoqFrontMatterScanProcessor {
 
             TemplateSource source = TemplateSource.create(
                     id,
-                    markup != null ? markup.name() : null,
+                    getMarkup(isHtml, markup),
                     sourceFile,
                     referencePath,
                     templateOutputPath,
@@ -567,6 +567,13 @@ public class RoqFrontMatterScanProcessor {
                     contentWithMarkup, attachments));
 
         };
+    }
+
+    private static String getMarkup(boolean isHtml, RoqFrontMatterQuteMarkupBuildItem markup) {
+        if(isHtml) {
+            return markup != null ? markup.name() : "html";
+        }
+        return null;
     }
 
     private static void scanAttachments(boolean isAttachmentRoot,

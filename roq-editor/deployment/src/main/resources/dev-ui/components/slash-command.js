@@ -74,16 +74,16 @@ const BLOCK_TYPES = [
     },
     {
         label: 'Code Block',
-        icon: '</>',
+        icon: '{}',
         command: ({ editor, range }) => {
             editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
         }
     },
     {
-        label: 'Qute Block',
-        icon: '⧈',
+        label: 'Raw Block',
+        icon: '</>',
         command: ({ editor, range }) => {
-            editor.chain().focus().deleteRange(range).insertContent({ type: 'quteBlock' }).run();
+            editor.chain().focus().deleteRange(range).insertContent({ type: 'rawBlock' }).run();
         }
     },
     {

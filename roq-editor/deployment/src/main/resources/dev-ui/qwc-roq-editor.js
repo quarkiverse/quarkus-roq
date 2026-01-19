@@ -1,17 +1,18 @@
-import { LitElement, html, css} from 'lit';
-import { JsonRpc } from 'jsonrpc';
-import { connectionState } from 'connection-state';
+import {LitElement, html, css} from 'lit';
+import {JsonRpc} from 'jsonrpc';
+import {connectionState} from 'connection-state';
 import './components/navigation-bar.js';
 import './components/posts-list.js';
 import './components/pages-list.js';
 import './components/tags-list.js';
-import './components/editor.js';
-import { showPrompt } from './components/prompt-dialog.js';
+import './components/visual-editor.js';
+import './components/simple-editor.js';
+import {showPrompt} from './components/prompt-dialog.js';
 
 export class QwcRoqEditor extends LitElement {
 
     jsonRpc = new JsonRpc(this);
-    
+
     // Track connection state for refreshing preview URL after hot reload
     _previousConnectionState = null;
     _pendingPreviewRefresh = false;
@@ -28,7 +29,7 @@ export class QwcRoqEditor extends LitElement {
             overflow: auto;
             padding: var(--lumo-space-m);
         }
-        `;
+    `;
 
     // Component properties
     static properties = {
@@ -67,49 +68,49 @@ export class QwcRoqEditor extends LitElement {
         });
 
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
-          this._posts = [];
-          jsonRpcResponse.result.forEach(c => {
-              this._posts.push(c);
-          });
-
-          this.jsonRpc.getPages().then(jsonRpcResponse => {
-            this._pages = [];
+            this._posts = [];
             jsonRpcResponse.result.forEach(c => {
-                this._pages.push(c);
+                this._posts.push(c);
             });
-          });
-      });
-      
-      // Subscribe to connection state changes for preview URL refresh after hot reload
-      this._previousConnectionState = connectionState.current?.isConnected ?? false;
-      this._connectionStateObserver = () => this._onConnectionStateChange();
-      connectionState.addObserver(this._connectionStateObserver);
+
+            this.jsonRpc.getPages().then(jsonRpcResponse => {
+                this._pages = [];
+                jsonRpcResponse.result.forEach(c => {
+                    this._pages.push(c);
+                });
+            });
+        });
+
+        // Subscribe to connection state changes for preview URL refresh after hot reload
+        this._previousConnectionState = connectionState.current?.isConnected ?? false;
+        this._connectionStateObserver = () => this._onConnectionStateChange();
+        connectionState.addObserver(this._connectionStateObserver);
     }
-    
+
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this._connectionStateObserver) {
             connectionState.removeObserver(this._connectionStateObserver);
         }
     }
-    
+
     _onConnectionStateChange() {
         const currentConnected = connectionState.current?.isConnected ?? false;
         const wasConnected = this._previousConnectionState;
-        
+
         // Detect reconnection: was not connected, now connected
         if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPost) {
             this._refreshPreviewUrl();
         }
-        
+
         this._previousConnectionState = currentConnected;
     }
-    
+
     _refreshPreviewUrl() {
         if (!this._selectedPost) return;
-        
+
         const currentPath = this._selectedPost.path;
-        
+
         // Fetch fresh posts and pages to get the updated URL
         Promise.all([
             this.jsonRpc.getPosts(),
@@ -117,20 +118,20 @@ export class QwcRoqEditor extends LitElement {
         ]).then(([postsResponse, pagesResponse]) => {
             const posts = postsResponse.result || [];
             const pages = pagesResponse.result || [];
-            
+
             // Look in both posts and pages for the updated URL
             let updatedItem = posts.find(p => p.path === currentPath);
             if (!updatedItem) {
                 updatedItem = pages.find(p => p.path === currentPath);
             }
-            
+
             if (updatedItem && updatedItem.url) {
                 // Update selected post/page with fresh URL
-                this._selectedPost = { ...this._selectedPost, url: updatedItem.url };
+                this._selectedPost = {...this._selectedPost, url: updatedItem.url};
                 this._pendingPreviewRefresh = false;
-                console.log('new url detected for preview',  updatedItem.url);
+                console.log('new url detected for preview', updatedItem.url);
             }
-            
+
             // Also update the lists
             this._posts = posts;
             this._pages = pages;
@@ -142,30 +143,19 @@ export class QwcRoqEditor extends LitElement {
     /**
      * Called when it needs to render the components
      * @returns {*}
-     * <qwc-navigation-bar 
-                .activeTab="${this._activeTab}"
-                @tab-changed="${this._onTabChanged}">
-            </qwc-navigation-bar>
+     * <qwc-navigation-bar
+     .activeTab="${this._activeTab}"
+     @tab-changed="${this._onTabChanged}">
+      </qwc-navigation-bar>
      */
     render() {
         return html`
-            <div class="content-area">
-                ${this._selectedPost && this._fileContent !== null 
-                    ? html`
-                        <qwc-editor 
-                            .filePath="${this._selectedPost.path}"
-                            .previewUrl="${this._selectedPost.url}"
-                            .date="${this._selectedPost.date}"
-                            .dateFormat="${this._dateFormat}"
-                            .loading="${this._loadingContent}"
-                            @close-viewer="${this._closeViewer}"
-                            .content="${this._fileContent}"
-                            @save-content="${this._onSaveContent}">
-                        </qwc-editor>
-                    `
-                    : this._renderContent()
-                }
-            </div>
+          <div class="content-area">
+            ${this._selectedPost && this._fileContent !== null
+              ? this._renderEditor()
+              : this._renderContent()
+            }
+          </div>
         `;
     }
 
@@ -173,8 +163,39 @@ export class QwcRoqEditor extends LitElement {
         this._activeTab = e.detail.selectedTab;
     }
 
+
+    _renderEditor() {
+        if (this._selectedPost.markup === 'markdown') {
+            return html`
+              <qwc-visual-editor
+                .filePath="${this._selectedPost.path}"
+                .fileExtension="${this._selectedPost.extension}"
+                .markup="${this._selectedPost.markup}"
+                .previewUrl="${this._selectedPost.url}"
+                .date="${this._selectedPost.date}"
+                .dateFormat="${this._dateFormat}"
+                .loading="${this._loadingContent}"
+                @close-viewer="${this._closeViewer}"
+                .content="${this._fileContent}"
+                @save-content="${this._onSaveContent}">
+              </qwc-visual-editor>
+            `;
+        }
+        return html`
+          <qwc-simple-editor
+            .filePath="${this._selectedPost.path}"
+            .fileExtension="${this._selectedPost.extension}"
+            .previewUrl="${this._selectedPost.url}"
+            .loading="${this._loadingContent}"
+            @close-viewer="${this._closeViewer}"
+            .content="${this._fileContent}"
+            @save-content="${this._onSaveContent}">
+          </qwc-simple-editor>
+        `;
+    }
+
     _renderContent() {
-        switch(this._activeTab) {
+        switch (this._activeTab) {
             case 0:
                 return this._renderPosts();
             case 1:
@@ -188,28 +209,28 @@ export class QwcRoqEditor extends LitElement {
 
     _renderPosts() {
         return html`
-            <qwc-posts-list 
-                .posts="${this._posts}"
-                @add-new-post="${this._addNewPost}"
-                @post-clicked="${this._onPostClicked}"
-                @post-delete="${this._onPostDelete}">
-            </qwc-posts-list>
+          <qwc-posts-list
+            .posts="${this._posts}"
+            @add-new-post="${this._addNewPost}"
+            @post-clicked="${this._onPostClicked}"
+            @post-delete="${this._onPostDelete}">
+          </qwc-posts-list>
         `;
     }
 
     _renderPages() {
         return html`
-            <qwc-pages-list 
-                .pages="${this._pages}"
-                @page-clicked="${this._onPageClicked}">
-            </qwc-pages-list>
+          <qwc-pages-list
+            .pages="${this._pages}"
+            @page-clicked="${this._onPageClicked}">
+          </qwc-pages-list>
         `;
     }
 
     _renderTags() {
         const tags = this._getTags();
         return html`
-            <qwc-tags-list .tags="${tags}"></qwc-tags-list>
+          <qwc-tags-list .tags="${tags}"></qwc-tags-list>
         `;
     }
 
@@ -218,11 +239,11 @@ export class QwcRoqEditor extends LitElement {
         return this._pages.filter(page => {
             const path = page.path || '';
             const outputPath = page.outputPath || '';
-            return path && 
-                   !path.includes('/posts/') && 
-                   !path.includes('/posts/tag/') &&
-                   !outputPath.includes('/posts/') &&
-                   !outputPath.includes('/posts/tag/');
+            return path &&
+                !path.includes('/posts/') &&
+                !path.includes('/posts/tag/') &&
+                !outputPath.includes('/posts/') &&
+                !outputPath.includes('/posts/tag/');
         });
     }
 
@@ -232,20 +253,20 @@ export class QwcRoqEditor extends LitElement {
             const path = page.path || '';
             const outputPath = page.outputPath || '';
             return (path && path.includes('/posts/tag/')) ||
-                   (outputPath && outputPath.includes('/posts/tag/'));
+                (outputPath && outputPath.includes('/posts/tag/'));
         });
     }
 
     _addNewPost() {
         showPrompt('Enter post title:', '').then(title => {
             if (title) {
-                this.jsonRpc.createPost({ title: title }).then(jsonRpcResponse => {
+                this.jsonRpc.createPost({title: title}).then(jsonRpcResponse => {
                     const result = jsonRpcResponse.result;
                     console.log('result', result);
                     if (result && !result.startsWith("Error")) {
                         this._pendingPreviewRefresh = true;
-                        const newPost = { path: result, title: title, description: '' };
-                        this._onPostClicked({ detail: { post: newPost } });
+                        const newPost = {path: result, markup: 'markdown', extension: 'md', title: title, description: ''};
+                        this._onPostClicked({detail: {post: newPost}});
                     } else {
                         alert('Error creating post: ' + result);
                     }
@@ -261,9 +282,9 @@ export class QwcRoqEditor extends LitElement {
         this._selectedPost = post;
         this._loadingContent = true;
         this._fileContent = null;
-        
+
         // Fetch file content from backend
-        this.jsonRpc.getFileContent({ path: post.path }).then(jsonRpcResponse => {
+        this.jsonRpc.getFileContent({path: post.path}).then(jsonRpcResponse => {
             this._fileContent = jsonRpcResponse.result;
             this._loadingContent = false;
         }).catch(error => {
@@ -277,9 +298,9 @@ export class QwcRoqEditor extends LitElement {
         this._selectedPost = page;
         this._loadingContent = true;
         this._fileContent = null;
-        
+
         // Fetch file content from backend
-        this.jsonRpc.getFileContent({ path: page.path }).then(jsonRpcResponse => {
+        this.jsonRpc.getFileContent({path: page.path}).then(jsonRpcResponse => {
             this._fileContent = jsonRpcResponse.result;
             this._loadingContent = false;
         }).catch(error => {
@@ -302,12 +323,12 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _onSaveContent(e, syncPath) {
-        const { content, filePath, date, title } = e.detail;
+        const {content, filePath, date, title} = e.detail;
         const detail = e.detail;
         const target = e.target;
-        
+
         // Save file content to backend
-        this.jsonRpc.saveFileContent({ path: filePath, content, date, title, syncPath }).then(jsonRpcResponse => {
+        this.jsonRpc.saveFileContent({path: filePath, content, date, title, syncPath}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result && result.error) {
@@ -319,25 +340,25 @@ export class QwcRoqEditor extends LitElement {
             } else {
                 if (result.syncPathRequest) {
                     let syncPath = confirm(`The file name seems to be out of sync with the title and date:\n\n-> ok to save: '${result.path}'\n\n-> cancel to keep: '${filePath}'`);
-                    this._onSaveContent({ target, detail }, syncPath);
+                    this._onSaveContent({target, detail}, syncPath);
                     return;
                 }
 
                 // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
-                
+
                 if (result && result.path && this._selectedPost) {
-                    this._selectedPost = { ...this._selectedPost, path: result.path };
+                    this._selectedPost = {...this._selectedPost, path: result.path};
                     // Also update the editor's filePath property
                     if (target) {
                         target.filePath = result.path;
                     }
                 }
-                
+
                 // Mark that we need to refresh preview URL after connection restores
                 // The URL will be fetched fresh after indexing completes
                 this._pendingPreviewRefresh = true;
-                
+
                 if (target && target.markSaved) {
                     target.markSaved();
                 }
@@ -352,15 +373,15 @@ export class QwcRoqEditor extends LitElement {
 
     _onPostDelete(e) {
         e.stopPropagation();
-        
+
         const post = e.detail.post;
         const postTitle = post.title || post.path || 'this post';
-        
+
         if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
             return;
         }
 
-        this.jsonRpc.deletePost({ path: post.path }).then(jsonRpcResponse => {
+        this.jsonRpc.deletePost({path: post.path}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             if (result === 'success' || result === true) {
                 const postIndex = this._posts.findIndex(p => p.path === post.path);
@@ -377,4 +398,5 @@ export class QwcRoqEditor extends LitElement {
     }
 
 }
+
 customElements.define('qwc-roq-editor', QwcRoqEditor);
