@@ -17,7 +17,8 @@
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{post.url.absolute}</guid>
         <pubDate>{post.date.format('EEE, dd MMM yyyy HH:mm:ss Z')}</pubDate>
-        <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
+        <description><![CDATA[{post.description}]]></description>
+        <content:encoded><![CDATA[<p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]]></content:encoded>
       </item>
     {/for}
     {/if}
