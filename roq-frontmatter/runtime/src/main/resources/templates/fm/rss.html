@@ -9,13 +9,13 @@
     <link>{site.url.absolute}</link>
     <generator>Quarkus Roq</generator>
     {#if site.collections.get(name)}
-    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date}{/if}</lastBuildDate>
+    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.format('EEE, dd MMM yyyy HH:mm:ss z')}{/if}</lastBuildDate>
     {#for post in site.collections.get(name)}
       <item>
         <title><![CDATA[{post.title}]]></title>
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{post.url.absolute}</guid>
-        <pubDate>{post.date}</pubDate>
+        <pubDate>{post.date.format('EEE, dd MMM yyyy HH:mm:ss z')}</pubDate>
         <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
       </item>
     {/for}
