@@ -60,7 +60,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>lodash</artifactId>
-                        <version>4.17.21</version>
+                        <version>4.17.23</version>
                     </dependency>
                 </dependencies>
             </plugin>
