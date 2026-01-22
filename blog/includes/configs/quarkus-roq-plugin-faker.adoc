@@ -7,9 +7,9 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-faker_quarkus-count-count]] [.property-path]##link:#quarkus-roq-plugin-faker_quarkus-count-count[`quarkus.count."count"`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-faker_quarkus-roq-faker-count-count]] [.property-path]##link:#quarkus-roq-plugin-faker_quarkus-roq-faker-count-count[`quarkus.roq.faker.count."count"`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.count."count"+++[]
+config_property_copy_button:+++quarkus.roq.faker.count."count"+++[]
 endif::add-copy-button-to-config-props[]
 
 
@@ -19,10 +19,10 @@ Number of fake documents to generate per collection
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_COUNT__COUNT_+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_FAKER_COUNT__COUNT_+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_COUNT__COUNT_+++`
+Environment variable: `+++QUARKUS_ROQ_FAKER_COUNT__COUNT_+++`
 endif::add-copy-button-to-env-var[]
 --
 |Map<String,Integer>
