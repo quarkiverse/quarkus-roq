@@ -5,7 +5,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 public class RoqPluginDiagramProcessor {
 
-    private static final String FEATURE = "roq-plugin-diagram";
+    public static final String FEATURE = "roq-plugin-diagram";
 
     @BuildStep
     FeatureBuildItem feature() {
