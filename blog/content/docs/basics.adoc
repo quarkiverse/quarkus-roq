@@ -475,7 +475,7 @@ bar: Roq
 
 Can be access with `{cdi:foo.bar}` in any template.
 
-You can also have a structure (Java type mapping) for the data amongs other feature,  (link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank]).
+You can also have a structure (Java type mapping) for the data amongs other feature,  link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank].
 
 == Template Extensions
 
