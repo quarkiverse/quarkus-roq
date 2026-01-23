@@ -456,6 +456,8 @@ bar: Roq
 
 Can be access with `{cdi:foo.bar}` in any template.
 
+You can also have a structure (Java type mapping) for the data amongs other feature,  (link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank]).
+
 == Template Extensions
 
 The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean:
