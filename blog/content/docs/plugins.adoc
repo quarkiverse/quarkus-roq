@@ -207,13 +207,40 @@ asciidoc-attributes:
 ---
 ----
 
-[#toc]
+[#asciidoc-toc]
 === Table of Content (TOC)
 
 To add a Table of Content, you can either use the Asciidoc solution and make it part of the content or add https://github.com/quarkiverse/quarkus-roq/blob/main/blog/web/toc.js[this script] to your site (source: Antora).
 
 
 This will add a dynamic TOC in the `<aside class="toc sidebar"></aside>` of your layout. You can specify the title and content using `data-title` and `data-levels` attributes.
+
+
+[#asciidoc-data-conversion]
+=== Asciidoc Data Conversion
+
+
+The Asciidoc plugin also allows converting *Qute* data that contains Asciidoc
+into HTML using the `asciidocToHtml` template extension.
+
+[source,html]
+.content/page.html
+----
+---
+bar: |
+    == Hello
+
+    * that's nice
+    * I can use asciidoc in the data
+---
+
+{page.data.foo.asciidocToHtml}
+
+----
+
+
+You can use `asciidocToHtml` Qute template extension to convert Qute string data from asciidoc to HTML:
+
 
 [#plugin-markdown]
 == Roq Plugin Markdown
