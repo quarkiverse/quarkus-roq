@@ -245,7 +245,7 @@ You can use `asciidocToHtml` Qute template extension to convert Qute string data
 [#plugin-markdown]
 == Roq Plugin Markdown
 
-This plugin allows to use markdown to produce content.
+This plugin allows to use markdown to produce content (based on https://github.com/commonmark/commonmark-java[CommonMark Java,window=_blank]).
 
 NOTE: Markdown plugin is already included in Quarkus Roq extension.
 
