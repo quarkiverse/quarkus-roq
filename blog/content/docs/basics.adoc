@@ -432,7 +432,7 @@ You can use different markup languages in Roq content.
 Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).  
 To write pages or documents in Markdown, simply use the `.md` or `.markdown` file extension.
 
-This extension also allows converting *Qute* data that contains Markdown
+This plugin also allows converting *Qute* data that contains Markdown
 into HTML using the `mdToHtml` template extension.
 
 [source,html]
