@@ -187,6 +187,7 @@ Attributes can be configured:
 [source,properties]
 ----
 quarkus.asciidoc.attributes.source-highlighter=highlight.js
+quarkus.asciidoc.attributes.icons=font
 ----
 
 * As an include file in the Asciidoc headers:
