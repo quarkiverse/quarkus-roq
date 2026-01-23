@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.theme;
+package io.quarkiverse.roq.theme.resume;
 
 import io.quarkus.qute.i18n.Message;
 import io.quarkus.qute.i18n.MessageBundle;
