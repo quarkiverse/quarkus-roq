@@ -45,7 +45,7 @@
         <asciidoc-java.version>1.2.13</asciidoc-java.version>
         <jandex.version>3.5.3</jandex.version>
         <jsoup.version>1.22.1</jsoup.version>
-        <assertj.version>3.27.6</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
     </properties>
 
     <dependencyManagement>
