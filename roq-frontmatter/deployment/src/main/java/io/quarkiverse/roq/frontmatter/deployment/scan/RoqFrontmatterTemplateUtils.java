@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
 import static io.quarkiverse.roq.util.PathUtils.removeExtension;
 
@@ -32,13 +33,16 @@ public final class RoqFrontmatterTemplateUtils {
 
     public static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
         String normalized = layout;
+
         if (normalized == null) {
+            // no layout specified => use default
             normalized = defaultLayout;
             if (normalized == null || normalized.isBlank() || "none".equalsIgnoreCase(normalized)) {
+                // no default layout or none
                 return null;
             }
-            normalized = defaultLayout;
             if (normalized.contains(":theme/") && theme.isEmpty()) {
+                // the default use the theme layout but there is no theme, we just remove the theme prefix
                 normalized = normalized.replace(":theme/", "");
             }
         }
@@ -47,22 +51,26 @@ public final class RoqFrontmatterTemplateUtils {
             if (theme.isPresent()) {
                 normalized = normalized.replace(":theme", theme.get());
             } else {
+                // We don't allow to specify the theme in the template directly when there is no theme
+                // I suppose we could allow it in the future
                 throw new RoqThemeConfigurationException(
                         "No theme detected! Using ':theme' in 'layout: %s' is only possible with a theme installed as a dependency."
                                 .formatted(layout));
             }
         }
 
-        if (!normalized.contains(RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX)) {
-            normalized = PathUtils.join(RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX, normalized);
+        // normalized layout looks like this `layouts/foo`
+        // we also keep theme layout `theme-layouts/roq-theme/foo` (contains and not startWith)
+        if (!normalized.contains(LAYOUTS_DIR_PREFIX)) {
+            normalized = PathUtils.join(LAYOUTS_DIR_PREFIX, normalized);
         }
         return removeExtension(normalized);
     }
 
     public static String getLayoutKey(Optional<String> theme, String resolvedLayout) {
         String result = resolvedLayout;
-        if (result.startsWith(RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX)) {
-            result = result.substring(RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX.length());
+        if (result.startsWith(LAYOUTS_DIR_PREFIX)) {
+            result = result.substring(LAYOUTS_DIR_PREFIX.length());
 
             if (theme.isPresent() && result.contains(theme.get())) {
                 result = result.replace(theme.get(), ":theme");

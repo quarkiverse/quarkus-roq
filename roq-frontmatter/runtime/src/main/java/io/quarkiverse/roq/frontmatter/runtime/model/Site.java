@@ -73,6 +73,16 @@ public final class Site {
     }
 
     /**
+     * @return the site index page.
+     */
+    public Page index() {
+        return pages().stream()
+                .filter(p -> p.source().isSiteIndex())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No index page found for site"));
+    }
+
+    /**
      * The site title
      */
     public String title() {

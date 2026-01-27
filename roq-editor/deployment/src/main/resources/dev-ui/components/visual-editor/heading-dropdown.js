@@ -7,7 +7,7 @@
 import '@vaadin/combo-box';
 import { LitElement, css, html } from 'lit';
 import { editorContext } from './editor-context.js';
-import { ContextConsumer } from '../bundle.js';
+import { ContextConsumer } from '../../bundle.js';
 
 export class HeadingDropdown extends LitElement {
     static properties = {

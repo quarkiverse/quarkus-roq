@@ -13,6 +13,7 @@ import io.quarkus.qute.TemplateData;
  * @param draft
  * @param dateString
  * @param files
+ * @param generated this page has been generated
  */
 @TemplateData
 @Vetoed
@@ -20,10 +21,11 @@ public record PageSource(
         TemplateSource template,
         boolean draft,
         String dateString,
-        PageFiles files) {
+        PageFiles files,
+        boolean generated) {
 
-    public PageSource changeId(String id) {
-        return new PageSource(template().changeId(id), draft, dateString, isSiteIndex() ? null : files);
+    public PageSource generated(String newId) {
+        return new PageSource(template().changeId(newId), draft, dateString, isSiteIndex() ? null : files, true);
     }
 
     public String id() {

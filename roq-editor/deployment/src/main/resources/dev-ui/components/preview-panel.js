@@ -25,11 +25,26 @@ export class PreviewPanel extends LitElement {
             border: none;
             background: var(--lumo-base-color);
         }
+     
     `;
 
     constructor() {
         super();
         this.previewUrl = null;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('request-preview-refresh', this._onRefresh);
+    }
+    disconnectedCallback() {
+        window.removeEventListener('request-preview-refresh', this._onRefresh);
+        super.disconnectedCallback();
+    }
+
+    _onRefresh = () => {
+        const iframe = this.renderRoot.querySelector('.preview-iframe');
+        iframe?.contentWindow?.location.reload();
     }
 
 
@@ -48,6 +63,9 @@ export class PreviewPanel extends LitElement {
             </div>
         `;
     }
+
+
+
 }
 
 customElements.define('qwc-preview-panel', PreviewPanel);

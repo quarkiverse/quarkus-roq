@@ -4,14 +4,20 @@
  * Provides "+" button for creating new blocks and drag handle for reordering
  */
 
-import { LitElement, css, html } from 'lit';
-import './floating-menu.js';
+import {LitElement, css, html} from 'lit';
+import { editorContext } from './editor-context.js';
+import { ContextConsumer } from '../../bundle.js';
 
 export class GutterMenu extends LitElement {
     static properties = {};
 
     constructor() {
         super();
+
+        this._editorConsumer = new ContextConsumer(this, {
+            context: editorContext,
+            subscribe: true
+        });
     }
 
     static styles = css`
@@ -20,6 +26,7 @@ export class GutterMenu extends LitElement {
             flex-direction: row;
             gap: 2px;
             padding-right: 5px;
+            padding-left: 5px;
             position: relative;
             transition-property: top;
             transition-duration: .2s;
@@ -80,10 +87,32 @@ export class GutterMenu extends LitElement {
 
     render() {
         return html`
-            <button class="gutter-menu-button gutter-add-button" title="Add block">+</button>
-            <button class="gutter-menu-button gutter-drag-button" dragable title="Drag to reorder">⋮⋮</button>
-            <slot></slot>
+          <button class="gutter-menu-button gutter-add-button" title="Add block">+</button>
+          <button class="gutter-menu-button gutter-drag-button" dragable title="Drag to reorder">⋮⋮</button>
+          <slot></slot>
         `;
+    }
+
+    get editor() {
+        return this._editorConsumer.value?.editor || null;
+    }
+
+    get editorElement() {
+        return this._editorConsumer.value?.editorElement || null;
+    }
+
+    /**
+     * Position the floating menu relative to a block element
+     * Now uses CSS positioning relative to parent gutter menu
+     */
+    position(e) {
+        if (!this.editor || !this.editorElement) return;
+
+        const coords = this.editor.view.posAtCoords({
+            left: e.clientX,
+            top: e.clientY
+        });
+        this.pos = coords.pos;
     }
 
     /**
@@ -91,9 +120,19 @@ export class GutterMenu extends LitElement {
      */
     _handleAddClick(e) {
         e.stopPropagation();
-        if (this.floatingMenu) {
-            this.floatingMenu.toggle(e);
-        }
+        // Use composedPath to find the button in Shadow DOM
+        const path = e.composedPath();
+        if (!this.editor) return;
+
+        const coords = this.editor.view.posAtCoords({
+            left: e.clientX,
+            top: e.clientY
+        });
+
+        const pos = coords.pos;
+        if (pos === null) return;
+
+        this.editor.commands.openSlashMenu(pos);
     }
 }
 

@@ -5,7 +5,7 @@
 
 import { LitElement, css, html } from 'lit';
 import { editorContext } from './editor-context.js';
-import { ContextConsumer } from '../bundle.js';
+import { ContextConsumer } from '../../bundle.js';
 import './heading-dropdown.js';
 
 export class FloatingMenu extends LitElement {

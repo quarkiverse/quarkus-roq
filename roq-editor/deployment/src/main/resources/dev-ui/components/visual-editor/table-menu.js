@@ -9,7 +9,7 @@ import '@vaadin/button';
 import '@vaadin/context-menu';
 import { LitElement, css, html } from 'lit';
 import { editorContext } from './editor-context.js';
-import { ContextConsumer } from '../bundle.js';
+import { ContextConsumer } from '../../bundle.js';
 
 export class TableMenu extends LitElement {
     static properties = {

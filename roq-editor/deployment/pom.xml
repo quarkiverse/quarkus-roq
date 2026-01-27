@@ -66,7 +66,7 @@
             <plugin>
                 <groupId>io.mvnpm</groupId>
                 <artifactId>esbuild-maven-plugin</artifactId>
-                <version>2.0.0.CR2</version>
+                <version>2.0.0</version>
                 <executions>
                     <execution>
                         <id>esbuild</id>
@@ -99,6 +99,11 @@
                     <dependency>
                         <groupId>org.mvnpm.at.mvnpm</groupId>
                         <artifactId>tiptap</artifactId>
+                        <version>3.12.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.tiptap</groupId>
+                        <artifactId>extension-placeholder</artifactId>
                         <version>3.12.1</version>
                     </dependency>
                     <dependency>

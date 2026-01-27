@@ -94,7 +94,7 @@ class RoqFrontMatterPublishProcessor {
                 }
                 PageSource pageSource = pagination.source();
                 if (i > 1) {
-                    pageSource = pageSource.changeId(
+                    pageSource = pageSource.generated(
                             PathUtils.removeExtension(pageSource.id()) + "_p" + i + "." + pageSource.extension());
                 }
 

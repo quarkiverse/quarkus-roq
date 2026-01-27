@@ -4,7 +4,7 @@ import '@vaadin/text-area';
 import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/date-time-picker';
-import { parseAndFormatDate } from '../utils/frontmatter.js';
+import { parseAndFormatDate } from '../../utils/frontmatter.js';
 
 export class FrontmatterPanel extends LitElement {
     

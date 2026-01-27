@@ -2,6 +2,7 @@ package io.quarkiverse.roq.editor.runtime.devui;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.util.PathUtils;
@@ -29,7 +31,7 @@ import io.smallrye.common.annotation.Blocking;
 public class RoqEditorJsonRPCService {
     private static final Logger LOG = Logger.getLogger(RoqEditorJsonRPCService.class);
     private static final DateTimeFormatter FILE_NAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final Pattern POST_DIR_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-(.+)");
+    private static final Pattern POST_NAME_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-(.+)");
 
     @Inject
     private Site site;
@@ -38,57 +40,256 @@ public class RoqEditorJsonRPCService {
     private RoqSiteConfig config;
 
     @Blocking
-    public List<Source> getPosts() {
-        return site.allPages().stream()
-                .filter(p -> p instanceof DocumentPage d && "posts".equals(d.collection().id()))
-                .distinct()
+    public List<PageSource> getPosts() {
+        return site.collections().get("posts").stream()
                 .sorted(Comparator.comparing(Page::date).reversed())
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
-                        p.sourcePath(), p.source().extension(), markup(p), formatDate(p.date())))
+                .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
+                        p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
                 .toList();
     }
 
     @Blocking
-    public List<Source> getPages() {
+    public List<PageSource> getPages() {
         return site.pages().stream()
-                .map(p -> new Source(p.sourcePath(), p.title(), p.description(), p.url().path(),
-                        p.sourcePath(), p.source().extension(), markup(p), formatDate(p.date())))
-                .distinct().toList();
+                .filter(p -> !p.source().generated())
+                .map(p -> new PageSource(null, p.sourcePath(), p.title(), p.description(), p.url().path(),
+                        p.source().extension(), markup(p), null, null))
+                .toList();
     }
 
     @Blocking
-    public String getFileContent(String path) {
+    public PageContentResult getPageContent(String path) {
         try {
-            Path filePath = resolvePagePath(path);
-            return Files.readString(filePath, StandardCharsets.UTF_8);
+            final Path filePath = getPageAbsolutePath(resolvePage(path));
+            return new PageContentResult(Files.readString(filePath, StandardCharsets.UTF_8), null);
         } catch (Exception e) {
             LOG.errorf(e, "Error reading source file for path: %s", path);
+            return new PageContentResult(null, "Error: " + e.getMessage());
+        }
+    }
+
+    @Blocking
+    public SyncPathResult syncPath(String path) {
+
+        try {
+            Page page = resolvePage(path);
+            String slug = toSlug(page.title());
+            final String date = formatDate(page.date());
+            final String suggestedPath = getSuggestedPath(page, date, slug);
+            if (suggestedPath == null) {
+                return new SyncPathResult(null, null);
+            }
+            Path currentFilePath = getPageAbsolutePath(page);
+            Path contentDir = resolveContentDirPath(page);
+            final Path newFilePath = contentDir.resolve(suggestedPath);
+            final Path from;
+            final Path to;
+            if (page.source().isIndex()) {
+                from = currentFilePath.getParent();
+                to = newFilePath.getParent();
+            } else {
+                from = currentFilePath;
+                to = newFilePath;
+            }
+
+            if (Files.exists(to)) {
+                if (Files.isDirectory(to)) {
+                    try {
+                        Files.delete(to);
+                    } catch (DirectoryNotEmptyException e) {
+                        return new SyncPathResult(null, "Target dir already exists and is not empty: " + to);
+                    }
+                } else {
+                    return new SyncPathResult(null, "Target already exists: " + to);
+                }
+            }
+
+            Files.move(from, to);
+            LOG.infof("Moved document from %s to %s", from, to);
+            return new SyncPathResult(suggestedPath, null);
+        } catch (Exception e) {
+            LOG.errorf(e, "Error move document for path: %s", path);
+            return new SyncPathResult(null, "Error: " + e.getMessage());
+        }
+    }
+
+    @Blocking
+    public SaveResult savePageContent(String path, String content, String date, String title) {
+        if (content == null) {
+            return new SaveResult(null, "Error: Content parameter is required");
+        }
+
+        try {
+            Page page = resolvePage(path);
+            Path filePath = getPageAbsolutePath(page);
+
+            String suggestedPath = null;
+            if (page instanceof DocumentPage) {
+                if (title != null && date != null) {
+                    // Move post if date or title changed, returns new path and new file location
+                    String newSlug = toSlug(title);
+                    suggestedPath = getSuggestedPath(page, date, newSlug);
+                }
+            }
+
+            Files.writeString(filePath, content, StandardCharsets.UTF_8);
+            LOG.infof("Successfully saved page: %s", filePath);
+
+            return new SaveResult(suggestedPath, null);
+        } catch (Exception e) {
+            LOG.errorf(e, "Error saving page for path: %s", path);
+            return new SaveResult(null, "Error: " + e.getMessage());
+        }
+    }
+
+    @Blocking
+    public CreatePageResult createPage(String collectionId, String title) {
+        if (title == null || title.trim().isEmpty()) {
+            return new CreatePageResult(null, null, "Error: Title parameter is required");
+        }
+
+        try {
+            Path contentDir = resolveIndexContentDir();
+
+            String slug = toSlug(title);
+
+            final String dirName;
+            final Path parentDir;
+            final String date;
+            if (collectionId != null) {
+                date = LocalDate.now().format(FILE_NAME_DATE_FORMAT);
+                dirName = date + "-" + slug;
+                parentDir = contentDir.resolve(collectionId);
+            } else {
+                dirName = slug;
+                parentDir = contentDir;
+                date = null;
+            }
+
+            Path dir = parentDir.resolve(dirName);
+            Path file = dir.resolve("index.md");
+
+            Files.createDirectories(dir);
+
+            String frontmatter = """
+                    ---
+                    title: "%s"
+                    date: "%s"
+                    image: ""\s
+                    description: ""\s
+                    ---
+                    """.formatted(title, FILE_NAME_DATE_FORMAT.format(LocalDate.now()));
+            Files.writeString(file, frontmatter, StandardCharsets.UTF_8);
+
+            String relativePath = contentDir.relativize(file).toString();
+            LOG.infof("Successfully created post: %s", relativePath);
+            return new CreatePageResult(
+                    new PageSource(collectionId, relativePath, title, "", null, "md", "markdown", date, null), frontmatter,
+                    null);
+        } catch (Exception e) {
+            LOG.errorf(e, "Error creating page with title: %s", title);
+            return new CreatePageResult(null, null, "Error: " + e.getMessage());
+        }
+    }
+
+    @Blocking
+    public String deletePage(String path) {
+        if (path == null || path.isEmpty()) {
+            return "Error: Path parameter is required";
+        }
+
+        try {
+            final Page page = resolvePage(path);
+            Path postPath = getPageAbsolutePath(page);
+
+            // Delete the parent directory if this is an index.md file
+            Path pathToDelete = page.source().isIndex()
+                    ? postPath.getParent()
+                    : postPath;
+
+            if (!Files.exists(pathToDelete)) {
+                return "Error: Post not found at path: " + path;
+            }
+
+            if (Files.isDirectory(pathToDelete)) {
+                deleteDirectory(pathToDelete);
+            } else {
+                Files.delete(pathToDelete);
+            }
+
+            LOG.infof("Successfully deleted post: %s", path);
+            return "success";
+        } catch (Exception e) {
+            LOG.errorf(e, "Error deleting post at path: %s", path);
             return "Error: " + e.getMessage();
         }
     }
 
     /**
+     * Returns the configured date format from RoqSiteConfig.
+     * This format is used for parsing and formatting dates in frontmatter.
+     */
+    @Blocking
+    public String getDateFormat() {
+        return config.dateFormat();
+    }
+
+    private void deleteDirectory(Path directory) throws IOException {
+        try (Stream<Path> stream = Files.walk(directory)) {
+            stream.sorted(Comparator.reverseOrder()) // Delete files before directories
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (Exception e) {
+                            LOG.errorf(e, "Error deleting file: %s", path);
+                        }
+                    });
+        }
+    }
+
+    private Path resolveIndexContentDir() {
+        return resolveContentDirPath(site.index());
+    }
+
+    private Path resolveContentDirPath(Page page) {
+        final Path siteDir = Path.of(page.source().file().siteDirPath()).toAbsolutePath().normalize();
+        final Path contentDir = siteDir.resolve(config.contentDir());
+        if (Files.isDirectory(contentDir)) {
+            return contentDir;
+        }
+        throw new RuntimeException(
+                "Unable to resolve a '%s' content' dir for path: '%s'".formatted(config.contentDir(), siteDir));
+    }
+
+    private static Path getPageAbsolutePath(Page page) {
+        return Path.of(page.source().file().absolutePath()).toAbsolutePath().normalize();
+    }
+
+    /**
      * Resolves the absolute path for a given source path.
      */
-    private Path resolvePagePath(String path) throws Exception {
+    private Page resolvePage(String path) {
         if (path == null || path.isEmpty()) {
-            throw new Exception("Path parameter is required");
+            throw new IllegalArgumentException("Path parameter is required");
         }
 
         var page = site.page(path);
         if (page != null) {
-            return Path.of(page.source().template().file().absolutePath());
+            return page;
+        }
+        throw new RuntimeException("Path not found for page: " + path);
+    }
+
+    private DocumentPage resolveDoc(String path) throws Exception {
+        if (path == null || path.isEmpty()) {
+            throw new Exception("Path parameter is required");
         }
 
-        // If not in site, check if it exists on disk
-        Path contentDir = getSiteDirectory();
-        if (contentDir != null) {
-            Path file = contentDir.resolve(path);
-            if (Files.exists(file)) {
-                return file;
-            }
+        var page = site.document(path);
+        if (page != null) {
+            return page;
         }
-        throw new Exception("Path not found: " + path);
+        throw new RuntimeException("Path not found for page: " + path);
     }
 
     private static String markup(Page page) {
@@ -112,200 +313,62 @@ public class RoqEditorJsonRPCService {
         return PathUtils.slugify(title.toLowerCase().trim(), false, false);
     }
 
-    /**
-     * Moves a post directory when date or title changes.
-     * Returns both the new file path and relative path, or the originals if no move was needed.
-     */
-    private MoveResult movePostIfNeeded(Path currentFilePath, String newDate, String newSlug, String originalPath,
-            Boolean syncPath)
-            throws IOException {
-        boolean isDirPost = currentFilePath.getFileName().toString().startsWith("index.");
-        Path currentPath = isDirPost ? currentFilePath.getParent() : currentFilePath;
-        String currentName = currentPath.getFileName().toString();
-
-        Matcher matcher = POST_DIR_PATTERN.matcher(currentName);
-        if ((syncPath != null && !syncPath) || !matcher.matches()) {
-            // Not a standard post directory, skip moving
-            return new MoveResult(currentFilePath, originalPath, false);
-        }
-
-        String currentDate = matcher.group(1);
-        String currentSlug = matcher.group(2);
-
-        // Use current values if new ones are not provided
-        String targetDate = (newDate != null && !newDate.isBlank()) ? newDate : currentDate;
-        String targetSlug = (newSlug != null && !newSlug.isBlank()) ? newSlug : currentSlug;
-
-        final String extension = isDirPost ? "" : "." + PathUtils.getExtension(currentName);
-        String newName = targetDate + "-" + targetSlug + extension;
-
-        if (newName.equals(currentName)) {
-            return new MoveResult(currentFilePath, originalPath, false);
-        }
-        Path newPath = currentPath.getParent().resolve(newName);
-        // Return both the new file path and relative path
-        String fileName = currentFilePath.getFileName().toString();
-        Path newFilePath = isDirPost ? newPath.resolve(fileName) : newPath;
-        String newRelativePath = currentPath.getParent().getParent().relativize(newPath).toString();
-
-        if (syncPath == null) {
-            return new MoveResult(newFilePath, newRelativePath, true);
-        }
-
-        if (Files.exists(newPath)) {
-            throw new IOException("Target already exists: " + newPath);
-        }
-
-        Files.move(currentPath, newPath);
-        LOG.infof("Moved post from %s to %s", currentPath, newPath);
-
-        return new MoveResult(newFilePath, newRelativePath, false);
+    private String getCurrentSuggestedPath(Page page) {
+        String slug = toSlug(page.title());
+        final String date = formatDate(page.date());
+        return getSuggestedPath(page, date, slug);
     }
 
-    @Blocking
-    public SaveResult saveFileContent(String path, String content, String date, String title, Boolean syncPath) {
-        if (content == null) {
-            return new SaveResult(null, false, "Error: Content parameter is required");
+    private String getSuggestedPath(Page page, String date, String slug) {
+        if (page instanceof NormalPage) {
+            return null;
+        }
+        boolean isDirPage = page.source().isIndex();
+        Path currentFilePath = getPageAbsolutePath(page);
+        String currentName = isDirPage ? currentFilePath.getParent().getFileName().toString()
+                : PathUtils.removeExtension(currentFilePath.getFileName().toString());
+        Matcher matcher = POST_NAME_PATTERN.matcher(currentName);
+        if (!matcher.matches()) {
+            return null;
+        }
+        String syncedName = date + "-" + slug;
+        if (syncedName.equals(currentName)) {
+            return null;
         }
 
-        try {
-            String relativePath = path;
-            Path filePath = resolvePagePath(relativePath);
-            if (title != null && date != null) {
-                // Move post if date or title changed, returns new path and new file location
-                String newSlug = toSlug(title);
-                MoveResult moveResult = movePostIfNeeded(filePath, date, newSlug, path, syncPath);
-
-                if (moveResult.syncPathRequest) {
-                    return new SaveResult(moveResult.relativePath(), true, null);
-                }
-                filePath = moveResult.filePath;
-                relativePath = moveResult.relativePath;
-            }
-
-            Files.writeString(filePath, content, StandardCharsets.UTF_8);
-            LOG.infof("Successfully saved file: %s", filePath);
-
-            return new SaveResult(relativePath, false, null);
-        } catch (Exception e) {
-            LOG.errorf(e, "Error saving file for path: %s", path);
-            return new SaveResult(null, false, "Error: " + e.getMessage());
+        Path contentDir = resolveContentDirPath(page);
+        final Path newFilePath;
+        if (isDirPage) {
+            String indexFileName = currentFilePath.getFileName().toString();
+            newFilePath = currentFilePath.getParent().getParent().resolve(syncedName).resolve(indexFileName);
+        } else {
+            newFilePath = currentFilePath.getParent().resolve(syncedName + "." + page.source().extension());
         }
+        return contentDir.relativize(newFilePath).toString();
     }
 
-    private record MoveResult(Path filePath, String relativePath, boolean syncPathRequest) {
-    }
-
-    /**
-     * Result of a save operation.
-     */
-    public record SaveResult(String path, boolean syncPathRequest, String errorMessage) {
+    public record PageContentResult(String content, String errorMessage) {
         public boolean isError() {
             return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 
-    @Blocking
-    public String createPost(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            return "Error: Title parameter is required";
-        }
-
-        try {
-            Path siteDir = getSiteDirectory();
-            if (siteDir == null) {
-                return "Error: Could not determine site directory";
-            }
-
-            String slug = toSlug(title);
-            String dateStr = LocalDate.now().format(FILE_NAME_DATE_FORMAT);
-            String dirName = dateStr + "-" + slug;
-
-            Path postDir = siteDir.resolve("posts").resolve(dirName);
-            Path postFile = postDir.resolve("index.md");
-
-            Files.createDirectories(postDir);
-
-            String frontmatter = """
-                    ---
-                    title: "%s"
-                    date: "%s"
-                    image: ""\s
-                    description: ""\s
-                    ---
-                    """.formatted(title, FILE_NAME_DATE_FORMAT.format(LocalDate.now()));
-            Files.writeString(postFile, frontmatter, StandardCharsets.UTF_8);
-
-            String relativePath = "posts/" + dirName + "/index.md";
-            LOG.infof("Successfully created post: %s", relativePath);
-            return relativePath;
-        } catch (Exception e) {
-            LOG.errorf(e, "Error creating post with title: %s", title);
-            return "Error: " + e.getMessage();
+    public record SaveResult(String suggestedPath, String errorMessage) {
+        public boolean isError() {
+            return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 
-    @Blocking
-    public String deletePost(String path) {
-        if (path == null || path.isEmpty()) {
-            return "Error: Path parameter is required";
-        }
-
-        try {
-            Path postPath = resolvePagePath(path);
-
-            // Delete the parent directory if this is an index.md file
-            Path pathToDelete = "index.md".equals(postPath.getFileName().toString())
-                    ? postPath.getParent()
-                    : postPath;
-
-            if (!Files.exists(pathToDelete)) {
-                return "Error: Post not found at path: " + path;
-            }
-
-            if (Files.isDirectory(pathToDelete)) {
-                deleteDirectory(pathToDelete);
-            } else {
-                Files.delete(pathToDelete);
-            }
-
-            LOG.infof("Successfully deleted post: %s", path);
-            return "success";
-        } catch (Exception e) {
-            LOG.errorf(e, "Error deleting post at path: %s", path);
-            return "Error: " + e.getMessage();
+    public record SyncPathResult(String newPath, String errorMessage) {
+        public boolean isError() {
+            return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 
-    private void deleteDirectory(Path directory) throws IOException {
-        try (Stream<Path> stream = Files.walk(directory)) {
-            stream.sorted(Comparator.reverseOrder()) // Delete files before directories
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (Exception e) {
-                            LOG.errorf(e, "Error deleting file: %s", path);
-                        }
-                    });
+    public record CreatePageResult(PageSource page, String content, String errorMessage) {
+        public boolean isError() {
+            return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 
-    private Path getSiteDirectory() {
-        if (!site.pages().isEmpty()) {
-            Page firstPage = site.pages().get(0);
-            String absolutePath = firstPage.source().template().file().absolutePath();
-
-            return Path.of(absolutePath).getParent();
-        }
-        return null;
-    }
-
-    /**
-     * Returns the configured date format from RoqSiteConfig.
-     * This format is used for parsing and formatting dates in frontmatter.
-     */
-    @Blocking
-    public String getDateFormat() {
-        return config.dateFormat();
-    }
 }

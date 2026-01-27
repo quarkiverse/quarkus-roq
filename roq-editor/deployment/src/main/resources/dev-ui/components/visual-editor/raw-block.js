@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '../bundle.js';
+import { Node, mergeAttributes } from '../../bundle.js';
 import { html, render } from 'lit';
 
 export const RawBlock = Node.create({

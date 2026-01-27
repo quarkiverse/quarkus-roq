@@ -4,7 +4,7 @@
  */
 
 import { html, render } from 'lit';
-import { Extension, Suggestion } from '../bundle.js';
+import { Extension, Suggestion, TextSelection } from '../../bundle.js';
 import './slash-menu.js';
 
 // Define all available block types with their commands
@@ -109,17 +109,60 @@ export const SlashCommand = Extension.create({
                 command: ({ editor, range, props }) => {
                     props.command({ editor, range });
                 },
-                decorationContent: "Filter..."
+                decorationContent: "Filter blocks..."
             },
         };
     },
+
+
+    addCommands() {
+        return {
+            openSlashMenu:
+                (pos) =>
+                    ({editor, chain}) => {
+                        if (pos == null) {
+                            return false;
+                        }
+                        const $root = editor.$pos(pos);
+
+                        if ($root.node.type.name !== 'doc') return false
+
+                        const $from = $root.firstChild;
+                        if(!$from.node.isTextblock)  return false;
+                        console.log($from.textContent);
+                        const hasContent = $from.textContent?.length > 0;
+                        if(hasContent){
+                            return chain()
+                                .focus()
+                                .insertContentAt($from.to, [
+                                {
+                                    type: 'paragraph',
+                                    content: [
+                                        {
+                                            type: 'text',
+                                            text: '/',
+                                        },
+                                    ],
+                                }], { updateSelection:true })
+                                .run();
+                        }
+
+                        return chain()
+                            .focus()
+                            .insertContentAt($from.pos, '/', { updateSelection:true })
+                            .run()
+                    },
+
+        }
+    },
+
 
     addProseMirrorPlugins() {
         return [
             Suggestion({
                 editor: this.editor,
                 ...this.options.suggestion,
-                items: ({ query }) => {
+                items: ({query}) => {
                     return BLOCK_TYPES.filter(item =>
                         item.label.toLowerCase().includes(query.toLowerCase())
                     );
@@ -140,16 +183,16 @@ export const SlashCommand = Extension.create({
 
                     const renderPopup = (props) => {
                         const template = html`
-                            <qwc-slash-menu
-                                .items="${props.items}"
-                                .query="${props.query}"
-                                @item-selected="${(e) => {
-                                    const item = e.detail.item;
-                                    if (item && item.command) {
-                                        props.command(item);
-                                    }
-                                }}"
-                            ></qwc-slash-menu>
+                          <qwc-slash-menu
+                            .items="${props.items}"
+                            .query="${props.query}"
+                            @item-selected="${(e) => {
+                              const item = e.detail.item;
+                              if (item && item.command) {
+                                props.command(item);
+                              }
+                            }}"
+                          ></qwc-slash-menu>
                         `;
                         render(template, popup);
                         component = popup.querySelector('qwc-slash-menu');

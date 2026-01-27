@@ -2,10 +2,9 @@ import {LitElement, html, css} from 'lit';
 import {JsonRpc} from 'jsonrpc';
 import {connectionState} from 'connection-state';
 import './components/navigation-bar.js';
-import './components/posts-list.js';
 import './components/pages-list.js';
 import './components/tags-list.js';
-import './components/visual-editor.js';
+import './components/visual-editor/visual-editor.js';
 import './components/simple-editor.js';
 import {showPrompt} from './components/prompt-dialog.js';
 
@@ -35,7 +34,7 @@ export class QwcRoqEditor extends LitElement {
     static properties = {
         "_posts": {state: true},
         "_activeTab": {state: true},
-        "_selectedPost": {state: true},
+        "_selectedPage": {state: true},
         "_fileContent": {state: true},
         "_loadingContent": {state: true},
         "_dateFormat": {state: true}
@@ -44,7 +43,7 @@ export class QwcRoqEditor extends LitElement {
     constructor() {
         super();
         this._activeTab = 0;
-        this._selectedPost = null;
+        this._selectedPage = null;
         this._fileContent = null;
         this._loadingContent = false;
         this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
@@ -99,7 +98,7 @@ export class QwcRoqEditor extends LitElement {
         const wasConnected = this._previousConnectionState;
 
         // Detect reconnection: was not connected, now connected
-        if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPost) {
+        if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPage) {
             this._refreshPreviewUrl();
         }
 
@@ -107,9 +106,9 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _refreshPreviewUrl() {
-        if (!this._selectedPost) return;
+        if (!this._selectedPage) return;
 
-        const currentPath = this._selectedPost.path;
+        const currentPath = this._selectedPage.path;
 
         // Fetch fresh posts and pages to get the updated URL
         Promise.all([
@@ -127,7 +126,7 @@ export class QwcRoqEditor extends LitElement {
 
             if (updatedItem && updatedItem.url) {
                 // Update selected post/page with fresh URL
-                this._selectedPost = {...this._selectedPost, url: updatedItem.url};
+                this._selectedPage = {...this._selectedPage, url: updatedItem.url};
                 this._pendingPreviewRefresh = false;
                 console.log('new url detected for preview', updatedItem.url);
             }
@@ -151,7 +150,7 @@ export class QwcRoqEditor extends LitElement {
     render() {
         return html`
           <div class="content-area">
-            ${this._selectedPost && this._fileContent !== null
+            ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
               : this._renderContent()
             }
@@ -165,14 +164,15 @@ export class QwcRoqEditor extends LitElement {
 
 
     _renderEditor() {
-        if (this._selectedPost.markup === 'markdown') {
+        if (this._selectedPage.markup === 'markdown') {
             return html`
               <qwc-visual-editor
-                .filePath="${this._selectedPost.path}"
-                .fileExtension="${this._selectedPost.extension}"
-                .markup="${this._selectedPost.markup}"
-                .previewUrl="${this._selectedPost.url}"
-                .date="${this._selectedPost.date}"
+                .filePath="${this._selectedPage.path}"
+                .fileExtension="${this._selectedPage.extension}"
+                .suggestedPath="${this._selectedPage.suggestedPath}"
+                .markup="${this._selectedPage.markup}"
+                .previewUrl="${this._selectedPage.url}"
+                .date="${this._selectedPage.date}"
                 .dateFormat="${this._dateFormat}"
                 .loading="${this._loadingContent}"
                 @close-viewer="${this._closeViewer}"
@@ -183,9 +183,10 @@ export class QwcRoqEditor extends LitElement {
         }
         return html`
           <qwc-simple-editor
-            .filePath="${this._selectedPost.path}"
-            .fileExtension="${this._selectedPost.extension}"
-            .previewUrl="${this._selectedPost.url}"
+            .filePath="${this._selectedPage.path}"
+            .fileExtension="${this._selectedPage.extension}"
+            .suggestedPath="${this._selectedPage.suggestedPath}"
+            .previewUrl="${this._selectedPage.url}"
             .loading="${this._loadingContent}"
             @close-viewer="${this._closeViewer}"
             .content="${this._fileContent}"
@@ -209,12 +210,15 @@ export class QwcRoqEditor extends LitElement {
 
     _renderPosts() {
         return html`
-          <qwc-posts-list
-            .posts="${this._posts}"
-            @add-new-post="${this._addNewPost}"
-            @post-clicked="${this._onPostClicked}"
-            @post-delete="${this._onPostDelete}">
-          </qwc-posts-list>
+          <qwc-pages-list
+            collectionId="posts"
+            .pages="${this._posts}"
+            @add-new-page="${this._addNewPage}"
+            @page-clicked="${this._onPageClicked}"
+            @page-delete="${this._onPageDelete}"
+            @page-sync-path="${this._onPageSyncPath}"
+          >
+          </qwc-pages-list>
         `;
     }
 
@@ -236,72 +240,90 @@ export class QwcRoqEditor extends LitElement {
 
     _getPages() {
         if (!this._pages) return [];
-        return this._pages.filter(page => {
-            const path = page.path || '';
-            const outputPath = page.outputPath || '';
-            return path &&
-                !path.includes('/posts/') &&
-                !path.includes('/posts/tag/') &&
-                !outputPath.includes('/posts/') &&
-                !outputPath.includes('/posts/tag/');
-        });
+        return this._pages;
     }
 
-    _getTags() {
-        if (!this._pages) return [];
-        return this._pages.filter(page => {
-            const path = page.path || '';
-            const outputPath = page.outputPath || '';
-            return (path && path.includes('/posts/tag/')) ||
-                (outputPath && outputPath.includes('/posts/tag/'));
-        });
-    }
-
-    _addNewPost() {
-        showPrompt('Enter post title:', '').then(title => {
+    _addNewPage(e) {
+        const collectionId = e.target.collectionId;
+        showPrompt('Enter title:', '').then(title => {
             if (title) {
-                this.jsonRpc.createPost({title: title}).then(jsonRpcResponse => {
+                this.jsonRpc.createPage({collectionId, title: title}).then(jsonRpcResponse => {
                     const result = jsonRpcResponse.result;
-                    console.log('result', result);
-                    if (result && !result.startsWith("Error")) {
-                        this._pendingPreviewRefresh = true;
-                        const newPost = {path: result, markup: 'markdown', extension: 'md', title: title, description: ''};
-                        this._onPostClicked({detail: {post: newPost}});
-                    } else {
-                        alert('Error creating post: ' + result);
+                    // Check if result contains an error
+                    if (result && result.error) {
+                        alert('Error creating page: ' + result.errorMessage);
+                        return;
                     }
+                    console.log('result', result);
+                    this._pendingPreviewRefresh = true;
+                    if (collectionId) {
+                        this._posts = [result.page].concat(this._posts);
+                    } else {
+                        this._pages = [result.page].concat(this._pages);
+                    }
+                    this._onPageClicked({detail: {page: result.page, content: result.content}});
                 }).catch(error => {
-                    alert('Error creating post: ' + error.message);
+                    alert('Error creating page: ' + error.message);
                 });
             }
         });
     }
 
-    _onPostClicked(e) {
-        const post = e.detail.post;
-        this._selectedPost = post;
-        this._loadingContent = true;
-        this._fileContent = null;
+    _onPageSyncPath(e) {
+        e.stopPropagation();
+        const page = e.detail.page;
 
-        // Fetch file content from backend
-        this.jsonRpc.getFileContent({path: post.path}).then(jsonRpcResponse => {
-            this._fileContent = jsonRpcResponse.result;
-            this._loadingContent = false;
+        if (!confirm(`Are you sure you want to change the page path to '${page.suggestedPath}'.`)) {
+            return;
+        }
+        // Save file content to backend
+        this.jsonRpc.syncPath({path: page.path}).then(jsonRpcResponse => {
+            const result = jsonRpcResponse.result;
+            // Check if result contains an error
+            if (result && result.error) {
+                alert('Error syncing page path: ' + result.errorMessage);
+                return;
+            }
+            const updated = {...page, path: result.newPath, suggestedPath: null}
+
+            if (page.collectionId) {
+                this._posts = this._posts.map(p => p.path === page.path ? updated : p);
+            } else {
+                this._pages = this._pages.map(p => p.path === page.path ? updated : p);
+            }
+
+            if (this._selectedPage?.path === page.path) {
+                this._selectedPage = updated;
+            }
+            this._pendingPreviewRefresh = true;
         }).catch(error => {
-            this._fileContent = "Error loading file content: " + error.message;
-            this._loadingContent = false;
+            alert('Error syncing page path: ' + error.message);
         });
+
     }
 
     _onPageClicked(e) {
         const page = e.detail.page;
-        this._selectedPost = page;
+        const content = e.detail.content;
+        this._selectedPage = page;
+        if (content) {
+           this._fileContent = content;
+           return
+        }
         this._loadingContent = true;
         this._fileContent = null;
 
+
+
         // Fetch file content from backend
-        this.jsonRpc.getFileContent({path: page.path}).then(jsonRpcResponse => {
-            this._fileContent = jsonRpcResponse.result;
+        this.jsonRpc.getPageContent({path: page.path}).then(jsonRpcResponse => {
+            const result = jsonRpcResponse.result;
+            // Check if result contains an error
+            if (result && result.error) {
+                alert('Error syncing page path: ' + result.errorMessage);
+                return;
+            }
+            this._fileContent = result.content;
             this._loadingContent = false;
         }).catch(error => {
             this._fileContent = "Error loading file content: " + error.message;
@@ -310,7 +332,7 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _closeViewer() {
-        this._selectedPost = null;
+        this._selectedPage = null;
         this._fileContent = null;
         this._loadingContent = true;
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
@@ -322,13 +344,13 @@ export class QwcRoqEditor extends LitElement {
         });
     }
 
-    _onSaveContent(e, syncPath) {
+    _onSaveContent(e) {
         const {content, filePath, date, title} = e.detail;
         const detail = e.detail;
         const target = e.target;
 
         // Save file content to backend
-        this.jsonRpc.saveFileContent({path: filePath, content, date, title, syncPath}).then(jsonRpcResponse => {
+        this.jsonRpc.savePageContent({path: filePath, content, date, title}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result && result.error) {
@@ -338,17 +360,15 @@ export class QwcRoqEditor extends LitElement {
                 }
                 alert('Error saving file: ' + result.errorMessage);
             } else {
-                if (result.syncPathRequest) {
-                    let syncPath = confirm(`The file name seems to be out of sync with the title and date:\n\n-> ok to save: '${result.path}'\n\n-> cancel to keep: '${filePath}'`);
-                    this._onSaveContent({target, detail}, syncPath);
-                    return;
-                }
-
                 // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
 
-                if (result && result.path && this._selectedPost) {
-                    this._selectedPost = {...this._selectedPost, path: result.path};
+                if (result && result.path && this._selectedPage) {
+                    this._selectedPage = {
+                        ...this._selectedPage,
+                        path: result.path,
+                        suggestedPath: result.suggestedPath
+                    };
                     // Also update the editor's filePath property
                     if (target) {
                         target.filePath = result.path;
@@ -371,29 +391,32 @@ export class QwcRoqEditor extends LitElement {
         });
     }
 
-    _onPostDelete(e) {
+    _onPageDelete(e) {
         e.stopPropagation();
 
-        const post = e.detail.post;
-        const postTitle = post.title || post.path || 'this post';
+        const page = e.detail.page;
+        const title = page.title || page.path || 'this';
 
-        if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+        if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone in this editor.`)) {
             return;
         }
 
-        this.jsonRpc.deletePost({path: post.path}).then(jsonRpcResponse => {
+        this.jsonRpc.deletePage({path: page.path}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             if (result === 'success' || result === true) {
-                const postIndex = this._posts.findIndex(p => p.path === post.path);
-                this._posts = [
-                    ...this._posts.slice(0, postIndex),
-                    ...this._posts.slice(postIndex + 1)
-                ];
+                const source = page.collectionId ? this._posts : this._pages;
+                const updated = source.filter(p => p.path !== page.path);
+                if (page.collectionId) {
+                    this._posts = updated;
+                } else {
+                    this._pages = updated;
+                }
+
             } else {
-                alert('Error deleting post: ' + (result || 'Unknown error'));
+                alert('Error deleting page: ' + (result || 'Unknown error'));
             }
         }).catch(error => {
-            alert('Error deleting post: ' + error.message);
+            alert('Error deleting page: ' + error.message);
         });
     }
 

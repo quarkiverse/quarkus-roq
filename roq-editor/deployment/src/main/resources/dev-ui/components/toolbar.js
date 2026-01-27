@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { ContextConsumer } from '../bundle.js';
-import { editorContext } from './editor-context.js';
+import { editorContext } from './visual-editor/editor-context.js';
 
 export class Toolbar extends LitElement {
 
@@ -10,46 +10,52 @@ export class Toolbar extends LitElement {
   };
 
   static styles = css`
-        :host {
-            display: flex;
-            flex-direction: column;
-        }
-        .tabs {
-            display: flex;
-            gap: var(--lumo-space-xs);
-            border-bottom: 1px solid var(--lumo-contrast-20pct);
-            padding: 0;
-            background: var(--lumo-base-color);
-        }
-        .tabs vaadin-button {
-            font-size: var(--lumo-font-size-xxs);
-        }
-        .tab {
-            padding: var(--lumo-space-s) var(--lumo-space-m);
-            border: none;
-            background: transparent;
-            color: var(--lumo-contrast-70pct);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-size: var(--lumo-font-size-s);
-            transition: all 0.2s;
-        }
-        .tab:hover {
-            color: var(--lumo-body-text-color);
-        }
-        .tab.active {
-            color: var(--lumo-primary-color);
-            border-bottom-color: var(--lumo-primary-color);
-        }
-        .editor-toolbar {
-            display: flex;
-            gap: var(--lumo-space-s);
-            border-bottom: 1px solid var(--lumo-contrast-20pct);
-            background: var(--lumo-base-color);
-        }
-        .editor-toolbar vaadin-button {
-            font-size: var(--lumo-font-size-xxs);
-        }
+      :host {
+          display: flex;
+          flex-direction: column;
+      }
+      .tabs {
+          display: flex;
+          gap: var(--lumo-space-xs);
+          border-bottom: 1px solid var(--lumo-contrast-20pct);
+          padding: 0;
+          background: var(--lumo-base-color);
+      }
+      .tabs vaadin-button {
+          font-size: var(--lumo-font-size-xxs);
+      }
+      .tab {
+          padding: var(--lumo-space-s) var(--lumo-space-m);
+          border: none;
+          background: transparent;
+          color: var(--lumo-contrast-70pct);
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          font-size: var(--lumo-font-size-s);
+          transition: all 0.2s;
+      }
+      .tab:hover {
+          color: var(--lumo-body-text-color);
+      }
+      .tab.active {
+          color: var(--lumo-primary-color);
+          border-bottom-color: var(--lumo-primary-color);
+      }
+      .editor-toolbar {
+          display: flex;
+          gap: var(--lumo-space-s);
+          border-bottom: 1px solid var(--lumo-contrast-20pct);
+          background: var(--lumo-base-color);
+      }
+      .editor-toolbar vaadin-button {
+          font-size: var(--lumo-font-size-xxs);
+      }
+
+      .spacer {
+          flex-grow: 1;
+      }
+
+     
     `;
 
   constructor() {
@@ -98,46 +104,65 @@ export class Toolbar extends LitElement {
     }
   }
 
+    _onRefreshPreview() {
+        this.dispatchEvent(new CustomEvent('request-preview-refresh', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
   render() {
-    return html`
-            <div class="tabs">
-                ${this.showEditorTab ? html`
-                <button 
-                    class="tab ${this.activeTab === 'editor' ? 'active' : ''}"
-                    @click="${() => this._onTabClick('editor')}">
-                    Editor
-                </button>` : ''}
-                <button 
-                    class="tab ${this.activeTab === 'code' ? 'active' : ''}"
-                    @click="${() => this._onTabClick('code')}">
-                    Code
-                </button>
-                <button 
-                    class="tab ${this.activeTab === 'preview' ? 'active' : ''}"
-                    @click="${() => this._onTabClick('preview')}">
-                    Preview
-                </button>
-                <vaadin-button theme="icon" @click="${() => this._onTabClick('previewNewTab')}">
-                    <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
-                </vaadin-button>
-            </div>
-            ${this.showEditorTab && this.activeTab === "editor" ? html`
-                <div class="editor-toolbar">
-                    <vaadin-button 
-                        theme="tertiary" 
-                        ?disabled="${!this._canUndo()}"
-                        @click="${this._undo}">
-                        <vaadin-icon icon="font-awesome-solid:arrow-rotate-left" slot="prefix"></vaadin-icon>
-                    </vaadin-button>
-                    <vaadin-button 
-                        theme="tertiary" 
-                        ?disabled="${!this._canRedo()}"
-                        @click="${this._redo}">
-                        <vaadin-icon icon="font-awesome-solid:arrow-rotate-right" slot="prefix"></vaadin-icon>
-                    </vaadin:button>
-                </div>` : ''}
-        `;
+      return html`
+        <div class="tabs">
+          ${this.showEditorTab ? html`
+            <button
+              class="tab ${this.activeTab === 'editor' ? 'active' : ''}"
+              @click="${() => this._onTabClick('editor')}">
+              Editor
+            </button>` : ''}
+          <button
+            class="tab ${this.activeTab === 'code' ? 'active' : ''}"
+            @click="${() => this._onTabClick('code')}">
+            Code
+          </button>
+          <button
+            class="tab ${this.activeTab === 'preview' ? 'active' : ''}"
+            @click="${() => this._onTabClick('preview')}">
+            Preview
+          </button>
+          
+          <vaadin-button theme="icon" @click="${() => this._onTabClick('previewNewTab')}">
+            <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
+          </vaadin-button>
+          <div class="spacer"></div>
+          ${this.activeTab === "preview" ? html`
+            <vaadin-button
+              class="refresh-button"
+              theme="tertiary rotate icon"
+              @click="${this._onRefreshPreview}"
+              title="Refresh preview">
+              <vaadin-icon icon="font-awesome-solid:rotate" slot="prefix"></vaadin-icon>
+            </vaadin-button>` : ''}
+        </div>
+        ${this.showEditorTab && this.activeTab === "editor" ? html`
+          <div class="editor-toolbar">
+            <vaadin-button
+              theme="tertiary"
+              ?disabled="${!this._canUndo()}"
+              @click="${this._undo}">
+              <vaadin-icon icon="font-awesome-solid:arrow-rotate-left" slot="prefix"></vaadin-icon>
+            </vaadin-button>
+            <vaadin-button
+              theme="tertiary"
+              ?disabled="${!this._canRedo()}"
+              @click="${this._redo}">
+              <vaadin-icon icon="font-awesome-solid:arrow-rotate-right" slot="prefix"></vaadin-icon>
+              </vaadin:button>
+          </div>` : ''}
+    `;
   }
+
+
 }
 
 customElements.define('qwc-toolbar', Toolbar);

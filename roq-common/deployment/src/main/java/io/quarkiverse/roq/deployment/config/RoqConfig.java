@@ -2,6 +2,7 @@ package io.quarkiverse.roq.deployment.config;
 
 import java.util.Optional;
 
+import io.quarkus.runtime.annotations.ConfigDocDefault;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -15,8 +16,9 @@ public interface RoqConfig {
     String DEFAULT_RESOURCE_DIR = ""; // src/main/resources/
 
     /**
-     * Path to the Roq directory (relative to the project root).
+     * Path to the Roq site directory (relative to the project root).
      */
+    @ConfigDocDefault("the project root")
     @WithName("dir")
     Optional<String> dirOptional();
 
@@ -28,6 +30,7 @@ public interface RoqConfig {
      * Path to the Roq directory in the resources.
      */
     @WithName("resource-dir")
+    @ConfigDocDefault("the root of the resources")
     Optional<String> resourceDirOptional();
 
     default String resourceDir() {
