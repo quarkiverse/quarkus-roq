@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -45,6 +46,7 @@ import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem.SourceData;
+import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
@@ -70,10 +72,11 @@ import io.quarkus.qute.runtime.QuteConfig;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterScanProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanProcessor.class);
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
 
     private static final String LAYOUT_KEY = "layout";
+    private static final String LOCALE_KEY = "locale";
     public static final String ESCAPE_KEY = "escape";
 
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
@@ -106,6 +109,24 @@ public class RoqFrontMatterScanProcessor {
                     && sourceData.relativePath().contains(config.draftDirectory() + "/");
             sourceData.fm().put(DRAFT_KEY, isDraft);
             return sourceData.fm();
+        }));
+    }
+
+    @BuildStep
+    void amendMultiLingualContent(RoqSiteConfig config,
+            BuildProducer<RoqFrontMatterScanModificationBuildItem> dataModificationProducer) {
+        dataModificationProducer.produce(new RoqFrontMatterScanModificationBuildItem(items -> {
+            items.stream()
+                    .filter(item -> item.type() == TemplateType.DOCUMENT_PAGE)
+                    .filter(item -> Objects.nonNull(item.collection()))
+                    .filter(item -> item.data().containsKey(LOCALE_KEY))
+                    .filter(item -> !config.defaultLocale().equals(item.data().getString(LOCALE_KEY)))
+                    .forEach(item -> {
+                        item.data().put(RoqFrontMatterDataProcessor.LINK_KEY,
+                                "/%s/%s/%s".formatted(item.collectionId(), item.data().getString(LOCALE_KEY), ":slug"));
+                        item.type(TemplateType.NORMAL_PAGE);
+                        item.collection(null);
+                    });
         }));
     }
 
@@ -143,10 +164,12 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
             BuildProducer<TemplateRootBuildItem> templateRootProducer,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            List<RoqFrontMatterScanModificationBuildItem> scanModifications,
             RoqSiteConfig siteConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
         try {
             dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
+            scanModifications.sort(Comparator.comparing(RoqFrontMatterScanModificationBuildItem::order));
             List<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject,
                     quteConfig,
                     siteConfig,
@@ -154,6 +177,7 @@ public class RoqFrontMatterScanProcessor {
                     headerParserList,
                     watch,
                     dataModifications,
+                    scanModifications,
                     templatePathProducer,
                     generatedResourceProducer,
                     nativeImageResourceProducer,
@@ -208,6 +232,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            List<RoqFrontMatterScanModificationBuildItem> scanModifications,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
@@ -250,6 +275,8 @@ public class RoqFrontMatterScanProcessor {
                             TemplateType.LAYOUT));
         }
 
+        scanModifications.forEach(modifier -> modifier.modifier().accept(items));
+
         return items;
     }
 
@@ -271,7 +298,7 @@ public class RoqFrontMatterScanProcessor {
             // We scan Qute templates manually outside of resources for now
             final Path templatesDir = siteDir.resolve(TEMPLATES_DIR);
             watchDirectory(templatesDir, watch);
-            scanTemplates(quteConfig, config, watch, templatePathProducer, generatedResourceProducer,
+            scanTemplates(quteConfig, config, templatePathProducer, generatedResourceProducer,
                     nativeImageResourceProducer, templatesDir);
             // No need to ignore the template as it's not a template root
             scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
@@ -281,13 +308,16 @@ public class RoqFrontMatterScanProcessor {
             watchDirectory(contentDir, watch);
             scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
                     contentDir);
+
         };
     }
 
     private static void scanContent(QuteConfig quteConfig, RoqSiteConfig config,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
-            List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
-            List<RoqFrontMatterDataModificationBuildItem> dataModifications, List<RoqFrontMatterRawTemplateBuildItem> items,
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            List<RoqFrontMatterRawTemplateBuildItem> items,
             Path siteDir,
             Path contentDir) {
         if (!Files.isDirectory(contentDir)) {
@@ -319,7 +349,8 @@ public class RoqFrontMatterScanProcessor {
                                 headerParserList,
                                 dataModifications,
                                 collection,
-                                type).accept(p);
+                                p,
+                                type);
                     });
         } catch (IOException e) {
             throw new RoqSiteScanningException(
@@ -375,19 +406,19 @@ public class RoqFrontMatterScanProcessor {
 
         // scan layouts and templates
         try (Stream<Path> stream = Files.walk(layoutsDir)) {
-            final Consumer<Path> layoutsConsumer = addBuildItem(siteDir, templatesRoot, items, quteConfig, config,
-                    watch,
-                    markupList,
-                    headerParserList,
-                    dataModifications,
-                    null,
-                    type);
             stream
                     .filter(Files::isRegularFile)
                     .filter(not(isFileExcluded(templatesRoot.getParent(), config)))
                     .filter(isTemplate(quteConfig))
                     .filter(RoqFrontMatterScanProcessor::isTemplateTargetHtml)
-                    .forEach(layoutsConsumer);
+                    .forEach(path -> addBuildItem(siteDir, templatesRoot, items, quteConfig,
+                            config,
+                            watch,
+                            markupList,
+                            headerParserList,
+                            dataModifications,
+                            null,
+                            path, type));
 
         } catch (IOException e) {
             throw new RoqSiteScanningException(
@@ -404,7 +435,6 @@ public class RoqFrontMatterScanProcessor {
 
     private static void scanTemplates(QuteConfig quteConfig,
             RoqSiteConfig config,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
@@ -463,7 +493,7 @@ public class RoqFrontMatterScanProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private static Consumer<Path> addBuildItem(
+    private static void addBuildItem(
             Path siteDir,
             Path referenceDir,
             List<RoqFrontMatterRawTemplateBuildItem> items,
@@ -474,99 +504,95 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             ConfiguredCollection collection,
+            Path file,
             TemplateType type) {
-        return file -> {
-            final String relativePath = toUnixPath(siteDir.relativize(file).normalize().toString());
-            String referencePath = toUnixPath(referenceDir.relativize(file).normalize().toString());
-            SourceFile sourceFile = new SourceFile(toUnixPath(siteDir.normalize().toAbsolutePath().toString()), relativePath);
-            final String fullContent;
-            try {
-                fullContent = Files.readString(file, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RoqSiteScanningException(
-                        "Error while reading template file: %s".formatted(sourceFile.absolutePath()), e);
+        final String relativePath = toUnixPath(siteDir.relativize(file).normalize().toString());
+        String referencePath = toUnixPath(referenceDir.relativize(file).normalize().toString());
+        SourceFile sourceFile = new SourceFile(toUnixPath(siteDir.normalize().toAbsolutePath().toString()), relativePath);
+        final String fullContent;
+        try {
+            fullContent = Files.readString(file, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RoqSiteScanningException(
+                    "Error while reading template file: %s".formatted(sourceFile.absolutePath()), e);
+        }
+        TemplateContext templateContext = new TemplateContext(file, referencePath, fullContent);
+        RoqFrontMatterQuteMarkupBuildItem markup = findMarkupFilter(markupList, templateContext);
+        List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
+                templateContext);
+        String cleanPath = replaceWhitespaceChars(referencePath);
+        final String templateOutputPath = removeExtension(cleanPath)
+                + RoqFrontmatterTemplateUtils.resolveOutputExtension(markup != null, templateContext);
+        String id = type.isPage() ? referencePath : removeExtension(referencePath);
+
+        JsonObject data = new JsonObject();
+        String content = fullContent;
+
+        for (RoqFrontMatterHeaderParserBuildItem headerParser : headerParsers) {
+            data.mergeIn(headerParser.parse().apply(templateContext), true);
+            content = headerParser.removeHeader().apply(content);
+        }
+
+        final boolean isHtml = isTemplateTargetHtml(file);
+
+        final boolean isHtmlPartialPage = type.isPage() && isHtml
+                && !(content.toLowerCase(Locale.ROOT).contains("<html")
+                        || content.toLowerCase(Locale.ROOT).contains("<!doctype"));
+
+        final String defaultLayout = isHtmlPartialPage
+                ? (collection != null ? collection.layout() : config.pageLayout().orElse(null))
+                : null;
+
+        final String layoutId = RoqFrontmatterTemplateUtils.normalizedLayout(config.theme(),
+                data.getString(LAYOUT_KEY),
+                defaultLayout);
+
+        for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
+            data = modification.modifier().modify(new SourceData(file, referencePath, collection, type, data));
+        }
+
+        final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
+        final WrapperFilter escapeFilter = getEscapeFilter(escaped);
+        final WrapperFilter includeFilter = RoqFrontmatterTemplateUtils.getIncludeFilter(layoutId);
+        final String escapedContent = escapeFilter.apply(content);
+        final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
+        final String generatedTemplate = includeFilter.apply(contentWithMarkup);
+
+        final String fileName = fileName(referencePath);
+        var isIndex = type.isPage() && INDEX_FILES.contains(fileName);
+        var isSiteIndex = isHtml && id.startsWith("index."); // the site index is at the root of the site
+
+        TemplateSource source = TemplateSource.create(
+                id,
+                markup != null ? markup.name() : null,
+                sourceFile,
+                referencePath,
+                templateOutputPath,
+                type.isLayout() || type.isThemeLayout(),
+                isHtml,
+                isIndex,
+                isSiteIndex);
+
+        List<Attachment> attachments = null;
+        // Scan for files
+        if (isIndex) {
+            attachments = new ArrayList<>();
+            if (isSiteIndex) {
+                // Support legacy static dir
+                scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments, siteDir,
+                        siteDir.resolve(config.staticDir()));
+                // Public dir
+                scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments,
+                        siteDir.resolve(config.publicDir()),
+                        siteDir.resolve(config.publicDir()));
+            } else {
+                // Attachments are in the index parent dir
+                scanAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
+                        file.getParent());
             }
-            TemplateContext templateContext = new TemplateContext(file, referencePath, fullContent);
-            RoqFrontMatterQuteMarkupBuildItem markup = findMarkupFilter(markupList, templateContext);
-            List<RoqFrontMatterHeaderParserBuildItem> headerParsers = resolveHeaderParsers(headerParserList,
-                    templateContext);
-            String cleanPath = replaceWhitespaceChars(referencePath);
-            final String templateOutputPath = removeExtension(cleanPath)
-                    + RoqFrontmatterTemplateUtils.resolveOutputExtension(markup != null, templateContext);
-            String id = type.isPage() ? referencePath : removeExtension(referencePath);
-
-            JsonObject data = new JsonObject();
-            String content = fullContent;
-
-            for (RoqFrontMatterHeaderParserBuildItem headerParser : headerParsers) {
-                data.mergeIn(headerParser.parse().apply(templateContext), true);
-                content = headerParser.removeHeader().apply(content);
-            }
-
-            final boolean isHtml = isTemplateTargetHtml(file);
-
-            final boolean isHtmlPartialPage = type.isPage() && isHtml && !(content.toLowerCase(Locale.ROOT).contains("<html")
-                    || content.toLowerCase(Locale.ROOT).contains("<!doctype"));
-
-            final String defaultLayout = isHtmlPartialPage
-                    ? (collection != null ? collection.layout() : config.pageLayout().orElse(null))
-                    : null;
-
-            final String layoutId = RoqFrontmatterTemplateUtils.normalizedLayout(config.theme(),
-                    data.getString(LAYOUT_KEY),
-                    defaultLayout);
-
-            for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
-                data = modification.modifier().modify(new SourceData(file, referencePath, collection, type, data));
-            }
-
-            final boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
-            final WrapperFilter escapeFilter = getEscapeFilter(escaped);
-            final WrapperFilter includeFilter = RoqFrontmatterTemplateUtils.getIncludeFilter(layoutId);
-            final String escapedContent = escapeFilter.apply(content);
-            final String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
-            final String generatedTemplate = includeFilter.apply(contentWithMarkup);
-
-            final String fileName = fileName(referencePath);
-            var isIndex = type.isPage() && INDEX_FILES.contains(fileName);
-            var isSiteIndex = isHtml && id.startsWith("index."); // the site index is at the root of the site
-
-            TemplateSource source = TemplateSource.create(
-                    id,
-                    markup != null ? markup.name() : null,
-                    sourceFile,
-                    referencePath,
-                    templateOutputPath,
-                    type.isLayout() || type.isThemeLayout(),
-                    isHtml,
-                    isIndex,
-                    isSiteIndex);
-
-            List<Attachment> attachments = null;
-            // Scan for files
-            if (isIndex) {
-                attachments = new ArrayList<>();
-                if (isSiteIndex) {
-                    // Support legacy static dir
-                    scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments, siteDir,
-                            siteDir.resolve(config.staticDir()));
-                    // Public dir
-                    scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments,
-                            siteDir.resolve(config.publicDir()),
-                            siteDir.resolve(config.publicDir()));
-                } else {
-                    // Attachments are in the index parent dir
-                    scanAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
-                            file.getParent());
-                }
-
-            }
-
-            items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection,
-                    generatedTemplate,
-                    contentWithMarkup, attachments));
-
-        };
+        }
+        items.add(new RoqFrontMatterRawTemplateBuildItem(source, layoutId, type, data, collection,
+                generatedTemplate, contentWithMarkup, attachments));
     }
 
     private static void scanAttachments(boolean isAttachmentRoot,
