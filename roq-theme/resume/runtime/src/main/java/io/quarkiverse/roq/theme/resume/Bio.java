@@ -17,7 +17,10 @@ public record Bio(List<Section> list) {
             @JsonProperty(required = true) String title,
             String link,
             String content,
-            Logo logo) {
+            Logo logo,
+            Boolean collapsible,
+            Boolean ruler,
+            List<Item> subItems) {
     }
 
     public record Logo(
