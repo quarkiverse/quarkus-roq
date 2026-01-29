@@ -10,6 +10,7 @@ import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
 import {markups, config} from 'build-time-data';
+import {containsDataRawTag, containsPotentialHtml, containsQuteSection} from "./utils/utils.js";
 
 export class QwcRoqEditor extends LitElement {
 
@@ -39,12 +40,14 @@ export class QwcRoqEditor extends LitElement {
         "_activeTab": {state: true},
         "_selectedPage": {state: true},
         "_fileContent": {state: true},
+        "_visualEditorEnabled": {state: true},
         "_loadingContent": {state: true},
         "_dateFormat": {state: true}
     }
 
     constructor() {
         super();
+        this._visualEditorEnabled = false;
         this._activeTab = 0;
         this._selectedPage = null;
         this._fileContent = null;
@@ -138,14 +141,6 @@ export class QwcRoqEditor extends LitElement {
         });
     }
 
-    /**
-     * Called when it needs to render the components
-     * @returns {*}
-     * <qwc-navigation-bar
-     .activeTab="${this._activeTab}"
-     @tab-changed="${this._onTabChanged}">
-      </qwc-navigation-bar>
-     */
     render() {
         return html`
           <div class="content-area">
@@ -163,7 +158,7 @@ export class QwcRoqEditor extends LitElement {
 
 
     _renderEditor() {
-        if (this._selectedPage.markup === 'markdown' && config.visualEditor.enabled) {
+        if (this._visualEditorEnabled) {
             return html`
               <qwc-visual-editor
                 .filePath="${this._selectedPage.path}"
@@ -213,7 +208,7 @@ export class QwcRoqEditor extends LitElement {
             collectionId="posts"
             .pages="${this._posts}"
             @add-new-page="${this._addNewPage}"
-            @page-clicked="${this._onPageClicked}"
+            @page-open="${this._onPageOpen}"
             @page-delete="${this._onPageDelete}"
             @page-sync-path="${this._onPageSyncPath}"
           >
@@ -225,7 +220,7 @@ export class QwcRoqEditor extends LitElement {
         return html`
           <qwc-pages-list
             .pages="${this._pages}"
-            @page-clicked="${this._onPageClicked}">
+            @page-open="${this._onPageOpen}">
           </qwc-pages-list>
         `;
     }
@@ -261,9 +256,10 @@ export class QwcRoqEditor extends LitElement {
                     } else {
                         this._pages = [result.page].concat(this._pages);
                     }
-                    this._onPageClicked({detail: {page: result.page, content: result.content}});
+                    this._onPageOpen({detail: {page: result.page, content: result.content}});
                 }).catch(error => {
                     showNotification('Error creating page: ' + error.message);
+                    console.error(error.message);
                 });
             }
         });
@@ -331,15 +327,17 @@ export class QwcRoqEditor extends LitElement {
             this._pendingPreviewRefresh = true;
         }).catch(error => {
             showNotification('Error syncing page path: ' + error.message);
+            console.error(error);
         });
 
     }
 
-    _onPageClicked(e) {
+    async _onPageOpen(e) {
         const page = e.detail.page;
         const content = e.detail.content;
         this._selectedPage = page;
         if (content) {
+            this._visualEditorEnabled = await this._shouldEnableVisualEditor(content);
            this._fileContent = content;
            return
         }
@@ -349,24 +347,56 @@ export class QwcRoqEditor extends LitElement {
 
 
         // Fetch file content from backend
-        this.jsonRpc.getPageContent({path: page.path}).then(jsonRpcResponse => {
+        this.jsonRpc.getPageContent({path: page.path}).then(async jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result && result.error) {
                 alert('Error syncing page path: ' + result.errorMessage);
                 return;
             }
+            this._visualEditorEnabled = await this._shouldEnableVisualEditor(result.content);
             this._fileContent = result.content;
             this._loadingContent = false;
         }).catch(error => {
-            this._fileContent = "Error loading file content: " + error.message;
+            showNotification('Error reading file: ' + error.message);
+            console.error(error);
+            this._fileContent = null;
+            this._visualEditorEnabled = false;
             this._loadingContent = false;
         });
+    }
+
+    async _shouldEnableVisualEditor(content) {
+        if (this._selectedPage.markup === 'markdown') {
+            if (config.visualEditor.enabled) {
+                const hasDataRaw = containsDataRawTag(content);
+                const hasQuteSection = containsQuteSection(content);
+                const hasHtml = containsPotentialHtml(content);
+                if (!hasDataRaw && (hasQuteSection || hasHtml)) {
+                    const codeEditor = await showConfirm(
+                        'HTML and/or Qute sections were detected. Wrap them in <div data-raw></div> to ensure compatibility.',
+                        {
+                            title: 'Visual Editor Compatibility Warning',
+                            confirmText: 'Use Code Editor',
+                            cancelText: 'Continue with Visual Editor'
+                        }
+                    );
+                    return  !codeEditor;
+                } else {
+                    return true;
+                }
+
+            } else {
+                showNotification('Visual Editor has been disabled in the configuration. Falling back to Simple Markdown editor.', 'warning');
+            }
+           return false;
+        }
     }
 
     _closeViewer() {
         this._selectedPage = null;
         this._fileContent = null;
+        this._visualEditorEnabled = false;
         this._loadingContent = true;
         this.jsonRpc.getPosts().then(jsonRpcResponse => {
             this._posts = [];
@@ -422,6 +452,7 @@ export class QwcRoqEditor extends LitElement {
                 target.markSaveError();
             }
             showNotification('Error saving file: ' + error.message);
+            console.error(error);
         });
     }
 
@@ -453,6 +484,7 @@ export class QwcRoqEditor extends LitElement {
             }
         }).catch(error => {
             showNotification('Error deleting page: ' + error.message);
+            console.error(error);
         });
     }
 

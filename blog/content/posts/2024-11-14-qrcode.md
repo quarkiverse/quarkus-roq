@@ -28,6 +28,8 @@ Need to add a scannable QR Code to your website? Whether it's for a restaurant m
 
 It will render a QR Code like this:
 
+<div data-raw>
 <div style="text-align: center">
 {#qrcode value="https://luigis.com/menu/" alt="Luigi's Menu" foreground="#000066" background="#FFFFFF" width=300 height=300 /}
+</div>
 </div>

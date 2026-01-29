@@ -193,19 +193,20 @@ export class PageCard extends LitElement {
             return;
         }
         e.preventDefault();
-        this.dispatchEvent(new CustomEvent('page-clicked', {
-            bubbles: true,
+        e.stopPropagation();
+        this.dispatchEvent(new CustomEvent('page-open', {
             composed: true,
+            bubbles: true,
             detail: { page: this.page }
         }));
     }
 
     _onDeleteClick(e) {
-        e.stopPropagation(); // Prevent triggering the card click
-        e.preventDefault(); // Prevent any default behavior
+        e.stopPropagation();
+        e.preventDefault();
         this.dispatchEvent(new CustomEvent('page-delete', {
-            bubbles: true, // Need to bubble to reach page-list
             composed: true,
+            bubbles: true,
             detail: { page: this.page }
         }));
     }

@@ -42,9 +42,7 @@ export class PagesList extends LitElement {
                     <div class="pages">
                         ${pages.map(page => html`
                             <qwc-page-card 
-                                .page="${page}"
-                                @page-clicked="${this._onPageClicked}"
-                                @page-delete="${this._onPageDelete}">
+                                .page="${page}">
                             </qwc-page-card>
                         `)}
                     </div>
@@ -57,33 +55,12 @@ export class PagesList extends LitElement {
     _addNewPage() {
         // Dispatch event to parent component
         this.dispatchEvent(new CustomEvent('add-new-page', {
-            bubbles: true,
-            composed: true,
             detail: {
                 collectionId: this.collectionId
             }
         }));
     }
 
-    _onPageClicked(e) {
-        // Forward the event to parent component
-        this.dispatchEvent(new CustomEvent('page-clicked', {
-            bubbles: true,
-            composed: true,
-            detail: e.detail
-        }));
-    }
-
-    _onPageDelete(e) {
-        // Stop the original event from bubbling further
-        e.stopPropagation();
-        // Forward the delete event to parent component
-        this.dispatchEvent(new CustomEvent('page-delete', {
-            bubbles: true,
-            composed: true,
-            detail: e.detail
-        }));
-    }
 }
 
 customElements.define('qwc-pages-list', PagesList);
