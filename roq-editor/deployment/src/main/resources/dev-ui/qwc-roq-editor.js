@@ -372,7 +372,7 @@ export class QwcRoqEditor extends LitElement {
                 const hasDataRaw = containsDataRawTag(content);
                 const hasQuteSection = containsQuteSection(content);
                 const hasHtml = containsPotentialHtml(content);
-                if (!hasDataRaw && (hasQuteSection || hasHtml)) {
+                if (config.visualEditor.safe && !hasDataRaw && (hasQuteSection || hasHtml)) {
                     const codeEditor = await showConfirm(
                         'HTML and/or Qute sections were detected. Wrap them in <div data-raw></div> to ensure compatibility.',
                         {
