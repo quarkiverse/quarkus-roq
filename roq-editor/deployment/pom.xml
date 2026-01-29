@@ -99,12 +99,7 @@
                     <dependency>
                         <groupId>org.mvnpm.at.mvnpm</groupId>
                         <artifactId>tiptap</artifactId>
-                        <version>3.12.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm.at.tiptap</groupId>
-                        <artifactId>extension-placeholder</artifactId>
-                        <version>3.12.1</version>
+                        <version>3.17.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>

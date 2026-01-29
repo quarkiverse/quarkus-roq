@@ -4,7 +4,7 @@ import '@vaadin/icon';
 import {css, html} from 'lit';
 import {BaseEditor} from './base-editor.js';
 import {hljsTheme} from '../hljs-theme.js';
-import {showConfirm} from './prompt-dialog.js';
+import { showConfirm } from './confirm-dialog.js';
 
 export class RoqSimpleEditor extends BaseEditor {
     static properties = {
@@ -133,8 +133,8 @@ export class RoqSimpleEditor extends BaseEditor {
     async _cancel() {
         if (!this._isDirty) return;
         const confirmed = await showConfirm(
-            'You have unsaved changes. Are you sure you want to discard them?',
-            { confirmText: 'Discard Changes', theme: 'error' }
+            'You have unsaved changes!',
+            { title: 'Do you really want to close?', confirmText: 'Discard Changes', theme: 'error' }
         );
         if (confirmed) {
             this._editorValue = this._storedContent;

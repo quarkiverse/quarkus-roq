@@ -1,9 +1,14 @@
 package io.quarkiverse.roq.editor.deployment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
@@ -56,13 +61,19 @@ class RoqEditorProcessor {
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
-    CardPageBuildItem create(CurateOutcomeBuildItem bi) {
+    CardPageBuildItem create(
+            RoqEditorConfig config,
+            CurateOutcomeBuildItem bi,
+            List<RoqFrontMatterQuteMarkupBuildItem> markupList) {
         CardPageBuildItem pageBuildItem = new CardPageBuildItem();
         pageBuildItem.addPage(Page.webComponentPageBuilder()
                 .title("Roq Editor")
                 .componentLink("qwc-roq-editor.js")
                 .icon("font-awesome-solid:pencil"));
-
+        List<String> markups = new ArrayList<>(markupList.stream().map(RoqFrontMatterQuteMarkupBuildItem::name).toList());
+        markups.add("html");
+        pageBuildItem.addBuildTimeData("markups", markups);
+        pageBuildItem.addBuildTimeData("config", config);
         return pageBuildItem;
     }
 

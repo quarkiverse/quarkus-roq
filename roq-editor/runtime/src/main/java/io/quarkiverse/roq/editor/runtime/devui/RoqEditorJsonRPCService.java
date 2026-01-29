@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -32,6 +33,10 @@ public class RoqEditorJsonRPCService {
     private static final Logger LOG = Logger.getLogger(RoqEditorJsonRPCService.class);
     private static final DateTimeFormatter FILE_NAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final Pattern POST_NAME_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-(.+)");
+    private static final Map<String, String> MARKUPS = Map.of(
+            "asciidoc", "adoc",
+            "markdown", "md",
+            "html", "html");
 
     @Inject
     private Site site;
@@ -143,10 +148,16 @@ public class RoqEditorJsonRPCService {
     }
 
     @Blocking
-    public CreatePageResult createPage(String collectionId, String title) {
+    public CreatePageResult createPage(String collectionId, String title, String markup) {
         if (title == null || title.trim().isEmpty()) {
             return new CreatePageResult(null, null, "Error: Title parameter is required");
         }
+
+        if (markup == null || markup.trim().isEmpty() || !MARKUPS.containsKey(markup.trim())) {
+            return new CreatePageResult(null, null, "Error: Markup parameter is required");
+        }
+
+        String extension = MARKUPS.get(markup.trim());
 
         try {
             Path contentDir = resolveIndexContentDir();
@@ -167,24 +178,30 @@ public class RoqEditorJsonRPCService {
             }
 
             Path dir = parentDir.resolve(dirName);
-            Path file = dir.resolve("index.md");
+            Path file = dir.resolve("index." + extension);
 
             Files.createDirectories(dir);
 
-            String frontmatter = """
+            String frontmatter = ("adoc".equals(extension) ? """
+                    = %s
+                    :date: %s
+                    :description:
+                    :image:
+
+                    """ : """
                     ---
                     title: "%s"
                     date: "%s"
                     image: ""\s
                     description: ""\s
                     ---
-                    """.formatted(title, FILE_NAME_DATE_FORMAT.format(LocalDate.now()));
+                    """).formatted(title, FILE_NAME_DATE_FORMAT.format(LocalDate.now()));
             Files.writeString(file, frontmatter, StandardCharsets.UTF_8);
 
             String relativePath = contentDir.relativize(file).toString();
             LOG.infof("Successfully created post: %s", relativePath);
             return new CreatePageResult(
-                    new PageSource(collectionId, relativePath, title, "", null, "md", "markdown", date, null), frontmatter,
+                    new PageSource(collectionId, relativePath, title, "", null, "md", markup.trim(), date, null), frontmatter,
                     null);
         } catch (Exception e) {
             LOG.errorf(e, "Error creating page with title: %s", title);

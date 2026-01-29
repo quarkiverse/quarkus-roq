@@ -31,7 +31,7 @@ import {RawBlock} from './raw-block.js';
 import {SlashCommand} from './slash-command.js';
 import {hljsTheme} from '../../hljs-theme.js';
 import {BaseEditor} from '../base-editor.js';
-import {showConfirm} from '../prompt-dialog.js';
+import { showConfirm } from '../confirm-dialog.js';
 
 export class RoqVisualEditor extends BaseEditor {
     static properties = {
@@ -593,8 +593,8 @@ export class RoqVisualEditor extends BaseEditor {
         if (!this._isDirty) return;
 
         const confirmed = await showConfirm(
-            'You have unsaved changes. Are you sure you want to discard them?',
-            { confirmText: 'Discard Changes', theme: 'error' }
+            'You have unsaved changes!',
+            { title: 'Do you really want to close?', confirmText: 'Discard Changes', theme: 'error' }
         );
         if (confirmed) {
             const parsed = parseFrontmatter(this._storedContent);

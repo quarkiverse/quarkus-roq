@@ -1,337 +1,175 @@
-import { LitElement, html, css, render } from 'lit';
+
+import { LitElement, html } from 'lit';
+import { dialogRenderer, dialogHeaderRenderer, dialogFooterRenderer } from '@vaadin/dialog/lit.js';
 import '@vaadin/dialog';
 import '@vaadin/text-field';
+import '@vaadin/select';
 import '@vaadin/button';
 import '@vaadin/icon';
+import '@vaadin/vertical-layout';
 
-/**
- * A reusable prompt/confirm dialog component based on Vaadin Dialog
- * Usage:
- *   // For prompt (with text input):
- *   showPrompt('Enter URL:', 'https://example.com').then(value => {
- *     if (value !== null) { /* User confirmed with value * / }
- *   });
- *    
- *   // For confirm (yes/no):
- *   showConfirm('Are you sure?').then(confirmed => {
- *     if (confirmed) { /* User confirmed * / }
- *   });
- */
 export class PromptDialog extends LitElement {
+    static properties = {
+        _open: { state: true },
+        _message: { state: true },
+        _defaultValue: { state: true },
+        _resolve: { state: true },
+        _inputValue: { state: true },
+        _tempInputValue: { state: true },
+        _customRenderer: { state: true },
+        _formValues: { state: true },
+        _defaultFormValues: { state: true }
+    };
 
-  static properties = {
-    _open: { state: true },
-    _message: { state: true },
-    _defaultValue: { state: true },
-    _resolve: { state: true },
-    _inputValue: { state: true },
-    _tempInputValue: { state: true },
-    _mode: { state: true },  // 'prompt' or 'confirm'
-    _confirmButtonText: { state: true },
-    _cancelButtonText: { state: true },
-    _confirmTheme: { state: true }
-  };
+    constructor() {
+        super();
+        this._open = false;
+        this._message = '';
+        this._defaultValue = '';
+        this._inputValue = '';
+        this._tempInputValue = '';
+        this._resolve = null;
 
-  static styles = css`
-        vaadin-dialog {
-            --vaadin-dialog-content-padding: var(--lumo-space-m);
-        }
-        .dialog-content {
-            display: flex;
-            flex-direction: column;
-            gap: var(--lumo-space-m);
-            min-width: 300px;
-        }
-        .dialog-message {
-            font-size: var(--lumo-font-size-m);
-            color: var(--lumo-body-text-color);
-            margin: 0;
-        }
-        .dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--lumo-space-s);
-            margin-top: var(--lumo-space-s);
-        }
-        vaadin-text-field {
-            width: 100%;
-        }
-    `;
-
-  constructor() {
-    super();
-    this._open = false;
-    this._message = '';
-    this._defaultValue = '';
-    this._inputValue = '';
-    this._tempInputValue = '';
-    this._resolve = null;
-    this._mode = 'prompt';
-    this._confirmButtonText = 'OK';
-    this._cancelButtonText = 'Cancel';
-    this._confirmTheme = 'primary';
-  }
-
-  /**
-   * Shows a prompt dialog and returns a Promise that resolves with the user's input
-   * @param {string} message - The message to display
-   * @param {string} defaultValue - The default value for the input field
-   * @returns {Promise<string|null>} - Resolves with the input value if confirmed, null if cancelled
-   */
-  prompt(message, defaultValue = '') {
-    return new Promise((resolve) => {
-      this._mode = 'prompt';
-      this._message = message;
-      this._defaultValue = defaultValue;
-      this._inputValue = defaultValue;
-      this._tempInputValue = defaultValue;
-      this._confirmButtonText = 'OK';
-      this._cancelButtonText = 'Cancel';
-      this._confirmTheme = 'primary';
-      this._resolve = resolve;
-      this._open = true;
-      this.requestUpdate();
-    });
-  }
-
-  /**
-   * Shows a confirm dialog and returns a Promise that resolves with true/false
-   * @param {string} message - The message to display
-   * @param {Object} options - Optional configuration
-   * @param {string} options.confirmText - Text for confirm button (default: 'Confirm')
-   * @param {string} options.cancelText - Text for cancel button (default: 'Cancel')
-   * @param {string} options.theme - Theme for confirm button: 'primary', 'error', 'success' (default: 'primary')
-   * @returns {Promise<boolean>} - Resolves with true if confirmed, false if cancelled
-   */
-  confirm(message, options = {}) {
-    return new Promise((resolve) => {
-      this._mode = 'confirm';
-      this._message = message;
-      this._confirmButtonText = options.confirmText || 'Confirm';
-      this._cancelButtonText = options.cancelText || 'Cancel';
-      this._confirmTheme = options.theme || 'primary';
-      this._resolve = resolve;
-      this._open = true;
-      this.requestUpdate();
-    });
-  }
-
-  _closeDialog(confirmed) {
-    if (this._resolve) {
-      if (this._mode === 'confirm') {
-        this._resolve(confirmed);
-      } else {
-        if (confirmed) {
-          // Use the temporary input value (what user typed)
-          this._resolve(this._tempInputValue || null);
-          // Commit the value to _inputValue
-          this._inputValue = this._tempInputValue;
-        } else {
-          // Resolve with null to indicate cancellation
-          this._resolve(null);
-          // Restore to original default value, discarding any changes
-          this._tempInputValue = this._defaultValue;
-          this._inputValue = this._defaultValue;
-        }
-      }
-      this._resolve = null;
+        this._customRenderer = null;
+        this._formValues = {};
+        this._defaultFormValues = {};
     }
-    this._open = false;
-  }
 
-  _handleConfirm() {
-    this._closeDialog(true);
-  }
+    /**
+     * Shows a prompt dialog and returns a Promise that resolves with the user's input.
+     * - Without customRenderer: resolves to string or null
+     * - With customRenderer: resolves to object or null
+     */
+    prompt(message, defaultValue = '', customRenderer = null) {
+        return new Promise((resolve) => {
+            this._message = message;
+            this._defaultValue = defaultValue;
+            this._inputValue = typeof defaultValue === 'string' ? defaultValue : '';
+            this._tempInputValue = typeof defaultValue === 'string' ? defaultValue : '';
 
-  _handleCancel() {
-    this._closeDialog(false);
-  }
+            this._customRenderer = customRenderer;
 
+            if (customRenderer) {
+                const initial =
+                    defaultValue && typeof defaultValue === 'object' && !Array.isArray(defaultValue)
+                        ? JSON.parse(JSON.stringify(defaultValue))
+                        : {};
+                this._defaultFormValues = initial;
+                this._formValues = JSON.parse(JSON.stringify(initial));
+            } else {
+                this._defaultFormValues = {};
+                this._formValues = {};
+            }
 
-  _dialogRenderer = (root) => {
-    // Clear previous content and remove old listeners
-    if (root) {
-      // Remove any existing event listeners
-      const oldContent = root.querySelector('.dialog-content');
-      if (oldContent) {
-        root.removeEventListener('click', this._boundHandleClick);
-        root.removeEventListener('value-changed', this._boundHandleValueChanged);
-        root.removeEventListener('keydown', this._boundHandleKeyDown);
-      }
-
-      // Bind handlers to preserve 'this' context
-      this._boundHandleClick = this._handleClick.bind(this);
-      this._boundHandleValueChanged = this._handleValueChanged.bind(this);
-      this._boundHandleKeyDown = this._handleKeyDown.bind(this);
-
-      const isPrompt = this._mode === 'prompt';
-
-      render(html`
-                <div class="dialog-content">
-                    <p class="dialog-message">${this._message}</p>
-                    ${isPrompt ? html`
-                        <vaadin-text-field
-                            id="prompt-input"
-                            .value="${this._tempInputValue}"
-                            placeholder="Enter value...">
-                        </vaadin-text-field>
-                    ` : ''}
-                    <div class="dialog-actions">
-                        <vaadin-button
-                            id="cancel-button"
-                            theme="tertiary">
-                            ${this._cancelButtonText}
-                        </vaadin-button>
-                        <vaadin-button
-                            id="ok-button"
-                            theme="${this._confirmTheme}">
-                            ${this._confirmButtonText}
-                        </vaadin-button>
-                    </div>
-                </div>
-            `, root);
-
-      // Use event delegation on root
-      root.addEventListener('click', this._boundHandleClick);
-      root.addEventListener('value-changed', this._boundHandleValueChanged, true);
-      root.addEventListener('keydown', this._boundHandleKeyDown, true);
-
-      // Also attach direct listeners as backup
-      setTimeout(() => {
-        const input = root.querySelector('#prompt-input');
-        const cancelButton = root.querySelector('#cancel-button');
-        const okButton = root.querySelector('#ok-button');
-
-        if (input) {
-          // Direct listener for value changes - update temporary value only
-          input.addEventListener('value-changed', (e) => {
-            this._tempInputValue = e.detail.value || '';
-          });
-
-          // Direct listener for keyboard events on the input element
-          const inputEl = input.inputElement;
-          if (inputEl) {
-            inputEl.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                this._handleConfirm();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                this._handleCancel();
-              }
-            });
-          }
-
-          // Focus and select text
-          input.focus();
-          if (inputEl) {
-            inputEl.select();
-          }
-        } else {
-          // For confirm dialogs, focus the confirm button
-          okButton?.focus();
-        }
-
-        if (cancelButton) {
-          cancelButton.addEventListener('click', () => {
-            this._handleCancel();
-          });
-        }
-
-        if (okButton) {
-          okButton.addEventListener('click', () => {
-            this._handleConfirm();
-          });
-        }
-      }, 100);
+            this._resolve = resolve;
+            this._open = true;
+            this.requestUpdate();
+        });
     }
-  };
 
-  _handleClick(e) {
-    const target = e.target.closest('vaadin-button');
-    if (!target) return;
-
-    const id = target.id;
-    if (id === 'ok-button') {
-      this._handleConfirm();
-    } else if (id === 'cancel-button') {
-      this._handleCancel();
-    }
-  }
-
-  _handleValueChanged(e) {
-    // Handle value-changed events from vaadin-text-field - update temporary value only
-    if (e.target && e.target.id === 'prompt-input') {
-      this._tempInputValue = e.detail.value || '';
-    }
-  }
-
-  _handleKeyDown(e) {
-    // Only handle keyboard events from the input field
-    if (e.target && (e.target.id === 'prompt-input' || e.target.closest('#prompt-input'))) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this._handleConfirm();
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        this._handleCancel();
-      }
-    }
-  }
-
-  render() {
-    return html`
-            <vaadin-dialog
-                .opened="${this._open}"
-                @opened-changed="${(e) => {
-        if (!e.detail.value && this._resolve) {
-          // Dialog was closed without clicking buttons
-          this._handleCancel();
+    _handleConfirm() {
+        if (this._resolve) {
+            if (this._customRenderer) {
+                this._resolve(JSON.parse(JSON.stringify(this._formValues)));
+            } else {
+                this._resolve(this._tempInputValue || null);
+                this._inputValue = this._tempInputValue;
+            }
+            this._resolve = null;
         }
-      }}"
-                .noCloseOnOutsideClick="${true}"
-                .noCloseOnEsc="${false}"
-                .renderer="${this._dialogRenderer}">
-            </vaadin-dialog>
+        this._customRenderer = null;
+        this._open = false;
+    }
+
+    _handleCancel() {
+        if (this._resolve) {
+            this._resolve({});
+            if (this._customRenderer) {
+                this._formValues = JSON.parse(JSON.stringify(this._defaultFormValues));
+            } else {
+                this._tempInputValue = this._defaultValue;
+                this._inputValue = this._defaultValue;
+            }
+            this._resolve = null;
+        }
+        this._customRenderer = null;
+        this._open = false;
+    }
+
+    // --- Lit template using Vaadin renderer directives (per docs) ---
+    render() {
+        return html`
+          <vaadin-dialog
+            .opened=${this._open}
+            @closed=${() => {
+              if (this._resolve) this._handleCancel();
+            }}
+            ${dialogHeaderRenderer(
+              () => html`
+            <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">
+              ${this._message}
+            </h2>
+          `,
+              // Re-render header only when message changes
+              [this._message]
+            )}
+            ${dialogRenderer(
+              () => html`
+            <vaadin-vertical-layout
+              theme="spacing"
+              style="align-items: stretch; width: 20rem; max-width: 100%;"
+            >
+              ${this._customRenderer
+                ? this._customRenderer({
+                  values: this._formValues,
+                  update: (name, val) => {
+                    this._formValues = { ...this._formValues, [name]: val };
+                  }
+                })
+                : html`
+                    <vaadin-text-field
+                      id="prompt-input"
+                      .value=${this._tempInputValue}
+                      placeholder="Enter value..."
+                      autofocus
+                      @value-changed=${(e) =>
+                  (this._tempInputValue = (e.detail).value || '')}
+                    ></vaadin-text-field>
+                  `}
+            </vaadin-vertical-layout>
+          `,
+              // Dependencies: update body when either the basic value or form values change
+              [this._tempInputValue, JSON.stringify(this._formValues), this._customRenderer]
+            )}
+            ${dialogFooterRenderer(
+              () => html`
+            <vaadin-button theme="tertiary" @click=${() => this._handleCancel()}>
+              Cancel
+            </vaadin-button>
+            <vaadin-button theme="primary" @click=${() => this._handleConfirm()}>
+              OK
+            </vaadin-button>
+          `,
+              // Footer doesn't depend on state
+              []
+            )}
+          ></vaadin-dialog>
         `;
-  }
+    }
 }
 
 customElements.define('qwc-prompt-dialog', PromptDialog);
 
 /**
- * Helper functions to show dialogs
+ * Helper function to show a prompt dialog
  * Creates a singleton dialog instance and reuses it
  */
 let dialogInstance = null;
 
-function getDialogInstance() {
-  if (!dialogInstance) {
-    dialogInstance = document.createElement('qwc-prompt-dialog');
-    document.body.appendChild(dialogInstance);
-  }
-  return dialogInstance;
-}
-
-/**
- * Show a prompt dialog with text input
- * @param {string} message - The message to display
- * @param {string} defaultValue - Default value for the input
- * @returns {Promise<string|null>} - User input or null if cancelled
- */
-export function showPrompt(message, defaultValue = '') {
-  return getDialogInstance().prompt(message, defaultValue);
-}
-
-/**
- * Show a confirm dialog
- * @param {string} message - The message to display
- * @param {Object} options - Optional configuration
- * @param {string} options.confirmText - Text for confirm button (default: 'Confirm')
- * @param {string} options.cancelText - Text for cancel button (default: 'Cancel')
- * @param {string} options.theme - Theme for confirm button: 'primary', 'error', 'success' (default: 'primary')
- * @returns {Promise<boolean>} - true if confirmed, false if cancelled
- */
-export function showConfirm(message, options = {}) {
-  return getDialogInstance().confirm(message, options);
+export function showPrompt(message, defaultValue = '', customRenderer = null) {
+    if (!dialogInstance) {
+        dialogInstance = document.createElement('qwc-prompt-dialog');
+        document.body.appendChild(dialogInstance);
+    }
+    return dialogInstance.prompt(message, defaultValue, customRenderer);
 }

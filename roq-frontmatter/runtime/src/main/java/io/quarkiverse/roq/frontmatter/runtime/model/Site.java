@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -52,7 +53,7 @@ public final class Site {
      * @param collections all the collections in this site (containing documents)
      */
     public Site(RoqUrl url, String imagesDir, JsonObject data, List<NormalPage> pages,
-            RoqCollections collections) {
+                RoqCollections collections) {
         this.url = url;
         this.imagesDir = imagesDir;
         this.data = data;
