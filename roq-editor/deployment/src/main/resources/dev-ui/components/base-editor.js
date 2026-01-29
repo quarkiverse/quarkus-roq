@@ -2,6 +2,7 @@
 // base-editor.js
 import { LitElement, css, html } from 'lit';
 import { hljsTheme } from '../hljs-theme.js';
+import { showConfirm } from './prompt-dialog.js';
 import './preview-panel.js';
 import './toolbar.js';
 
@@ -262,11 +263,13 @@ export class BaseEditor extends LitElement {
     }
 
     /** ---- Shared dialog flows ---- */
-    _close() {
+    async _close() {
         if (this._isDirty) {
-            if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
-                return;
-            }
+            const confirmed = await showConfirm(
+                'You have unsaved changes. Are you sure you want to close?',
+                { confirmText: 'Discard Changes', theme: 'error' }
+            );
+            if (!confirmed) return;
         }
         this.dispatchEvent(
             new CustomEvent('close-viewer', {
