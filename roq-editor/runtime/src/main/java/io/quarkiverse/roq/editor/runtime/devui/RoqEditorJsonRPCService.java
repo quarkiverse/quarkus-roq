@@ -69,7 +69,7 @@ public class RoqEditorJsonRPCService {
             return new PageContentResult(Files.readString(filePath, StandardCharsets.UTF_8), null);
         } catch (Exception e) {
             LOG.errorf(e, "Error reading source file for path: %s", path);
-            return new PageContentResult(null, "Error: " + e.getMessage());
+            return new PageContentResult(null, e.getMessage());
         }
     }
 
@@ -114,14 +114,14 @@ public class RoqEditorJsonRPCService {
             return new SyncPathResult(suggestedPath, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error move document for path: %s", path);
-            return new SyncPathResult(null, "Error: " + e.getMessage());
+            return new SyncPathResult(null, e.getMessage());
         }
     }
 
     @Blocking
     public SaveResult savePageContent(String path, String content, String date, String title) {
         if (content == null) {
-            return new SaveResult(null, "Error: Content parameter is required");
+            return new SaveResult(null, "Content parameter is required");
         }
 
         try {
@@ -143,18 +143,18 @@ public class RoqEditorJsonRPCService {
             return new SaveResult(suggestedPath, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error saving page for path: %s", path);
-            return new SaveResult(null, "Error: " + e.getMessage());
+            return new SaveResult(null, e.getMessage());
         }
     }
 
     @Blocking
     public CreatePageResult createPage(String collectionId, String title, String markup) {
         if (title == null || title.trim().isEmpty()) {
-            return new CreatePageResult(null, null, "Error: Title parameter is required");
+            return new CreatePageResult(null, null, "Title parameter is required");
         }
 
         if (markup == null || markup.trim().isEmpty() || !MARKUPS.containsKey(markup.trim())) {
-            return new CreatePageResult(null, null, "Error: Markup parameter is required");
+            return new CreatePageResult(null, null, "Markup parameter is required");
         }
 
         String extension = MARKUPS.get(markup.trim());
@@ -205,14 +205,14 @@ public class RoqEditorJsonRPCService {
                     null);
         } catch (Exception e) {
             LOG.errorf(e, "Error creating page with title: %s", title);
-            return new CreatePageResult(null, null, "Error: " + e.getMessage());
+            return new CreatePageResult(null, null, e.getMessage());
         }
     }
 
     @Blocking
     public String deletePage(String path) {
         if (path == null || path.isEmpty()) {
-            return "Error: Path parameter is required";
+            return "Path parameter is required";
         }
 
         try {
@@ -225,7 +225,7 @@ public class RoqEditorJsonRPCService {
                     : postPath;
 
             if (!Files.exists(pathToDelete)) {
-                return "Error: Post not found at path: " + path;
+                return "Post not found at path: " + path;
             }
 
             if (Files.isDirectory(pathToDelete)) {
@@ -238,7 +238,7 @@ public class RoqEditorJsonRPCService {
             return "success";
         } catch (Exception e) {
             LOG.errorf(e, "Error deleting post at path: %s", path);
-            return "Error: " + e.getMessage();
+            return e.getMessage();
         }
     }
 
@@ -294,7 +294,7 @@ public class RoqEditorJsonRPCService {
         if (page != null) {
             return page;
         }
-        throw new RuntimeException("Path not found for page: " + path);
+        throw new RuntimeException("Path not found for page (retry in a few seconds): " + path);
     }
 
     private DocumentPage resolveDoc(String path) throws Exception {
@@ -306,7 +306,7 @@ public class RoqEditorJsonRPCService {
         if (page != null) {
             return page;
         }
-        throw new RuntimeException("Path not found for page: " + path);
+        throw new RuntimeException("Path not found for page (retry in a few seconds): " + path);
     }
 
     private static String markup(Page page) {

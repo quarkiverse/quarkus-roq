@@ -6,6 +6,7 @@ import './components/pages-list.js';
 import './components/tags-list.js';
 import './components/visual-editor/visual-editor.js';
 import './components/simple-editor.js';
+import './components/loading-dialog.js';
 import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
@@ -18,7 +19,7 @@ export class QwcRoqEditor extends LitElement {
 
     // Track connection state for refreshing preview URL after hot reload
     _previousConnectionState = null;
-    _pendingPreviewRefresh = false;
+    _pendingRefreshPages = false;
 
     // Component style
     static styles = css`
@@ -42,6 +43,7 @@ export class QwcRoqEditor extends LitElement {
         "_fileContent": {state: true},
         "_visualEditorEnabled": {state: true},
         "_loadingContent": {state: true},
+        "_pendingRefreshPages": {state: true},
         "_dateFormat": {state: true}
     }
 
@@ -52,6 +54,7 @@ export class QwcRoqEditor extends LitElement {
         this._selectedPage = null;
         this._fileContent = null;
         this._loadingContent = false;
+        this._pendingRefreshPages = false;
         this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
     }
 
@@ -76,6 +79,7 @@ export class QwcRoqEditor extends LitElement {
             this._posts = postsResponse.result || [];
             this._pages = pagesResponse.result || [];
             this._dateFormat = dateFormatResponse.result;
+            this._pendingRefreshPages = false;
         } catch (error) {
             console.error('Error loading initial data:', error);
             showNotification('Error loading initial data: ' + error.message);
@@ -100,19 +104,16 @@ export class QwcRoqEditor extends LitElement {
         const wasConnected = this._previousConnectionState;
 
         // Detect reconnection: was not connected, now connected
-        if (!wasConnected && currentConnected && this._pendingPreviewRefresh && this._selectedPage) {
-            this._refreshPreviewUrl();
+        if (!wasConnected && currentConnected && this._pendingRefreshPages) {
+            this._refreshPageInfo();
         }
 
         this._previousConnectionState = currentConnected;
     }
 
-    _refreshPreviewUrl() {
-        if (!this._selectedPage) return;
+    _refreshPageInfo() {
 
-        const currentPath = this._selectedPage.path;
-
-        // Fetch fresh posts and pages to get the updated URL
+       // Fetch fresh posts and pages to get the updated URL
         Promise.all([
             this.jsonRpc.getPosts(),
             this.jsonRpc.getPages()
@@ -120,22 +121,26 @@ export class QwcRoqEditor extends LitElement {
             const posts = postsResponse.result || [];
             const pages = pagesResponse.result || [];
 
-            // Look in both posts and pages for the updated URL
-            let updatedItem = posts.find(p => p.path === currentPath);
-            if (!updatedItem) {
-                updatedItem = pages.find(p => p.path === currentPath);
-            }
+            if(this._selectedPage) {
+                // Look in both posts and pages for the updated URL
+                let updatedItem = posts.find(p => p.path === this._selectedPage.path);
+                if (!updatedItem) {
+                    updatedItem = pages.find(p => p.path === this._selectedPage.path);
+                }
 
-            if (updatedItem && updatedItem.url) {
-                // Update selected post/page with fresh URL
-                this._selectedPage = {...this._selectedPage, url: updatedItem.url};
-                this._pendingPreviewRefresh = false;
-                console.log('new url detected for preview', updatedItem.url);
+                if (updatedItem && JSON.stringify(this._selectedPage) !== JSON.stringify(updatedItem)) {
+                    // Update selected post/page with fresh URL
+                    this._selectedPage = updatedItem;
+                    console.log('new url detected for preview', updatedItem.url);
+                }
             }
 
             // Also update the lists
             this._posts = posts;
             this._pages = pages;
+
+            this._pendingRefreshPages = false;
+
         }).catch(error => {
             console.error('Error refreshing preview URL:', error);
         });
@@ -144,6 +149,7 @@ export class QwcRoqEditor extends LitElement {
     render() {
         return html`
           <div class="content-area">
+            <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
               : this._renderContent()
@@ -161,30 +167,26 @@ export class QwcRoqEditor extends LitElement {
         if (this._visualEditorEnabled) {
             return html`
               <qwc-visual-editor
-                .filePath="${this._selectedPage.path}"
-                .fileExtension="${this._selectedPage.extension}"
-                .suggestedPath="${this._selectedPage.suggestedPath}"
-                .markup="${this._selectedPage.markup}"
-                .previewUrl="${this._selectedPage.url}"
-                .date="${this._selectedPage.date}"
+                .page="${this._selectedPage}"
                 .dateFormat="${this._dateFormat}"
                 .loading="${this._loadingContent}"
                 @close-viewer="${this._closeViewer}"
                 .content="${this._fileContent}"
-                @save-content="${this._onSaveContent}">
+                @save-content="${this._onSaveContent}"
+                @page-sync-path="${this._onPageSyncPath}"
+              >
               </qwc-visual-editor>
             `;
         }
         return html`
           <qwc-simple-editor
-            .filePath="${this._selectedPage.path}"
-            .fileExtension="${this._selectedPage.extension}"
-            .suggestedPath="${this._selectedPage.suggestedPath}"
-            .previewUrl="${this._selectedPage.url}"
+            .page="${this._selectedPage}"
             .loading="${this._loadingContent}"
             @close-viewer="${this._closeViewer}"
             .content="${this._fileContent}"
-            @save-content="${this._onSaveContent}">
+            @save-content="${this._onSaveContent}"
+            @page-sync-path="${this._onPageSyncPath}"
+          >
           </qwc-simple-editor>
         `;
     }
@@ -247,10 +249,11 @@ export class QwcRoqEditor extends LitElement {
                     // Check if result contains an error
                     if (result?.error) {
                         showNotification('Error creating page: ' + result.errorMessage);
+                        console.error(result.errorMessage);
                         return;
                     }
                     console.log('result', result);
-                    this._pendingPreviewRefresh = true;
+                    this._pendingRefreshPages = true;
                     if (collectionId) {
                         this._posts = [result.page].concat(this._posts);
                     } else {
@@ -297,8 +300,6 @@ export class QwcRoqEditor extends LitElement {
         e.stopPropagation();
         const page = e.detail.page;
 
-
-
         const confirmed = await showConfirm(
             `new path: '${page.suggestedPath}'`,
             { title: 'Do you really want to change the page path?', confirmText: 'Change Path', theme: 'primary' }
@@ -311,6 +312,7 @@ export class QwcRoqEditor extends LitElement {
             // Check if result contains an error
             if (result && result.error) {
                 showNotification('Error syncing page path: ' + result.errorMessage);
+                console.error(result.errorMessage);
                 return;
             }
             const updated = {...page, path: result.newPath, suggestedPath: null}
@@ -324,7 +326,7 @@ export class QwcRoqEditor extends LitElement {
             if (this._selectedPage?.path === page.path) {
                 this._selectedPage = updated;
             }
-            this._pendingPreviewRefresh = true;
+            this._pendingRefreshPages = true;
         }).catch(error => {
             showNotification('Error syncing page path: ' + error.message);
             console.error(error);
@@ -351,7 +353,8 @@ export class QwcRoqEditor extends LitElement {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result && result.error) {
-                alert('Error syncing page path: ' + result.errorMessage);
+                showNotification('Error reading file: ' + result.errorMessage);
+                console.error(result.errorMessage);
                 return;
             }
             this._visualEditorEnabled = await this._shouldEnableVisualEditor(result.content);
@@ -408,12 +411,12 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _onSaveContent(e) {
-        const {content, filePath, date, title} = e.detail;
+        const {content, path, date, title} = e.detail;
         const detail = e.detail;
         const target = e.target;
 
         // Save file content to backend
-        this.jsonRpc.savePageContent({path: filePath, content, date, title}).then(jsonRpcResponse => {
+        this.jsonRpc.savePageContent({path, content, date, title}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             // Check if result contains an error
             if (result?.error) {
@@ -422,26 +425,20 @@ export class QwcRoqEditor extends LitElement {
                     target.markSaveError();
                 }
                 showNotification('Error saving file: ' + result.errorMessage);
+                console.error(result.errorMessage);
                 return;
             } else {
                 // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
 
-                if (result && result.path && this._selectedPage) {
+                if (result && result.suggestedPath && this._selectedPage) {
                     this._selectedPage = {
                         ...this._selectedPage,
-                        path: result.path,
                         suggestedPath: result.suggestedPath
                     };
-                    // Also update the editor's filePath property
-                    if (target) {
-                        target.filePath = result.path;
-                    }
                 }
 
-                // Mark that we need to refresh preview URL after connection restores
-                // The URL will be fetched fresh after indexing completes
-                this._pendingPreviewRefresh = true;
+                this._pendingRefreshPages = "background";
 
                 if (target && target.markSaved) {
                     target.markSaved();

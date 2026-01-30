@@ -9,9 +9,7 @@ import './toolbar.js';
 export class BaseEditor extends LitElement {
     static properties = {
         content: { type: String },
-        fileExtension: { type: String },
-        filePath: { type: String },
-        previewUrl: { type: String },
+        page: { type: Object },
         loading: { type: Boolean },
         saving: { type: Boolean },
 
@@ -114,6 +112,7 @@ export class BaseEditor extends LitElement {
         this._error = null;
         this.loading = false;
         this.saving = false;
+        this.page = null;
 
         this._handleKeyDown = this._handleKeyDown.bind(this);
     }
@@ -125,7 +124,7 @@ export class BaseEditor extends LitElement {
 
     /** Subclasses can override to return a different preview URL if needed */
     _getPreviewUrl() {
-        return this.previewUrl;
+        return this.page?.url;
     }
 
     /** ---- Lifecycle ---- */
@@ -153,7 +152,7 @@ export class BaseEditor extends LitElement {
         return html`
       <div class="editor-header">
         <h3 class="editor-title">
-          ${this.filePath || 'File Editor'}
+          <page-path-editor .page="${this.page}"/>
           ${this._isDirty ? html`<span class="dirty-indicator">(unsaved changes)</span>` : ''}
         </h3>
         <div class="header-actions">

@@ -36,8 +36,6 @@ import { showConfirm } from '../confirm-dialog.js';
 export class RoqVisualEditor extends BaseEditor {
     static properties = {
         ...BaseEditor.properties,
-        markup: {type: String},
-        date: {type: String},
         dateFormat: {type: String},
 
         // local state
@@ -281,7 +279,7 @@ export class RoqVisualEditor extends BaseEditor {
 
     updated(changed) {
         // AsciiDoc not supported
-        if (this.markup === 'asciidoc') {
+        if (this.page.markup === 'asciidoc') {
             this._error = 'Error: AsciiDoc is not supported in Visual Editor';
             return;
         }
@@ -342,7 +340,7 @@ export class RoqVisualEditor extends BaseEditor {
     /** ---- Helpers ---- */
 
     _isMarkdownFile() {
-        return this.markup === 'markdown';
+        return this.page.markup === 'markdown';
     }
 
     _setContent() {
@@ -524,7 +522,7 @@ export class RoqVisualEditor extends BaseEditor {
 
               <qwc-frontmatter-panel
                 .frontmatter="${this._frontmatter}"
-                .date="${this.date}"
+                .date="${this.page.date}"
                 .dateFormat="${this.dateFormat}"
                 @frontmatter-changed="${this._onFrontmatterChanged}"
               >
@@ -555,7 +553,7 @@ export class RoqVisualEditor extends BaseEditor {
         const panel = this._getFrontmatterPanel();
         const frontmatter = panel ? panel.getFrontmatter() : this._frontmatter;
         const fieldTypes = panel ? panel.getFieldTypes() : {};
-        const date = parseAndFormatDate(panel ? panel.getDate() : this.date);
+        const date = parseAndFormatDate(panel ? panel.getDate() : this.page.date);
         const title = frontmatter.title || '';
 
         const contentToSave = combineFrontmatter(frontmatter, bodyContent, fieldTypes);
@@ -567,7 +565,7 @@ export class RoqVisualEditor extends BaseEditor {
                 composed: true,
                 detail: {
                     content: contentToSave,
-                    filePath: this.filePath,
+                    path: this.page.path,
                     date,
                     title,
                 },

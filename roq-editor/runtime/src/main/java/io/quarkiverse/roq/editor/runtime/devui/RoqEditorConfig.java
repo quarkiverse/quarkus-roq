@@ -56,4 +56,23 @@ public interface RoqEditorConfig {
         boolean safe();
     }
 
+    /**
+     * Suggested path configuration
+     *
+     * @return
+     */
+    @JsonProperty("suggestedPath")
+    SuggestedPathConfig suggestedPath();
+
+    interface SuggestedPathConfig {
+
+        /**
+         * If enabled, Editor will suggest file path sync when it differs from content.
+         */
+        @JsonProperty("enabled")
+        @WithDefault("true")
+        boolean enabled();
+
+    }
+
 }

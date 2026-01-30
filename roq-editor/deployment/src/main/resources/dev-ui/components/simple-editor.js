@@ -9,7 +9,6 @@ import { showConfirm } from './confirm-dialog.js';
 export class RoqSimpleEditor extends BaseEditor {
     static properties = {
         ...BaseEditor.properties,
-        fileExtension: { type: String },
     };
 
     static styles = [
@@ -96,7 +95,7 @@ export class RoqSimpleEditor extends BaseEditor {
               id="code-editor"
               showlinenumbers
               editable
-              mode="${this.fileExtension}"
+              mode="${this.page.extension}"
               @value-changed="${this._onCodeBlockChange}"
             >
             </qui-themed-code-block>
@@ -124,7 +123,7 @@ export class RoqSimpleEditor extends BaseEditor {
                 composed: true,
                 detail: {
                     content: this._editorValue,
-                    filePath: this.filePath,
+                    path: this.page.path,
                 },
             }),
         );
