@@ -7,16 +7,18 @@
     <title><![CDATA[ {site.title} ]]></title>
     <description><![CDATA[ {site.description} ]]></description>
     <link>{site.url.absolute}</link>
+    <atom:link href="{site.url('rss.xml').absolute}" rel="self" type="application/rss+xml"/>
     <generator>Quarkus Roq</generator>
     {#if site.collections.get(name)}
-    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date}{/if}</lastBuildDate>
+    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.format('EEE, dd MMM yyyy HH:mm:ss Z')}{/if}</lastBuildDate>
     {#for post in site.collections.get(name)}
       <item>
         <title><![CDATA[{post.title}]]></title>
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{post.url.absolute}</guid>
-        <pubDate>{post.date}</pubDate>
-        <content:encoded><p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br /></content:encoded>
+        <pubDate>{post.date.format('EEE, dd MMM yyyy HH:mm:ss Z')}</pubDate>
+        <description><![CDATA[{post.description}]]></description>
+        <content:encoded><![CDATA[<p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
       </item>
     {/for}
     {/if}

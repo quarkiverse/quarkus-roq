@@ -39,7 +39,7 @@
             <plugin>
                 <groupId>io.mvnpm</groupId>
                 <artifactId>esbuild-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>2.0.0</version>
                 <executions>
                     <execution>
                         <id>esbuild</id>
@@ -60,7 +60,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>lodash</artifactId>
-                        <version>4.17.21</version>
+                        <version>4.17.23</version>
                     </dependency>
                 </dependencies>
             </plugin>
