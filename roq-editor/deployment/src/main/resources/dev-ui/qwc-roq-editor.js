@@ -269,14 +269,6 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _renderCreatePageForm(ctx) {
-        setTimeout(() => {
-            const input = this.renderRoot?.querySelector?.('#prompt-title');
-            const el = input?.inputElement;
-            if (el) {
-                input.focus();
-                el.select?.();
-            }
-        });
         return html`
           <vaadin-select
             label="Markup"

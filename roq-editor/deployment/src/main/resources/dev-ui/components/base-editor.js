@@ -123,7 +123,7 @@ export class BaseEditor extends LitElement {
     }
 
     /** Subclasses can override to return a different preview URL if needed */
-    _getPreviewUrl() {
+    _getPreviewUrl = () => {
         return this.page?.url;
     }
 
@@ -218,6 +218,7 @@ export class BaseEditor extends LitElement {
                   .activeTab="${this._activeTab}"
                   .showEditorTab=${this.showEditorTab}
                   @tab-changed="${this._onTabChanged}"
+                  .previewUrl="${this._getPreviewUrl()}"
                 ></qwc-toolbar>
 
                 <div class="preview-container" ?hidden="${this._activeTab !== 'preview'}">
@@ -232,9 +233,17 @@ export class BaseEditor extends LitElement {
     }
 
     /** ---- Shared tab handling (subclasses may hook into before/after) ---- */
-    _onTabChanged(e) {
+    async _onTabChanged(e) {
         const newTab = e.detail.tab;
         const previousTab = this._activeTab;
+
+        if (this._isDirty && newTab === 'preview') {
+            const save = await showConfirm('You have unsaved changes which won\'t be visible...', { title: 'Do you want to save for the preview?', cancelText: 'No thanks',  confirmText: 'Save Changes' });
+            if (save) {
+                this._save();
+                return;
+            }
+        }
 
         if (this._beforeTabChange) {
             this._beforeTabChange(previousTab, newTab);
@@ -265,7 +274,7 @@ export class BaseEditor extends LitElement {
     async _close() {
         if (this._isDirty) {
             const confirmed = await showConfirm(
-                'Because you have unsaved changes!',
+                'You have unsaved changes 😅',
                 { title: "Do you really want to close?",  confirmText: 'Discard Changes', theme: 'error' }
             );
             if (!confirmed) return;

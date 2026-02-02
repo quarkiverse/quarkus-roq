@@ -5,6 +5,7 @@ import { editorContext } from './visual-editor/editor-context.js';
 export class Toolbar extends LitElement {
 
   static properties = {
+    previewUrl: { type: String },
     activeTab: { type: String, reflect: true, attribute: 'active-tab' },
     showEditorTab: { type: Boolean }
   };
@@ -130,10 +131,11 @@ export class Toolbar extends LitElement {
             @click="${() => this._onTabClick('preview')}">
             Preview
           </button>
-          
-          <vaadin-button theme="icon" @click="${() => this._onTabClick('previewNewTab')}">
-            <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
-          </vaadin-button>
+          <a href="${this.previewUrl}" target="_blank" rel="noopener noreferrer">
+            <vaadin-button theme="icon">
+              <vaadin-icon icon="font-awesome-solid:arrow-up-right-from-square"></vaadin-icon>
+            </vaadin-button>
+          </a>
           <div class="spacer"></div>
           ${this.activeTab === "preview" ? html`
             <vaadin-button

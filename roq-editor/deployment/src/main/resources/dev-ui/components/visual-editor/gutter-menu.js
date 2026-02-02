@@ -81,10 +81,6 @@ export class GutterMenu extends LitElement {
         }
     }
 
-    get floatingMenu() {
-        return this.querySelector('qwc-floating-menu');
-    }
-
     render() {
         return html`
           <button class="gutter-menu-button gutter-add-button" title="Add block">+</button>

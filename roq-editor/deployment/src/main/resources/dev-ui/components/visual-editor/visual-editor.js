@@ -9,7 +9,6 @@ import {
     ContextProvider,
     DragHandle,
     Editor,
-    Image,
     Link,
     Markdown,
     StarterKit,
@@ -21,14 +20,14 @@ import {
 import {combineFrontmatter, parseAndFormatDate, parseFrontmatter} from '../../utils/frontmatter.js';
 import {editorContext} from './editor-context.js';
 import './bubble-menu.js';
-import './floating-menu.js';
 import './table-menu.js';
 import './frontmatter-panel.js';
 import './gutter-menu.js';
 import '../preview-panel.js';
 import '../toolbar.js';
-import {RawBlock} from './raw-block.js';
-import {SlashCommand} from './slash-command.js';
+import {RoqImage} from './extensions/image.js';
+import {RawBlock} from './extensions/raw-block.js';
+import {SlashCommand} from './extensions/slash-command.js';
 import {hljsTheme} from '../../hljs-theme.js';
 import {BaseEditor} from '../base-editor.js';
 import { showConfirm } from '../confirm-dialog.js';
@@ -232,6 +231,14 @@ export class RoqVisualEditor extends BaseEditor {
                 overflow: auto;
                 cursor: text;
             }
+            .tiptap.ProseMirror img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+            }
+            .tiptap.ProseMirror .tiptap-image-img {
+                border-radius: .25rem;
+            }            
         `,
     ];
 
@@ -383,7 +390,10 @@ export class RoqVisualEditor extends BaseEditor {
             ...baseExtensions,
             ...(isMarkdown ? [Table, TableRow, TableHeader, TableCell, ConfCodeBlockLowlight] : []),
             RawBlock,
-            Image,
+            RoqImage.configure({
+                    urlPrefix: this._getPreviewUrl
+                }
+            ),
             Link.configure({
                 openOnClick: false,
             }),
