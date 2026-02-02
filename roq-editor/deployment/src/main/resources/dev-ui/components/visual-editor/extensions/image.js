@@ -1,8 +1,21 @@
 import { Image, mergeAttributes } from '../../../bundle.js'
 import { html } from 'lit';
 
+function isTemplatePlaceholder(src) {
+    if (typeof src !== 'string') {
+        return false;
+    }
+    // Treat values that look like template placeholders (e.g. Qute) as non-resolvable:
+    // - must contain both '{' and '}'
+    // - must not look like a full URL with a scheme (contains "://")
+    if (src.includes('://')) {
+        return false;
+    }
+    return src.includes('{') && src.includes('}');
+}
+
 function resolveSrc (options, src) {
-    if (src.includes('{')) {
+    if (isTemplatePlaceholder(src)) {
         return  'assets/placeholder-image.svg';
     } else {
         const prefix =
@@ -132,7 +145,7 @@ export function renderImageForm(ctx) {
           </vaadin-text-field>
           <vaadin-text-field
             label="Title"
-            id="prompt-alt"
+            id="prompt-title"
             .value=${ctx.values.title ?? ''}
             @value-changed=${(e) => ctx.update('title', e.detail.value)}
           >
