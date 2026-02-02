@@ -5,7 +5,7 @@ tags: guide, cool-stuff
 description: Roq introduces a TipTap-powered editor with Markdown support, transforming it from a static site generator into a lightweight, developer-friendly CMS. Create, edit, and preview content seamlessly within the Quarkus dev experience.
 date: 2026-02-02 00:00:00 +0100
 ---
-Roq started as a solid foundation for building modern apps and static sites. But now, it’s leveling up in a big way. With the introduction of a **TipTap-powered Editor with Markdown support**, Roq is no longer just an SSG tool — it’s stepping into **CMS territory**.
+Roq started as a solid foundation for building modern apps and static sites. But now, it’s leveling up in a big way. With the introduction of a **TipTap-powered Editor with Markdown support**, Roq is no longer just an SSG tool, it’s stepping into **CMS territory**.
 
 ## Why This Is a Big Deal
 
@@ -16,10 +16,10 @@ Until now, writers had to:
 - Manually open the article preview.
 - Use Markdown as code
 
- Now, with Roq’s built-in editor:
+Now, with Roq’s built-in editor:
 
 - **Native integration**: all integrated in Quarkus dev experience.
-- **Rich Text Editor with Markdown support**: write your content in a notion like editor, render beautifully.
+- **Rich Text Editor with Markdown support**: write your content in a notion like editor, render beautifully.
 - **Preview article**: directly from the editor or using a new tab.
 
 This makes Roq feel less like a static site generator and more like a **developer-friendly CMS**, closer to the flexibility of WordPress — but without the heavyness.
@@ -35,7 +35,7 @@ This makes Roq feel less like a static site generator and more like a **develope
 
 *We’ve tested the editor in many different scenarios to ensure it’s safe to use. That said, it’s still in **Beta**, and it will need a few more weeks before it’s fully ready. In the meantime, make sure you always review the diffs before merging any content.*
 
-The editor is natively integrated into **Roq**  `2.1.0.BETA1`. Until the final release is available, you’ll need to set this version manually in your `pom.xml`.
+The editor is natively integrated into Roq `2.1.0.BETA1`. Until the final release is available, you’ll need to set this version manually in your `pom.xml`.
 
 Start Dev-Mode
 
