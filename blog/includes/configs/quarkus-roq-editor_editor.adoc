@@ -91,5 +91,26 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-suggested-path-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-suggested-path-enabled[`editor.suggested-path.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.suggested-path.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If enabled, Editor will suggest file path sync when it differs from content.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SUGGESTED_PATH_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SUGGESTED_PATH_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
 |===
 

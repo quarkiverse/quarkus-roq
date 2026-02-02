@@ -15,7 +15,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Path to the Roq directory (relative to the project root).
+Path to the Roq site directory (relative to the project root).
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -26,7 +26,7 @@ Environment variable: `+++QUARKUS_ROQ_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|
+|`+++the project root+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-resource-dir[`quarkus.roq.resource-dir`]##
 ifdef::add-copy-button-to-config-props[]
@@ -47,7 +47,7 @@ Environment variable: `+++QUARKUS_ROQ_RESOURCE_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|
+|`+++the root of the resources+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties[`quarkus.roq.jackson.fail-on-unknown-properties`]##
 ifdef::add-copy-button-to-config-props[]
