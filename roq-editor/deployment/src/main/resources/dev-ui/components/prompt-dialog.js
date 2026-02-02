@@ -40,7 +40,7 @@ export class PromptDialog extends LitElement {
      * - Without customRenderer: resolves to string or null
      * - With customRenderer: resolves to object or null
      */
-    prompt(message, defaultValue = '', customRenderer = null) {
+    prompt(message, defaultValue, customRenderer = null) {
         return new Promise((resolve) => {
             this._message = message;
             this._defaultValue = defaultValue;
@@ -83,7 +83,12 @@ export class PromptDialog extends LitElement {
 
     _handleCancel() {
         if (this._resolve) {
-            this._resolve({});
+            if(this._defaultValue && typeof this._defaultValue === 'object') {
+                this._resolve({});
+            } else {
+                this._resolve(null);
+            }
+
             if (this._customRenderer) {
                 this._formValues = JSON.parse(JSON.stringify(this._defaultFormValues));
             } else {
@@ -166,7 +171,7 @@ customElements.define('qwc-prompt-dialog', PromptDialog);
  */
 let dialogInstance = null;
 
-export function showPrompt(message, defaultValue = '', customRenderer = null) {
+export function showPrompt(message, defaultValue , customRenderer = null) {
     if (!dialogInstance) {
         dialogInstance = document.createElement('qwc-prompt-dialog');
         document.body.appendChild(dialogInstance);

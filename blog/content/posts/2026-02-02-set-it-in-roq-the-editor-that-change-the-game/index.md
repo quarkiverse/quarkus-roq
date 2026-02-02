@@ -7,7 +7,7 @@ date: 2026-02-02 00:00:00 +0100
 ---
 Roq started as a solid foundation for building modern apps and static sites. But now, it’s leveling up in a big way. With the introduction of a **TipTap-powered Editor with Markdown support**, Roq is no longer just an SSG tool, it’s stepping into **CMS territory**.
 
-![The Editor](the-roq-editor.gif)
+![](the-roq-editor.gif)
 
 ## Why This Is a Big Deal
 

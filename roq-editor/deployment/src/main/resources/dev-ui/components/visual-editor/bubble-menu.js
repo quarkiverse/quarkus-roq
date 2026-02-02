@@ -8,29 +8,62 @@ import { editorContext } from './editor-context.js';
 import { ContextConsumer } from '../../bundle.js';
 import { showPrompt } from '../prompt-dialog.js';
 import './heading-dropdown.js';
+import {renderImageForm} from "./extensions/image.js";
 
 export class BubbleMenu extends LitElement {
     static properties = {
-        _isInList: { state: true },
     };
 
     constructor() {
         super();
-        this._isInList = false;
-        this._editorContext = null;
-        this._updateFrame = null;
-        this._lastUpdateTime = 0;
-        this._updateThrottle = 50; // Update at most every 50ms
-        
+
         this._editorConsumer = new ContextConsumer(this, {
             context: editorContext,
             subscribe: true,
             callback: () => {
+                this._bindEditor(this.editor);
                 // When editor context changes, set up update mechanism
-                this._setupEditorUpdates();
             }
         });
     }
+
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._unsubscribeEditor?.();
+        this._unsubscribeEditor = undefined;
+    }
+
+
+
+    _unsubscribeEditor = () => {}
+
+    _bindEditor(editor) {
+        // cleanup previous subscriptions
+        this._unsubscribeEditor?.();
+        this._unsubscribeEditor = undefined;
+
+        if (!editor) {
+            this.requestUpdate();
+            return;
+        }
+
+        const onChange = () => this.requestUpdate();
+
+        // Mirror what useEditorState does: rerender on transactions [1](https://tiptap.dev/docs/examples/advanced/react-performance)
+        editor.on('transaction', onChange);
+        // Optional but usually needed for active marks based on selection movement
+        editor.on('selectionUpdate', onChange);
+
+        this._unsubscribeEditor = () => {
+            editor.off('transaction', onChange);
+            editor.off('selectionUpdate', onChange);
+        };
+
+        // initial sync
+        this.requestUpdate();
+    }
+
 
     static styles = css`
         :host {
@@ -87,130 +120,75 @@ export class BubbleMenu extends LitElement {
         return this._editorConsumer.value?.editorElement || null;
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        this._setupEditorUpdates();
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this._cleanupEditorUpdates();
-    }
-
-    firstUpdated() {
-        // Attach click listener
-        this.addEventListener('click', this._handleClick.bind(this));
-        this._setupEditorUpdates();
-    }
-
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        // Note: Button states are updated via the animation frame loop in _setupEditorUpdates()
-        // to avoid infinite update loops
-    }
-
-    _setupEditorUpdates() {
-        this._cleanupEditorUpdates();
-        
-        if (!this.editor) return;
-        
-        // Set up throttled updates to check editor state when component is visible
-        // This ensures the menu stays in sync with editor state
-        const updateLoop = () => {
-            if (this.editor && this.isConnected) {
-                const now = Date.now();
-                // Only update if component is visible and throttle time has passed
-                const isVisible = this.offsetParent !== null && 
-                                 this.style.display !== 'none' &&
-                                 window.getComputedStyle(this).display !== 'none';
-                
-                if (isVisible && (now - this._lastUpdateTime) >= this._updateThrottle) {
-                    this._updateButtonStates();
-                    this._lastUpdateTime = now;
-                }
-                this._updateFrame = requestAnimationFrame(updateLoop);
-            } else {
-                this._cleanupEditorUpdates();
-            }
-        };
-        
-        this._updateFrame = requestAnimationFrame(updateLoop);
-    }
-
-    _cleanupEditorUpdates() {
-        if (this._updateFrame) {
-            cancelAnimationFrame(this._updateFrame);
-            this._updateFrame = null;
-        }
-    }
 
     render() {
         return html`
-            <div class="tiptap-menu">
-                <qwc-heading-dropdown mode="toggle"></qwc-heading-dropdown>
-                <div class="tiptap-menu-separator"></div>
-                <vaadin-button theme="icon" class="tiptap-menu-button ${this._isCommandActive('bold') ? 'is-active' : ''}" 
-                    data-command="bold" 
-                    title="Bold">
-                       <vaadin-icon icon="font-awesome-solid:bold"></vaadin-icon>
-                </vaadin-button>
-                <vaadin-button theme="icon"
-                    class="tiptap-menu-button  ${this._isCommandActive('italic') ? 'is-active' : ''}" 
-                    data-command="italic" 
-                    title="Italic">
-                       <vaadin-icon icon="font-awesome-solid:italic"></vaadin-icon>
-                </vaadin-button>
-                <div class="tiptap-menu-separator"></div>
-                <vaadin-button class="tiptap-menu-button" theme="icon" data-command="link" title="Link">
-                       <vaadin-icon icon="font-awesome-solid:link"></vaadin-icon>
-                </vaadin-button>
-                <vaadin-button class="tiptap-menu-button" theme="icon"data-command="image" title="Image">
-                       <vaadin-icon icon="font-awesome-solid:image"></vaadin-icon>
-                </vaadin-button>
-                <div class="tiptap-menu-separator ${this._isInList ? 'show' : ''}" data-show-on-list></div>
-                <vaadin-button 
-                    class="tiptap-menu-button ${this._isCommandActive('bulletList') ? 'is-active' : ''} ${this._isInList ? 'show' : ''}" 
-                    data-command="bulletList" 
-                    data-show-on-list 
-                    theme="icon"
-                    title="Bullet List">
-                       <vaadin-icon icon="font-awesome-solid:list"></vaadin-icon>
-                </vaadin-button>
-                <vaadin-button 
-                    class="tiptap-menu-button ${this._isCommandActive('orderedList') ? 'is-active' : ''} ${this._isInList ? 'show' : ''}" 
-                    data-command="orderedList" 
-                    data-show-on-list 
-                    theme="icon"
-                    title="Ordered List">
-                       <vaadin-icon icon="font-awesome-solid:list-ol"></vaadin-icon>
-                </vaadin-button>
+            <div class="tiptap-menu" @click=${this._handleClick}>
+               ${this._isCommandActive('image') ? this._renderImageMenu() : this._renderTextMenu()}
             </div>
+        `;
+    }
+
+    _renderImageMenu() {
+        return html`
+          <vaadin-button class="tiptap-menu-button" theme="icon" data-command="image" title="Image">
+            <vaadin-icon icon="font-awesome-solid:pen-to-square"></vaadin-icon>
+          </vaadin-button>
+        `;
+    }
+
+
+    _renderTextMenu() {
+        return html`
+          <qwc-heading-dropdown mode="toggle"></qwc-heading-dropdown>
+          <div class="tiptap-menu-separator"></div>
+          <vaadin-button theme="icon" class="tiptap-menu-button ${this._isCommandActive('bold') ? 'is-active' : ''}"
+                         data-command="bold"
+                         title="Bold">
+            <vaadin-icon icon="font-awesome-solid:bold"></vaadin-icon>
+          </vaadin-button>
+          <vaadin-button theme="icon"
+                         class="tiptap-menu-button  ${this._isCommandActive('italic') ? 'is-active' : ''}"
+                         data-command="italic"
+                         title="Italic">
+            <vaadin-icon icon="font-awesome-solid:italic"></vaadin-icon>
+          </vaadin-button>
+          <div class="tiptap-menu-separator"></div>
+          <vaadin-button class="tiptap-menu-button" theme="icon" data-command="link" title="Link">
+            <vaadin-icon icon="font-awesome-solid:link"></vaadin-icon>
+          </vaadin-button>
+          <vaadin-button class="tiptap-menu-button" theme="icon" data-command="image" title="Image">
+            <vaadin-icon icon="font-awesome-solid:image"></vaadin-icon>
+          </vaadin-button>
+          <div class="tiptap-menu-separator ${this._isInList() ? 'show' : ''}" data-show-on-list></div>
+          <vaadin-button
+            class="tiptap-menu-button ${this._isCommandActive('bulletList') ? 'is-active' : ''} ${this._isInList() ? 'show' : ''}"
+            data-command="bulletList"
+            data-show-on-list
+            theme="icon"
+            title="Bullet List">
+            <vaadin-icon icon="font-awesome-solid:list"></vaadin-icon>
+          </vaadin-button>
+          <vaadin-button
+            class="tiptap-menu-button ${this._isCommandActive('orderedList') ? 'is-active' : ''} ${this._isInList() ? 'show' : ''}"
+            data-command="orderedList"
+            data-show-on-list
+            theme="icon"
+            title="Ordered List">
+            <vaadin-icon icon="font-awesome-solid:list-ol"></vaadin-icon>
+          </vaadin-button>
         `;
     }
 
     _isCommandActive(command) {
         if (!this.editor) return false;
-        
-        switch (command) {
-            case 'bold':
-                return this.editor.isActive('bold');
-            case 'italic':
-                return this.editor.isActive('italic');
-            case 'bulletList':
-                return this.editor.isActive('bulletList');
-            case 'orderedList':
-                return this.editor.isActive('orderedList');
-            default:
-                return false;
-        }
+        return this.editor.isActive(command);
     }
 
-    _updateButtonStates() {
-        if (!this.editor) return;
-        
-        // Update list visibility state
-        // Changing _isInList (a reactive state property) will automatically trigger a re-render
-        this._isInList = this.editor.isActive('bulletList') || this.editor.isActive('orderedList');
+
+    _isInList() {
+        if (!this.editor) return false;
+        return this.editor.isActive('bulletList') || this.editor.isActive('orderedList');
     }
 
     _handleClick(e) {
@@ -239,9 +217,14 @@ export class BubbleMenu extends LitElement {
                 }
             });
         } else if (command === 'image') {
-            showPrompt('Enter image URL:', '').then(url => {
-                if (url) {
-                    this.editor.chain().focus().setImage({ src: url }).run();
+            // Get current link URL if selection is inside a link
+            const currentImageAttrs = this.editor.getAttributes('image');
+            const src = currentImageAttrs.src || '';
+            const title = currentImageAttrs.title || '';
+            const alt = currentImageAttrs.alt || '';
+            showPrompt('Image', { alt, title, src}, renderImageForm).then(({ src, title, alt}) => {
+                if (src) {
+                    this.editor.chain().focus().setImage({ alt, src, title }).run();
                 }
             });
         } else if (command === 'bulletList') {
@@ -251,9 +234,11 @@ export class BubbleMenu extends LitElement {
         }
         
         // Update button states after command and force re-render
-        this._updateButtonStates();
         this.requestUpdate();
     }
+
+
+
 }
 
 customElements.define('qwc-bubble-menu', BubbleMenu);

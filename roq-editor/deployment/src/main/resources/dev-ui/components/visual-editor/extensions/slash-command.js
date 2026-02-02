@@ -4,8 +4,10 @@
  */
 
 import { html, render } from 'lit';
-import { Extension, Suggestion, TextSelection } from '../../bundle.js';
+import { Extension, Suggestion } from '../../../bundle.js';
 import './slash-menu.js';
+import {showPrompt} from "../../prompt-dialog.js";
+import {renderImageForm} from "./image.js";
 
 // Define all available block types with their commands
 const BLOCK_TYPES = [
@@ -70,6 +72,17 @@ const BLOCK_TYPES = [
         icon: '1≡',
         command: ({ editor, range }) => {
             editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+        }
+    },
+    {
+        label: 'Image',
+        icon: '🏞️',
+        command: ({ editor, range }) => {
+            showPrompt('Add an image:', { title: '', src: '', alt: ''}, renderImageForm).then(({ src, title, alt}) => {
+                if (src) {
+                    editor.chain().focus().deleteRange(range).setParagraph().setImage({ src, title, alt }).run();
+                }
+            });
         }
     },
     {
