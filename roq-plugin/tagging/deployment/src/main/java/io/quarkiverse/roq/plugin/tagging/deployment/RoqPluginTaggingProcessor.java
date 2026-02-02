@@ -113,7 +113,7 @@ public class RoqPluginTaggingProcessor {
 
                 final TemplateSource templateSource = item.raw().templateSource()
                         .changeId(tagCollection + "." + item.raw().templateSource().extension());
-                final PageSource pageSource = new PageSource(templateSource, false, null, PageFiles.empty());
+                final PageSource pageSource = new PageSource(templateSource, false, null, PageFiles.empty(), true);
                 final String link = TemplateLink.link(config.pathPrefixOrEmpty(),
                         tagging.link(),
                         DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE,

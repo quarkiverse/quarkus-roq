@@ -16,7 +16,8 @@ import io.quarkus.qute.TemplateData;
  *
  * @param id The page unique identifier. It is either the source file's relative path
  *        (e.g. {@code posts/my-post.md}) or a generated source path for dynamic pages.
- * @param markup The markup language used for this page (e.g. {@code markdown}, {@code asciidoc}), or {@code null} if none.
+ * @param markup The markup language used for this page (e.g. {@code html}, {@code markdown}, {@code asciidoc}), or {@code null}
+ *        if none.
  * @param file The source file location on disk or in the classpath.
  * @param path A stable, canonical identifier for the page within the logical content structure
  *        (e.g. {@code posts/my-favorite-beer.md}).

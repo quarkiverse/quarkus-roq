@@ -160,14 +160,14 @@ public class Page {
     }
 
     /**
-     * The page title (from FM data)
+     * The page title (`title` from FM data)
      */
     public String title() {
         return data().getString(FM_TITLE, sourcePath());
     }
 
     /**
-     * The page description (from FM data)
+     * The page description (`description` from FM data)
      */
     public String description() {
         return data().getString(FM_DESCRIPTION);
@@ -184,7 +184,7 @@ public class Page {
      */
     public RoqUrl image() {
         final String img = getImgFromData(data());
-        if (img == null) {
+        if (img == null || img.isEmpty()) {
             return null;
         }
         return image(img);

@@ -111,6 +111,6 @@ class TemplateLinkTest {
 
         return new PageSource(templateSource, false,
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-                PageFiles.empty());
+                PageFiles.empty(), false);
     }
 }

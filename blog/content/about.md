@@ -21,12 +21,14 @@ I wrote a [blog post]({site.url('posts/roq-with-blogs')}) explaining how it all 
 
 Thanks goes to these wonderful people:
 
-<div class="authors">
-  {#for contributor in cdi:contributors.contributors}
-  {#author-card name=contributor.name avatar=contributor.avatar_url nickname=contributor.login profile=contributor.profile }
-  {#if cdi:authors.get(contributor.login)}
-  <span class="author">author</span>
-  {/if}
-  {/author-card}
-  {/for}
+<div data-qute> <!-- adding this div makes that we can edit this block nicely in the roq editor -->
+  <div class="authors">
+    {#for contributor in cdi:contributors.contributors}
+      {#author-card name=contributor.name avatar=contributor.avatar_url nickname=contributor.login profile=contributor.profile }
+        {#if cdi:authors.get(contributor.login)}
+          <span class="author">author</span>
+        {/if}
+      {/author-card}
+    {/for}
+  </div>
 </div>

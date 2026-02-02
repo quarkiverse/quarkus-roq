@@ -1,0 +1,265 @@
+/**
+ * Floating menu component for TipTap editor
+ * Lit component that appears when the "+" button is clicked in the gutter menu
+ */
+
+import { LitElement, css, html } from 'lit';
+import { editorContext } from './editor-context.js';
+import { ContextConsumer } from '../../bundle.js';
+import './heading-dropdown.js';
+
+export class FloatingMenu extends LitElement {
+    static properties = {
+        visible: { type: Boolean, reflect: true },
+        _dropdownOpen: { state: true },
+    };
+
+    constructor() {
+        super();
+        this.visible = false;
+        this.pos = null;
+        this._dropdownOpen = false;
+        
+        this._editorConsumer = new ContextConsumer(this, {
+            context: editorContext,
+            subscribe: true
+          });
+    }
+
+    static styles = css`
+        :host {
+            position: absolute;
+            z-index: 20;
+            pointer-events: auto;
+            display: none;
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 5px;
+        }
+        :host([visible]) {
+            display: block;
+        }
+        .tiptap-menu {
+            display: flex;
+            gap: var(--lumo-space-xs);
+            background: var(--lumo-base-color);
+            border: 1px solid var(--lumo-contrast-20pct);
+            border-radius: var(--lumo-border-radius-m);
+            padding: var(--lumo-space-xs);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            margin: 0;
+        }
+        .tiptap-menu-button {
+            font-size: var(--lumo-font-size-xxs);
+        }
+        .tiptap-menu-button:hover {
+            background: var(--lumo-contrast-10pct);
+        }
+        .tiptap-menu-button.is-active {
+            background: var(--lumo-primary-color-10pct);
+            color: var(--lumo-primary-color);
+        }
+        .tiptap-menu-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .tiptap-menu-separator {
+            width: 1px;
+            background: var(--lumo-contrast-20pct);
+            margin: var(--lumo-space-xs) 0;
+        }
+    `;
+
+    get editor() {
+        return this._editorConsumer.value?.editor || null;
+    }
+
+    get editorElement() {
+        return this._editorConsumer.value?.editorElement || null;
+    }
+
+    firstUpdated() {
+        // Attach click listeners
+        this.addEventListener('click', this._handleClick.bind(this));
+        this.addEventListener('mouseenter', this._handleMouseEnter.bind(this));
+        this.addEventListener('mouseleave', this._handleMouseLeave.bind(this));
+        this.addEventListener('dropdown-opened-changed', this._handleDropdownOpenedChanged.bind(this));
+    }
+
+    /**
+     * Handle dropdown opened state changes
+     */
+    _handleDropdownOpenedChanged(e) {
+        this._dropdownOpen = e.detail.opened;
+    }
+
+    render() {
+        return html`
+            <div class="tiptap-menu">
+                <qwc-heading-dropdown 
+                    mode="insert" 
+                    .insertPos="${this.pos}"
+                    @heading-inserted="${this._onContentInserted}"
+                    @paragraph-inserted="${this._onContentInserted}"
+                ></qwc-heading-dropdown>
+                <div class="tiptap-menu-separator"></div>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="bulletList" title="Bullet List">
+                    <vaadin-icon icon="font-awesome-solid:list"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="orderedList" title="Ordered List">
+                    <vaadin-icon icon="font-awesome-solid:list-ol"></vaadin-icon>
+                </vaadin-button>
+                <div class="tiptap-menu-separator"></div>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="codeBlock" title="Code Block">
+                    <vaadin-icon icon="font-awesome-solid:code"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="rawBlock" title="Raw Block">
+                    <vaadin-icon icon="font-awesome-solid:window-maximize"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" class="tiptap-menu-button" data-command="table" title="Table">
+                    <vaadin-icon icon="font-awesome-solid:table"></vaadin-icon>
+                </vaadin-button>
+            </div>
+        `;
+    }
+
+    /**
+     * Handle content inserted from heading dropdown
+     */
+    _onContentInserted() {
+        this.hide();
+    }
+
+    /**
+     * Position the floating menu relative to a block element
+     * Now uses CSS positioning relative to parent gutter menu
+     */
+    position(e) {
+        if (!this.editor || !this.editorElement) return;
+        
+        const coords = this.editor.view.posAtCoords({
+            left: e.clientX,
+            top: e.clientY
+        });
+        this.pos = coords.pos;
+
+        this.show();
+    }
+
+    /**
+     * Show the floating menu
+     */
+    show() {
+        this.visible = true;
+    }
+
+    /**
+     * Hide the floating menu
+     */
+    hide() {
+        this.visible = false;
+    }
+
+    /**
+     * Toggle the floating menu visibility
+     */
+    toggle(e) {
+        if (this.visible) {
+            this.hide();
+        } else {
+            this.position(e);
+        }
+    }
+
+    /**
+     * Handle button clicks in the menu
+     */
+    _handleClick(e) {
+        // Use composedPath to find the button in Shadow DOM
+        const path = e.composedPath();
+        const button = path.find(el => el.classList && el.classList.contains('tiptap-menu-button'));
+        if (!button || !this.editor) return;
+
+        const command = button.dataset.command;
+
+        // Get position after current block
+        const pos = this.pos;
+        if (pos === null) return;
+
+        if (command === 'bulletList') {
+            this.editor.chain()
+                .focus()
+                .insertContentAt(pos, {
+                    type: 'bulletList',
+                    content: [{
+                        type: 'listItem',
+                        content: [{
+                            type: 'paragraph',
+                            content: []
+                        }]
+                    }]
+                })
+                .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'orderedList') {
+            this.editor.chain()
+                .focus()
+                .insertContentAt(pos, {
+                    type: 'orderedList',
+                    content: [{
+                        type: 'listItem',
+                        content: [{
+                            type: 'paragraph',
+                            content: []
+                        }]
+                    }]
+                })
+                .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'rawBlock') {
+            this.editor.chain()
+                .focus()
+                .insertContentAt(pos, {
+                    type: 'rawBlock',
+                    content: []
+                })
+                .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'codeBlock') {
+            this.editor.chain()
+                .focus()
+                .insertContentAt(pos, {
+                    type: 'codeBlock'
+                })
+                .setTextSelection(pos + 1)
+                .run();
+        } else if (command === 'table') {
+            this.editor.chain()
+                .focus()
+                .setTextSelection(pos)
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run();
+        }
+
+        this.hide();
+    }
+
+    /**
+     * Handle mouse enter - keep menu visible
+     */
+    _handleMouseEnter() {
+        // Dispatch event to notify parent to keep menu visible
+        this.dispatchEvent(new CustomEvent('menu-enter', { bubbles: true, composed: true }));
+    }
+
+    /**
+     * Handle mouse leave - hide menu unless dropdown is open
+     */
+    _handleMouseLeave() {
+        if (!this._dropdownOpen) {
+            this.hide();
+        }
+    }
+}
+
+customElements.define('qwc-floating-menu', FloatingMenu);

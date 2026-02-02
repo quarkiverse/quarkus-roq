@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.generator.runtime.devui;
 
 import java.util.List;
-import java.util.Map;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,7 +37,6 @@ public class RoqGeneratorJsonRPCService {
     }
 
     public Uni<String> generate() {
-        Map<String, String> config = Map.of("quarkus.http.port", "8081");
         return generator.generate().map(a -> generator.outputDir());
     }
 

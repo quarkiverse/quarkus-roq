@@ -102,7 +102,7 @@ public class RoqFrontMatterDataProcessor {
                 final PageFiles files = item.attachments() != null
                         ? new PageFiles(item.attachments().stream().map(Attachment::name).toList(), config.slugifyFiles())
                         : null;
-                final PageSource pageSource = new PageSource(item.templateSource(), draft, dateString, files);
+                final PageSource pageSource = new PageSource(item.templateSource(), draft, dateString, files, false);
                 final String link = TemplateLink.pageLink(config.pathPrefixOrEmpty(),
                         data.getString(LINK_KEY),
                         new TemplateLink.PageLinkData(pageSource, item.collectionId(), data));

@@ -17,6 +17,7 @@
     <modules>
         <module>roq-common</module>
         <module>roq-generator</module>
+        <module>roq-editor</module>
         <module>roq-data</module>
         <module>roq-frontmatter</module>
         <module>roq</module>

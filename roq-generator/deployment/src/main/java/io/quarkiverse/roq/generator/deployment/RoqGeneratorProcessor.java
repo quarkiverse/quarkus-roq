@@ -47,8 +47,7 @@ class RoqGeneratorProcessor {
         pageBuildItem.addPage(Page.webComponentPageBuilder()
                 .title("Roq Generator selection")
                 .componentLink("qwc-roq-generator.js")
-                .icon("font-awesome-solid:link")
-                .dynamicLabelJsonRPCMethodName("getRoqCount"));
+                .icon("font-awesome-solid:link"));
 
         return pageBuildItem;
     }

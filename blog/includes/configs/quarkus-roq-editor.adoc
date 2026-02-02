@@ -1,0 +1,95 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-page-markup]] [.property-path]##link:#quarkus-roq-editor_editor-page-markup[`editor.page-markup`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.page-markup+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Markup to use for new pages
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_PAGE_MARKUP+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_PAGE_MARKUP+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`markdown`, `asciidoc`, `html`
+|`+++markdown+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-doc-markup]] [.property-path]##link:#quarkus-roq-editor_editor-doc-markup[`editor.doc-markup`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.doc-markup+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Markup to use for new docs
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_DOC_MARKUP+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_DOC_MARKUP+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`markdown`, `asciidoc`, `html`
+|`+++markdown+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-enabled[`editor.visual-editor.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.visual-editor.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+When true, use the visual editor on supported files (Markdown). When false, always use the simple editor
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_VISUAL_EDITOR_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_VISUAL_EDITOR_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-safe]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-safe[`editor.visual-editor.safe`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.visual-editor.safe+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Use simple editor if the file contains qute or html blocks without data-type="raw" to make sure we don't break existing content
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_VISUAL_EDITOR_SAFE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_VISUAL_EDITOR_SAFE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+|===
+
