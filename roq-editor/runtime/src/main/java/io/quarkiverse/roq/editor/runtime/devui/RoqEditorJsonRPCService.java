@@ -11,6 +11,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -26,6 +29,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.util.PathUtils;
+import io.quarkus.assistant.runtime.dev.Assistant;
 import io.smallrye.common.annotation.Blocking;
 
 @ApplicationScoped
@@ -43,6 +47,9 @@ public class RoqEditorJsonRPCService {
 
     @Inject
     private RoqSiteConfig config;
+
+    @Inject
+    private Optional<Assistant> assistant;
 
     @Blocking
     public List<PageSource> getPosts() {
@@ -388,4 +395,17 @@ public class RoqEditorJsonRPCService {
         }
     }
 
+    @Blocking
+    public CompletionStage<Map<String, String>> generateContent(String message) {
+        if (assistant.isPresent()) {
+            return assistant.get().assistBuilder()
+                    .userMessage(message)
+                    .responseType(ContentResponse.class)
+                    .assist();
+        }
+        return CompletableFuture.failedStage(new RuntimeException("Assistant is not available"));
+    }
+
+    final record ContentResponse(String content) {
+    }
 }
