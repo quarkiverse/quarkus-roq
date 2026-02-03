@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.editor.runtime.devui;
 
+import java.util.Optional;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -149,6 +152,24 @@ public interface RoqEditorConfig {
             @WithDefault("Update content via Roq Editor")
             String template();
         }
+    }
+
+    /**
+     * AI content generation configuration
+     */
+    @JsonIgnore
+    AiConfig ai();
+
+    interface AiConfig {
+
+        /**
+         * Custom context to include in every AI content generation request.
+         * Use this to set the tone, topic, or style for your blog.
+         * For example: "This is a tech blog about Quarkus. Write in a friendly, concise tone."
+         */
+        @JsonProperty("context")
+        Optional<String> context();
+
     }
 
 }

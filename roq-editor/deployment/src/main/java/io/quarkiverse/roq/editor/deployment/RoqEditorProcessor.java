@@ -15,6 +15,8 @@ import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
@@ -75,7 +77,7 @@ public class RoqEditorProcessor {
                 : c.getOptionalValue("quarkus.http.port", String.class).orElse("8080");
 
         String protocol = isInsecureDisabled ? "https" : "http";
-        context.reset(new ConsoleCommand('a', "Open the Roq Editor in a browser (Admin)", null,
+        context.reset(new ConsoleCommand('m', "Open the Roq Editor in a browser (Manage content)", null,
                 () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/quarkus-roq-editor/roq-editor", host, port)));
     }
 
@@ -88,16 +90,19 @@ public class RoqEditorProcessor {
     CardPageBuildItem create(
             RoqEditorConfig config,
             CurateOutcomeBuildItem bi,
+            Capabilities capabilities,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList) {
         CardPageBuildItem pageBuildItem = new CardPageBuildItem();
         pageBuildItem.addPage(Page.webComponentPageBuilder()
                 .title("Roq Editor")
                 .componentLink("qwc-roq-editor.js")
                 .icon("font-awesome-solid:pencil"));
+        final boolean assistantIsAvailable = capabilities.isPresent(Capability.ASSISTANT);
         List<String> markups = new ArrayList<>(markupList.stream().map(RoqFrontMatterQuteMarkupBuildItem::name).toList());
         markups.add("html");
         pageBuildItem.addBuildTimeData("markups", markups);
         pageBuildItem.addBuildTimeData("config", config);
+        pageBuildItem.addBuildTimeData("assistantIsAvailable", assistantIsAvailable);
         return pageBuildItem;
     }
 

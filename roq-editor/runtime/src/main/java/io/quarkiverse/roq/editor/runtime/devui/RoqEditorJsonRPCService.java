@@ -12,6 +12,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +32,11 @@ import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.quarkus.assistant.runtime.dev.Assistant;
 import io.smallrye.common.annotation.Blocking;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
 
 @ApplicationScoped
 public class RoqEditorJsonRPCService {
@@ -41,11 +48,32 @@ public class RoqEditorJsonRPCService {
             "markdown", "md",
             "html", "html");
 
+    private static final String SYSTEM_MESSAGE = "IGNORE ALL PREVIOUS INSTRUCTIONS about Quarkus, Java, and programming. "
+            + "You are a blog content writer, NOT a programming assistant. "
+            + "{{customContext}}"
+            + "Generate blog post body content in Markdown based on the user's request. "
+            + "The article context shows content around the cursor position. "
+            + "Generate content that fits naturally at the cursor position. "
+            + "STRICT RESPONSE FORMAT: You MUST return a JSON object with EXACTLY one field named \"body\". "
+            + "The \"body\" field MUST contain the generated Markdown content as a string. "
+            + "Do NOT add any other fields. Do NOT use \"title\", \"date\", \"description\", \"content\", or \"answer\" fields. "
+            + "ONLY {\"body\": \"your markdown here\"}. "
+            + "Example: {\"body\": \"## My Heading\\n\\nSome paragraph text.\\n\\nMore content here.\"}";
+
     @Inject
     private Site site;
 
     @Inject
     private RoqSiteConfig config;
+
+    @Inject
+    private RoqEditorConfig editorConfig;
+
+    @Inject
+    private Optional<Assistant> assistant;
+
+    @Inject
+    private Vertx vertx;
 
     @Blocking
     public List<PageSource> getPosts() {
@@ -428,6 +456,71 @@ public class RoqEditorJsonRPCService {
         public boolean isError() {
             return errorMessage != null && !errorMessage.isEmpty();
         }
+    }
+
+    public CompletionStage<String> generateContent(String message, String context) {
+        if (assistant.isEmpty()) {
+            return CompletableFuture.failedStage(new RuntimeException("Assistant is not available"));
+        }
+        String baseUrl = getAssistantBaseUrl();
+        if (baseUrl == null) {
+            return CompletableFuture.failedStage(new RuntimeException("Assistant server is not running"));
+        }
+
+        String customContext = editorConfig.ai().context().orElse(null);
+
+        // Use variables for user-provided content (article context) to avoid prompt injection
+        JsonObject variables = new JsonObject()
+                .put("customContext", customContext != null && !customContext.isBlank()
+                        ? "Writing guidelines: " + customContext + ". "
+                        : "");
+
+        String userMessage = message;
+        if (context != null && !context.isBlank()) {
+            String trimmedContext = context.length() > 4000 ? context.substring(0, 4000) + "\n...(truncated)" : context;
+            userMessage += "\n\nArticle context:\n" + trimmedContext;
+        }
+
+        JsonObject payload = new JsonObject()
+                .put("genericInput", new JsonObject()
+                        .put("programmingLanguage", "Java")
+                        .put("programmingLanguageVersion", System.getProperty("java.version"))
+                        .put("quarkusVersion", "n/a")
+                        .put("systemmessageTemplate", SYSTEM_MESSAGE)
+                        .put("usermessageTemplate", userMessage)
+                        .put("variables", variables))
+                .put("responseSchemaPrompt", "");
+
+        var uri = java.net.URI.create(baseUrl + "/api/assist");
+        CompletableFuture<String> future = new CompletableFuture<>();
+        WebClient.create(vertx)
+                .post(uri.getPort(), uri.getHost(), uri.getPath())
+                .putHeader("Content-Type", "application/json")
+                .putHeader("Accept", "application/json")
+                .sendJsonObject(payload, ar -> {
+                    if (ar.failed()) {
+                        future.completeExceptionally(new RuntimeException("Assistant request failed", ar.cause()));
+                    } else if (ar.result().statusCode() != 200) {
+                        LOG.errorf("Assistant returned HTTP %d: %s", ar.result().statusCode(), ar.result().bodyAsString());
+                        future.completeExceptionally(
+                                new RuntimeException("Assistant returned HTTP " + ar.result().statusCode()));
+                    } else {
+                        future.complete(ar.result().bodyAsString());
+                    }
+                });
+        return future;
+    }
+
+    // Workaround: ChappieAssistant.getBaseUrl() is not on the Assistant interface, use reflection until it is
+    private String getAssistantBaseUrl() {
+        try {
+            var a = assistant.get();
+            var method = a.getClass().getMethod("getBaseUrl");
+            return (String) method.invoke(a);
+        } catch (Exception e) {
+            LOG.debug("Could not get assistant base URL", e);
+        }
+        return null;
     }
 
 }

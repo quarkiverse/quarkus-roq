@@ -110,7 +110,7 @@ Environment variable: `+++EDITOR_SUGGESTED_PATH_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`+++false+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-enabled[`+++editor.sync.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
@@ -131,7 +131,7 @@ Environment variable: `+++EDITOR_SYNC_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`+++false+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-sync-enabled[`+++editor.sync.auto-sync.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
@@ -237,6 +237,27 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |`+++Update content via Roq Editor+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-ai-context]] [.property-path]##link:#quarkus-roq-editor_editor-ai-context[`+++editor.ai.context+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.ai.context+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Custom context to include in every AI content generation request. Use this to set the tone, topic, or style for your blog. For example: "This is a tech blog about Quarkus. Write in a friendly, concise tone."
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_AI_CONTEXT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_AI_CONTEXT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
 
 |===
 

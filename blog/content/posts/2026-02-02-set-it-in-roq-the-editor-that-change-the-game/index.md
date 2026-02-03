@@ -48,4 +48,4 @@ Start it
 roq
 ```
 
-🚀 Hit `a` (like Admin) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
+🚀 Hit `m` (like Manage) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
