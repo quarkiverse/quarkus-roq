@@ -63,6 +63,15 @@ export class SlashMenu extends LitElement {
             font-weight: 600;
             color: var(--lumo-secondary-text-color);
         }
+        .item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .item-description {
+            font-size: var(--lumo-font-size-xs);
+            color: var(--lumo-secondary-text-color);
+        }
         .slash-menu-empty {
             padding: var(--lumo-space-m);
             text-align: center;
@@ -86,9 +95,12 @@ export class SlashMenu extends LitElement {
             `;
         }
 
+        const hasAiCommand = this.items.some(item => item.isAiCommand);
+        const menuLabel = hasAiCommand && this.items.length === 1 ? 'AI Assistant' : 'Style';
+        
         return html`
             <div class="slash-menu">
-                <div class="slash-menu-label">Style</div>
+                <div class="slash-menu-label">${menuLabel}</div>
                 <vaadin-list-box
                     .selected="${this.selectedIndex}"
                     @selected-changed="${this._onSelectedChanged}"
@@ -99,7 +111,10 @@ export class SlashMenu extends LitElement {
                             @mouseenter="${() => this._hoverItem(index)}"
                         >
                             <span class="item-icon">${item.icon}</span>
-                            <span>${item.label}</span>
+                            <div class="item-content">
+                                <span>${item.label}</span>
+                                ${item.description ? html`<span class="item-description">${item.description}</span>` : ''}
+                            </div>
                         </vaadin-item>
                     `)}
                 </vaadin-list-box>

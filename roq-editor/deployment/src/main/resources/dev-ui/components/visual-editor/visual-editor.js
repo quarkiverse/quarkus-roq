@@ -2,6 +2,7 @@ import '@qomponent/qui-code-block';
 import '@vaadin/button';
 import '@vaadin/icon';
 import {css, html} from 'lit';
+import {assistantIsAvailable} from 'build-time-data';
 import {
     BubbleMenu,
     Placeholder,
@@ -401,7 +402,9 @@ export class RoqVisualEditor extends BaseEditor {
                 render: () => this.shadowRoot.getElementById('gutter-menu'),
                 dragHandleWidth: 24,
             }),
-            SlashCommand,
+            SlashCommand.configure({
+                assistantIsAvailable: assistantIsAvailable,
+            }),
             Placeholder.configure({
                 placeholder: "Write some text, or type '/' for blocks & commands",
             }),
