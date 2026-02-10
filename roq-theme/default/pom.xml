@@ -58,7 +58,7 @@
                     <dependency>
                         <groupId>org.mvnpm.at.fontsource</groupId>
                         <artifactId>pt-serif</artifactId>
-                        <version>5.1.0</version>
+                        <version>5.2.8</version>
                     </dependency>
                 </dependencies>
             </plugin>
