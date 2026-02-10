@@ -32,6 +32,12 @@ public class RoqThemeResumeTest {
         assertThat(body).contains("Roq");
         assertThat(body).contains(
                 "A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.");
+        assertThat(body).contains("Foo-Foo");
+        assertThat(body).contains("<p>Lorem ipsum dolor sit amet, consectetur");
+        assertThat(body).contains("Bar-Bar");
+        assertThat(body).contains("<p>Ut velit mauris, egestas sed");
+        assertThat(body).contains("Baz-Baz");
+        assertThat(body).contains("<p>Aliquam convallis sollicitudin purus.");
     }
 
     @Test
