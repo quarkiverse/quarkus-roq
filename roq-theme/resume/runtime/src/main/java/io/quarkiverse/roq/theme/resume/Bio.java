@@ -19,6 +19,7 @@ public record Bio(List<Section> list) {
             String content,
             Logo logo,
             Boolean collapsible,
+            Boolean collapsed,
             Boolean ruler,
             List<Item> subItems) {
     }
