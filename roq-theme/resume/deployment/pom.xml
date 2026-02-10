@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.mvnpm.at.fontsource</groupId>
             <artifactId>inter</artifactId>
-            <version>5.2.5</version>
+            <version>5.2.8</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
