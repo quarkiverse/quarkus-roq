@@ -42,6 +42,9 @@ public class RoqEditorJsonRPCService {
             "markdown", "md",
             "html", "html");
 
+    private static final String SYSTEM_MESSAGE = "You are a blog content writer. Generate blog post body content in Markdown based on the user's request. Do not include frontmatter or " +
+        "metadata - only the content. Start directly with the content, no preamble.";
+
     @Inject
     private Site site;
 
@@ -399,6 +402,7 @@ public class RoqEditorJsonRPCService {
     public CompletionStage<Map<String, String>> generateContent(String message) {
         if (assistant.isPresent()) {
             return assistant.get().assistBuilder()
+                    .systemMessage(SYSTEM_MESSAGE)
                     .userMessage(message)
                     .responseType(ContentResponse.class)
                     .assist();
