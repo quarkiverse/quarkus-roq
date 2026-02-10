@@ -160,6 +160,25 @@ bio: |
         Received a rigorous classical education at home, emphasizing mathematics, astronomy, and logic.
 ----
 
+The _bio_ data type now support several improvements for modern, 21st century resumes:
+
+* A `Logo` type, composed of:
+** a required `label`
+** a required `imageUrl`
+** an optional `link` URL
+
+-> This type is useful to render a company logo on your resume.
+
+* a `subItems` element, which is a list of regular items
+
+-> This allows you to nest items in items in items ... you got it. Particularly useful for consulting professionals working on several missions for the same company.
+
+* a `collapsible` flag, to allow expanding/collapsing an item
+* a `collapsed` flag, to define an item's default state when rendering your resume
+* a `ruler` flag, to draw an horizontal ruler after an item content
+
+These visual improvements can be seen in action link:https://dimitri.hautot.be/[here].
+
 === social.yml
 
 [source,yaml]
