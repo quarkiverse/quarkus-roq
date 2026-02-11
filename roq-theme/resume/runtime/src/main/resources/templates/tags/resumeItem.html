@@ -9,11 +9,7 @@
 {/if}
 
 {#if item.collapsible}
-  {#if !item.collapsed}
-    <details open>
-  {#else}
-    <details>
-  {/if}
+    <details {#if !item.collapsed}open{/if}> 
 
   <summary>
     <span class="text-sm font-semibold text-purple-600 dark:text-purple-500">
