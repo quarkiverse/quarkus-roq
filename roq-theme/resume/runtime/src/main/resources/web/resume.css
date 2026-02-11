@@ -1,13 +1,101 @@
 @import "tailwindcss";
 
+/* Force output of color variables */
+@source inline("{bg,text,border}-{white,black,slate,gray,zinc,neutral,stone,red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{50,{100..900..100},950}");
+
+/* Theme configuration */
+@theme inline{
+
+    /* Fonts */
+    --default-font-family: "Inter";
+
+    /* Custom color palette - References Tailwind's default purple */
+    --color-accent-50: var(--color-purple-50);
+    --color-accent-100: var(--color-purple-100);
+    --color-accent-200: var(--color-purple-200);
+    --color-accent-300: var(--color-purple-300);
+    --color-accent-400: var(--color-purple-400);
+    --color-accent-500: var(--color-purple-500);
+    --color-accent-600: var(--color-purple-600);
+    --color-accent-700: var(--color-purple-700);
+    --color-accent-800: var(--color-purple-800);
+    --color-accent-900: var(--color-purple-900);
+    --color-accent-950: var(--color-purple-950);
+
+    /* Sidebar colors */
+    --color-sidebar: var(--color-accent-100);
+    --color-sidebar-dark: var(--color-accent-900);
+
+    /* Main content colors */
+    --color-main: var(--color-white);
+    --color-main-dark: var(--color-gray-950);
+
+    /* Heading colors */
+    --color-heading: var(--color-gray-900);
+    --color-heading-dark: var(--color-white);
+
+    /* Body text colors */
+    --color-body: var(--color-gray-800);
+    --color-body-dark: var(--color-gray-300);
+
+    /* Muted text colors */
+    --color-muted: var(--color-gray-700);
+    --color-muted-dark: var(--color-gray-400);
+
+    /* Section border colors */
+    --color-section-border: var(--color-gray-200);
+    --color-section-border-dark: var(--color-gray-800);
+
+    /* Link colors */
+    --color-link: var(--color-gray-900);
+    --color-link-dark: var(--color-white);
+    --color-link-hover: var(--color-gray-700);
+    --color-link-hover-dark: var(--color-gray-300);
+
+    /* Profile image border */
+    --color-profile-border: var(--color-purple-200);
+    --color-profile-border-dark: var(--color-purple-800);
+
+    /* Timeline/decoration colors */
+    --color-timeline-bar: var(--color-accent-100);
+    --color-timeline-bar-dark: var(--color-accent-900);
+    --color-timeline-dot-border: var(--color-accent-300);
+    --color-timeline-dot-border-dark: var(--color-accent-600);
+
+    /* Emphasis/highlight colors for resume content */
+    --color-job-title: var(--color-accent-600);
+    --color-job-title-dark: var(--color-accent-500);
+    --color-date-range: var(--color-accent-600);
+    --color-date-range-dark: var(--color-accent-500);
+    --color-icon-highlight: var(--color-accent-600);
+    --color-icon-highlight-dark: var(--color-accent-500);
+
+    /* Spacing adjustments */
+    --spacing-section: 4rem;
+    --spacing-sidebar: 1.25rem;
+    --spacing-main: 2.5rem;
+
+    /* Border radius tokens */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-profile: 0.375rem;
+
+    /* Typography scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+}
+
+
 /* Class based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Theme configuration */
-@theme {
-    /* Fonts */
-    --default-font-family: "Inter";
-}
 
 
 .markdown h1 {

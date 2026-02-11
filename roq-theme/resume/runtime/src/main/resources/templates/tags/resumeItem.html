@@ -1,20 +1,20 @@
 <li
-  class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
+  class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark"
 >
   <h4
-    class="text-sm font-semibold text-purple-600 dark:text-purple-500"
+    class="text-sm font-semibold text-date-range dark:text-date-range-dark"
   >
     {header}
   </h4>
-  <h5 class="mb-2 font-bold">
+  <h5 class="mb-2 font-bold text-heading dark:text-heading-dark">
     {title}{#if link??} -
     <a
-      class="font-medium text-black underline hover:text-black/75"
+      class="font-medium text-link underline hover:text-link-hover dark:text-link-dark dark:hover:text-link-hover-dark"
       href="{link}"
       target="_blank"
     >{link}</a>{/if}
   </h5>
-  <div class="text-sm/relaxed text-gray-700 dark:text-gray-300 markdown">
+  <div class="text-sm/relaxed text-muted dark:text-muted-dark markdown">
     {nested-content}
   </div>
 </li>

@@ -171,3 +171,23 @@ bio: |
 - name: Bluesky
   url: https://bsky.app/profile/ada-lovelace.bsky.social
 ----
+
+=== Color Themes
+
+The resume theme comes with 5 pre-configured color schemes that you can easily switch between. Each theme provides carefully selected colors that work well in both light and dark modes (Purple, Blue, Emerald, Amber, Rose and Cyan).
+
+==== How to Apply a Theme
+
+To use an alternate theme, create a stylesheet file in your project's `web/style.css` directory and import the theme:
+
+[source,css]
+----
+/* Available: _theme-blue.css, _theme-emerald.css, _theme-amber.css, _theme-rose.css, _theme-cyan.css */
+@import "./_theme-blue.css";
+----
+
+==== Custom Theme Colors
+
+You can also create your own custom color scheme by overriding the theme variables in your `style.css`.
+
+The theme uses Tailwind CSS v4 color palettes. Available colors include: `slate`, `gray`, `zinc`, `neutral`, `stone`, `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, and `rose`.

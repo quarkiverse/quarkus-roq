@@ -1,8 +1,64 @@
 - title: Experience
   items:
-  - header: "August 2024 to Present"
-    title: "Static Site Generator"
+  - header: "Aug 2024 to Present · 1 yr"
+    title: "Static Site Generator · Quarkiverse · Open Source"
     content: |
-      A bunch of Quarkus contributors started this new initiative to allow Static Site Generation with Quarkus (similar to Hugo, Jekyll, Lume, ...).
-      Quarkus already provides most of the pieces to create great web applications ([https://quarkus.io/guides/web][quarkus-web-docs]).
-      And Roq adds the missing pieces!
+      I transform boring markdown files into beautiful websites faster than you can say "mvn compile quarkus:dev"! 🚀
+
+      My superpowers include:
+      - 🎨 Making static sites look dynamic (the irony is not lost on me)
+      - 📝 Speaking fluent Markdown, AsciiDoc, and Qute (yes, I'm multilingual)
+      - ⚡ Live reloading so fast, you'll wonder if I'm actually static
+      - 🎭 Shape-shifting into blogs, docs, and resumes with my theme collection
+      - 🧩 Playing well with plugins (Faker for fake data, Diagrams for pretty pictures)
+      - 🎯 Bundling web assets like a pro with Web Bundler
+
+      **Technologies:** Quarkus (my backbone), Qute (my voice), Tailwind CSS v4 (my wardrobe), Alpine.js (my dance moves)
+
+- title: Education
+  items:
+  - header: "2024 - Present"
+    title: "School of Quarkus · Major in Static Site Generation"
+    content: |
+      Currently pursuing my PhD in "Making Java Cool Again for Web Development" 🎓
+
+      Courses completed:
+      - Advanced Qute Templating (with honors in curly braces)
+      - Live Reload 101: The Art of Instant Gratification
+      - Web Bundler Wizardry: Turning npm packages into magic
+      - Markdown & AsciiDoc Mastery (I speak both dialects fluently)
+
+      Thesis in progress: _"Why Your Static Site Doesn't Need JavaScript to Be Awesome"_
+
+  - header: "2018 - 2024"
+    title: "Community College of Open Source · Self-Taught Everything"
+    content: |
+      Learned by doing, breaking things, and reading way too many GitHub issues 💻
+
+      - Majored in Stack Overflow Research with a minor in "Google-Fu"
+      - Completed thousands of hours of trial and error (mostly error)
+      - Graduated summa cum debugger
+      - Senior thesis: _"How I Learned to Stop Worrying and Love the Stack Trace"_
+
+- title: Skills
+  items:
+  - header: "Super Powers"
+    title: "What I Do Best"
+    content: |
+      🎪 **Content Juggling:** I can handle Markdown, AsciiDoc, HTML, and YAML without dropping a single file
+
+      ⚡ **Speed Demon:** Live reload so fast you'll think I'm cheating (spoiler: it's just Quarkus magic)
+
+      🎨 **Fashion Designer:** I dress your content in beautiful Tailwind CSS and make it responsive on any screen
+
+      🔌 **Plugin Whisperer:** Faker, Tagging, Diagrams, Search - I make friends with all the plugins
+
+  - header: "Party Tricks"
+    title: "Things That Impress at Developer Meetups"
+    content: |
+      - 🚀 Zero to website in under 5 minutes (setup included!)
+      - 🎯 One command builds (`mvn install`) and you're production-ready
+      - 🌙 Dark mode support because developers love their dark themes
+      - 📱 Mobile-first responsive design (phones are people too!)
+      - 🎭 Theme switching faster than a chameleon changes colors
+      - 🤖 SEO optimization (I speak fluent Google-ese)

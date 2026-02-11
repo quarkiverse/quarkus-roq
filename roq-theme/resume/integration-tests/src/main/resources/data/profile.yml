@@ -1,8 +1,13 @@
 firstName: Iam
 lastName: Roq
-picture: site-icon.svg
+picture: site-icon.png
 jobTitle: Static Site Generator
 city: Paques
 country: Paques
+phone: +33 X XX XX XX XX
+site: https://iamroq.com
 bio: |
-  A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.
+  Roq is a modern static site generator built on Quarkus, combining the power of Java with the simplicity of static site generation.
+  Created by passionate Quarkus contributors, Roq makes it fun and easy to build websites, blogs, and documentation sites.
+  With built-in support for Qute templates, Markdown, AsciiDoc, and live reload, Roq provides a delightful developer experience
+  while leveraging the robust Quarkus ecosystem.
