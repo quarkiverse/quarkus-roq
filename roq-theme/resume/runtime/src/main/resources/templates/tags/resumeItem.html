@@ -1,20 +1,58 @@
-<li
-  class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
->
-  <h4
-    class="text-sm font-semibold text-purple-600 dark:text-purple-500"
-  >
-    {header}
-  </h4>
-  <h5 class="mb-2 font-bold">
-    {title}{#if link??} -
-    <a
-      class="font-medium text-black underline hover:text-black/75"
-      href="{link}"
-      target="_blank"
-    >{link}</a>{/if}
-  </h5>
+{#if !nested??}
+  <li class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950">
+{#else}
+  <li class="no-bullets">
+{/if}
+
+{#if item.logo??}
+  <a href="{item.logo.link}" target="_blank"><img src="{item.logo.imageUrl}" alt="{item.logo.label}" class="h-15 m-2"></a>
+{/if}
+
+{#if item.collapsible}
+    <details {#if !item.collapsed}open{/if}> 
+
+  <summary>
+    <span class="text-sm font-semibold text-purple-600 dark:text-purple-500">
+      {item.header}
+    </span>
+{#else}
+    <h4 class="text-sm font-semibold text-purple-600 dark:text-purple-500">
+      {item.header}
+    </h4>
+{/if}
+
+    <h5 class="mb-2 font-bold">
+      {item.title}{#if item.link??} -
+      <a
+          class="font-medium text-black underline hover:text-black/75"
+          href="{item.link}"
+          target="_blank"
+      >{item.link}</a>{/if}
+    </h5>
+{#if item.collapsible}
+  </summary>
+{/if}
+
   <div class="text-sm/relaxed text-gray-700 dark:text-gray-300 markdown">
-    {nested-content}
+{#if item.content}
+    {item.content.markdownify}
+{/if}
+{#if item.subItems}
+  <ul>
+    {#for subItem in item.subItems}
+      {#resumeItem item=subItem nested=true}
+      {/resumeItem}
+    {/for}
+  </ul>
+{/if}
   </div>
+
+{#if item.collapsible??}
+  </details>
+{/if}
+
 </li>
+
+{#if item.ruler}
+<hr>
+{/if}
