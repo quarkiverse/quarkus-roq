@@ -177,7 +177,67 @@ The _bio_ data type now support several improvements for modern, 21st century re
 * a `collapsed` flag, to define an item's default state when rendering your resume
 * a `ruler` flag, to draw an horizontal ruler after an item content
 
-These visual improvements can be seen in action link:https://dimitri.hautot.be/[here].
+Let's see an example:
+
+=== bio.yml
+
+[source,yaml]
+----
+- title: Mega-corporations
+  items:
+    - logo:
+        link: https://abc.xyz/
+        label: Alphabet Inc.
+        imageUrl: logos/sample/alphabet_footer_logo.png
+      header: Alphabet Inc.
+      title: Alphabet Inc. (title)
+      collapsible: false
+      content: |
+        *Alphabet*
+      subItems:
+        - logo:
+            link: https://www.google.com/
+            label: Google
+            imageUrl: logos/sample/google.png
+          header: Google
+          title: Google (title)
+          collapsible: false
+          ruler: true
+          content: |
+            *Google*
+
+            Search, YouTube, Android
+        - logo:
+            link: https://waymo.com/
+            label: Waymo
+            imageUrl: logos/sample/waymo.webp
+          header: Waymo
+          title: Waymo (title)
+          collapsible: true
+          collapsed: false
+          ruler: true
+          content: |
+            *Waymo*
+
+            Self-driving cars
+        - logo:
+            link: https://verily.com/
+            label: Verily
+            imageUrl: logos/sample/verily-logo.svg
+          header: Verily
+          title: Verily (title)
+          collapsible: true
+          collapsed: true
+          ruler: false
+          content: |
+            *Verily*
+
+            Life sciences
+----
+is initially rendered as this:
+
+image::themes/roq-resume-bio-hierarchical.png[Roq hierarchical bio,500]
+
 
 === social.yml
 
