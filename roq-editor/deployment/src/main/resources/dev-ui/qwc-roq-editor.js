@@ -174,6 +174,7 @@ export class QwcRoqEditor extends LitElement {
                 .content="${this._fileContent}"
                 @save-content="${this._onSaveContent}"
                 @page-sync-path="${this._onPageSyncPath}"
+                @generate-ai-content="${this._onGenerateAiContent}"
               >
               </qwc-visual-editor>
             `;
@@ -400,6 +401,46 @@ export class QwcRoqEditor extends LitElement {
             });
             this._loadingContent = false;
         });
+    }
+
+    async _onGenerateAiContent(e) {
+        const { prompt, editor } = e.detail;
+        if (!editor || editor.isDestroyed || !prompt) {
+            return;
+        }
+
+        // Insert a placeholder while generating
+        const placeholderText = 'Generating content...';
+        editor.chain().focus().insertContent(placeholderText).run();
+
+        try {
+            const response = await this.jsonRpc.generateContent({ message: prompt });
+            const result = response.result;
+
+            // Get current selection position
+            const { from } = editor.state.selection;
+
+            // Calculate the range of the placeholder text
+            const placeholderFrom = from - placeholderText.length;
+            const placeholderTo = from;
+
+            // Replace placeholder with generated content
+            editor.chain()
+                .focus()
+                .deleteRange({ from: placeholderFrom, to: placeholderTo })
+                .insertContent(result.content || result)
+                .run();
+        } catch (error) {
+            console.error('Error generating content:', error);
+            // Remove placeholder on error
+            const { from } = editor.state.selection;
+            const placeholderFrom = from - placeholderText.length;
+            editor.chain()
+                .focus()
+                .deleteRange({ from: placeholderFrom, to: from })
+                .insertContent('Error generating content. Please try again.')
+                .run();
+        }
     }
 
     _onSaveContent(e) {

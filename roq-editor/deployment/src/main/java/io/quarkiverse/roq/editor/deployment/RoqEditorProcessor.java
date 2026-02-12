@@ -9,6 +9,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
@@ -56,7 +58,7 @@ class RoqEditorProcessor {
                 : c.getOptionalValue("quarkus.http.port", String.class).orElse("8080");
 
         String protocol = isInsecureDisabled ? "https" : "http";
-        context.reset(new ConsoleCommand('c', "Open the Roq Editor in a browser", null,
+        context.reset(new ConsoleCommand('m', "Open the Roq Editor in a browser", null,
                 () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/quarkus-roq-editor/roq-editor", host, port)));
     }
 
@@ -64,16 +66,19 @@ class RoqEditorProcessor {
     CardPageBuildItem create(
             RoqEditorConfig config,
             CurateOutcomeBuildItem bi,
+            Capabilities capabilities,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList) {
         CardPageBuildItem pageBuildItem = new CardPageBuildItem();
         pageBuildItem.addPage(Page.webComponentPageBuilder()
                 .title("Roq Editor")
                 .componentLink("qwc-roq-editor.js")
                 .icon("font-awesome-solid:pencil"));
+        final boolean assistantIsAvailable = capabilities.isPresent(Capability.ASSISTANT);
         List<String> markups = new ArrayList<>(markupList.stream().map(RoqFrontMatterQuteMarkupBuildItem::name).toList());
         markups.add("html");
         pageBuildItem.addBuildTimeData("markups", markups);
         pageBuildItem.addBuildTimeData("config", config);
+        pageBuildItem.addBuildTimeData("assistantIsAvailable", assistantIsAvailable);
         return pageBuildItem;
     }
 

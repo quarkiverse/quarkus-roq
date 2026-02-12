@@ -11,6 +11,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -26,6 +29,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.util.PathUtils;
+import io.quarkus.assistant.runtime.dev.Assistant;
 import io.smallrye.common.annotation.Blocking;
 
 @ApplicationScoped
@@ -38,11 +42,17 @@ public class RoqEditorJsonRPCService {
             "markdown", "md",
             "html", "html");
 
+    private static final String SYSTEM_MESSAGE = "You are a blog content writer. Generate blog post body content in Markdown based on the user's request. Do not include frontmatter or " +
+        "metadata - only the content. Start directly with the content, no preamble.";
+
     @Inject
     private Site site;
 
     @Inject
     private RoqSiteConfig config;
+
+    @Inject
+    private Optional<Assistant> assistant;
 
     @Blocking
     public List<PageSource> getPosts() {
@@ -388,4 +398,18 @@ public class RoqEditorJsonRPCService {
         }
     }
 
+    @Blocking
+    public CompletionStage<Map<String, String>> generateContent(String message) {
+        if (assistant.isPresent()) {
+            return assistant.get().assistBuilder()
+                    .systemMessage(SYSTEM_MESSAGE)
+                    .userMessage(message)
+                    .responseType(ContentResponse.class)
+                    .assist();
+        }
+        return CompletableFuture.failedStage(new RuntimeException("Assistant is not available"));
+    }
+
+    final record ContentResponse(String content) {
+    }
 }
