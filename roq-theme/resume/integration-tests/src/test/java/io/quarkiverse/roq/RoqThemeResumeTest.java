@@ -20,18 +20,24 @@ public class RoqThemeResumeTest {
     public void testResumeContent() {
         final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
-        assertThat(body).containsIgnoringWhitespaces(
-                """
-                        <p>A bunch of Quarkus contributors started this new initiative to allow Static Site Generation with Quarkus (similar to Hugo, Jekyll, Lume, ...).
-                                                              Quarkus already provides most of the pieces to create great web applications ([<a href="https://quarkus.io/guides/web">https://quarkus.io/guides/web</a>][quarkus-web-docs]).
-                                                              And Roq adds the missing pieces!</p>
-                        """);
-        assertThat(body).contains("August 2024 to Present");
+        // Check experience section
+        assertThat(body).contains("I transform boring markdown files into beautiful websites");
+        assertThat(body).contains("Aug 2024 to Present");
         assertThat(body).contains("Static Site Generator");
+
+        // Check education section
+        assertThat(body).contains("School of Quarkus");
+        assertThat(body).contains("Making Java Cool Again for Web Development");
+
+        // Check skills section
+        assertThat(body).contains("Super Powers");
+        assertThat(body).contains("Party Tricks");
+
+        // Check profile
         assertThat(body).contains("Iam");
         assertThat(body).contains("Roq");
         assertThat(body).contains(
-                "A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.");
+                "Roq is a modern static site generator built on Quarkus, combining the power of Java with the simplicity of static site generation.");
     }
 
     @Test
@@ -39,8 +45,8 @@ public class RoqThemeResumeTest {
         final String body = RestAssured.when().get(bundle.style("app")).then().statusCode(200).log().ifValidationFails()
                 .extract()
                 .asString();
-        assertThat(body).contains(".border-gray-100");
-        assertThat(body).contains(".flex");
+        assertThat(body).contains("--color-rose-50:oklch(96.9% .015 12.422)");
+        assertThat(body).contains("--color-cyan-200:oklch(91.7% .08 205.041);");
         assertThat(body).contains(".items-center");
         assertThat(body).contains(".max-w-7xl");
     }

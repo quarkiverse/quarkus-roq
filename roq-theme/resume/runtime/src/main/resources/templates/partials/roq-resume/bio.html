@@ -12,9 +12,9 @@
   {/for}
   {#if section.items.size > 3}
   <li
-    class="relative before:absolute before:top-1 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950">
+    class="relative before:absolute before:top-1 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark">
     <button
-      class="mt-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+      class="mt-2 text-sm text-muted hover:text-body transition cursor-pointer dark:text-muted-dark dark:hover:text-body-dark"
       @click="showAll = !showAll"
       x-text="showAll ? 'Show less' : '... Show more'"
     ></button>

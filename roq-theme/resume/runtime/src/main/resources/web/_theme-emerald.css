@@ -1,0 +1,18 @@
+/* Alternate Theme - Emerald Green
+   Copy these CSS variables to your style.css file to use this theme */
+
+:root {
+    /* Custom color palette - Emerald theme */
+    --color-accent-50: var(--color-emerald-50);
+    --color-accent-100: var(--color-emerald-100);
+    --color-accent-200: var(--color-emerald-200);
+    --color-accent-300: var(--color-emerald-300);
+    --color-accent-400: var(--color-emerald-400);
+    --color-accent-500: var(--color-emerald-500);
+    --color-accent-600: var(--color-emerald-600);
+    --color-accent-700: var(--color-emerald-700);
+    --color-accent-800: var(--color-emerald-800);
+    --color-accent-900: var(--color-emerald-900);
+    --color-accent-950: var(--color-emerald-950);
+
+}

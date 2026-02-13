@@ -3,20 +3,20 @@
 <!-- Social -->
 <div>
   <div
-    class="mb-8 border-b-4 border-gray-100 py-2.5 dark:border-gray-900"
+    class="mb-8 border-b-4 border-section-border py-2.5 dark:border-section-border-dark"
   >
-    <h3 class="text-xl font-medium">Social</h3>
+    <h3 class="text-xl font-medium text-heading dark:text-heading-dark">Social</h3>
   </div>
 
   <ul
-    class="relative space-y-6 pl-6 before:absolute before:top-0 before:bottom-0 before:left-0 before:block before:w-1 before:rounded-full before:bg-purple-50 before:content-[''] dark:before:bg-purple-950"
+    class="relative space-y-6 pl-6 before:absolute before:top-0 before:bottom-0 before:left-0 before:block before:w-1 before:rounded-full before:bg-timeline-bar before:content-[''] dark:before:bg-timeline-bar-dark"
   >
     {#for item in cdi:social.items}
     <li
-      class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-purple-200/75 before:bg-white before:content-[''] dark:before:border-purple-800/75 dark:before:bg-gray-950"
+      class="relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark"
     >
       <h4
-        class="text-sm font-semibold text-purple-600 dark:text-purple-500"
+        class="text-sm font-semibold text-date-range dark:text-date-range-dark"
       >
         {item.name}
       </h4>
@@ -27,7 +27,7 @@
         <a
           href="{item.url}"
           target="_blank"
-          class="text-sm font-medium text-gray-600 underline hover:text-gray-600/75 dark:text-gray-400 dark:hover:text-gray-400/75"
+          class="text-sm font-medium text-muted underline hover:text-body dark:text-muted-dark dark:hover:text-body-dark"
         >
           {item.url}
         </a>
