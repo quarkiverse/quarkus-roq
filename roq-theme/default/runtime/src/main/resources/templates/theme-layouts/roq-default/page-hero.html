@@ -1,0 +1,15 @@
+---
+layout: roq-default/main
+show-header-date: false
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+{#insert before-page/}
+<div class="page-content-hero">
+  {#insert page-header}
+  {#include partials/roq-default/page-header.html /}
+  {/insert}
+  {#insert /}
+</div>
+{#insert after-page/}
+

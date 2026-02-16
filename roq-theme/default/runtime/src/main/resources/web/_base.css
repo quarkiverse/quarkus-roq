@@ -1,0 +1,103 @@
+/* Global Base Styles */
+
+@layer base {
+    * {
+        @apply box-border;
+    }
+
+    html {
+        @apply leading-normal;
+    }
+
+    body {
+        @apply m-0 text-neutral-600 bg-bg-light;
+        @apply antialiased;
+        @apply dark:bg-neutral-950 dark:text-neutral-300;
+    }
+
+    h1 {
+        @apply font-normal;
+    }
+
+    img {
+        @apply max-w-full align-middle inline-block;
+    }
+
+    img + em {
+        @apply text-center block mt-2.5 not-italic font-bold text-sm;
+    }
+
+    hr {
+        @apply border-0 border-t border-neutral-300 my-8;
+        @apply dark:border-neutral-700;
+    }
+
+    pre {
+        @apply px-4 py-4 overflow-x-auto overflow-y-hidden;
+        @apply max-w-full;
+        @apply whitespace-pre;
+    }
+
+    pre code {
+        @apply border-0 pr-0 pl-0;
+        @apply bg-neutral-900 rounded-md;
+        @apply block whitespace-pre;
+    }
+
+    /* Selection colors */
+    ::selection {
+        @apply bg-accent-800 text-white;
+    }
+
+    /* Clearfix utility */
+    .clearfix::before,
+    .clearfix::after {
+        @apply content-[''] table;
+    }
+
+    .clearfix::after {
+        @apply clear-both;
+    }
+}
+
+/* Utility Components */
+@layer components {
+    .wrapper {
+        @apply max-w-[1250px] relative;
+    }
+
+    .wrap-content {
+        @apply p-2.5;
+        @apply md:p-10;
+    }
+
+    /* Content Box */
+    .content-box {
+        @apply px-2 flex flex-row flex-wrap items-stretch;
+        @apply md:pl-64 md:pr-5;
+    }
+
+    /* Page Content */
+    .page-content {
+        @apply flex-grow min-w-0;
+        @apply p-4 md:p-10;
+        @apply bg-white;
+        @apply dark:bg-neutral-900;
+        @apply overflow-x-hidden;
+    }
+
+    .page-content-alt {
+        @apply p-4 md:p-10;
+    }
+
+    /* Video Wrapper */
+    .video-wrapper {
+        @apply relative pb-[56.25%] pt-6 h-0;
+    }
+
+    .video-wrapper iframe {
+        @apply absolute top-0 left-0 w-full h-full;
+    }
+
+
+}

@@ -1,0 +1,18 @@
+/* Prose/Markdown Content - Tailwind Typography */
+
+/* Global prose customization */
+@utility prose {
+    /* Inline code styling */
+    @apply prose-code:bg-[var(--tw-prose-code-bg)];
+    @apply prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded;
+    @apply prose-code:font-semibold prose-code:text-sm;
+    @apply prose-code:before:content-[var(--tw-prose-code-before)];
+    @apply prose-code:after:content-[var(--tw-prose-code-after)];
+
+    /* Inline code dark mode */
+    @apply dark:prose-code:bg-[var(--tw-prose-invert-code-bg)];
+
+    /* Code blocks styling */
+    @apply prose-pre:bg-neutral-900 prose-pre:rounded-lg prose-pre:shadow-sm;
+    @apply prose-pre:border prose-pre:border-neutral-800;
+}

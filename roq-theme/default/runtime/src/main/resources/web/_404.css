@@ -1,0 +1,21 @@
+/* 404 Page Not Found */
+
+@layer components {
+    /* === 404 Page === */
+    body.page-not-found {
+        @apply w-screen bg-white;
+        @apply dark:bg-neutral-900;
+    }
+
+    body.page-not-found .wrapper {
+        @apply h-screen max-w-full;
+    }
+
+    body.page-not-found .wrapper .main {
+        @apply h-full flex flex-col items-center justify-center;
+    }
+
+    body.page-not-found .wrapper .main img {
+        @apply h-[200px];
+    }
+}

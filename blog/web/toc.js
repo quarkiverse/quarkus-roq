@@ -7,7 +7,7 @@
     var levels = parseInt(sidebar.dataset.levels || 2, 10)
     if (levels < 0) return
 
-    var articleSelector = 'article.doc'
+    var articleSelector = '.asciidoc-content'
     var article = document.querySelector(articleSelector)
     if (!article) return
     var headingsSelector = []

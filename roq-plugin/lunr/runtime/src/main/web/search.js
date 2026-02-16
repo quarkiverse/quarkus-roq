@@ -6,12 +6,14 @@ const setupSearch = function (options = {}) {
 
     const {
         searchButton = '#search-button',
+        searchTriggerInput = '.search-trigger-input',
         searchField = '#search-field',
         resultContainer = '#search-results',
         url = '/search-index.json'
     } = options;
 
     const searchButtonEl = document.querySelector(searchButton);
+    const searchTriggerInputEl = document.querySelector(searchTriggerInput);
 
     let idx = null;
     let documents = null;
@@ -39,11 +41,34 @@ const setupSearch = function (options = {}) {
         searchQuery = null;
     }
 
-    searchButtonEl.addEventListener("click", openSearch);
+    if (searchButtonEl) {
+        searchButtonEl.addEventListener("click", openSearch);
+    }
+
+    if (searchTriggerInputEl) {
+        searchTriggerInputEl.addEventListener("click", openSearch);
+    }
     closeSearch.addEventListener("click", closeSearchOverlay);
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
+
+    // Close search when clicking on the overlay background
+    searchOverlay.addEventListener("click", function(e) {
+        if (e.target === searchOverlay) {
             closeSearchOverlay();
+        }
+    });
+
+    document.addEventListener("keydown", function (e) {
+        const isSearchActive = searchOverlay.classList.contains("active");
+
+        // Escape: close search only if active
+        if (e.key === "Escape" && isSearchActive) {
+            closeSearchOverlay();
+        }
+
+        // Cmd+K or Ctrl+K: open search only if not active
+        if ((e.metaKey || e.ctrlKey) && e.key === "k" && !isSearchActive) {
+            e.preventDefault();
+            openSearch(e);
         }
     });
 
@@ -69,7 +94,7 @@ const setupSearch = function (options = {}) {
                 entry.content = decodeHtml(entry.content);
                 entry.id = key
                 const boost = entry.boost ?? 1
-                this.add(entry, { boost })
+                this.add(entry, {boost})
             }
         })
         console.log('idx ready')

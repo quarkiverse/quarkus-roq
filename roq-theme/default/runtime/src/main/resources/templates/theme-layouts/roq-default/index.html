@@ -1,0 +1,17 @@
+---
+layout: roq-default/page-hero
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+{#page-header}{/page-header}
+
+{#insert /}
+
+{#if site.collections.get('posts')}
+{#for post in site.collections.get('posts').paginated(page.paginator)}
+{#theme/postCard post /}
+{/for}
+
+{#include partials/roq-default/pagination.html/}
+{/if}
+

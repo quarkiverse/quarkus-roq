@@ -2,7 +2,8 @@
   --search-bg-color: rgba(0, 0, 0, 0.8);
   --search-input-bg: #fff;
   --search-input-color: #000;
-  --search-border-radius: 5px;
+  --search-border-radius: 8px;
+  --search-trigger-border-radius: 8px;
   --search-highlight-bg: transparent;
   --search-highlight-color: #63676d;
   --search-result-bg: white;
@@ -10,8 +11,25 @@
   --search-result-text: #63676d;
   --search-result-title: #02060c;
   --search-placeholder-color: #aaa;
+  --search-border-color: #ddd;
+  --search-close-color: #000;
   --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
   --search-icon-size: 20px;
+}
+
+.dark {
+  --search-bg-color: rgba(0, 0, 0, 0.9);
+  --search-input-bg: rgb(31 41 55); /* gray-800 */
+  --search-input-color: rgb(243 244 246); /* gray-100 */
+  --search-highlight-color: rgb(147 197 253); /* blue-300 */
+  --search-result-bg: rgb(31 41 55); /* gray-800 */
+  --search-hover-bg: rgb(55 65 81); /* gray-700 */
+  --search-result-text: rgb(209 213 219); /* gray-300 */
+  --search-result-title: rgb(243 244 246); /* gray-100 */
+  --search-placeholder-color: rgb(156 163 175); /* gray-400 */
+  --search-border-color: rgb(55 65 81); /* gray-700 */
+  --search-close-color: rgb(243 244 246); /* gray-100 */
+  --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%23f3f4f6"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
 }
 
 .search-button {
@@ -22,6 +40,51 @@
   border: none;
   cursor: pointer;
   margin-bottom: 20px;
+}
+
+.search-trigger-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--search-input-bg, #fff);
+  border: 1px solid var(--search-border-color, #ddd);
+  border-radius: var(--search-trigger-border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+
+  &:hover {
+    border-color: var(--search-highlight-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.search-trigger-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: var(--search-placeholder-color);
+}
+
+.search-trigger-text {
+  flex: 1;
+  color: var(--search-placeholder-color);
+  font-size: 14px;
+  user-select: none;
+}
+
+.search-trigger-shortcut {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--search-placeholder-color);
+  background: var(--search-border-color);
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  line-height: 1;
 }
 
 .search-overlay {
@@ -53,17 +116,27 @@
 
 .search-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 16px 12px 48px;
   font-size: 16px;
   border: none;
   border-radius: var(--search-border-radius);
-  background: var(--search-input-bg);
+  background: var(--search-input-bg) var(--search-icon) no-repeat 16px center;
+  background-size: var(--search-icon-size);
   color: var(--search-input-color);
   outline: none;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 
   &::placeholder {
     color: var(--search-placeholder-color);
+  }
+
+  // Hide native browser clear button
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  &::-ms-clear {
+    display: none;
   }
 }
 
@@ -78,7 +151,7 @@
 
 .search-result-item {
   padding: 12px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--search-border-color);
   background: var(--search-result-bg);
   display: flex;
   flex-direction: column;
@@ -110,14 +183,18 @@
 
 .search-close {
   position: absolute;
-  top: 7px;
-  right: 10px;
+  top: 12px;
+  right: 16px;
   background: none;
   border: none;
   font-size: 24px;
-  color: #000;
+  color: var(--search-close-color);
   cursor: pointer;
   font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  height: calc(16px * 1.5); // Match input line-height
 }
 
 @media screen and (max-width: 768px) {

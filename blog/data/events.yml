@@ -1,7 +1,13 @@
+- title: "Static You Can Maintain. Static With a Live CMS… What Is the Missing Roq?"
+  description: "Andy Damevin talks about Quarkus Roq at JNation 2026."
+  date: "2026-05-26"
 - title: "Roq: Create your static site with superpowers – fun, powerful, and easy to maintain!"
   description: "Andy Damevin talks about Quarkus Roq at Riviera Dev."
   date: "2025-07-09"
-  link: https://rivieradev.fr/session/672
+- title: "Roq 2.0"
+  description: "Roq 2.0 release featuring enhanced capabilities and improved developer experience."
+  date: "2025-12-09"
+  link: /posts/roq-2-0-and-java-advent-calendar-article/
 - title: "Quarkus Insight - What is Quarkus Roq?"
   description: "Andy Damevin, Matheus Cruz and Melloware join us to discuss Quarkus Roq, which includes tooling for generating a static website with Quarkus."
   date: "2024-11-11"

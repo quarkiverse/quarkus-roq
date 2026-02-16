@@ -312,6 +312,17 @@ public class Page {
         return null;
     }
 
+    /**
+     * Like {@link #data(String)} but specifying a default value to return if there is no entry.
+     *
+     * @param name the data key name
+     * @param defaultValue the default value to use if the entry is not present
+     * @return the value or {@code defaultValue} if no entry present
+     */
+    public Object data(String name, Object defaultValue) {
+        return data().getValue(name, defaultValue);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())
