@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.config;
 
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -224,6 +225,52 @@ public interface RoqSiteConfig {
 
     default String pathPrefixOrEmpty() {
         return pathPrefix().orElse("");
+    }
+
+    /**
+     * Controls when templates are cached in hybrid mode.
+     * <ul>
+     * <li><code>false</code>: Templates are rendered at runtime (no caching)</li>
+     * <li><code>startup</code>: Templates are cached at application startup</li>
+     * <li><code>on-demand</code>: Templates are cached on first request</li>
+     * </ul>
+     * <p>
+     * This allows mixing static generation with runtime rendering for hybrid applications.
+     * </p>
+     */
+    @WithDefault("false")
+    RuntimeCacheMode runtimeCache();
+
+    enum RuntimeCacheMode {
+        /**
+         * Templates are rendered at runtime on every request
+         */
+        FALSE("false"),
+        /**
+         * Templates are cached at application startup
+         */
+        STARTUP("startup"),
+        /**
+         * Templates are cached on first request (lazy caching)
+         */
+        ON_DEMAND("on-demand");
+
+        private final String value;
+
+        RuntimeCacheMode(String value) {
+            this.value = value;
+        }
+
+        public static RuntimeCacheMode fromString(String value) {
+            return Arrays.stream(values()).filter(a -> a.value().equalsIgnoreCase(value)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No enum constant io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig.RuntimeCacheMode."
+                                    + value));
+        }
+
+        public String value() {
+            return value;
+        }
     }
 
     interface CollectionConfig {

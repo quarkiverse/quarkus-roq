@@ -49,6 +49,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     // request path to template path
     private final Map<String, Supplier<? extends Page>> pages;
     private final Map<String, Page> extractedPaths;
+    // Cache for rendered page content
+    private final Map<String, String> cached;
 
     private final Event<SecurityIdentity> securityIdentityEvent;
     private final CurrentIdentityAssociation currentIdentity;
@@ -57,7 +59,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
     private final LazyValue<TemplateProducer> templateProducer;
     private final LazyValue<Site> site;
 
-    public RoqRouteHandler(String rootPath, VertxHttpBuildTimeConfig httpBuildTimeConfig,
+    public RoqRouteHandler(VertxHttpBuildTimeConfig httpBuildTimeConfig,
             Map<String, Supplier<? extends Page>> pages,
             RoqSiteConfig config,
             LocalesBuildTimeConfig locales) {
@@ -68,6 +70,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         this.config = config;
         this.locales = locales;
         this.extractedPaths = new ConcurrentHashMap<>();
+        this.cached = new ConcurrentHashMap<>();
         ArcContainer container = Arc.container();
         this.securityIdentityEvent = container.beanManager().getEvent().select(SecurityIdentity.class);
         this.currentVertxRequest = container.instance(CurrentVertxRequest.class).get();
@@ -77,6 +80,24 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         this.templateProducer = new LazyValue<>(
                 () -> Arc.container().instance(TemplateProducer.class).get());
         this.site = new LazyValue<>(Sites::getSite);
+    }
+
+    public void cacheStartupPages(RoqSiteConfig config) {
+        for (var entry : pages.entrySet()) {
+            Page page = entry.getValue().get();
+            if (page.getCachedWith(config) == RoqSiteConfig.RuntimeCacheMode.STARTUP) {
+                String cacheKey = page.id();
+                final String templateId = page.source().template().generatedQuteTemplateId();
+                Template template = templateProducer.get().getInjectableTemplate(templateId);
+
+                if (template != null) {
+                    TemplateInstance instance = configureTemplateInstance(page, template);
+                    String rendered = instance.render();
+                    cached.put(cacheKey, rendered);
+                    LOG.debugf("Cached page at startup: %s", page.id());
+                }
+            }
+        }
     }
 
     @Override
@@ -126,7 +147,6 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         if (page != null) {
             final String templateId = page.source().template().generatedQuteTemplateId();
             Template template = templateProducer.get().getInjectableTemplate(templateId);
-            TemplateInstance instance = template.instance();
             String contentType = template.getVariant().isPresent() ? template.getVariant().get().getContentType()
                     : MimeMapping.getMimeTypeForFilename(templateId);
             Charset charset = template.getVariant().isPresent() ? template.getVariant().get().getCharset()
@@ -150,19 +170,39 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 }
             }
 
-            instance.data("page", page);
-            instance.data("site", site.get());
-            instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
-            instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
+            // Check cache mode for this page
+            RoqSiteConfig.RuntimeCacheMode cacheMode = page.getCachedWith(config);
+            String cacheKey = page.id();
+
+            // Try to get from cache if caching is enabled
+            if (cacheMode != RoqSiteConfig.RuntimeCacheMode.FALSE) {
+                String cachedContent = cached.get(cacheKey);
+                if (cachedContent != null) {
+                    LOG.debugf("Serving cached content for page: %s", page.id());
+                    rc.response().putHeader("X-Roq-Cache-Mode", cacheMode.value());
+                    rc.response().putHeader("X-Roq-Cache-Hit", "true");
+                    rc.response().setStatusCode(200).end(cachedContent);
+                    return;
+                }
+            }
+
+            // Render the template
+            TemplateInstance instance = configureTemplateInstance(page, template);
+
             instance.renderAsync().whenComplete((r, t) -> {
                 if (t != null) {
                     Throwable rootCause = rootCause(t);
                     LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
                     rc.fail(rootCause);
                 } else {
+                    // Cache the rendered content if on-demand caching is enabled
+                    if (cacheMode == RoqSiteConfig.RuntimeCacheMode.ON_DEMAND) {
+                        LOG.debugf("Caching rendered content for page: %s", page.id());
+                        cached.put(cacheKey, r);
+                    }
+                    // Add cache mode header for all responses
+                    rc.response().putHeader("X-Roq-Cache-Mode", cacheMode.value());
+                    rc.response().putHeader("X-Roq-Cache-Hit", "false");
                     rc.response().setStatusCode(200).end(r);
                 }
             });
@@ -170,6 +210,17 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
             LOG.debugf("Template page not found: %s", rc.request().path());
             rc.next();
         }
+    }
+
+    private TemplateInstance configureTemplateInstance(Page page, Template template) {
+        TemplateInstance instance = template.instance();
+        instance.data("page", page);
+        instance.data("site", site.get());
+        instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
+        instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
+        instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
+        instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+        return instance;
     }
 
     private Throwable rootCause(Throwable t) {
