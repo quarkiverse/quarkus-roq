@@ -228,7 +228,7 @@ public interface RoqSiteConfig {
     }
 
     /**
-     * Controls when templates are cached in hybrid mode.
+     * Controls when templates are cached.
      * <ul>
      * <li><code>false</code>: Templates are rendered at runtime (no caching)</li>
      * <li><code>startup</code>: Templates are cached at application startup</li>
