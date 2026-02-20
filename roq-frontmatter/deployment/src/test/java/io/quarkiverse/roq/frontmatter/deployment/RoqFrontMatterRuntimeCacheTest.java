@@ -47,6 +47,6 @@ public class RoqFrontMatterRuntimeCacheTest {
         RestAssured.when().get("/page/startup-cache").then()
                 .header("X-Roq-Cache-Mode", "startup")
                 .statusCode(200).log().ifValidationFails()
-                .body("html.body.article.h1", equalTo("Startup Cache Page"));
+                .body("html.body.h1", equalTo("Startup Cache Page"));
     }
 }

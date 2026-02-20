@@ -86,14 +86,9 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         for (var entry : pages.entrySet()) {
             Page page = entry.getValue().get();
             if (page.getCachedWith(config) == RoqSiteConfig.RuntimeCacheMode.STARTUP) {
-                String cacheKey = page.id();
-                final String templateId = page.source().template().generatedQuteTemplateId();
-                Template template = templateProducer.get().getInjectableTemplate(templateId);
-
-                if (template != null) {
-                    TemplateInstance instance = configureTemplateInstance(page, template);
-                    String rendered = instance.render();
-                    cached.put(cacheKey, rendered);
+                if (page.content() != null) {
+                    String cacheKey = page.id();
+                    cached.put(cacheKey, page.content());
                     LOG.debugf("Cached page at startup: %s", page.id());
                 }
             }
