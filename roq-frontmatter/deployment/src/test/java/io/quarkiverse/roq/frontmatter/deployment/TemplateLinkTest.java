@@ -125,7 +125,6 @@ class TemplateLinkTest {
         assertTrue(withMultiple.getMessage().contains(":foo"));
         assertTrue(withMultiple.getMessage().contains(":bar"));
         assertTrue(withMultiple.getMessage().contains(":baz"));
-        assertTrue(withMultiple.getMessage().contains(":foo"));
 
         RoqTemplateLinkException withHyphen = assertThrows(RoqTemplateLinkException.class, () -> {
             pageLink("", "/post/:invalid-placeholder", data);
