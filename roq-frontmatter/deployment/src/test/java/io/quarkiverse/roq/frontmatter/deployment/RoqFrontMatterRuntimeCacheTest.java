@@ -13,7 +13,7 @@ public class RoqFrontMatterRuntimeCacheTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "cache-test-site")
-            .overrideConfigKey("site.runtime-cache", "on-demand")
+            .overrideConfigKey("site.runtime-cache", "lazy")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("cache-test-site"));
 
@@ -21,13 +21,13 @@ public class RoqFrontMatterRuntimeCacheTest {
     public void testOnDemandCache() {
         // First request should render and cache
         RestAssured.when().get("/").then().statusCode(200)
-                .header("X-Roq-Cache-Mode", "on-demand")
+                .header("X-Roq-Cache-Mode", "lazy")
                 .log().ifValidationFails()
                 .body("html.head.title", equalTo("Cache Test Site"));
 
         // Second request should serve from cache
         RestAssured.when().get("/").then()
-                .header("X-Roq-Cache-Mode", "on-demand")
+                .header("X-Roq-Cache-Mode", "lazy")
                 .statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Cache Test Site"));
     }

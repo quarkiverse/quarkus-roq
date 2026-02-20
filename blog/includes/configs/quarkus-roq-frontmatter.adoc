@@ -560,11 +560,11 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Controls when templates are cached in hybrid mode.
+Controls when templates are cached.
 
  - `false`: Templates are rendered at runtime (no caching)
  - `startup`: Templates are cached at application startup
- - `on-demand`: Templates are cached on first request
+ - `lazy`: Templates are cached on first request
 
 
 
@@ -578,7 +578,7 @@ ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++SITE_RUNTIME_CACHE+++`
 endif::add-copy-button-to-env-var[]
 --
-a|`false`, `startup`, `on-demand`
+a|`false`, `startup`, `lazy`
 |`+++false+++`
 
 |===

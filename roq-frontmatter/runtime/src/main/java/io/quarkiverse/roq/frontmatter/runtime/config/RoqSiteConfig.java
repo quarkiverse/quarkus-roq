@@ -232,7 +232,7 @@ public interface RoqSiteConfig {
      * <ul>
      * <li><code>false</code>: Templates are rendered at runtime (no caching)</li>
      * <li><code>startup</code>: Templates are cached at application startup</li>
-     * <li><code>on-demand</code>: Templates are cached on first request</li>
+     * <li><code>lazy</code>: Templates are cached on first request</li>
      * </ul>
      * <p>
      * This allows mixing static generation with runtime rendering for hybrid applications.
@@ -253,7 +253,7 @@ public interface RoqSiteConfig {
         /**
          * Templates are cached on first request (lazy caching)
          */
-        ON_DEMAND("on-demand");
+        LAZY("lazy");
 
         private final String value;
 

@@ -6,7 +6,7 @@ tags: blogging
 author: roqqy
 cool: this is cool :)
 fun: and fun!
-cached: on-demand
+cached: lazy
 ---
 
 You can access page data like this:

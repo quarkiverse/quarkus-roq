@@ -195,8 +195,8 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                     LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
                     rc.fail(rootCause);
                 } else {
-                    // Cache the rendered content if on-demand caching is enabled
-                    if (cacheMode == RoqSiteConfig.RuntimeCacheMode.ON_DEMAND) {
+                    // Cache the rendered content if lazy caching is enabled
+                    if (cacheMode == RoqSiteConfig.RuntimeCacheMode.LAZY) {
                         LOG.debugf("Caching rendered content for page: %s", page.id());
                         cached.put(cacheKey, r);
                     }
