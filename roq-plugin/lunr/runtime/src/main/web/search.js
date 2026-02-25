@@ -487,7 +487,7 @@ const setupSearch = function (options = {}) {
     enableSearchInput(false);
 
 
-    fetch('/search-index.json')
+    fetch(options.url)
         .then(response => response.json())
         .then(feedLoaded)
         .catch(error => console.error('Error loading feed:', error));
