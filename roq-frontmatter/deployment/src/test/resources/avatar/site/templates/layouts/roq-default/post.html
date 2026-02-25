@@ -1,0 +1,15 @@
+---
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+{#let author=cdi:authors.get(page.data.author)}
+<html>
+<body>
+{#if author && author.avatar}
+  <img src="{site.image(author.avatar)}" alt="author-{page.data.author}" />
+{#else}
+  <img src="{site.image('roq-default/default-avatar.svg')}" alt="author-{page.data.author}" />
+{/if}
+<p>{page.title}</p>
+</body>
+</html>
+{/let}
