@@ -102,9 +102,14 @@ public class RoqFrontMatterScanProcessor {
     void amendDraftContent(RoqSiteConfig config,
             BuildProducer<RoqFrontMatterDataModificationBuildItem> dataModificationProducer) {
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
-            var isDraft = sourceData.type().isPage() && sourceData.collection() != null
+            var isInDraftDirectory = sourceData.type().isPage() && sourceData.collection() != null
                     && sourceData.relativePath().contains(config.draftDirectory() + "/");
-            sourceData.fm().put(DRAFT_KEY, isDraft);
+
+            if (isInDraftDirectory) {
+                // Directory location takes precedence - always draft if in drafts/
+                sourceData.fm().put(DRAFT_KEY, true);
+            }
+            // otherwise it's a draft it it's already in frontmatter
             return sourceData.fm();
         }));
     }
