@@ -2,6 +2,8 @@
 
 **Want to contribute? Great!** We try to make it easy, and all contributions, even the smaller ones, are more than welcome. This includes bug reports, fixes, documentation, examples... But first, read this page.
 
+Roq is part of the Quarkus ecosystem, contributions should follow the same principles when applicable (https://github.com/quarkusio/quarkus/blob/main/CONTRIBUTING.md).
+
 ## Reporting an issue
 
 This project uses GitHub issues to manage the issues. Open an issue directly in GitHub.
@@ -12,6 +14,11 @@ what you would expect to see. Don't forget to indicate your Quarkus, Java, Maven
 ## Tests and documentation are not optional
 
 Don't forget to include tests in your pull requests. Also don't forget the documentation (reference documentation, javadoc, etc.).
+
+## LLM Usage Policy
+
+See https://github.com/quarkusio/quarkus/blob/main/CONTRIBUTING.md#llm-usage-policy
+
 
 ### Running
 

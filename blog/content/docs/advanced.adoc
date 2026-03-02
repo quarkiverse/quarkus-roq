@@ -217,8 +217,8 @@ To develop a theme, create a Maven module which will contain the theme layouts, 
         ├── roq.js
         ├── roq.scss
 ----
-<1> You can add partials for your theme, they need to be located in a directory with the theme name.
-<2> Layouts needs to be declared in the `theme-layouts` so that they can be overridden by consuming websites.
+<1> You can add partials for your theme, they need to be located in a directory with the theme name `templates/partials/{theme-name}/`.
+<2> Layouts needs to be declared in `theme-layouts/` using a directory with the theme name`templates/theme-layouts/{theme-name}/`.
 
 Same as for a site, script and styles can either be added to `src/main/resoucres/META-INF/resources` or bundled using Maven esbuild plugin:
 
@@ -259,14 +259,14 @@ Same as for a site, script and styles can either be added to `src/main/resoucres
 
 This bundle will be available in `/static/bundle/roq.js` and `/static/bundle/roq.css` which can be used in your theme html `<head>`
 
-Create an application.properties:
+You need to create an application.properties:
 
 .src/main/resources/application.properties
 [source,properties]
 ----
 site.theme=roq-default // <1>
 ----
-<1> Thanks to this, all call to `layout: :theme/...` will automatically refer to this theme.
+<1> This allows site referencing the theme to default to this theme.
 
 [#links]
 == Links & Urls

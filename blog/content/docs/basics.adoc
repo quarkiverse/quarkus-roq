@@ -712,7 +712,7 @@ public/
 ├── scripts/script (2).js // <2>
 └── presentation.pdf // <3>
 ----
-<1> generated as on `/images/image.js`
+<1> generated as on `/images/image.jpg`
 <2> generated as `/scripts/script-2.js`(slugified 👇)
 <3> generated as `/presentation.pdf`
 
@@ -757,32 +757,41 @@ TIP: If you want to iterate over page files, they can be listed using `{page.fil
 
 === Images
 
+This section explains how to access images in your site or in a specific page.
+
 ==== Site images
 
-The site images should be added in the public image directory (e.g. `my-site/public/images/image-1.png`).
+Site‑level images live in `public/images/` (e.g. `my-site/public/images/image-1.png`).
 
-The default public path prefix for images is `images/` (this can be changed in the site configuration).
+The default public path is `images/` and can be customized in the site configuration.
 
-Url can be accessed using the site variable as shown in this example: `<img src="{site.image('image-1.png')`}" />.
+Use `site.image()` to generate the correct URL:
 
-TIP: The image method is a convenience and is equivalent to using `<img src="{site.file('images/image-1.png')`}" />.
+```html
+<img src="{site.image('image-1.png')}" />
+```
+
+TIP: `site.image(name)` is equivalent to:
+
+```html
+<img src="{site.file('images/' + name)}" />
+```
 
 ==== Page images
 
-When using pages as directories (such as `posts/surf/index.html`), `{page.image(name)}` checks if the file is attached to the given page and return its url.
+When a page is a directory (for example `posts/surf/index.html`), the method `{page.image(name)}` checks if the image is attached to that page and returns its URL.
 
-In other pages (such as `posts/basketball.md`), `{page.image(name)}` will act the same as `site.image(name)` and resolve from the site image directory.
+For single‑file pages (`posts/basketball.md`), `{page.image(name)}` behaves like `site.image(name)` and resolves from `public/images/`.
 
-Let's take this example structure:
+Example structure:
 
-[source]
-----
+```
 my-site/
 ├── content/
 │   └── posts/
-|       └── basketball-article.md               <1>
+│       ├── basketball-article.md       <1>
 │       └── surf-article/
-            ├── cover.jpg
+│           ├── cover.jpg
 │           ├── surf.jpg                <2>
 │           └── index.html
 └── public/
@@ -790,38 +799,32 @@ my-site/
         ├── basketball-cover.png
         ├── basketball.png
         └── football.jpg
-----
+```
 
-<1> With non directory pages, `page.image()` is equivalent to `site.image()`.
-<2> Accessible via `page.image('surf.jpg')` or via a simple relative link only from the index page.
-<3> Accessible via `site.image('basketball.png')` on all pages.
+<1> Non-directory pages → `page.image()` == `site.image()`.  
+<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.  
+<3> Site images → accessible everywhere via `site.image(name)`.
 
-Here is how to access those images from the article:
+==== Usage example
 
-[source,html]
-.surf-article/index.html
-----
+_File: `surf-article/index.html`_
+
+```html
 ---
 image: cover.jpg
 ---
 <h2>👍</h2>
-<img src="surf.jpg" /> <1>
-<img src="{page.image()}" /> <2>
-<img src="{page.image('surf.jpg')}" /> <3>
-<img src="{site.image('basketball.jpg')}" /> <4>
-<img src="{site.image('basketball.png').absolute}" /> <5>
+<img src="surf.jpg" />                       <!-- 1 -->
+<img src="{page.image()}" />                 <!-- 2 -->
+<img src="{page.image('surf.jpg')}" />       <!-- 3 -->
+<img src="{site.image('basketball.jpg')}" /> <!-- 4 -->
+<img src="{site.image('basketball.png').absolute}" /> <!-- 5 -->
 
 <h2>👎</h2>
-<img src="{site.image('surf.jpg')}" /> <6>
-<img src="{page.image('soccer.jpg')}" /> <6>
-<img src="{page.image('basketball.jpg')}" /> <6>
-----
-<1> Relative links are working when using <<page-files>>.
-<2> Will show the page cover image (same as `{page.image('cover.png')}`)
-<3> `surf.jpg` is also attached to this page
-<4> `site.image(path)` looks into `/public/images/` by default (with disk checking).
-<5> render the absolute url (e.g. `https://my-site.org/images/basketball.png`)
-<6> this would throw an error!
+<img src="{site.image('surf.jpg')}" />       <!-- 6 -->
+<img src="{page.image('soccer.jpg')}" />     <!-- 6 -->
+<img src="{page.image('basketball.jpg')}" /> <!-- 6 -->
+```
 
 === Page & Site cover image
 
