@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.theme;
+package io.quarkiverse.roq.theme.resume;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

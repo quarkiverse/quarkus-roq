@@ -3,10 +3,7 @@
   {#resumeSection title=section.title footer=capture:strong}
   {#for item in section.items}
   <div x-show="showAll || {item_index} < 3" x-cloak>
-    {#resumeItem
-          header=item.header
-          title=item.title}
-    {item.content.markdownify}
+    {#resumeItem item=item nested=false}
     {/resumeItem}
   </div>
   {/for}
