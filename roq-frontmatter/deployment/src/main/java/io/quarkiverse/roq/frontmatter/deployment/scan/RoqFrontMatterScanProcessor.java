@@ -146,14 +146,14 @@ public class RoqFrontMatterScanProcessor {
             RoqSiteConfig siteConfig,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
         try {
-            dataModifications.sort(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order));
             List<RoqFrontMatterRawTemplateBuildItem> items = resolveItems(roqProject,
                     quteConfig,
                     siteConfig,
                     markupList,
                     headerParserList,
                     watch,
-                    dataModifications,
+                    dataModifications.stream().sorted(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order))
+                            .toList(),
                     templatePathProducer,
                     generatedResourceProducer,
                     nativeImageResourceProducer,
