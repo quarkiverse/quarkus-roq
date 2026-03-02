@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
@@ -26,6 +28,7 @@ public class TemplateLink {
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(":[a-zA-Z][a-zA-Z0-9-]*");
 
     public interface LinkData {
         PageSource pageSource();
@@ -127,6 +130,19 @@ public class TemplateLink {
                             .formatted(entry.getKey(), template, data.pageSource().file().relativePath()));
                 }
                 link = link.replace(entry.getKey(), replacement);
+            }
+        }
+
+        // Validate that no invalid placeholders remain in the link
+        if (link.contains(":")) {
+            Matcher matcher = PLACEHOLDER_PATTERN.matcher(link);
+            if (matcher.find()) {
+                String invalidPlaceholder = matcher.group();
+                throw new RoqTemplateLinkException(
+                        "Invalid placeholder '%s' found in link template '%s' for page '%s'. Valid placeholders are: %s"
+                                .formatted(invalidPlaceholder, template != null ? template : defaultTemplate,
+                                        data.pageSource().file().relativePath(),
+                                        String.join(", ", mapping.keySet())));
             }
         }
 
