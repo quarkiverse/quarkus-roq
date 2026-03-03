@@ -23,7 +23,8 @@ public class RoqFrontMatterDraftEnabledTest {
         // Post with draft: true should be visible when site.draft=true
         RestAssured.when().get("/posts/draft-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Draft Post"))
-                .body("html.body.article.h1", equalTo("Draft Post"));
+                .body("html.body.article.h1", equalTo("Draft Post"))
+                .body("html.body.article.span.find { it.@class == 'draft-status' }.text()", equalTo("true"));
     }
 
     @Test
@@ -31,15 +32,17 @@ public class RoqFrontMatterDraftEnabledTest {
         // Post in drafts/ directory should be visible when site.draft=true
         RestAssured.when().get("/posts/auto-draft-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Auto Draft Post"))
-                .body("html.body.article.h1", equalTo("Auto Draft Post"));
+                .body("html.body.article.h1", equalTo("Auto Draft Post"))
+                .body("html.body.article.span.find { it.@class == 'draft-status' }.text()", equalTo("true"));
     }
 
     @Test
     public void testDraftDirectoryWithExplicitFalseVisibleWhenEnabled() {
-        // Post in drafts/ directory should be visible when site.draft=true (even with explicit draft: false)
+        // Frontmatter takes precedence over drafts/: explicit draft: false remains false
         RestAssured.when().get("/posts/override-draft-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Override Draft Post"))
-                .body("html.body.article.h1", equalTo("Override Draft Post"));
+                .body("html.body.article.h1", equalTo("Override Draft Post"))
+                .body("html.body.article.span.find { it.@class == 'draft-status' }.text()", equalTo("false"));
     }
 
     @Test

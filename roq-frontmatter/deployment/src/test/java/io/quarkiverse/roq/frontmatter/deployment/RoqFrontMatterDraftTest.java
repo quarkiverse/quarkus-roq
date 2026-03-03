@@ -41,10 +41,10 @@ public class RoqFrontMatterDraftTest {
 
     @Test
     public void testIndexDoesNotContainDraftPosts() {
-        // Index page should only show published posts (not those with draft: true or in drafts/)
+        // Index page should only show published posts (draft: true and auto-draft are excluded)
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.div.h1.size()", equalTo(2)) // Only 2 published posts (not in drafts/)
-                .body("html.body.div.h1*.text()", hasItems("Published Post", "Normal Post"));
+                .body("html.body.div.h1.size()", equalTo(3))
+                .body("html.body.div.h1*.text()", hasItems("Published Post", "Normal Post", "Override Draft Post"));
     }
 
     @Test
@@ -61,16 +61,19 @@ public class RoqFrontMatterDraftTest {
     }
 
     @Test
-    public void testDraftDirectoryWithExplicitFalseNotVisible() {
-        // Post in drafts/ directory with explicit draft: false should STILL be hidden (directory takes precedence)
-        RestAssured.when().get("/posts/override-draft-post").then().statusCode(404).log().ifValidationFails();
+    public void testDraftDirectoryWithExplicitFalseVisible() {
+        // Frontmatter takes precedence: explicit draft: false in drafts/ should be visible
+        RestAssured.when().get("/posts/override-draft-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("Override Draft Post"))
+                .body("html.body.article.h1", equalTo("Override Draft Post"))
+                .body("html.body.article.span.find { it.@class == 'draft-status' }.text()", equalTo("false"));
     }
 
     @Test
-    public void testIndexExcludesDraftDirectoryPosts() {
-        // Index page should exclude all posts from drafts/ directory (directory takes precedence)
+    public void testIndexIncludesDraftDirectoryPostWithExplicitFalse() {
+        // Explicit draft: false in drafts/ behaves as published content
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.div.h1.size()", equalTo(2)) // 2 published posts only
-                .body("html.body.div.h1*.text()", hasItems("Published Post", "Normal Post"));
+                .body("html.body.div.h1.size()", equalTo(3))
+                .body("html.body.div.h1*.text()", hasItems("Published Post", "Normal Post", "Override Draft Post"));
     }
 }

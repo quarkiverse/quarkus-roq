@@ -105,11 +105,10 @@ public class RoqFrontMatterScanProcessor {
             var isInDraftDirectory = sourceData.type().isPage() && sourceData.collection() != null
                     && sourceData.relativePath().contains(config.draftDirectory() + "/");
 
-            if (isInDraftDirectory) {
-                // Directory location takes precedence - always draft if in drafts/
+            // Frontmatter `draft` takes precedence; drafts directory acts as fallback.
+            if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT_KEY)) {
                 sourceData.fm().put(DRAFT_KEY, true);
             }
-            // otherwise it's a draft it it's already in frontmatter
             return sourceData.fm();
         }));
     }
