@@ -1,0 +1,18 @@
+---
+title: Draft Site
+---
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{site.title}</title>
+</head>
+<body>
+    <div>
+        {#for post in site.collections.posts}
+        <h1>{post.title}</h1>
+        {/for}
+    </div>
+</body>
+</html>
+
