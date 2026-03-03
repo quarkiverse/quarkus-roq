@@ -28,6 +28,12 @@ Roq is a static site generator that makes it easy to build websites and blogs(su
 
 Get started [here](https://iamroq.com/docs/)!
 
+## GitHub action usage 🚀
+
+Roq is also available in the GitHub Actions marketplace to simplify deployment. See the [documentation](https://iamroq.com/docs/publishing/#github-action) for details.
+
+## Standalone usage
+
 For those looking for the Roq Quarkus extensions (which can also be used standalone):
 - [Roq Data](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html): Use json/yaml files content from your templates and articles with type safety.
 - [Roq FrontMatter](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-frontmatter.html):  Create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
