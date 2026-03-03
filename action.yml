@@ -1,5 +1,5 @@
-name: "Build and Deploy Roq Site"
-description: "Sets up JDK, builds the Quarkus site, and upload the GitHub Pages artifact."
+name: "Generate Roq Site"
+description: "Sets up JDK, generates the Roq site, and upload the artifact which can then be deployed to GitHub Pages (via 'actions/deploy-pages') or any other static hosting service, such as Surge."
 branding:
   icon: 'music'
   color: 'orange'
