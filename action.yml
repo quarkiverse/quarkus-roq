@@ -1,5 +1,5 @@
 name: "Generate Roq Site"
-description: "Sets up JDK, generates the Roq site, and upload the artifact which can then be deployed to GitHub Pages (via 'actions/deploy-pages') or any other static hosting service, such as Surge."
+description: "Sets up JDK, builds the Roq site, and uploads the artifact — to be used by a separate deploy step (e.g. actions/deploy-pages)."
 branding:
   icon: 'music'
   color: 'orange'
