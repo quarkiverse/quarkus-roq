@@ -32,12 +32,12 @@ asciidoc-attributes:
       <div class="page-footer">
         <div class="footer-links">
           <div class="page-share">
-            <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.encoded}"
-               title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
-            <a href="https://facebook.com/sharer.php?u={page.url.encoded}" title="Share on Facebook"
-               rel="nofollow" target="_blank">Facebook</a>
-            <a href="https://bsky.app/intent/compose?text={page.title}%0ACheck%20it%20out%20{page.url.encoded}" title="Share on Bluesky"
-                           rel="nofollow" target="_blank">Bluesky</a>
+            <a href="https://twitter.com/intent/tweet?text={page.title}&url={page.url.encoded}" title="Share on Twitter"
+              rel="nofollow" target="_blank">Twitter</a>
+            <a href="https://facebook.com/sharer.php?u={page.url.encoded}" title="Share on Facebook" rel="nofollow"
+              target="_blank">Facebook</a>
+            <a href="https://bsky.app/intent/compose?text={page.title}%0ACheck%20it%20out%20{page.url.encoded}"
+              title="Share on Bluesky" rel="nofollow" target="_blank">Bluesky</a>
           </div>
           <div class="page-tag">
             {#for tag in page.data.tags.asStrings}
@@ -51,13 +51,18 @@ asciidoc-attributes:
         {#let author=cdi:authors.get(page.data.author)}
         {#if author}
         <div class="author">
-          <img src="{site.image(author.avatar)}" alt="author-{page.data.author}"/>
-          <div class="author-data">
-            <a target="_blank" href="{author.profile}"
-               class="author-name">{author.name}</a>
-            <span class="author-job-title">{author.job}</span>
-          </div>
-        </div>
+  {#if author.avatar}
+    <img src="{site.image(author.avatar)}" alt="author-{page.data.author}" />
+  {#else}
+    <img src="{site.image('roq-default/default-avatar.svg')}" alt="author-{page.data.author}" />
+  {/if}
+
+  <div class="author-data">
+    <a target="_blank" href="{author.profile}" class="author-name">{author.name}</a>
+    <span class="author-job-title">{author.job}</span>
+  </div>
+</div>
+
         {/if}
         {/let}
         {/if}

@@ -215,16 +215,19 @@ public class RoqFrontMatterScanProcessor {
         List<RoqFrontMatterRawTemplateBuildItem> items = new ArrayList<>();
         roqProject.consumeRoqDir(
                 createRoqDirConsumer(quteConfig, config, markupList, headerParserList, watch, dataModifications,
+                        roqProject,
                         templatePathProducer, generatedResourceProducer, nativeImageResourceProducer, items));
 
         // Scan for layouts & theme-layouts in classpath root
         RoqProjectBuildItem.visitRuntimeResources(TEMPLATES_DIR,
                 t -> {
                     scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
+                            roqProject,
                             t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.LAYOUT);
                     scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
+                            roqProject,
                             t.getPath().getParent(),
                             t.getPath(),
                             TemplateType.THEME_LAYOUT);
@@ -235,6 +238,7 @@ public class RoqFrontMatterScanProcessor {
                 l -> {
                     watchResourceDir(watch, l);
                     scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
+                            roqProject,
                             l.getPath().getParent(),
                             l.getPath());
                 });
@@ -246,6 +250,7 @@ public class RoqFrontMatterScanProcessor {
             // and scan for layouts in this directory
             roqProject.consumePathFromRoqResourceDir(TEMPLATES_DIR,
                     l -> scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items,
+                            roqProject,
                             l.getPath().getParent(), l.getPath(),
                             TemplateType.LAYOUT));
         }
@@ -259,6 +264,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            RoqProjectBuildItem roqProject,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
@@ -274,12 +280,12 @@ public class RoqFrontMatterScanProcessor {
             scanTemplates(quteConfig, config, watch, templatePathProducer, generatedResourceProducer,
                     nativeImageResourceProducer, templatesDir);
             // No need to ignore the template as it's not a template root
-            scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
+            scanLayouts(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, roqProject, siteDir,
                     templatesDir,
                     TemplateType.LAYOUT);
             final Path contentDir = siteDir.resolve(config.contentDir());
             watchDirectory(contentDir, watch);
-            scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, siteDir,
+            scanContent(quteConfig, config, markupList, headerParserList, watch, dataModifications, items, roqProject, siteDir,
                     contentDir);
         };
     }
@@ -288,6 +294,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList, BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications, List<RoqFrontMatterRawTemplateBuildItem> items,
+            RoqProjectBuildItem roqProject,
             Path siteDir,
             Path contentDir) {
         if (!Files.isDirectory(contentDir)) {
@@ -318,6 +325,7 @@ public class RoqFrontMatterScanProcessor {
                                 markupList,
                                 headerParserList,
                                 dataModifications,
+                                roqProject,
                                 collection,
                                 type).accept(p);
                     });
@@ -363,6 +371,7 @@ public class RoqFrontMatterScanProcessor {
             BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             List<RoqFrontMatterRawTemplateBuildItem> items,
+            RoqProjectBuildItem roqProject,
             Path siteDir,
             Path templatesRoot,
             TemplateType type) {
@@ -380,6 +389,7 @@ public class RoqFrontMatterScanProcessor {
                     markupList,
                     headerParserList,
                     dataModifications,
+                    roqProject,
                     null,
                     type);
             stream
@@ -473,6 +483,7 @@ public class RoqFrontMatterScanProcessor {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
+            RoqProjectBuildItem roqProject,
             ConfiguredCollection collection,
             TemplateType type) {
         return file -> {
@@ -547,16 +558,15 @@ public class RoqFrontMatterScanProcessor {
             if (isIndex) {
                 attachments = new ArrayList<>();
                 if (isSiteIndex) {
-                    // Support legacy static dir
-                    scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments, siteDir,
-                            siteDir.resolve(config.staticDir()));
                     // Public dir
-                    scanAttachments(true, true, siteDir, config, quteConfig, watch, attachments,
+                    scanResourceSiteAttachments(true, true, siteDir, config, quteConfig, watch, attachments,
                             siteDir.resolve(config.publicDir()),
                             siteDir.resolve(config.publicDir()));
+                    // Theme resources
+                    scanThemeAttachments(config, roqProject, attachments);
                 } else {
                     // Attachments are in the index parent dir
-                    scanAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
+                    scanResourceSiteAttachments(true, false, siteDir, config, quteConfig, watch, attachments, file.getParent(),
                             file.getParent());
                 }
 
@@ -576,7 +586,7 @@ public class RoqFrontMatterScanProcessor {
         return null;
     }
 
-    private static void scanAttachments(boolean isAttachmentRoot,
+    private static void scanResourceSiteAttachments(boolean isAttachmentRoot,
             boolean isStaticDir,
             Path siteDir,
             RoqSiteConfig config,
@@ -595,7 +605,8 @@ public class RoqFrontMatterScanProcessor {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(attachmentDir)) {
             for (Path entry : stream) {
                 if (Files.isDirectory(entry)) {
-                    scanAttachments(false, isStaticDir, siteDir, config, quteConfig, watch, attachments, refDir, entry);
+                    scanResourceSiteAttachments(false, isStaticDir, siteDir, config, quteConfig, watch, attachments, refDir,
+                            entry);
                 } else if (Files.isRegularFile(entry)
                         && !isFileExcluded(siteDir, config).test(entry)
                         && (isStaticDir || !isTemplate(quteConfig).test(entry))) {
@@ -606,6 +617,48 @@ public class RoqFrontMatterScanProcessor {
         } catch (IOException e) {
             throw new RoqSiteScanningException(
                     "Error scanning static attachment files in directory: %s".formatted(attachmentDir), e);
+        }
+    }
+
+    private static void scanThemeAttachments(RoqSiteConfig config, RoqProjectBuildItem roqProject,
+            List<Attachment> attachments) {
+        final Set<String> existing = attachments.stream().map(Attachment::name).collect(Collectors.toSet());
+
+        if (roqProject.isRoqResourcesInRoot()) {
+            try {
+                roqProject.consumePathFromRoqResourceDir(config.publicDir(),
+                        p -> scanThemeResources(config, p, config.publicDir(), existing, attachments));
+            } catch (IOException e) {
+                throw new RoqSiteScanningException("Error scanning theme resources in classpath root public dir", e);
+            }
+        } else {
+            RoqProjectBuildItem.visitRuntimeResources(config.publicDir(), p -> {
+                scanThemeResources(config, p, config.publicDir(), existing, attachments);
+            });
+        }
+    }
+
+    private static void scanThemeResources(RoqSiteConfig config, PathVisit p, String rootDir, Set<String> existing,
+            List<Attachment> attachments) {
+        if (Files.isDirectory(p.getPath())) {
+            try (Stream<Path> stream = Files.walk(p.getPath())) {
+                stream.filter(Files::isRegularFile).forEach(file -> {
+                    String name = resolveAttachmentLink(config, file, p.getPath());
+                    if (existing.add(name)) {
+                        attachments.add(new Attachment(name, file));
+                    }
+                });
+            } catch (IOException e) {
+                throw new RoqSiteScanningException("Error scanning theme resources in " + p.getPath(), e);
+            }
+        } else if (Files.isRegularFile(p.getPath())) {
+            String name = p.getRelativePath();
+            if (name.startsWith(rootDir + "/")) {
+                name = name.substring(rootDir.length() + 1);
+            }
+            if (existing.add(name)) {
+                attachments.add(new Attachment(name, p.getPath()));
+            }
         }
     }
 
