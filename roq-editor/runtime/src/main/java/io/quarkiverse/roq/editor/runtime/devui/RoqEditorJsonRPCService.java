@@ -44,6 +44,9 @@ public class RoqEditorJsonRPCService {
     @Inject
     private RoqSiteConfig config;
 
+    @Inject
+    private RoqEditorConfig editorConfig;
+
     @Blocking
     public List<PageSource> getPosts() {
         return site.collections().get("posts").stream()
