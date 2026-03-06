@@ -10,19 +10,22 @@ layout: theme-layouts/roq-default/post
 
 {#article-end}
 <div class="giscus"></div>
-<script src="https://giscus.app/client.js"
-        data-repo="quarkiverse/quarkus-roq"
-        data-repo-id="R_kgDOL4WdMA"
-        data-category="Comments"
-        data-category-id="DIC_kwDOL4WdMM4CjtXB"
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="bottom"
-        data-theme="light"
-        data-lang="en"
-        crossorigin="anonymous"
-        async>
+<script>
+  const giscusScript = document.createElement('script');
+  giscusScript.src = 'https://giscus.app/client.js';
+  giscusScript.setAttribute('data-repo', 'quarkiverse/quarkus-roq');
+  giscusScript.setAttribute('data-repo-id', 'R_kgDOL4WdMA');
+  giscusScript.setAttribute('data-category', 'Comments');
+  giscusScript.setAttribute('data-category-id', 'DIC_kwDOL4WdMM4CjtXB');
+  giscusScript.setAttribute('data-mapping', 'pathname');
+  giscusScript.setAttribute('data-strict', '0');
+  giscusScript.setAttribute('data-reactions-enabled', '1');
+  giscusScript.setAttribute('data-emit-metadata', '0');
+  giscusScript.setAttribute('data-input-position', 'bottom');
+  giscusScript.setAttribute('data-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  giscusScript.setAttribute('data-lang', 'en');
+  giscusScript.setAttribute('crossorigin', 'anonymous');
+  giscusScript.async = true;
+  document.currentScript.parentNode.insertBefore(giscusScript, document.currentScript.nextSibling);
 </script>
 {/}

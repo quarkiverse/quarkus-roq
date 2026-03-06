@@ -1,0 +1,29 @@
+{@java.lang.String tag}
+
+<meta charset="utf-8">
+
+<!-- Prevent flash of unstyled content for dark mode -->
+<script>
+  const savedTheme = localStorage.getItem('darkMode');
+  const isDark = savedTheme !== null
+    ? savedTheme === 'true'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+  }
+</script>
+
+{#seo page site /}
+{#rss site /}
+{#favicon site/}
+
+<base href="{page.url.relative}">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+{#let color=site.data.getString('theme-color').or("#263959")}
+<meta name="theme-color" content="{color}">
+<meta name="msapplication-navbutton-color" content="{color}">
+<meta name="apple-mobile-web-app-status-bar-style" content="{color}">
+
+{#include partials/roq-default/head-scripts /}

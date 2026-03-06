@@ -9,11 +9,16 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 {description}
 
+== Roq 2.1
+
+
+→ Guide for migrating <<to-2-1>>
+
 == Roq 2.0
 
 - 🕵️ Added lightning filesystem watcher for live reload
 - 📂 Allow `web` directory at the root of the Roq site
-- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...) 
+- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...)
 - ⚡️ https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[TailwindCSS] support without any config
 - 💫 Directory support for data and allow iterating on nested data files using the directory name
 
@@ -58,6 +63,91 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 1. xref:advanced.adoc#updating-roq[Make sur you update using Quarkus CLI]
 2. Make sure you implemented xref:advanced.adoc#test-site-generation[generation tests]
+
+=== to 2.1
+
+**Default theme breaking changes:**
+
+The default Roq theme has been completely rewritten to use https://tailwindcss.com/[TailwindCSS] instead of SCSS, providing better maintainability, smaller bundle sizes, and modern styling capabilities.
+
+*Migration:* If you have custom styles, you'll need to migrate them to TailwindCSS or create custom CSS that works alongside it. See the https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[Quarkus Web Bundler TailwindCSS documentation].
+
+==== 2. Template Tag Changes
+
+Custom tag names have been namespaced under `theme/`:
+
+*Before:*
+[source,html]
+----
+{#author-card name=contributor.name avatar=contributor.avatar_url /}
+----
+
+*After:*
+[source,html]
+----
+{#theme/authorCard name=contributor.name avatar=contributor.avatar_url /}
+----
+
+Note the namespace prefix `theme/` and camelCase naming.
+
+*Migration:* Update all custom tag references in your templates to use the new namespaced names.
+
+*New layout:* `layout: :theme/page-hero` is available for pages with hero sections.
+
+
+==== 4. Template Directory Restructuring
+
+Templates have moved to the runtime module:
+
+*Before:*
+
+* `roq-theme/default/src/main/resources/templates/`
+
+*After:*
+
+* `roq-theme/default/runtime/src/main/resources/templates/`
+
+*Migration:* If you're extending the default theme templates, update your template paths accordingly.
+
+==== 5. CSS Class Changes
+
+With TailwindCSS, custom CSS classes have been replaced with Tailwind utility classes. Some key changes:
+
+* Prose content now uses TailwindCSS Typography plugin classes
+* Use `not-prose` class to exclude elements from prose styling
+* Dark mode support via `dark:` variants
+
+*Example:*
+[source,html]
+----
+<div class="not-prose authors">
+  <!-- Authors won't have prose styling -->
+</div>
+----
+
+*Migration:* If you have custom HTML in your content that relies on specific CSS classes, verify it still looks correct or add `not-prose` where needed.
+
+==== 6. New Features
+
+* *Dark mode:* Built-in dark mode support with localStorage persistence
+* *Better typography:* Using `@tailwindcss/typography` plugin for beautiful prose
+* *Responsive design:* Mobile-first responsive design with TailwindCSS
+* *New partials:* `partials/roq-default/head-scripts.html`, `partials/roq-default/page-header.html`, `partials/roq-default/sidebar-darkmode.html`
+
+==== 7. Page API Enhancement
+
+A new convenience method has been added:
+
+[source,java]
+----
+// Before
+Object value = page.data().getValue("key", defaultValue);
+
+// After (also available)
+Object value = page.data("key", defaultValue);
+----
+
+This is backward compatible and doesn't require changes.
 
 === to 2.0
 

@@ -24,7 +24,7 @@
 </div>
 </div>
 
-Roq is a static site generator that makes it easy to build websites and blogs(such as [Roq's blog](https://iamroq.com). It’s built with Java and Quarkus under the hood—but you don’t need to know them to get started.
+Roq is an Open Source static site generator that makes it easy to build websites and blogs(such as [Roq's blog](https://iamroq.com). It’s free, built with Java and Quarkus under the hood (but you don’t need to know them to get started).
 
 Get started [here](https://iamroq.com/docs/)!
 
