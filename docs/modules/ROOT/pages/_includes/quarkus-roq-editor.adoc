@@ -112,5 +112,131 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-enabled[`editor.sync.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Enable Git sync feature (commit, push, pull via the Editor UI)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-sync-enabled[`editor.sync.auto-sync.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.auto-sync.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Enable automatic sync (pull) from remote
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_AUTO_SYNC_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_AUTO_SYNC_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-sync-interval-seconds]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-sync-interval-seconds[`editor.sync.auto-sync.interval-seconds`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.auto-sync.interval-seconds+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Auto-sync interval in seconds
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_AUTO_SYNC_INTERVAL_SECONDS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_AUTO_SYNC_INTERVAL_SECONDS+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++60+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-publish-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-publish-enabled[`editor.sync.auto-publish.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.auto-publish.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Enable automatic publish (commit {plus} push) on content changes
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_AUTO_PUBLISH_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_AUTO_PUBLISH_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-publish-interval-seconds]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-publish-interval-seconds[`editor.sync.auto-publish.interval-seconds`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.auto-publish.interval-seconds+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Auto-publish interval in seconds
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_AUTO_PUBLISH_INTERVAL_SECONDS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_AUTO_PUBLISH_INTERVAL_SECONDS+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++300+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-commit-message-template]] [.property-path]##link:#quarkus-roq-editor_editor-sync-commit-message-template[`editor.sync.commit-message.template`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.commit-message.template+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Default commit message template
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_COMMIT_MESSAGE_TEMPLATE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_COMMIT_MESSAGE_TEMPLATE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++Update content via Roq Editor+++`
+
 |===
 
