@@ -46,7 +46,7 @@ export class PagePathEditor extends LitElement {
 
     render() {
         return html`
-          ${config.suggestedPath.enabled && this.page.suggestedPath ? html`
+          ${config['suggested-path'].enabled && this.page.suggestedPath ? html`
             <div class="page-path-change-suggestion">
               <span class="page-path stale">${this.page.path}</span>
               <span class="page-path suggested">${this.page.suggestedPath}</span>
