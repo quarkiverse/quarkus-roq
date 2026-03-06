@@ -7,15 +7,27 @@ import './components/tags-list.js';
 import './components/visual-editor/visual-editor.js';
 import './components/simple-editor.js';
 import './components/loading-dialog.js';
+import './components/sync-status-bar.js';
+import './components/sync-controls.js';
 import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
+import {showConflictDialog} from './components/conflict-dialog.js';
+import './components/passphrase-dialog.js';
+import {showFileSelector} from './components/file-selector-dialog.js';
+import {SyncManager} from './utils/sync-manager.js';
 import {markups, config} from 'build-time-data';
 import {containsDataRawTag, containsPotentialHtml, containsQuteSection} from "./utils/utils.js";
 
 export class QwcRoqEditor extends LitElement {
 
     jsonRpc = new JsonRpc(this);
+    gitJsonRpc = {
+        getSyncStatus: (params) => this.jsonRpc.getSyncStatus(params),
+        syncContent: (params) => this.jsonRpc.syncContent(params),
+        publishContent: (params) => this.jsonRpc.publishContent(params),
+        publishAndSync: (params) => this.jsonRpc.publishAndSync(params)
+    };
 
     // Track connection state for refreshing preview URL after hot reload
     _previousConnectionState = null;
@@ -33,6 +45,15 @@ export class QwcRoqEditor extends LitElement {
             overflow: auto;
             padding: var(--lumo-space-m);
         }
+        .sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--lumo-space-s) var(--lumo-space-m);
+            background: var(--lumo-base-color);
+            border-bottom: 1px solid var(--lumo-contrast-10pct);
+            margin-bottom: var(--lumo-space-m);
+        }
     `;
 
     // Component properties
@@ -44,7 +65,10 @@ export class QwcRoqEditor extends LitElement {
         "_visualEditorEnabled": {state: true},
         "_loadingContent": {state: true},
         "_pendingRefreshPages": {state: true},
-        "_dateFormat": {state: true}
+        "_dateFormat": {state: true},
+        "_syncStatus": {state: true},
+        "_syncing": {state: true},
+        "_publishing": {state: true}
     }
 
     constructor() {
@@ -56,6 +80,11 @@ export class QwcRoqEditor extends LitElement {
         this._loadingContent = false;
         this._pendingRefreshPages = false;
         this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
+        this._syncStatus = null;
+        this._syncing = false;
+        this._publishing = false;
+        this._syncManager = null;
+        this._pendingSyncOperation = null; // operation waiting for passphrase
     }
 
     // Components callbacks
@@ -90,12 +119,25 @@ export class QwcRoqEditor extends LitElement {
         this._previousConnectionState = connectionState.current?.isConnected ?? false;
         this._connectionStateObserver = () => this._onConnectionStateChange();
         connectionState.addObserver(this._connectionStateObserver);
+
+        if (config.sync?.enabled) {
+            this._syncManager = new SyncManager(
+                this.gitJsonRpc,
+                (status) => { this._syncStatus = status; },
+                config.sync,
+                (errorMsg) => this._showPassphraseDialog(errorMsg)
+            );
+            this._syncManager.start();
+        }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this._connectionStateObserver) {
             connectionState.removeObserver(this._connectionStateObserver);
+        }
+        if (this._syncManager) {
+            this._syncManager.stop();
         }
     }
 
@@ -106,6 +148,12 @@ export class QwcRoqEditor extends LitElement {
         // Detect reconnection: was not connected, now connected
         if (!wasConnected && currentConnected && this._pendingRefreshPages) {
             this._refreshPageInfo();
+        }
+
+        // ALWAYS reset syncing/publishing states if the connection state changes
+        if (wasConnected !== currentConnected) {
+            this._syncing = false;
+            this._publishing = false;
         }
 
         this._previousConnectionState = currentConnected;
@@ -147,9 +195,29 @@ export class QwcRoqEditor extends LitElement {
     }
 
     render() {
+        const isGitRepo = this._syncStatus?.branch && this._syncStatus.branch !== 'no-git-repo';
         return html`
           <div class="content-area">
+            ${config.sync?.enabled && isGitRepo ? html`
+                <div class="sync-header">
+                    <qwc-sync-status-bar
+                        .status="${this._syncStatus}"
+                        .syncing="${this._syncing || this._publishing}">
+                    </qwc-sync-status-bar>
+                    <qwc-sync-controls
+                        .status="${this._syncStatus}"
+                        .syncing="${this._syncing}"
+                        .publishing="${this._publishing}"
+                        @sync-requested="${this._onSyncRequested}"
+                        @publish-requested="${this._onPublishRequested}">
+                    </qwc-sync-controls>
+                </div>
+            ` : ''}
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
+            <passphrase-dialog
+                @passphrase-confirmed="${this._onPassphraseConfirmed}"
+                @passphrase-cancelled="${() => { this._pendingSyncOp = null; }}">
+            </passphrase-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
               : this._renderContent()
@@ -241,7 +309,7 @@ export class QwcRoqEditor extends LitElement {
 
     _addNewPage(e) {
         const collectionId = e.target.collectionId;
-        const defaultMarkup = (collectionId ? config.docMarkup : config.pageMarkup).toLowerCase()
+        const defaultMarkup = (collectionId ? config['doc-markup'] : config['page-markup']).toLowerCase()
         showPrompt(`Add new ${collectionId ? 'document' : 'page'}` , { title: '', markup: defaultMarkup }, this._renderCreatePageForm).then(({title, markup}) => {
             if (title) {
                 this.jsonRpc.createPage({collectionId, title, markup}).then(jsonRpcResponse => {
@@ -363,11 +431,11 @@ export class QwcRoqEditor extends LitElement {
 
     async _shouldEnableVisualEditor(content) {
         if (this._selectedPage.markup === 'markdown') {
-            if (config.visualEditor.enabled) {
+            if (config['visual-editor'].enabled) {
                 const hasDataRaw = containsDataRawTag(content);
                 const hasQuteSection = containsQuteSection(content);
                 const hasHtml = containsPotentialHtml(content);
-                if (config.visualEditor.safe && !hasDataRaw && (hasQuteSection || hasHtml)) {
+                if (config['visual-editor'].safe && !hasDataRaw && (hasQuteSection || hasHtml)) {
                     const codeEditor = await showConfirm(
                         'HTML and/or Qute sections were detected. Wrap them in <div data-raw></div> to ensure compatibility.',
                         {
@@ -475,6 +543,78 @@ export class QwcRoqEditor extends LitElement {
             showNotification('Error deleting page: ' + error.message);
             console.error(error);
         });
+    }
+
+    _showPassphraseDialog(errorMsg) {
+        this.shadowRoot?.querySelector('passphrase-dialog')?.show(errorMsg);
+    }
+
+    _onPassphraseConfirmed(e) {
+        const { passphrase } = e.detail;
+        this._syncManager.setPassphrase(passphrase);
+        // Retry the pending operation, if any
+        if (this._pendingSyncOperation) {
+            const operation = this._pendingSyncOperation;
+            this._pendingSyncOperation = null;
+            operation();
+        }
+    }
+
+    async _onSyncRequested() {
+        this._syncing = true;
+        this._pendingSyncOperation = () => this._onSyncRequested();
+        try {
+            const result = await this._syncManager.manualSync();
+            if (!result?.passphraseRequired) this._pendingSyncOperation = null;
+            if (result?.success) {
+                this._pendingSyncOperation = null;
+                showNotification('Content synchronized successfully', 'success');
+                this._pendingRefreshPages = true;
+                this._refreshPageInfo();
+            } else if (result?.hasConflicts) {
+                this._pendingSyncOperation = null;
+                await showConflictDialog(result.conflictFiles);
+            } else if (!result?.passphraseRequired) {
+                showNotification(result?.message, 'error');
+            }
+        } catch (error) {
+            showNotification('Sync failed: ' + error.message, 'error');
+        } finally {
+            this._syncing = false;
+        }
+    }
+
+    async _onPublishRequested(event) {
+        // Get fresh status to ensure pendingFiles is up-to-date.
+        const freshStatus = await this._syncManager?.refreshStatus();
+        const files = freshStatus?.pendingFiles ?? [];
+
+        // If multiple files, let the user choose which ones to include.
+        let selectedFiles = files;
+        if (files.length > 1) {
+            selectedFiles = await showFileSelector(files);
+            if (selectedFiles === null) return; // cancelled
+        }
+
+        const message = await showPrompt('Commit message', 'Update content via Roq Editor');
+        if (!message) return;
+
+        this._publishing = true;
+        this._pendingSyncOperation = () => this._onPublishRequested(event);
+        try {
+            const result = await this._syncManager.manualPublish(message, selectedFiles);
+            if (!result?.passphraseRequired) this._pendingSyncOperation = null;
+            if (result?.success) {
+                this._pendingSyncOperation = null;
+                showNotification('Content published successfully', 'success');
+            } else if (!result?.passphraseRequired) {
+                showNotification(result?.message, 'error');
+            }
+        } catch (error) {
+            showNotification('Publish failed: ' + error.message, 'error');
+        } finally {
+            this._publishing = false;
+        }
     }
 
 }
