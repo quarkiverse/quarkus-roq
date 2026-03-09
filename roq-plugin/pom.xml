@@ -30,5 +30,6 @@
         <module>faker</module>
         <module>hybrid</module>
         <module>og-card</module>
+        <module>toc</module>
     </modules>
 </project>

@@ -3,3 +3,4 @@
 * xref:quarkus-roq-frontmatter.adoc[FrontMatter]
 * xref:quarkus-roq-generator.adoc[Generator]
 * xref:quarkus-roq-plugin-og-card.adoc[OG Card Plugin]
+* xref:quarkus-roq-plugin-toc.adoc[TOC Plugin]
