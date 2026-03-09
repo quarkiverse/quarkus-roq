@@ -27,6 +27,7 @@ export class SyncManager {
         this.intervalId = null;
         this.pollingCount = 0;
         this._refreshingPromise = null;
+        this._lastRefreshSkipFetch = true;
     }
 
     /**
@@ -134,10 +135,15 @@ export class SyncManager {
      * @returns {Promise<Object>} The updated status information
      */
     async refreshStatus(skipFetch = true) {
-        if (this._refreshingPromise) {
+        if (this._refreshingPromise && (skipFetch || !this._lastRefreshSkipFetch)) {
             return await this._refreshingPromise;
         }
+        
+        if (this._refreshingPromise) {
+            await this._refreshingPromise;
+        }
 
+        this._lastRefreshSkipFetch = skipFetch;
         this._refreshingPromise = (async () => {
             if (!skipFetch) this.onBusy(true);
             try {
@@ -184,6 +190,7 @@ export class SyncManager {
     async setPassphrase(passphrase) {
         this.passphrase = passphrase;
         this.authError = false;
+        this._refreshingPromise = null; 
         await this.refreshStatus(false);
     }
 

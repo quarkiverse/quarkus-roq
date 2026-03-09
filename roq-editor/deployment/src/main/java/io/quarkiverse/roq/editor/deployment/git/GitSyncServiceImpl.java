@@ -10,8 +10,13 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
@@ -89,9 +94,9 @@ public class GitSyncServiceImpl implements GitSyncService {
                     authFailed = tryFetch(git, passphrase, isSsh);
                 }
 
-                BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, currentBranch);
-                int aheadCount = (trackingStatus != null) ? trackingStatus.getAheadCount() : 0;
-                int behindCount = (trackingStatus != null) ? trackingStatus.getBehindCount() : 0;
+                int[] counts = getAheadBehindCounts(repository, currentBranch);
+                int aheadCount = counts[0];
+                int behindCount = counts[1];
 
                 boolean isUpToDate = aheadCount == 0 && behindCount == 0 && !hasUnpublished && repoState == RepositoryState.SAFE
                         && !hasConflicts && !authFailed && !authRequired;
@@ -102,6 +107,55 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
         } catch (Exception e) {
             return handleStatusFailure(e);
+        }
+    }
+
+    /**
+     * Calculates ahead and behind counts, falling back to origin remote if no upstream is configured.
+     *
+     * @param repository the JGit repository
+     * @param branchName the branch name to check
+     * @return an array where [0] is ahead count and [1] is behind count
+     * @throws IOException if Git operations fail
+     */
+    private int[] getAheadBehindCounts(Repository repository, String branchName) throws IOException {
+        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, branchName);
+        if (trackingStatus != null) {
+            return new int[] { trackingStatus.getAheadCount(), trackingStatus.getBehindCount() };
+        }
+
+        Ref remoteRef = repository.findRef("refs/remotes/origin/" + branchName);
+        if (remoteRef == null) {
+            return new int[] { 0, 0 };
+        }
+
+        ObjectId localHead = repository.resolve(branchName);
+        ObjectId remoteHead = remoteRef.getObjectId();
+
+        if (localHead == null || remoteHead == null) {
+            return new int[] { 0, 0 };
+        }
+
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit localCommit = walk.parseCommit(localHead);
+            RevCommit remoteCommit = walk.parseCommit(remoteHead);
+
+            int ahead = 0;
+            walk.reset();
+            walk.markStart(localCommit);
+            walk.markUninteresting(remoteCommit);
+            for (RevCommit commit : walk) {
+                ahead++;
+            }
+
+            int behind = 0;
+            walk.reset();
+            walk.markStart(remoteCommit);
+            walk.markUninteresting(localCommit);
+            for (RevCommit commit : walk) {
+                behind++;
+            }
+            return new int[] { ahead, behind };
         }
     }
 
@@ -169,7 +223,8 @@ public class GitSyncServiceImpl implements GitSyncService {
                 }
 
                 Iterable<PushResult> results = git.push().setRemote("origin")
-                        .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase)).call();
+                        .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
+                        .call();
 
                 for (PushResult pushResult : results) {
                     for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
@@ -180,6 +235,14 @@ public class GitSyncServiceImpl implements GitSyncService {
                                     false, Collections.emptyList(), false);
                         }
                     }
+                }
+
+                if (BranchTrackingStatus.of(repository, repository.getBranch()) == null) {
+                    StoredConfig config = repository.getConfig();
+                    String branchName = repository.getBranch();
+                    config.setString("branch", branchName, "remote", "origin");
+                    config.setString("branch", branchName, "merge", "refs/heads/" + branchName);
+                    config.save();
                 }
 
                 return new GitSyncResult(true, MSG_PUSH_SUCCESS, false, Collections.emptyList(), false);
@@ -332,6 +395,15 @@ public class GitSyncServiceImpl implements GitSyncService {
             if (!pullResult.isSuccessful()) {
                 return operationHelper.handleFailedPull(pullResult, git);
             }
+
+            if (BranchTrackingStatus.of(repository, repository.getBranch()) == null) {
+                StoredConfig config = repository.getConfig();
+                String branchName = repository.getBranch();
+                config.setString("branch", branchName, "remote", "origin");
+                config.setString("branch", branchName, "merge", "refs/heads/" + branchName);
+                config.save();
+            }
+
             return new GitSyncResult(true, MSG_SYNC_SUCCESS, false, Collections.emptyList(), false);
         } catch (Exception e) {
             boolean isSsh = GitTransportHelper.isSsh(repository);
@@ -436,6 +508,10 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @throws Exception if an error occurs during fetch
      */
     private void performFetch(Git git, String passphrase) throws Exception {
-        git.fetch().setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase)).call();
+        LOG.debug("Performing Git fetch from origin...");
+        git.fetch()
+                .setRemote("origin")
+                .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
+                .call();
     }
 }
