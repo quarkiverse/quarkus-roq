@@ -6,11 +6,11 @@
 import { html, render } from 'lit';
 import { Extension, Suggestion } from '../../../bundle.js';
 import './slash-menu.js';
-import {showPrompt} from "../../prompt-dialog.js";
-import {renderImageForm} from "./image.js";
+import {showImageDialog} from "../../image-dialog.js";
 
 // Define all available block types with their commands
-const BLOCK_TYPES = [
+// Image command needs special handling as it requires context from options
+const getBlockTypes = (options) => [
     {
         label: 'Text',
         icon: 'T',
@@ -78,7 +78,9 @@ const BLOCK_TYPES = [
         label: 'Image',
         icon: '🏞️',
         command: ({ editor, range }) => {
-            showPrompt('Add an image:', { title: '', src: '', alt: ''}, renderImageForm).then(({ src, title, alt}) => {
+            const pagePath = options.getPagePath ? options.getPagePath() : '';
+
+            showImageDialog({ title: '', src: '', alt: '' }, pagePath).then(({ src, title, alt }) => {
                 if (src) {
                     editor.chain().focus().deleteRange(range).setParagraph().setImage({ src, title, alt }).run();
                 }
@@ -124,6 +126,7 @@ export const SlashCommand = Extension.create({
                 },
                 decorationContent: "Filter blocks..."
             },
+            getPagePath: () => '',
         };
     },
 
@@ -171,12 +174,13 @@ export const SlashCommand = Extension.create({
 
 
     addProseMirrorPlugins() {
+        const blockTypes = getBlockTypes(this.options);
         return [
             Suggestion({
                 editor: this.editor,
                 ...this.options.suggestion,
                 items: ({query}) => {
-                    return BLOCK_TYPES.filter(item =>
+                    return blockTypes.filter(item =>
                         item.label.toLowerCase().includes(query.toLowerCase())
                     );
                 },
