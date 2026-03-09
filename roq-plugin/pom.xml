@@ -27,5 +27,6 @@
         <module>lunr</module>
         <module>diagram</module>
         <module>faker</module>
+        <module>toc</module>
     </modules>
 </project>
