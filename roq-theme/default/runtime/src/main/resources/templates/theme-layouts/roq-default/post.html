@@ -1,7 +1,7 @@
 ---
 layout: roq-default/main
 asciidoc-attributes:
-  notitle: true
+  notitle@: ""
 ---
 
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
@@ -23,7 +23,7 @@ asciidoc-attributes:
     {/if}
     <section class="wrap-content">
       {#include partials/roq-default/page-header.html /}
-      <section class="page-prose">
+      <section class="{page.source.markup is 'asciidoc' ? 'asciidoc-prose' : 'page-prose'}">
         {#insert /}
       </section>
       <div class="page-footer">

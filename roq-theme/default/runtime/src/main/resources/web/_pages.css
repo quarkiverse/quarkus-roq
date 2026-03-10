@@ -3,51 +3,22 @@
 @layer components {
 
     .page-prose {
-        @apply prose prose-gray prose-base max-w-none;
+        @apply prose prose-base max-w-none;
         @apply dark:prose-invert;
-
-        /* Enhanced headings */
-        @apply prose-headings:text-accent-900 prose-headings:font-bold;
-        @apply dark:prose-headings:text-accent-400;
-
-        /* Blockquotes */
-        @apply prose-blockquote:border-l-4 prose-blockquote:border-accent-600;
-        @apply prose-blockquote:bg-neutral-50 prose-blockquote:py-2 prose-blockquote:px-4;
-        @apply prose-blockquote:rounded-r-lg prose-blockquote:italic;
-        @apply dark:prose-blockquote:bg-neutral-800 dark:prose-blockquote:border-accent-500;
-
-        /* Strong */
-        @apply prose-strong:text-accent-900 prose-strong:font-bold;
-        @apply dark:prose-strong:text-accent-400;
 
         /* Code blocks - horizontal scrolling */
         @apply prose-pre:overflow-x-auto prose-pre:overflow-y-hidden;
         @apply prose-pre:max-w-full prose-pre:whitespace-pre;
+    }
 
-        /* Tables */
-        @apply prose-table:w-full prose-table:border-collapse;
-        @apply prose-table:border-spacing-0 prose-table:text-base;
-        @apply prose-table:leading-normal prose-table:my-6;
-        @apply prose-table:bg-white prose-table:border prose-table:border-neutral-300;
-        @apply prose-table:rounded-lg prose-table:overflow-hidden;
-        @apply prose-table:shadow-sm;
+    /* Apply blockquote styling to all blockquotes in page-prose */
+    .page-prose blockquote {
+        @apply prose-blockquote;
+    }
 
-        @apply prose-th:p-3 prose-th:border prose-th:border-neutral-300;
-        @apply prose-th:text-left prose-th:bg-neutral-100 prose-th:font-bold;
-        @apply prose-th:text-accent-900;
-
-        @apply prose-td:p-3 prose-td:border prose-td:border-neutral-300;
-
-        @apply prose-tr:even:bg-neutral-50;
-        @apply prose-tr:hover:bg-accent-50 prose-tr:transition-colors;
-
-        /* Dark mode table styles */
-        @apply dark:prose-table:bg-neutral-900 dark:prose-table:border-neutral-700;
-        @apply dark:prose-th:bg-neutral-800 dark:prose-th:border-neutral-700;
-        @apply dark:prose-th:text-accent-400;
-        @apply dark:prose-td:border-neutral-700;
-        @apply dark:prose-tr:even:bg-neutral-800/50;
-        @apply dark:prose-tr:hover:bg-neutral-800;
+    /* Apply table styling to all tables in page-prose */
+    .page-prose table {
+        @apply prose-table;
     }
 
     /* Table wrapper for mobile scrolling */
@@ -62,8 +33,8 @@
     .event {
         @apply mb-0 pb-6 relative;
         @apply flex flex-col gap-2;
-        @apply border-l-2 border-neutral-200 pl-6 ml-4;
-        @apply dark:border-neutral-700;
+        @apply border-l-2 border-neutral-400 pl-6 ml-4;
+        @apply dark:border-neutral-400;
         @apply md:pb-8 md:flex-row md:gap-6 md:items-start md:pl-8 md:ml-24;
     }
 
@@ -116,7 +87,7 @@
         /* Subtle gradient - accent hint to background */
         @apply bg-white;
         @apply dark:bg-neutral-800;
-        @apply md:p-6 md:pt-6 md:-ml-8 md:-mt-1;
+        @apply md:p-5 md:pt-5 md:-ml-8;
     }
 
     .event-title {
@@ -155,7 +126,7 @@
 
     /* === Page Headers === */
     .page-content .hero {
-        @apply text-center mb-8 pb-8;
+        @apply text-center mb-8 pb-8 py-16;
         @apply basis-full shrink-0;
         @apply relative;
         @apply flex flex-col items-center gap-2;
@@ -179,7 +150,7 @@
     /* === Hero Section === */
     .page-content-hero .hero {
         @apply basis-full shrink-0;
-        @apply text-center py-16 md:py-24 mb-2;
+        @apply text-center px-4 py-16 md:py-24 mb-2;
         @apply bg-gradient-to-b from-white to-neutral-50;
         @apply dark:from-neutral-900 dark:to-neutral-950;
     }
@@ -194,7 +165,7 @@
     }
 
     .hero .hero-intro {
-        @apply text-lg md:text-xl lg:text-2xl;
+        @apply text-lg md:text-xl lg:text-2xl pb-8;
         @apply text-neutral-600 dark:text-neutral-400;
         @apply max-w-3xl mx-auto;
         @apply leading-relaxed font-light;

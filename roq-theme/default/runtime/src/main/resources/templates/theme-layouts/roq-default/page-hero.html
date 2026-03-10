@@ -1,15 +1,22 @@
 ---
 layout: roq-default/main
 show-header-date: false
+asciidoc-attributes:
+  notitle@: ""
 ---
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
 
 {#insert before-page/}
-<div class="page-content-hero">
-  {#insert page-header}
-  {#include partials/roq-default/page-header.html /}
-  {/insert}
-  {#insert /}
-</div>
+<article class="page-content-hero">
+  {#include partials/roq-default/page-toc /}
+  <section class="content-main">
+    {#insert page-header}
+    {#include partials/roq-default/page-header.html /}
+    {/insert}
+    <div class="{page.source.markup is 'asciidoc' ? 'asciidoc-prose' : 'page-prose'}">
+      {#insert /}
+    </div>
+  </section>
+</article>
 {#insert after-page/}
 

@@ -14,6 +14,9 @@
 </script>
 
 {#seo page site /}
+{#if page.data.robots??}
+<meta name="robots" content="{page.data.robots}">
+{/if}
 {#rss site /}
 {#favicon site/}
 

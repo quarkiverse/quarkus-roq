@@ -1,6 +1,9 @@
 // Import Tailwind CSS
 import './roq.css';
 
+// Import TOC functionality
+import './toc.js';
+
 // Dark Mode Toggle
 (function() {
     function updateIcon(isDark) {
@@ -30,7 +33,7 @@ import './roq.css';
         const html = document.documentElement;
         html.classList.toggle('dark');
         const isDark = html.classList.contains('dark');
-        localStorage.setItem('darkMode', isDark);
+        localStorage.setItem('darkMode', String(isDark));
         updateIcon(isDark);
         updateGiscusTheme(isDark);
     }

@@ -1,25 +1,40 @@
-;(function () {
+(function () {
     'use strict'
 
-    var sidebar = document.querySelector('aside.toc.sidebar')
+    var sidebar = document.querySelector('.content-toc')
     if (!sidebar) return
     if (document.querySelector('body.-toc')) return sidebar.parentNode.removeChild(sidebar)
     var levels = parseInt(sidebar.dataset.levels || 2, 10)
     if (levels < 0) return
 
-    var articleSelector = '.asciidoc-content'
+    var articleSelector = '.asciidoc-prose'
     var article = document.querySelector(articleSelector)
+    var isAsciidoc = !!article
+
+    if (!article) {
+        articleSelector = '.page-prose'
+        article = document.querySelector(articleSelector)
+    }
     if (!article) return
+
     var headingsSelector = []
-    for (var level = 0; level <= levels; level++) {
-        var headingSelector = [articleSelector]
-        if (level) {
-            for (var l = 1; l <= level; l++) headingSelector.push((l === 2 ? '.sectionbody>' : '') + '.sect' + l)
-            headingSelector.push('h' + (level + 1) + '[id]' + (level > 1 ? ':not(.discrete)' : ''))
-        } else {
-            headingSelector.push('h1[id].sect0')
+    if (isAsciidoc) {
+        // AsciiDoc-specific heading selectors
+        for (var level = 0; level <= levels; level++) {
+            var headingSelector = [articleSelector]
+            if (level) {
+                for (var l = 1; l <= level; l++) headingSelector.push((l === 2 ? '.sectionbody>' : '') + '.sect' + l)
+                headingSelector.push('h' + (level + 1) + '[id]' + (level > 1 ? ':not(.discrete)' : ''))
+            } else {
+                headingSelector.push('h1[id].sect0')
+            }
+            headingsSelector.push(headingSelector.join('>'))
         }
-        headingsSelector.push(headingSelector.join('>'))
+    } else {
+        // Markdown/generic heading selectors (h2 through h[levels+1])
+        for (var level = 2; level <= Math.min(levels + 1, 6); level++) {
+            headingsSelector.push(articleSelector + ' h' + level + '[id]')
+        }
     }
     var headings = find(headingsSelector.join(','), article.parentNode)
     if (!headings.length) return sidebar.parentNode.removeChild(sidebar)

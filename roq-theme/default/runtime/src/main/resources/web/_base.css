@@ -33,14 +33,15 @@
     }
 
     pre {
-        @apply px-4 py-4 overflow-x-auto overflow-y-hidden;
+        @apply px-2 py-2 overflow-x-auto overflow-hidden;
         @apply max-w-full;
         @apply whitespace-pre;
     }
 
     pre code {
-        @apply border-0 pr-0 pl-0;
-        @apply bg-neutral-900 rounded-md;
+
+        @apply border-0 pr-0 pl-0 overflow-x-auto;
+        @apply rounded-md;
         @apply block whitespace-pre;
     }
 
@@ -49,21 +50,13 @@
         @apply bg-accent-800 text-white;
     }
 
-    /* Clearfix utility */
-    .clearfix::before,
-    .clearfix::after {
-        @apply content-[''] table;
-    }
-
-    .clearfix::after {
-        @apply clear-both;
-    }
 }
 
 /* Utility Components */
 @layer components {
     .wrapper {
         @apply max-w-[1250px] relative;
+        @apply 2xl:max-w-[1500px];
     }
 
     .wrap-content {
@@ -71,10 +64,10 @@
         @apply md:p-10;
     }
 
-    /* Content Box */
-    .content-box {
-        @apply px-2 flex flex-row flex-wrap items-stretch;
-        @apply md:pl-64 md:pr-5;
+    /* Main Content */
+    .main-content {
+        @apply px-2;
+        @apply md:ml-64 md:pr-5;
     }
 
     /* Page Content */

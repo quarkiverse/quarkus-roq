@@ -19,6 +19,7 @@
 @import "./_series.css";
 @import "./_404.css";
 @import "./_pages.css";
+@import "./_page-layout.css";
 
 /* Typography */
 @import "./_prose.css";
@@ -26,4 +27,4 @@
 /* Responsive Styles */
 @import "./_responsive.css";
 
-@import "./_asciidoc-content.css";
+@import "./_asciidoc-prose.css";

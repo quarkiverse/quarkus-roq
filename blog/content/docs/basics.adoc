@@ -14,11 +14,11 @@ All templates may use the awesome type-safe https://quarkus.io/guides/qute-refer
 
 [TIP]
 ====
-Type-safety doesn't make it more complex—it just means that using wrong variables will result in a build error.  
+Type-safety doesn't make it more complex—it just means that using wrong variables will result in a build error.
 This prevents issues from leaking into production.
 ====
 
-Templates for layouts, documents, and pages may also declare a FrontMatter (FM) header, delimited by two `---`.  
+Templates for layouts, documents, and pages may also declare a FrontMatter (FM) header, delimited by two `---`.
 This header contains YAML data used to configure things like:
 
 * Routing
@@ -51,12 +51,12 @@ NOTE: We sometimes refer to pages in collections as documents, documents are jus
 [#templates]
 == Templates (Layouts, Partials, and User Tags)
 
-Layouts, partials, and user tags are templates and must use one of the following extensions:  
+Layouts, partials, and user tags are templates and must use one of the following extensions:
 `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
 
 INFO: `.md` and `.adoc` files are not parsed as templates. Instead, you can use markup inside templates through Qute sections `{#md}` and `{#adoc}`, provided the corresponding <<Markup languages,plugins>> are available.
 
-=== Layouts 
+=== Layouts
 
 For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
@@ -158,17 +158,17 @@ To summarize, each page will be rendered using their parent layout _recursively_
 
 === Partials
 
-You can split layouts into partial, reusable templates.  
+You can split layouts into partial, reusable templates.
 **Partials** make it easier to maintain different sections of your layouts. By default, they are located in `templates/partials/`.
 
 For example:
 
-➡️ `templates/partials/pagination.html`  
+➡️ `templates/partials/pagination.html`
   can be included using: `{#include partials/pagination /}`
 
 === Tags
 
-Tags (User Tags) are custom reusable snippets of code, similar to small components.  
+Tags (User Tags) are custom reusable snippets of code, similar to small components.
 They help reduce duplication and let you create reusable sections.
 
 For example, create a tag in `templates/partials/post-link.html`:
@@ -202,7 +202,7 @@ For example:
 
 * `site.document('posts/2025-09-08-my-article.md')`
 * `site.page('about.md')`
-==== 
+====
 
 To learn more, see the https://quarkus.io/guides/qute-reference#user_tags[Qute User Tags guide,window=_blank].
 
@@ -211,6 +211,7 @@ To learn more, see the https://quarkus.io/guides/qute-reference#user_tags[Qute U
 [#install-theme]
 == Install a theme
 
+|}
 To install a theme, simply add the dependency to your pom.xml. Example with Roq's default theme:
 [source,xml]
 ----
@@ -220,7 +221,7 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
     <version>{cdi:project-info.release.current-version}</version>
 </dependency>
 ----
-
+{|
 
 It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
@@ -429,7 +430,7 @@ You can use different markup languages in Roq content.
 
 === Markdown
 
-Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).  
+Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).
 To write pages or documents in Markdown, simply use the `.md` or `.markdown` file extension.
 
 This plugin also allows converting *Qute* data that contains Markdown
@@ -442,7 +443,7 @@ into HTML using the `mdToHtml` template extension.
 bar: |
     ## Hello
 
-    This is using **Markdown** 
+    This is using **Markdown**
 ---
 
 {page.data.foo.mdToHtml}
@@ -641,14 +642,14 @@ You can also place draft documents (for collections) in a `drafts/` (e.g. `posts
 
 TIP: You may also start quarkus with the option: `quarkus dev -Dsite.draft`.
 
-By default, documents with a date in the future (FrontMatter data or file name) will not be visible unless you have `%dev.site.future=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode). 
+By default, documents with a date in the future (FrontMatter data or file name) will not be visible unless you have `%dev.site.future=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode).
 
 TIP: You may also start quarkus with the option: `quarkus dev -Dsite.future`.
 
 It is possible to configure a collection to always show future documents:
 [source,properties]
 ----
-site.collections.events.future=true // <1> 
+site.collections.events.future=true // <1>
 ----
 <1> Always show future documents for the "events" collection.
 
@@ -801,8 +802,8 @@ my-site/
         └── football.jpg
 ```
 
-<1> Non-directory pages → `page.image()` == `site.image()`.  
-<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.  
+<1> Non-directory pages → `page.image()` == `site.image()`.
+<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.
 <3> Site images → accessible everywhere via `site.image(name)`.
 
 ==== Usage example

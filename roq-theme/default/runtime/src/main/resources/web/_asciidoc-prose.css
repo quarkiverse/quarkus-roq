@@ -1,25 +1,20 @@
-/* AsciiDoc-specific content styles */
+/* AsciiDoc-specific prose styles */
 /* Note: Basic typography (headings, paragraphs, lists, links, blockquotes, code, tables)
    are handled by Tailwind's prose plugin. This file only contains AsciiDoc-specific elements. */
 
 @media screen and (min-width: 1024px) {
-    .asciidoc-content {
+    .asciidoc-prose {
         @apply flex-auto mx-8;
         max-width: 45rem;
         z-index: 1;
     }
 }
 
-.asciidoc-content {
+.asciidoc-prose {
     @apply prose dark:prose-invert;
     @apply max-w-none min-w-0 relative;
+    @apply md:px-0 px-2;
     @apply overflow-x-visible;
-
-    @apply prose-headings:text-accent-900 prose-headings:font-bold;
-    @apply dark:prose-headings:text-accent-400;
-
-    @apply prose-strong:text-accent-900 prose-strong:font-bold;
-    @apply dark:prose-strong:text-accent-400;
 
     /* Heading anchors */
     h1, h2, h3, h4, h5, h6 {
@@ -129,7 +124,7 @@
         }
 
         td.content {
-            @apply px-4 py-3 bg-neutral-50 w-full rounded-r border border-neutral-200;
+            @apply px-4 py-4 bg-neutral-50 w-full rounded-r border border-neutral-200;
             @apply dark:bg-neutral-800 dark:border-neutral-700;
             word-wrap: anywhere;
 
@@ -177,12 +172,12 @@
     /* Quote and verse blocks */
     .quoteblock,
     .verseblock {
-        @apply bg-neutral-50 border-l-4 border-accent-600 text-neutral-700;
-        @apply dark:bg-neutral-800 dark:text-neutral-300 dark:border-accent-500;
+        @apply prose-blockquote;
+        @apply text-neutral-700 dark:text-neutral-300;
     }
 
     .quoteblock {
-        @apply py-1 px-8 pb-5;
+        @apply pt-1 px-8 pb-5;
 
         .attribution {
             @apply text-neutral-500 text-sm mt-3;
@@ -548,52 +543,9 @@
         }
     }
 
-    /* Base table styles - exclude special tables (admonitions, callouts, hdlists) */
+    /* Apply table styling only to content tables, not layout tables */
     table.tableblock {
-        @apply w-full border-collapse;
-        @apply border-spacing-0 text-base;
-        @apply leading-normal my-6;
-        @apply bg-white border border-neutral-300;
-        @apply rounded-lg overflow-hidden;
-        @apply shadow-sm;
-
-        th {
-            @apply p-3 border border-neutral-300;
-            @apply text-left bg-neutral-100 font-bold;
-            @apply text-accent-900;
-        }
-
-        td {
-            @apply p-3 border border-neutral-300;
-        }
-
-        tbody tr:nth-of-type(even) {
-            @apply bg-neutral-50;
-        }
-
-        tbody tr:hover {
-            @apply bg-accent-50 transition-colors;
-        }
-
-        /* Dark mode table styles */
-        @apply dark:bg-neutral-900 dark:border-neutral-700;
-
-        th {
-            @apply dark:bg-neutral-800 dark:border-neutral-700;
-            @apply dark:text-accent-400;
-        }
-
-        td {
-            @apply dark:border-neutral-700;
-        }
-
-        tbody tr:nth-of-type(even) {
-            @apply dark:bg-neutral-800/50;
-        }
-
-        tbody tr:hover {
-            @apply dark:bg-neutral-800;
-        }
+        @apply prose-table;
     }
 
     /* Table wrapper for mobile scrolling */

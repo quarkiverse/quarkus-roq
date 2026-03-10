@@ -1,6 +1,7 @@
 = Themes
 include::../../includes/attributes.adoc[]
 :doc-name: themes
+:qute:
 
 include::../../includes/edit-contrib.adoc[]
 

@@ -2,6 +2,28 @@
 
 /* Global prose customization */
 @utility prose {
+    /* Map theme variables to Tailwind Typography variables */
+    --tw-prose-code: var(--prose-code);
+    --tw-prose-code-bg: var(--prose-code-bg);
+    --tw-prose-code-before: var(--prose-code-before);
+    --tw-prose-code-after: var(--prose-code-after);
+    --tw-prose-invert-code: var(--prose-invert-code);
+    --tw-prose-invert-code-bg: var(--prose-invert-code-bg);
+    --tw-prose-pre-bg: var(--prose-pre-bg);
+    --tw-prose-pre-code: var(--prose-pre-code);
+    --tw-prose-pre-code-bg: var(--prose-pre-code-bg);
+    --tw-prose-invert-pre-bg: var(--prose-invert-pre-bg);
+    --tw-prose-invert-pre-code: var(--prose-invert-pre-code);
+    --tw-prose-invert-pre-code-bg: var(--prose-invert-pre-code-bg);
+
+    /* Headings - common theme colors */
+    @apply prose-headings:text-accent-900 prose-headings:font-bold;
+    @apply dark:prose-headings:text-accent-400;
+
+    /* Strong - common theme colors */
+    @apply prose-strong:text-accent-900 prose-strong:font-bold;
+    @apply dark:prose-strong:text-accent-400;
+
     /* Inline code styling */
     @apply prose-code:bg-[var(--tw-prose-code-bg)];
     @apply prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded;
@@ -13,6 +35,66 @@
     @apply dark:prose-code:bg-[var(--tw-prose-invert-code-bg)];
 
     /* Code blocks styling */
-    @apply prose-pre:bg-neutral-900 prose-pre:rounded-lg prose-pre:shadow-sm;
-    @apply prose-pre:border prose-pre:border-neutral-800;
+    @apply prose-pre:p-2;
+    @apply prose-pre:shadow-sm;
+}
+
+/* Custom utility for blockquote styling - can be applied selectively */
+@utility prose-blockquote {
+    @apply border-l-4 border-accent-600;
+    @apply bg-neutral-50 py-2 px-4;
+    @apply rounded-r-lg italic;
+    @apply dark:bg-neutral-800 dark:border-accent-500;
+}
+
+/* Custom utility for table styling - can be applied selectively */
+@utility prose-table {
+    /* Structural */
+    @apply w-full border-collapse;
+    @apply border-spacing-0 text-base;
+    @apply leading-normal my-6;
+    @apply rounded-lg overflow-hidden;
+    @apply shadow-sm;
+
+    /* Theme colors */
+    @apply bg-white border border-neutral-300;
+    @apply dark:bg-neutral-900 dark:border-neutral-700;
+
+    /* Headers */
+    th {
+        @apply p-3 border border-neutral-300;
+        @apply text-left bg-neutral-100 font-bold;
+        @apply text-accent-900;
+        @apply dark:bg-neutral-800 dark:border-neutral-700;
+        @apply dark:text-accent-400;
+    }
+
+    /* Cells */
+    td {
+        @apply p-3 border border-neutral-300;
+        @apply dark:border-neutral-700;
+    }
+
+    /* Rows */
+    tbody tr:nth-of-type(even) {
+        @apply bg-neutral-50;
+        @apply dark:bg-neutral-800/50;
+    }
+
+    tbody tr:hover {
+        @apply bg-accent-50 transition-colors;
+        @apply dark:bg-neutral-800;
+    }
+}
+
+@layer components {
+    /* Target pre code specifically with regular CSS */
+    pre code {
+        --tw-prose-code-bg: var(--tw-prose-pre-code-bg);
+    }
+
+    .dark pre code {
+        --tw-prose-code-bg: var(--tw-prose-invert-pre-code-bg);
+    }
+
 }

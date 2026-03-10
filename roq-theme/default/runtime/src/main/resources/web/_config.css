@@ -38,13 +38,23 @@
     --color-bg-light: var(--color-neutral-50);
 
     /* Prose inline code styling */
-    --tw-prose-code: var(--color-accent-900);
-    --tw-prose-code-bg: var(--color-neutral-100);
-    --tw-prose-invert-code: var(--color-accent-400);
-    --tw-prose-invert-code-bg: var(--color-neutral-800);
-    --tw-prose-code-before: '';
-    --tw-prose-code-after: '';
+    --prose-code: var(--color-accent-900);
+    --prose-code-bg: var(--color-neutral-100);
+    --prose-invert-code: var(--color-accent-400);
+    --prose-invert-code-bg: var(--color-neutral-800);
+    --prose-code-before: '';
+    --prose-code-after: '';
+
+    /* Prose code blocks - pre acts as border/frame around code */
+    --prose-pre-bg: var(--color-neutral-200);
+    --prose-pre-code: var(--color-neutral-900);
+    --prose-pre-code-bg: var(--color-neutral-50);
+    --prose-invert-pre-bg: var(--color-neutral-700);
+    --prose-invert-pre-code: var(--color-neutral-100);
+    --prose-invert-pre-code-bg: var(--color-neutral-950);
+
 }
+
 
 /* Dark mode configuration - class-based */
 @custom-variant dark (&:where(.dark, .dark *));

@@ -2,29 +2,31 @@
 
 @layer components {
 
+    /* === Posts Container === */
+    .posts-list {
+        @apply flex flex-col gap-4;
+    }
+
     /* === Post Card === */
     .post {
-        /* Mobile first: vertical stacking, full width */
-        @apply w-full mx-0 mb-4 flex flex-col items-stretch min-h-44;
+        /* Mobile: vertical stacking, full width */
+        @apply w-full mx-0 flex flex-col items-stretch min-h-44;
         @apply rounded-xl overflow-hidden transition-all duration-300 ease-out;
         @apply bg-white shadow-md hover:shadow-2xl hover:-translate-y-1;
         @apply hover:border-accent-200;
         @apply dark:bg-neutral-800 dark:hover:border-accent-500/30;
 
-        /* Tablet: 2 columns with gap */
-        @apply sm:w-[calc(50%-0.5rem)];
-
-        /* Desktop: horizontal layout, full width */
-        @apply lg:w-full lg:flex-row;
+        /* Tablet+: horizontal layout */
+        @apply md:flex-row;
     }
 
     .post-thumbnail {
-        /* Mobile/tablet: full width */
+        /* Mobile: full width */
         @apply w-full min-h-44 bg-cover bg-center;
         @apply transition-transform duration-500 ease-out;
 
-        /* Desktop: 30% width */
-        @apply lg:w-[30%];
+        /* Tablet+: 30% width */
+        @apply md:w-[30%];
     }
 
     .post:hover .post-thumbnail {
@@ -32,11 +34,11 @@
     }
 
     .post-content {
-        /* Mobile/tablet: full width */
+        /* Mobile: full width */
         @apply p-4 w-full;
 
-        /* Desktop: 70% width */
-        @apply lg:w-[70%];
+        /* Tablet+: 70% width */
+        @apply md:w-[70%];
     }
 
     .post-content p {
@@ -47,8 +49,8 @@
         /* Mobile: smaller text */
         @apply m-0 mb-4 text-xl font-normal;
 
-        /* Desktop: larger text */
-        @apply lg:text-3xl;
+        /* Tablet+: larger text */
+        @apply md:text-3xl;
     }
 
     .post-title a {

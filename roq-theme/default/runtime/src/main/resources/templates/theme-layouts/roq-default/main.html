@@ -14,11 +14,11 @@ layout: roq-default/default
   {#insert footer}
   <footer>
     {#insert contact}{#include partials/roq-default/sidebar-contact /}{/}
-    {#insert darkmode}{#include partials/roq-default/sidebar-darkmode /}{/}
     {#insert copyright}{#include partials/roq-default/sidebar-copyright /}{/}
   </footer> <!-- End Footer -->
   {/}
 </aside> <!-- End Sidebar -->
-<div class="content-box clearfix">
+{#insert darkmode}{#include partials/roq-default/sidebar-darkmode /}{/}
+<main class="main-content">
   {#insert /}
-</div>
+</main>

@@ -1,7 +1,13 @@
 /* Article Page Styles */
 
 @layer components {
+
     /* === Article Page === */
+
+    .article-page {
+        @apply overflow-x-hidden;
+    }
+
     .article-page .hero {
         @apply text-center my-2.5;
     }
