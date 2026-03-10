@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -28,16 +30,16 @@ public class AsciidoctorJConverter {
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
-        this(config.attributes());
+        this(config.attributes(), new HashSet<>(config.includeExtensions()));
     }
 
-    public AsciidoctorJConverter(Map<String, String> configuredAttributes) {
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, Set<String> includeExtensions) {
         this.configuredAttributes = configuredAttributes;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
         asciidoctor.requireLibrary("asciidoctor-diagram");
-        asciidoctor.javaExtensionRegistry().includeProcessor(new AsciidocJInclude());
+        asciidoctor.javaExtensionRegistry().includeProcessor(new AsciidocJInclude(includeExtensions));
         LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
 
     }

@@ -25,13 +25,22 @@ public class AsciidocJInclude extends IncludeProcessor {
     private static final Pattern URL_PREFIX_PATTERN = Pattern.compile("^((https?|file|ftp|irc)://|mailto:)");
     private static final Pattern HEADING_PATTERN = Pattern.compile("^(=+)(\\s+.*)$");
 
-    public AsciidocJInclude() {
+    private final Set<String> allowedExtensions;
 
+    public AsciidocJInclude(Set<String> allowedExtensions) {
+        this.allowedExtensions = allowedExtensions;
     }
 
     @Override
     public boolean handles(String target) {
-        return !URL_PREFIX_PATTERN.matcher(target).matches() && (target.endsWith(".adoc") || target.endsWith(".asciidoc"));
+        if (URL_PREFIX_PATTERN.matcher(target).find()) {
+            return false;
+        }
+        if (target.endsWith(".adoc") || target.endsWith(".asciidoc")) {
+            return true;
+        }
+        int dot = target.lastIndexOf('.');
+        return dot >= 0 && allowedExtensions.contains(target.substring(dot));
     }
 
     @Override
@@ -46,7 +55,7 @@ public class AsciidocJInclude extends IncludeProcessor {
         final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
         final Path rootDir = Path.of(document.getOptions().getOrDefault(ROOTDIR, "").toString());
         Path p = Path.of(target);
-        Path targetPath = p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target).normalize();
+        Path targetPath = (p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target)).normalize();
 
         if (safeLevel >= SafeMode.SAFE.getLevel()) {
             if (!targetPath.startsWith(rootDir.normalize())) {
