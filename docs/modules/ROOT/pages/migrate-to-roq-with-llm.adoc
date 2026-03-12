@@ -52,7 +52,7 @@ Use a phased approach with validation gates:
 
 | **B: Styling + scale**
 | JavaScript, CSS/SCSS, all content pages
-| Stop if build time exceeds 10 minutes or memory exceeds 8 GB
+| Stop if build time exceeds 10 minutes or memory exceeds 4 GB
 
 | **C: Full site**
 | All templates, blog, homepage, static pages, redirects, CI/CD
