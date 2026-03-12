@@ -93,6 +93,9 @@ For full control over the TOC markup, iterate over the `\{page.toc}` list:
 {/if}
 ----
 
+NOTE: This example renders only two heading levels.
+To render deeper descendants, nest additional `\{#for}` loops inside the `child` block, or use `\{page.tocHtml}` which renders the full hierarchy automatically.
+
 [id="reference"]
 == Template API reference
 
