@@ -72,11 +72,12 @@ For full control over the TOC markup, iterate over the `\{page.toc}` list:
 
 [source,html]
 ----
-{#if page.toc.size > 0}
+{#let toc=page.toc}
+{#if toc.size > 0}
 <aside class="my-toc">
   <h2>On this page</h2>
   <ul>
-  {#for entry in page.toc}
+  {#for entry in toc}
     <li>
       <a href="#{entry.id}">{entry.title}</a>
       {#if entry.children.size > 0}
@@ -91,6 +92,7 @@ For full control over the TOC markup, iterate over the `\{page.toc}` list:
   </ul>
 </aside>
 {/if}
+{/let}
 ----
 
 NOTE: This example renders only two heading levels.

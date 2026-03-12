@@ -12,10 +12,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc-deployment</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-frontmatter-deployment</artifactId>
             <version>${project.version}</version>
