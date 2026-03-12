@@ -86,7 +86,8 @@ public class RoqPluginTocTemplateExtension {
         // Extract Markdown headings (h1[id], h2[id], ...) that are NOT inside AsciiDoc sections
         Elements markdownHeadings = doc.select("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
         for (Element heading : markdownHeadings) {
-            if (heading.parents().stream().anyMatch(p -> p.classNames().stream().anyMatch(c -> c.startsWith("sect")))) {
+            if (heading.parents().stream()
+                    .anyMatch(p -> p.classNames().stream().anyMatch(c -> c.matches("sect[1-6]")))) {
                 continue;
             }
             int level = Integer.parseInt(heading.tagName().substring(1));

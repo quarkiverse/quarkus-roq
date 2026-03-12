@@ -123,6 +123,24 @@ public class RoqPluginTocTemplateExtensionTest {
     }
 
     @Test
+    void shouldNotSkipHeadingsInsideNonSectClassParent() {
+        // A heading inside a "section" or "sector" class should NOT be skipped —
+        // only "sect1" through "sect6" are AsciiDoc section wrappers.
+        String html = """
+                <div class="section">
+                  <h2 id="markdown-heading">Markdown Heading</h2>
+                  <p>Content.</p>
+                </div>
+                """;
+
+        Document doc = Jsoup.parse(html);
+        List<HeadingInfo> headings = extractHeadings(doc);
+
+        assertThat(headings).hasSize(1);
+        assertThat(headings.get(0)).isEqualTo(new HeadingInfo("markdown-heading", "Markdown Heading", 2));
+    }
+
+    @Test
     void shouldReturnEmptyForEmptyDocument() {
         Document doc = Jsoup.parse("");
         List<HeadingInfo> headings = extractHeadings(doc);
