@@ -1,7 +1,7 @@
 <li class="{#if nested??}list-none{/if} relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark">
 
 {#if item.logo??}
-  <a href="{item.logo.link}" target="_blank"><img src="{item.logo.imageUrl}" alt="{item.logo.label}" class="h-15 m-2"></a>
+  <a href="{item.logo.link}" target="_blank"><img src="{site.image(item.logo.imageUrl)}" alt="{item.logo.label}" class="h-15 m-2"></a>
 {/if}
 
 {#if item.collapsible}
@@ -36,7 +36,7 @@
 {#if item.subItems}
   <ul>
     {#for subItem in item.subItems}
-      {#resumeItem item=subItem nested=true}
+      {#resumeItem site=site item=subItem nested=true}
       {/resumeItem}
     {/for}
   </ul>
