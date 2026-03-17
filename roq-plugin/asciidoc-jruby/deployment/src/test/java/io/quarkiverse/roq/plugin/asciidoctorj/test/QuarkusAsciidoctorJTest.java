@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ import io.quarkus.qute.Engine;
 public class QuarkusAsciidoctorJTest {
 
     public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
-            new AsciidoctorJConverter(Map.of(), Set.of()));
+            new AsciidoctorJConverter(Map.of()));
 
     @Test
     public void shouldConvertUsingAsciiTag() {

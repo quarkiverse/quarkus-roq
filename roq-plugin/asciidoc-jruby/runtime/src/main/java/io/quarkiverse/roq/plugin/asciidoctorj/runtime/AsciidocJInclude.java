@@ -25,22 +25,17 @@ public class AsciidocJInclude extends IncludeProcessor {
     private static final Pattern URL_PREFIX_PATTERN = Pattern.compile("^((https?|file|ftp|irc)://|mailto:)");
     private static final Pattern HEADING_PATTERN = Pattern.compile("^(=+)(\\s+.*)$");
 
-    private final Set<String> allowedExtensions;
-
-    public AsciidocJInclude(Set<String> allowedExtensions) {
-        this.allowedExtensions = allowedExtensions;
+    public AsciidocJInclude() {
     }
 
+    /**
+     * Handles all include targets except external URLs.
+     * This ensures cross-directory and classpath includes work for all file types,
+     * since Roq loads AsciiDoc content as strings without file context.
+     */
     @Override
     public boolean handles(String target) {
-        if (URL_PREFIX_PATTERN.matcher(target).find()) {
-            return false;
-        }
-        if (target.endsWith(".adoc") || target.endsWith(".asciidoc")) {
-            return true;
-        }
-        int dot = target.lastIndexOf('.');
-        return dot >= 0 && allowedExtensions.contains(target.substring(dot));
+        return !URL_PREFIX_PATTERN.matcher(target).find();
     }
 
     @Override
@@ -131,11 +126,11 @@ public class AsciidocJInclude extends IncludeProcessor {
     // --- Helper methods: direct port of Ruby logic ---
 
     // Extract lines between tag::...[] and end::...[]
+    // Supports standard AsciiDoc comment styles: //, #, --, ;;, <!--
     private static List<String> extractTag(List<String> lines, String tag) {
-        // Ruby: start = /^\/\/\s*tag::#{tag}\[\]/
-        //       end   = /^\/\/\s*end::#{tag}\[\]/
-        Pattern start = Pattern.compile("^//\\s*tag::" + Pattern.quote(tag) + "\\[\\]");
-        Pattern end = Pattern.compile("^//\\s*end::" + Pattern.quote(tag) + "\\[\\]");
+        String quotedTag = Pattern.quote(tag);
+        Pattern start = Pattern.compile("^(?://|#|--|;;|<!--)\\s*tag::" + quotedTag + "\\[\\]");
+        Pattern end = Pattern.compile("^(?://|#|--|;;|<!--)\\s*end::" + quotedTag + "\\[\\]");
         List<String> result = new ArrayList<>();
         boolean inTag = false;
         for (String line : lines) {
