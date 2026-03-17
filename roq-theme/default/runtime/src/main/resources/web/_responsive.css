@@ -1,0 +1,37 @@
+/* Responsive Media Queries */
+
+@layer components {
+    /* Mobile-specific styles (max-width: 767px) */
+    @media (max-width: 767px) {
+        /* Hide contact title and copyright on mobile */
+        .contact-title,
+        .copyright {
+            @apply hidden;
+        }
+
+        /* Adjust about section for mobile */
+        .about {
+            @apply text-center mx-auto mt-2.5;
+        }
+
+        .about .cover-author-image img {
+            @apply w-25 h-25 rounded-full mb-2.5;
+        }
+
+        aside.sidebar.main footer {
+            @apply mb-2.5;
+        }
+
+        /* Reset pre padding on mobile */
+        pre {
+            @apply p-0;
+        }
+    }
+
+    /* Hide about description on short screens */
+    @media (max-height: 1025px) {
+        aside.sidebar.main .about p {
+            @apply hidden;
+        }
+    }
+}

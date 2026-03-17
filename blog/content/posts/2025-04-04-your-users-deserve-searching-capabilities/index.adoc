@@ -2,7 +2,7 @@
 title: 🔎 Your users deserve searching capabilities!
 description: No third party service needed 🚀
 img: https://images.unsplash.com/photo-1554696468-19f8c7a71ad5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-tags: plugin, frontmatter, guide
+tags: plugin, guide
 author: jtama
 ---
 

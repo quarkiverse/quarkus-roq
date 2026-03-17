@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.isFileExcluded;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.isPartialHtmlDocument;
 import static org.assertj.core.api.Assertions.*;
 
 import java.nio.file.Path;
@@ -80,6 +81,57 @@ class RoqFrontMatterScanProcessorTest {
         assertThatThrownBy(() -> predicate.test(Paths.get("tmp/foo.tmp")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("'other' is different type of Path");
+    }
+
+    @Test
+    void shouldDetectCompleteHtmlDocumentAsNotPartial() {
+        assertThat(isPartialHtmlDocument("<!DOCTYPE html><html><body>test</body></html>")).isFalse();
+    }
+
+    @Test
+    void shouldDetectCompleteHtmlWithHtmlTagAsNotPartial() {
+        assertThat(isPartialHtmlDocument("<html><head><title>Test</title></head></html>")).isFalse();
+    }
+
+    @Test
+    void shouldDetectCompleteHtmlWithLeadingWhitespaceAsNotPartial() {
+        assertThat(isPartialHtmlDocument("   \n\t<!DOCTYPE html><html>")).isFalse();
+    }
+
+    @Test
+    void shouldDetectCompleteHtmlWithLeadingCommentAsNotPartial() {
+        assertThat(isPartialHtmlDocument("<!-- Comment -->\n<!DOCTYPE html><html>")).isFalse();
+    }
+
+    @Test
+    void shouldBeCaseInsensitive() {
+        assertThat(isPartialHtmlDocument("<!DoCtYpE html>")).isFalse();
+        assertThat(isPartialHtmlDocument("<HTML>")).isFalse();
+    }
+
+    @Test
+    void shouldDetectHtmlInCodeExampleAsPartial() {
+        String content = """
+                = AsciiDoc Document
+
+                Example:
+                [source,html]
+                ----
+                <!DOCTYPE html>
+                <html><body>Example</body></html>
+                ----
+                """;
+        assertThat(isPartialHtmlDocument(content)).isTrue();
+    }
+
+    @Test
+    void shouldDetectPartialHtmlContent() {
+        assertThat(isPartialHtmlDocument("<div>Some content</div>")).isTrue();
+    }
+
+    @Test
+    void shouldDetectEmptyContentAsPartial() {
+        assertThat(isPartialHtmlDocument("")).isTrue();
     }
 
 }

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -72,6 +71,8 @@ import io.vertx.core.json.JsonObject;
 public class RoqFrontMatterScanProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
+    private static final Pattern COMPLETE_HTML_PATTERN = Pattern.compile("^\\s*(?:<!--.*?-->\\s*)*(<!doctype|<html)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private static final String LAYOUT_KEY = "layout";
     public static final String ESCAPE_KEY = "escape";
@@ -505,8 +506,7 @@ public class RoqFrontMatterScanProcessor {
 
             final boolean isHtml = isTemplateTargetHtml(file);
 
-            final boolean isHtmlPartialPage = type.isPage() && isHtml && !(content.toLowerCase(Locale.ROOT).contains("<html")
-                    || content.toLowerCase(Locale.ROOT).contains("<!doctype"));
+            final boolean isHtmlPartialPage = type.isPage() && isHtml && isPartialHtmlDocument(content);
 
             final String defaultLayout = isHtmlPartialPage
                     ? (collection != null ? collection.layout() : config.pageLayout().orElse(null))
@@ -678,5 +678,19 @@ public class RoqFrontMatterScanProcessor {
 
     private static boolean hasFrontMatter(String content) {
         return FRONTMATTER_PATTERN.matcher(content).find();
+    }
+
+    /**
+     * Check if content is a partial HTML document (not a complete HTML document with DOCTYPE/html tags).
+     * Partial HTML needs a layout wrapper. Complete HTML docs start with DOCTYPE or html tags.
+     * This prevents false positives from HTML code examples in documentation.
+     */
+    static boolean isPartialHtmlDocument(String content) {
+        // Fast path: if content doesn't contain <html or doctype, it's definitely partial
+        String lower = content.toLowerCase();
+        if (!lower.contains("<html") && !lower.contains("<!doctype")) {
+            return true;
+        }
+        return !COMPLETE_HTML_PATTERN.matcher(content).find();
     }
 }

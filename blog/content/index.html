@@ -1,9 +1,10 @@
 ---
-title: Hello, world! I’m Roq — a fun little SSG (Static Site Generator) with a Java soul and Quarkus energy.
-description: A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.
+title: Hello, world! I’m Roq — a funny little SSG (Static Site Generator) with a Java soul and Quarkus energy — Open Source and Free.
+description: An Open Source static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.
 name: I am ROQ
 simple-name: ROQ
-image: roq-icon.svg
+image: roq-icon-transparent.svg
+image-dark: roq-icon-transparent-reversed.svg
 icon: ico.png
 social-twitter: quarkusio
 social-facebook:
@@ -14,6 +15,19 @@ paginate:
   collection: posts
   size: 10
 ---
-<h1>A blog under the Roq</h1>
 
-If you haven't yet, be sure to check out our <b><a href="{site.url('docs/getting-started')}">getting started</a></b> page!
+{#theme/hero title="The Roq's Blog"}
+  <p>Writing with Roq is delightful, it is all free and Open Source ❤️.</p>
+  <p>Explore
+    <a class="hero-highlight" href="{site.url().resolve("posts/tag/guide")}">guides</a>,
+    <a class="hero-highlight" href="{site.url().resolve("posts/tag/cool-stuff")}">cool-stuff</a>, and
+    <a class="hero-highlight" href="{site.url().resolve("posts/tag/blogging")}">blogging articles</a>
+    to build amazing static sites with the power of Java and Quarkus.</p>
+  <div class="hero-actions">
+    <a href="{site.url('docs/getting-started')}" class="hero-action">
+      Get Started<i class="fa-solid fa-arrow-right"></i>
+    </a>
+  </div>
+
+{/}
+

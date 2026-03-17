@@ -1,0 +1,7 @@
+{@java.lang.String tag}
+
+{#bundle /}
+
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}

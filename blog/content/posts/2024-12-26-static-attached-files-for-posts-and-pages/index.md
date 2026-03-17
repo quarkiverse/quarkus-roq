@@ -4,7 +4,7 @@ image: dina-badamshina-j7vbBmTHmjY-unsplash.jpg
 description: |
   This Christmas, I’m Roq-ing a cool new feature (inspired by Hugo 😅): it is possible to attach static files to posts and pages. They will be served relative to the page. 🎁🤩
 author: ia3andy
-tags: frontmatter, cool-stuff
+tags: cool-stuff, guide
 ---
 
 This Christmas, I’m Roq-ing a cool new feature (inspired by Hugo 😅): it is possible to attach static files to posts and pages. They will be served relative to the page. 🎁🤩

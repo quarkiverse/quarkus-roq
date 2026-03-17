@@ -1,0 +1,110 @@
+/* Page Layout with TOC Sidebar */
+/* Uses :has() selector to enable flex layout only when TOC is present */
+/* All rules use direct child selector (>) to scope to .page-content > .content-toc only */
+
+/* Page content with TOC sidebar - flex layout */
+.page-content:has(> .content-toc) {
+  word-wrap: anywhere;
+  @apply p-[30px] flex min-w-0;
+  @apply overflow-x-visible;
+  @apply max-lg:overflow-x-hidden;
+  @apply max-md:p-0 max-md:m-0 max-md:block;
+}
+
+.page-content > .content-toc {
+  @apply max-lg:hidden;
+}
+
+.page-content:has(> .content-toc) main > .content {
+  @apply max-lg:overflow-x-auto;
+}
+
+.page-content .content-toc.embedded {
+  @apply lg:hidden;
+}
+
+.page-content > aside.content-toc {
+  @apply lg:order-1 lg:grow-0 lg:shrink-0 lg:basis-48;
+}
+
+/* content-main max-width - constrained by sidebar width */
+.page-content:has(> .content-toc) .content-main {
+  @apply max-w-xl;
+  @apply lg:max-w-[calc(100%-theme(spacing.48))];
+}
+
+/* TOC menu visual styles - always applied */
+.content-toc .toc-menu {
+  @apply text-neutral-600 dark:text-neutral-400;
+}
+
+.content-toc .toc-menu h3 {
+  @apply text-neutral-800 font-semibold dark:text-neutral-200;
+  @apply pb-1 text-sm lg:text-xs leading-[1.3] mx-[-0.5px] my-0;
+}
+
+.content-toc .toc-menu ul {
+  @apply list-none m-0 p-0 text-sm lg:text-xs;
+  scrollbar-width: none;
+}
+
+.content-toc .toc-menu ul::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.content-toc .toc-menu li {
+  @apply m-0;
+}
+
+.content-toc .toc-menu li[data-level="2"] a {
+  @apply pl-5;
+}
+
+.content-toc .toc-menu li[data-level="3"] a {
+  @apply pl-8;
+}
+
+.content-toc .toc-menu a {
+  @apply border-l-2 border-neutral-200 inline-block no-underline;
+  @apply dark:border-neutral-700;
+  @apply block outline-none;
+  @apply py-1 pl-2;
+  color: inherit;
+}
+
+.content-toc .toc-menu a:hover {
+  @apply text-neutral-800 dark:text-neutral-200;
+  -webkit-text-stroke-width: 0.01em;
+}
+
+.content-toc .toc-menu a.is-active {
+  @apply border-l-accent-600 text-neutral-800;
+  @apply dark:border-l-accent-500 dark:text-neutral-200;
+  -webkit-text-stroke-width: 0.01em;
+}
+
+.content-toc .toc-menu a:focus {
+  @apply bg-neutral-50 dark:bg-neutral-800;
+}
+
+.content-toc .toc-menu .is-hidden-toc {
+  display: none !important;
+}
+
+/* TOC positioning/layout - only when direct child of .page-content */
+.page-content > .content-toc .toc-menu {
+  @apply ml-5 mr-3 sticky top-24;
+}
+
+.page-content > .content-toc .toc-menu h3 {
+  @apply flex flex-col justify-end;
+  @apply h-10;
+}
+
+.page-content > .content-toc .toc-menu ul {
+  @apply overflow-y-auto;
+  /* viewport height - top offset (navbar + toolbar = spacing.24) - bottom padding (spacing.10) */
+  max-height: calc(100vh - theme(spacing.24) - theme(spacing.10));
+  overscroll-behavior: none;
+}

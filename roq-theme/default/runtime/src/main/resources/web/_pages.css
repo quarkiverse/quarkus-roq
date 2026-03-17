@@ -1,0 +1,226 @@
+/* Page and Event Styles */
+
+@layer components {
+
+    .page-prose {
+        @apply prose prose-base max-w-none;
+        @apply dark:prose-invert;
+
+        /* Code blocks - horizontal scrolling */
+        @apply prose-pre:overflow-x-auto prose-pre:overflow-y-hidden;
+        @apply prose-pre:max-w-full prose-pre:whitespace-pre;
+    }
+
+    /* Apply blockquote styling to all blockquotes in page-prose */
+    .page-prose blockquote {
+        @apply prose-blockquote;
+    }
+
+    /* Apply table styling to all tables in page-prose */
+    .page-prose table {
+        @apply prose-table;
+    }
+
+    /* Table wrapper for mobile scrolling */
+    @media (max-width: 768px) {
+        .page-prose table {
+            @apply block overflow-x-auto;
+        }
+    }
+
+
+    /* === Event Styles - Timeline Design === */
+    .event {
+        @apply mb-0 pb-6 relative;
+        @apply flex flex-col gap-2;
+        @apply border-l-2 border-neutral-400 pl-6 ml-4;
+        @apply dark:border-neutral-400;
+        @apply md:pb-8 md:flex-row md:gap-6 md:items-start md:pl-8 md:ml-24;
+    }
+
+    .event:last-child {
+        @apply pb-0;
+    }
+
+    /* Date */
+    .event .post-date {
+        @apply absolute left-4 top-4 z-20;
+        @apply flex flex-row items-center gap-2 w-auto text-left font-bold;
+        @apply md:-left-26 md:top-5 md:flex-col md:items-end md:w-20 md:text-right;
+    }
+
+    .event .post-date i {
+        @apply hidden;
+    }
+
+    .event .post-date span {
+        @apply block leading-tight;
+    }
+
+    .event .post-date span:first-child {
+        @apply text-2xl text-accent-600 md:text-3xl;
+        @apply dark:text-accent-300;
+    }
+
+    .event .post-date span:last-child {
+        @apply text-xs uppercase tracking-wider text-neutral-500 md:text-sm;
+        @apply dark:text-neutral-300;
+    }
+
+    /* Timeline dot */
+    .event::before {
+        @apply content-[''] absolute w-4 h-4 rounded-full z-10;
+        @apply -left-[9px] top-6;
+        @apply bg-accent-600 border-2 border-white shadow-sm;
+        @apply dark:bg-accent-500 dark:border-neutral-900;
+        @apply md:-left-[13px] md:top-6 md:w-6 md:h-6 md:border-4 md:shadow-md;
+    }
+
+
+    /* Event card - flag style */
+    .event-content {
+        @apply flex-1 relative p-4 pt-14 -ml-6;
+        @apply rounded-r-xl rounded-tl-none rounded-bl-none;
+        @apply shadow-sm;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:shadow-lg hover:-translate-y-0.5;
+        /* Subtle gradient - accent hint to background */
+        @apply bg-white;
+        @apply dark:bg-neutral-800;
+        @apply md:p-5 md:pt-5 md:-ml-8;
+    }
+
+    .event-title {
+        @apply text-2xl font-bold text-accent-900 mt-0 mb-2;
+        @apply dark:text-accent-400;
+    }
+
+    .event p {
+        @apply text-neutral-700 leading-relaxed mb-3;
+        @apply dark:text-neutral-300;
+    }
+
+    .event a {
+        @apply inline-flex items-center gap-2;
+        @apply text-accent-900 font-semibold no-underline;
+        @apply transition-all duration-200;
+        @apply hover:text-accent-600 hover:gap-3;
+        @apply dark:text-accent-400 dark:hover:text-accent-300;
+    }
+
+    .event a::after {
+        @apply content-['\2192'] text-lg;
+        @apply transition-transform duration-200;
+    }
+
+    .event a:hover::after {
+        @apply translate-x-1;
+    }
+
+    /* === Authors Section Enhancement === */
+    /* The .authors div should have class="not-prose authors" in HTML */
+    /* This CSS is just for spacing */
+    .page-content .authors {
+        @apply my-8;
+    }
+
+    /* === Page Headers === */
+    .page-content .hero {
+        @apply text-center mb-8 pb-8 py-16;
+        @apply basis-full shrink-0;
+        @apply relative;
+        @apply flex flex-col items-center gap-2;
+    }
+
+    .page-content  .hero::after {
+        @apply content-[''] h-px w-full max-w-2xl;
+        @apply bg-gradient-to-r from-transparent via-accent-600 to-transparent;
+        @apply dark:via-accent-400;
+    }
+
+    /* Target first h1 in page-content when NOT in page-prose */
+    .page-content:not(:has(.page-prose)) h1:first-of-type {
+        @apply text-center;
+        @apply mb-6 pb-4;
+        @apply text-3xl md:text-4xl font-bold;
+        @apply text-accent-900;
+        @apply dark:text-accent-400;
+    }
+
+    /* === Hero Section === */
+    .page-content-hero .hero {
+        @apply basis-full shrink-0;
+        @apply text-center px-4 py-16 md:py-24 mb-2;
+        @apply bg-gradient-to-b from-white to-neutral-50;
+        @apply dark:from-neutral-900 dark:to-neutral-950;
+    }
+
+    .hero h1 {
+        @apply text-4xl md:text-5xl lg:text-6xl font-bold;
+        @apply bg-gradient-to-r from-accent-900 via-accent-800 to-accent-900;
+        @apply bg-clip-text text-transparent;
+        @apply dark:from-accent-400 dark:via-accent-300 dark:to-accent-400;
+        @apply mb-6 leading-tight;
+        @apply tracking-tight;
+    }
+
+    .hero .hero-intro {
+        @apply text-lg md:text-xl lg:text-2xl pb-8;
+        @apply text-neutral-600 dark:text-neutral-400;
+        @apply max-w-3xl mx-auto;
+        @apply leading-relaxed font-light;
+    }
+
+    .hero .hero-actions {
+        @apply flex items-center justify-center gap-2 mt-10 ;
+    }
+
+    .hero .hero-action {
+        @apply inline-flex items-center;
+        @apply py-4 px-4 md:px-10 md:py-5;
+        @apply bg-gradient-to-r from-accent-600 to-accent-700;
+        @apply text-white font-semibold text-base md:text-lg;
+        @apply rounded-full shadow-lg;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:shadow-xl hover:from-accent-700 hover:to-accent-800;
+        @apply dark:from-accent-500 dark:to-accent-600;
+        @apply dark:hover:from-accent-600 dark:hover:to-accent-700;
+        @apply no-underline;
+    }
+
+    .hero .hero-action i {
+        @apply ml-2 transition-transform duration-300;
+    }
+
+    .hero .hero-action:hover i {
+        @apply translate-x-1;
+    }
+
+    .hero .hero-date {
+        @apply text-sm text-neutral-500 uppercase tracking-widest font-medium;
+        @apply mb-4;
+        @apply dark:text-neutral-400;
+    }
+
+
+    .hero .hero-meta {
+        @apply flex items-center justify-center gap-4 flex-wrap;
+        @apply text-sm text-neutral-500 dark:text-neutral-500;
+        @apply mt-8;
+    }
+
+   .hero-meta span {
+        @apply inline-flex items-center gap-2;
+    }
+
+    .hero .hero-highlight,
+    .hero .hero-highlight a,
+    .hero a.hero-highlight {
+        @apply text-accent-900 dark:text-accent-400;
+        @apply font-semibold no-underline;
+        @apply transition-colors duration-200;
+        @apply hover:text-accent-600 dark:hover:text-accent-300;
+    }
+
+
+}
