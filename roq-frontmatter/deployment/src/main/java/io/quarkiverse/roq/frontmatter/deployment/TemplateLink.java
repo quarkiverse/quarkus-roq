@@ -2,8 +2,9 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.FILE_NAME_DATE_PATTERN;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
-import static io.quarkiverse.roq.util.PathUtils.*;
-import static io.quarkiverse.roq.util.PathUtils.slugify;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
 
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
 
 public class TemplateLink {
@@ -64,7 +65,7 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
                 Map.entry(":raw-path", () -> removeExtension(data.pageSource().path())),
                 Map.entry(":path",
-                        () -> slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
+                        () -> StringPaths.slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
                 Map.entry(":ext",
                         () -> data.pageSource().isTargetHtml() ? ""
                                 : "." + data.pageSource().extension()),
@@ -72,9 +73,9 @@ public class TemplateLink {
                         () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
                 Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
                 Map.entry(":Slug", () -> resolveSlug(data)),
-                Map.entry(":name", () -> slugify(resolveName(data), true, false)
+                Map.entry(":name", () -> StringPaths.slugify(resolveName(data), true, false)
                         .toLowerCase()),
-                Map.entry(":Name", () -> slugify(resolveName(data), true, false)))); // Case-preserving slug
+                Map.entry(":Name", () -> StringPaths.slugify(resolveName(data), true, false)))); // Case-preserving slug
         if (other != null) {
             result.putAll(other);
         }
@@ -149,7 +150,7 @@ public class TemplateLink {
         if (link.endsWith("index") || link.endsWith("index.html")) {
             link = link.replaceAll("index(\\.html)?", "");
         }
-        return addTrailingSlashIfNoExt(removeLeadingSlash(PathUtils.join(basePath, link)));
+        return addTrailingSlashIfNoExt(removeLeadingSlash(StringPaths.join(basePath, link)));
     }
 
     private static String removeDate(String path) {

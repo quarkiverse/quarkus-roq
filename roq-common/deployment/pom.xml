@@ -20,6 +20,11 @@
             <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.quarkiverse.tools</groupId>
+            <artifactId>quarkus-project-scanner</artifactId>
+            <version>${quarkus-web-bundler.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>

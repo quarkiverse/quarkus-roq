@@ -19,7 +19,7 @@ import jakarta.enterprise.inject.Vetoed;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
@@ -129,10 +129,10 @@ public final class Site {
         }
         path = normaliseName(path, page.source().files().slugified());
         // Legacy images dir support
-        if (fileExists(PathUtils.join("static/assets/images", path))) {
-            return file(PathUtils.join("static/assets/images", path));
+        if (fileExists(StringPaths.join("static/assets/images", path))) {
+            return file(StringPaths.join("static/assets/images", path));
         }
-        return file(PathUtils.join(imagesDir, path));
+        return file(StringPaths.join(imagesDir, path));
     }
 
     /**
@@ -145,10 +145,10 @@ public final class Site {
         String path = String.valueOf(name);
         path = normaliseName(path, page.source().files().slugified());
         // Legacy images dir support
-        if (fileExists(PathUtils.join("static/assets/images", path))) {
+        if (fileExists(StringPaths.join("static/assets/images", path))) {
             return true;
         }
-        return fileExists(PathUtils.join(imagesDir, path));
+        return fileExists(StringPaths.join(imagesDir, path));
     }
 
     /**

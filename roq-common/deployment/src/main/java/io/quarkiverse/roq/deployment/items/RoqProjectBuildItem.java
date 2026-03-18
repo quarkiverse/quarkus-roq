@@ -1,55 +1,46 @@
 package io.quarkiverse.roq.deployment.items;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
 
-import io.quarkiverse.roq.util.PathUtils;
-import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
+import io.quarkiverse.tools.projectscanner.ProjectScannerLocalDirBuildItem;
+import io.quarkiverse.tools.projectscanner.util.ProjectUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.builder.item.SimpleBuildItem;
-import io.quarkus.paths.PathVisit;
+import io.quarkus.deployment.annotations.BuildProducer;
 
 public final class RoqProjectBuildItem extends SimpleBuildItem {
-    private final RoqProject project;
+    private final RoqLocalDir local;
     private final String roqResourceDir;
 
-    public RoqProjectBuildItem(RoqProject project, String roqResourceDir) {
-        this.project = project;
+    public RoqProjectBuildItem(RoqLocalDir local, String roqResourceDir) {
+        this.local = local;
         this.roqResourceDir = roqResourceDir;
     }
 
-    public RoqProject project() {
-        return project;
+    public RoqLocalDir local() {
+        return local;
+    }
+
+    public void addScannerForLocalRoqDir(BuildProducer<ProjectScannerLocalDirBuildItem> producer, String subDir) {
+        final Path resolved = fromLocalRoqDir(subDir);
+        if (resolved != null) {
+            producer.produce(new ProjectScannerLocalDirBuildItem(
+                    // dir to scan is from root
+                    resolved,
+                    // index base is from roq dir
+                    local().projectRoot().relativize(local().roqDir()).toString()));
+        }
+    }
+
+    public Path fromLocalRoqDir(String subDir) {
+        if (local == null) {
+            return null;
+        }
+        return ProjectUtils.resolveSubDir(local().roqDir(), subDir);
     }
 
     public boolean isActive() {
-        return project != null || roqResourceDir != null;
-    }
-
-    public void consumePathFromRoqResourceDir(String resource, Consumer<PathVisit> consumer) throws IOException {
-        if (roqResourceDir != null) {
-            visitRuntimeResources(PathUtils.join(roqResourceDir, resource), consumer);
-        }
-    }
-
-    public void consumePathFromRoqDir(String resource, Consumer<Path> consumer) throws IOException {
-        if (project != null) {
-            consumer.accept(project.roqDir().resolve(resource));
-        }
-    }
-
-    public void consumeRoqResourceDir(Consumer<PathVisit> consumer) throws IOException {
-        if (roqResourceDir != null) {
-            visitRuntimeResources(roqResourceDir, consumer);
-        }
-    }
-
-    public void consumeRoqDir(Consumer<Path> consumer) throws IOException {
-        if (project != null) {
-            consumer.accept(project.roqDir());
-        }
+        return local != null || roqResourceDir != null;
     }
 
     public boolean isRoqResourcesInRoot() {
@@ -60,24 +51,22 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
         return roqResourceDir;
     }
 
-    public static void visitRuntimeResources(String resourceName, Consumer<PathVisit> visitor) {
-        final Set<String> visited = new HashSet<>();
-        // There is an issue in visitRuntimeResources calling visitor multiple time with the same resource.
-        QuarkusClassLoader.visitRuntimeResources(resourceName, p -> {
-            if (visited.add(p.getUrl().toExternalForm())) {
-                visitor.accept(p);
-            }
-        });
+    public String resolveRoqResourceSubDir(String subDir) {
+        if (isRoqResourcesInRoot()) {
+            return subDir;
+        }
+        return StringPaths.join(roqResourceDir, subDir);
     }
 
     /**
      * Container to store resolved directory locations.
      */
-    public record RoqProject(
+    public record RoqLocalDir(
             /*
              * The root directory of the project
              */
-            Path rootDir,
+            Path projectRoot,
+
             /*
              * The roq directory of the project defaults is the rootDir
              */

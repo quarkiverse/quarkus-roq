@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.builder.item.MultiBuildItem;
 
 public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem implements Predicate<TemplateContext> {
@@ -64,7 +64,7 @@ public final class RoqFrontMatterQuteMarkupBuildItem extends MultiBuildItem impl
 
         public static WrapperFilter find(Map<String, WrapperFilter> markups, String fileName,
                 WrapperFilter defaultFilter) {
-            final String extension = PathUtils.getExtension(fileName);
+            final String extension = StringPaths.fileExtension(fileName);
             if (extension == null) {
                 return defaultFilter;
             }

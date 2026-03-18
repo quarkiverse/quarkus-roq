@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.generator.runtime;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
 import java.util.regex.Pattern;
 

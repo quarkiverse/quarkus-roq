@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.generator.deployment;
 
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 
@@ -7,13 +8,25 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
-import io.quarkiverse.roq.generator.runtime.*;
+import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
+import io.quarkiverse.roq.generator.runtime.Origin;
+import io.quarkiverse.roq.generator.runtime.RoqGenerator;
+import io.quarkiverse.roq.generator.runtime.RoqGeneratorConfig;
+import io.quarkiverse.roq.generator.runtime.RoqGeneratorRecorder;
+import io.quarkiverse.roq.generator.runtime.RoqSelection;
+import io.quarkiverse.roq.generator.runtime.SelectedPath;
+import io.quarkiverse.roq.generator.runtime.StaticFile;
 import io.quarkiverse.roq.generator.runtime.devui.RoqGeneratorJsonRPCService;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.IsDevelopment;
@@ -72,13 +85,13 @@ class RoqGeneratorProcessor {
             StaticResourcesBuildItem staticResourcesBuildItem) {
         Set<String> staticPaths = new HashSet<>();
         if (staticResourcesBuildItem != null) {
-            staticPaths.addAll(staticResourcesBuildItem.getPaths().stream().map(PathUtils::prefixWithSlash).toList());
+            staticPaths.addAll(staticResourcesBuildItem.getPaths().stream().map(StringPaths::prefixWithSlash).toList());
         }
         if (notFoundPageDisplayableEndpoints != null) {
             staticPaths.addAll(notFoundPageDisplayableEndpoints.stream()
                     .filter(not(NotFoundPageDisplayableEndpointBuildItem::isAbsolutePath))
                     .map(NotFoundPageDisplayableEndpointBuildItem::getEndpoint)
-                    .map(PathUtils::prefixWithSlash)
+                    .map(StringPaths::prefixWithSlash)
                     .toList());
         }
         final Map<String, GeneratedStaticResourceBuildItem> generatedStaticResourcesMap = generatedStaticResources.stream()
@@ -116,7 +129,7 @@ class RoqGeneratorProcessor {
             Map<String, StaticFile> staticFiles) {
         List<SelectedPath> selectedPaths = new ArrayList<>();
         for (var e : config.customPaths().entrySet()) {
-            final String path = PathUtils.prefixWithSlash(e.getKey());
+            final String path = prefixWithSlash(e.getKey());
             addStaticFileIfPresent(generatedStaticResourcesMap, path, staticFiles);
             selectedPaths.add(SelectedPath.builder().path(path).outputPath(e.getValue())
                     .source(Origin.CONFIG).build());
@@ -131,7 +144,7 @@ class RoqGeneratorProcessor {
             if (staticPaths != null) {
                 // Try to detect fixed paths from glob pattern
                 for (String staticPath : staticPaths) {
-                    final String path = PathUtils.prefixWithSlash(staticPath);
+                    final String path = prefixWithSlash(staticPath);
                     PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + p);
                     if (matcher.matches(Path.of(path))) {
                         addStaticFileIfPresent(generatedStaticResourcesMap, path, staticFiles);

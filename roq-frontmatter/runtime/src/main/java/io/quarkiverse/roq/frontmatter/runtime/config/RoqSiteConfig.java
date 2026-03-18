@@ -22,7 +22,6 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String PUBLIC_DIR = "public";
-    String IGNORED_FILES = "**.DS_Store,**Thumbs.db,**/_**,_**";
 
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
             .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
@@ -42,32 +41,6 @@ public interface RoqSiteConfig {
      */
     @WithDefault("1100")
     int routeOrder();
-
-    /**
-     * Add new ignored files to the default list.
-     *
-     * The ignored files (relative to the site directory).
-     *
-     * <p>
-     * Only the <code>content/</code>, <code>public/</code>, and <code>static/</code> directories are scanned.
-     * </p>
-     */
-    Optional<List<String>> ignoredFiles();
-
-    /**
-     * The default ignored files (relative to the site directory) include:
-     * <ul>
-     * <li><code>.DS_Store</code></li>
-     * <li><code>Thumbs.db</code></li>
-     * <li>All files or directories starting with an underscore (<code>_</code>)</li>
-     * </ul>
-     *
-     * <p>
-     * Only the <code>content/</code>, <code>public/</code>, and <code>static/</code> directories are scanned.
-     * </p>
-     */
-    @WithDefault(IGNORED_FILES)
-    List<String> defaultIgnoredFiles();
 
     /**
      * Pages whose content should be escaped&mdash;
