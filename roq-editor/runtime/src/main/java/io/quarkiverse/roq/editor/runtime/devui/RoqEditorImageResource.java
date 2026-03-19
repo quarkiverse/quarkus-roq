@@ -84,8 +84,12 @@ public class RoqEditorImageResource {
                     sendError(ctx, "Page not found: " + pagePath);
                     return;
                 }
+                if (!page.source().isIndex()) {
+                    sendError(ctx, "Page-level images are only supported for index pages");
+                    return;
+                }
                 Path pageFilePath = getPageAbsolutePath(page);
-                targetDir = page.source().isIndex() ? pageFilePath.getParent() : pageFilePath.getParent();
+                targetDir = pageFilePath.getParent();
                 resultPath = sanitizedFilename;
             } else if ("public".equals(location)) {
                 Path siteDir = resolveSiteDir();
