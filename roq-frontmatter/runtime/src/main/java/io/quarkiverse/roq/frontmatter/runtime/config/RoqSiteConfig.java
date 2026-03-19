@@ -149,7 +149,8 @@ public interface RoqSiteConfig {
     boolean draft();
 
     /**
-     * Directory under which all documents will be considered as drafts.
+     * Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`.
+     * Frontmatter `draft` takes precedence over this directory-based fallback.
      */
     @WithDefault("drafts")
     String draftDirectory();
