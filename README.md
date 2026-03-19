@@ -12,7 +12,7 @@
     <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-20-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-22-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </td>
 <td valign="top">
@@ -74,6 +74,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://philippart-s.github.io/blog"><img src="https://avatars.githubusercontent.com/u/26224751?v=4?s=100" width="100px;" alt="Stéphane Philippart"/><br /><sub><b>Stéphane Philippart</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=philippart-s" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pdudits"><img src="https://avatars.githubusercontent.com/u/1588543?v=4?s=100" width="100px;" alt="Patrik Duditš"/><br /><sub><b>Patrik Duditš</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pdudits" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rolfedh"><img src="https://avatars.githubusercontent.com/u/350907?v=4?s=100" width="100px;" alt="Rolfe Dlugy-Hegwer"/><br /><sub><b>Rolfe Dlugy-Hegwer</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=rolfedh" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/matheusandre1"><img src="https://avatars.githubusercontent.com/u/92062874?v=4?s=100" width="100px;" alt="Matheus André"/><br /><sub><b>Matheus André</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=matheusandre1" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
