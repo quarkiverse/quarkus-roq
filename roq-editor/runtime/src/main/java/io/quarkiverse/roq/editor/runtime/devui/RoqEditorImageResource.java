@@ -43,6 +43,7 @@ public class RoqEditorImageResource {
     }
 
     private void handleUpload(RoutingContext ctx) {
+        Path uploadedFile = null;
         try {
             var fileUploads = ctx.fileUploads();
             if (fileUploads == null || fileUploads.isEmpty()) {
@@ -93,9 +94,35 @@ public class RoqEditorImageResource {
                 resultPath = sanitizedFilename;
             } else if ("public".equals(location)) {
                 Path siteDir = resolveSiteDir();
-                targetDir = siteDir.resolve(config.publicDir()).resolve(config.imagesPath());
+
+                String imagesPath = config.imagesPath();
+                if (imagesPath == null) {
+                    imagesPath = "";
+                }
+
+                // Normalize for filesystem: ensure relative path and remove trailing slashes
+                String fsImagesPath = imagesPath.replaceFirst("^/+", "").replaceAll("/+$", "");
+                Path publicDirPath = siteDir.resolve(config.publicDir());
+                if (fsImagesPath.isEmpty()) {
+                    targetDir = publicDirPath;
+                } else {
+                    targetDir = publicDirPath.resolve(fsImagesPath);
+                }
                 Files.createDirectories(targetDir);
-                resultPath = "/" + config.imagesPath() + sanitizedFilename;
+
+                // Normalize for URL: ensure exactly one leading slash and, if non-empty, one trailing slash
+                String urlBasePath = imagesPath.trim();
+                if (urlBasePath.isEmpty()) {
+                    resultPath = "/" + sanitizedFilename;
+                } else {
+                    if (!urlBasePath.startsWith("/")) {
+                        urlBasePath = "/" + urlBasePath;
+                    }
+                    if (!urlBasePath.endsWith("/")) {
+                        urlBasePath = urlBasePath + "/";
+                    }
+                    resultPath = urlBasePath + sanitizedFilename;
+                }
             } else {
                 sendError(ctx, "Invalid location: " + location + ". Use 'page' or 'public'.");
                 return;
@@ -108,7 +135,7 @@ public class RoqEditorImageResource {
                 return;
             }
 
-            Path uploadedFile = Path.of(fileUpload.uploadedFileName());
+            uploadedFile = Path.of(fileUpload.uploadedFileName());
             Files.copy(uploadedFile, targetFile);
 
             LOG.infof("Successfully uploaded image: %s to %s", sanitizedFilename, targetDir);
@@ -118,6 +145,14 @@ public class RoqEditorImageResource {
         } catch (Exception e) {
             LOG.errorf(e, "Error uploading image");
             sendError(ctx, e.getMessage());
+        } finally {
+            if (uploadedFile != null) {
+                try {
+                    Files.deleteIfExists(uploadedFile);
+                } catch (Exception ex) {
+                    LOG.warnf(ex, "Failed to delete temporary uploaded file: %s", uploadedFile);
+                }
+            }
         }
     }
 
@@ -132,6 +167,9 @@ public class RoqEditorImageResource {
     private void sendError(RoutingContext ctx, String message) {
         JsonObject response = new JsonObject()
                 .put("errorMessage", message);
+        if (ctx.response().getStatusCode() == 200) {
+            ctx.response().setStatusCode(400);
+        }
         ctx.response()
                 .putHeader("Content-Type", "application/json")
                 .end(response.encode());

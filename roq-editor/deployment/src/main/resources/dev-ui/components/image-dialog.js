@@ -5,8 +5,6 @@ import '@vaadin/text-field';
 import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/vertical-layout';
-import '@vaadin/horizontal-layout';
-import '@vaadin/tabs';
 import './image-picker.js';
 
 let cachedJsonRpc = null;

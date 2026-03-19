@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -291,7 +292,8 @@ public class RoqEditorJsonRPCService {
     }
 
     private boolean isImageFile(String path) {
-        return IMAGE_EXTENSIONS.stream().anyMatch(path::endsWith);
+        String lowerPath = path.toLowerCase(Locale.ROOT);
+        return IMAGE_EXTENSIONS.stream().anyMatch(lowerPath::endsWith);
     }
 
     private void deleteDirectory(Path directory) throws IOException {

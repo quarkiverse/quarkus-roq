@@ -1,8 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import '@vaadin/tabs';
-import '@vaadin/button';
 import '@vaadin/icon';
-import '@vaadin/upload';
 import '@vaadin/progress-bar';
 
 export class ImagePicker extends LitElement {
@@ -256,7 +254,7 @@ export class ImagePicker extends LitElement {
                             <vaadin-icon icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>
                         </div>
                         <div class="upload-text">Click or drag image here</div>
-                        <div class="upload-hint">JPG, PNG, GIF, WebP, SVG (max 5MB)</div>
+                        <div class="upload-hint">JPG, PNG, GIF, WebP, SVG (max 10MB)</div>
                     `}
                 </div>
                 <input 
