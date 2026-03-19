@@ -401,7 +401,9 @@ export class RoqVisualEditor extends BaseEditor {
                 render: () => this.shadowRoot.getElementById('gutter-menu'),
                 dragHandleWidth: 24,
             }),
-            SlashCommand,
+            SlashCommand.configure({
+                getPagePath: () => this.page?.path || '',
+            }),
             Placeholder.configure({
                 placeholder: "Write some text, or type '/' for blocks & commands",
             }),
