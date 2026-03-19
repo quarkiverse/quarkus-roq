@@ -76,6 +76,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rolfedh"><img src="https://avatars.githubusercontent.com/u/350907?v=4?s=100" width="100px;" alt="Rolfe Dlugy-Hegwer"/><br /><sub><b>Rolfe Dlugy-Hegwer</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=rolfedh" title="Code">💻</a></td>
     </tr>
     <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/matheusandre1"><img src="https://avatars.githubusercontent.com/u/92062874?v=4?s=100" width="100px;" alt="Matheus André"/><br /><sub><b>Matheus André</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=matheusandre1" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://blog.sunix.org"><img src="https://avatars.githubusercontent.com/u/650571?v=4?s=100" width="100px;" alt="Sun S. D. Tan"/><br /><sub><b>Sun S. D. Tan</b></sub></a><br /><a href="#tutorial-sunix" title="Tutorials">✅</a></td>
     </tr>
   </tbody>
