@@ -204,6 +204,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "sunix",
+      "name": "Sun S. D. Tan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/650571?v=4",
+      "profile": "https://blog.sunix.org",
+      "contributions": [
+        "tutorial"
+      ]
     }
   ],
   "contributorsPerLine": 7,
