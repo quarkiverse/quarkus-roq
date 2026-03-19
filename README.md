@@ -12,7 +12,7 @@
     <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-20-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </td>
 <td valign="top">
@@ -72,6 +72,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/janwesterkamp"><img src="https://avatars.githubusercontent.com/u/6690182?v=4?s=100" width="100px;" alt="janwesterkamp"/><br /><sub><b>janwesterkamp</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=janwesterkamp" title="Code">💻</a> <a href="https://github.com/quarkiverse/quarkus-roq/commits?author=janwesterkamp" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/CodeSimcoe"><img src="https://avatars.githubusercontent.com/u/110094118?v=4?s=100" width="100px;" alt="Clément de Tastes"/><br /><sub><b>Clément de Tastes</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=CodeSimcoe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://philippart-s.github.io/blog"><img src="https://avatars.githubusercontent.com/u/26224751?v=4?s=100" width="100px;" alt="Stéphane Philippart"/><br /><sub><b>Stéphane Philippart</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=philippart-s" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pdudits"><img src="https://avatars.githubusercontent.com/u/1588543?v=4?s=100" width="100px;" alt="Patrik Duditš"/><br /><sub><b>Patrik Duditš</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pdudits" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
