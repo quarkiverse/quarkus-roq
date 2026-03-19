@@ -73,6 +73,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/CodeSimcoe"><img src="https://avatars.githubusercontent.com/u/110094118?v=4?s=100" width="100px;" alt="Clément de Tastes"/><br /><sub><b>Clément de Tastes</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=CodeSimcoe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://philippart-s.github.io/blog"><img src="https://avatars.githubusercontent.com/u/26224751?v=4?s=100" width="100px;" alt="Stéphane Philippart"/><br /><sub><b>Stéphane Philippart</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=philippart-s" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pdudits"><img src="https://avatars.githubusercontent.com/u/1588543?v=4?s=100" width="100px;" alt="Patrik Duditš"/><br /><sub><b>Patrik Duditš</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=pdudits" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rolfedh"><img src="https://avatars.githubusercontent.com/u/350907?v=4?s=100" width="100px;" alt="Rolfe Dlugy-Hegwer"/><br /><sub><b>Rolfe Dlugy-Hegwer</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=rolfedh" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
