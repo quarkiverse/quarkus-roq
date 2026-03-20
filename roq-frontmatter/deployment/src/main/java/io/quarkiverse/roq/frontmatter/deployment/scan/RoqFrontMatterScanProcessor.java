@@ -189,6 +189,61 @@ public class RoqFrontMatterScanProcessor {
         }
     }
 
+    @BuildStep
+    void generateLlmsTxtPages(RoqSiteConfig config,
+            RoqProjectBuildItem roqProject,
+            BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer) {
+        if (!config.llmstxt() || roqProject == null) {
+            return;
+        }
+        Path contentDir = roqProject.project().roqDir().resolve(config.contentDir());
+        if (!Files.isDirectory(contentDir)) {
+            return;
+        }
+        produceLlmsTxtPageOrCustom(dataProducer, contentDir, "llms.txt", "{#include fm/llms.txt}");
+        produceLlmsTxtPageOrCustom(dataProducer, contentDir, "llms-full.txt", "{#include fm/llms-full.txt}");
+    }
+
+    private static void produceLlmsTxtPageOrCustom(BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
+            Path contentDir, String fileName, String defaultContent) {
+        String templateContent = defaultContent;
+        // If user has their own content file, read it instead of using the default template.
+        // This is needed because .txt files are not in quarkus.qute.suffixes and won't be
+        // picked up by the content scanner.
+        Path userFile = contentDir.resolve(fileName);
+        if (Files.exists(userFile)) {
+            try {
+                templateContent = Files.readString(userFile, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RoqSiteScanningException("Error reading custom %s".formatted(fileName), e);
+            }
+        }
+        produceLlmsTxtPage(dataProducer, fileName, templateContent);
+    }
+
+    private static void produceLlmsTxtPage(BuildProducer<RoqFrontMatterRawTemplateBuildItem> dataProducer,
+            String fileName, String templateContent) {
+        TemplateSource source = TemplateSource.create(
+                fileName, // id
+                null, // markup (not html)
+                new SourceFile("", fileName), // synthetic sourceFile (generated, no file on disk)
+                fileName, // path
+                fileName, // generatedQuteId (output path)
+                false, // isLayout
+                false, // isTargetHtml
+                false, // isIndex
+                false); // isSiteIndex
+        dataProducer.produce(new RoqFrontMatterRawTemplateBuildItem(
+                source,
+                null, // no layout
+                TemplateType.NORMAL_PAGE,
+                new JsonObject(),
+                null, // no collection
+                templateContent, // generatedTemplate
+                templateContent, // generatedContentTemplate
+                null)); // no attachments
+    }
+
     private static Predicate<String> isPageEscaped(RoqSiteConfig config) {
         return path -> config.escapedPages().orElse(List.of()).stream()
                 .anyMatch(s -> Path.of("").getFileSystem().getPathMatcher("glob:" + s)

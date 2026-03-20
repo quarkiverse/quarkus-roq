@@ -215,6 +215,14 @@ public interface RoqSiteConfig {
     }
 
     /**
+     * When enabled, auto-generates /llms.txt and /llms-full.txt files
+     * following the llms.txt specification (https://llmstxt.org/).
+     * These files help AI systems understand your site structure and content.
+     */
+    @WithDefault("true")
+    boolean llmstxt();
+
+    /**
      * <strong>READ CAREFULLY:</strong><br>
      * The root path of your site (e.g. <code>/blog</code>) should be set using
      * <code>quarkus.http.root-path</code>.<br>

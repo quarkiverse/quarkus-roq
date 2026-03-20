@@ -95,6 +95,55 @@ It will automatically use the FrontMatter data to fill the tags.
 <meta property="og:type" content="article" />
 ----
 
+== LLMs.txt
+
+At build time, Roq generates `/llms.txt` and `/llms-full.txt` following the https://llmstxt.org/[llms.txt specification]. AI systems like ChatGPT, Claude, and Perplexity use these files to understand site structure and content.
+
+* `/llms.txt` — A structured index containing the site title, summary, and a list of all pages with their titles and descriptions.
+* `/llms-full.txt` — The same structure, with the full plain-text content of each page included.
+
+Example `/llms.txt` output:
+
+[source,markdown]
+----
+# My Roq Site
+
+> A blog about Quarkus and web development
+
+## Posts
+
+- [Getting Started with Roq](/posts/getting-started): Learn how to create your first Roq site
+- [Theming Guide](/posts/theming): Customize your site with themes and Tailwind CSS
+
+## Pages
+
+- [About](/about): About the author and this site
+----
+
+Both files are enabled by default. To disable generation, add the following to your configuration:
+
+[source,properties]
+----
+site.llmstxt=false
+----
+
+To customize the output, create your own `content/llms.txt` or `content/llms-full.txt`. Roq uses your file instead of generating one. You can start from the built-in template:
+
+[source,html]
+----
+{#include fm/llms.txt}
+----
+
+To exclude a specific page, set `llmstxt: false` in its frontmatter:
+
+[source,yaml]
+----
+---
+title: My Secret Page
+llmstxt: false
+---
+----
+
 == RSS
 
 Incorporating and RSS feed of your posts is as simple as inserting this tag into your `<head>` section:

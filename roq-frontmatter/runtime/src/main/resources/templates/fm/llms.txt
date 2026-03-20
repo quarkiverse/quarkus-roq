@@ -1,0 +1,26 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+# {site.title}
+
+{#if site.description}
+> {site.description}
+
+{/if}
+{#for collection in site.collections.list}
+{#if !collection.hidden && !collection.derived}
+## {collection.id.capitalizeFirst}
+
+{#for doc in collection}
+{#if doc.llmstxt}
+- [{doc.title}]({doc.url.path}){#if doc.description}: {doc.description}{/if}
+{/if}
+{/for}
+
+{/if}
+{/for}
+## Pages
+
+{#for p in site.pages}
+{#if p.source.isTargetHtml && p.llmstxt && !p.source.isSiteIndex}
+- [{p.title}]({p.url.path}){#if p.description}: {p.description}{/if}
+{/if}
+{/for}
