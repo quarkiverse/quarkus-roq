@@ -1,25 +1,25 @@
 package io.quarkiverse.roq.deployment;
 
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
+
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.deployment.config.RoqConfig;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem.RoqLocalDir;
+import io.quarkiverse.tools.projectscanner.ProjectRootBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 
 public class RoqProjectProcessor {
 
     private static final Logger LOG = Logger.getLogger(RoqProjectProcessor.class);
 
     @BuildStep
-    RoqProjectBuildItem findProject(RoqConfig config, OutputTargetBuildItem outputTarget) {
-        final RoqProjectBuildItem.RoqProject project = resolveProjectDirs(config, outputTarget);
+    RoqProjectBuildItem findProject(RoqConfig config, ProjectRootBuildItem projectRoot) {
+        final RoqLocalDir project = resolveProjectDirs(config, projectRoot);
 
         String resourceDir;
         try {
@@ -36,54 +36,17 @@ public class RoqProjectProcessor {
         return roqProject;
     }
 
-    /**
-     * Resolves the project directories based on the provided configuration and output target.
-     *
-     * @param config the build configuration
-     * @param outputTarget the output target build item
-     * @return a {@link RoqProjectBuildItem.RoqProject} object containing the resolved project root, site root, and data root
-     *         directories, or {@code null} if the site root directory is not found
-     * @throws IllegalStateException if the project root is not found and the site directory is not absolute
-     */
-    private static RoqProjectBuildItem.RoqProject resolveProjectDirs(RoqConfig config,
-            OutputTargetBuildItem outputTarget) {
-        Path projectRoot = findProjectRoot(outputTarget.getOutputDirectory());
-        Path configuredSiteDirPath = Paths.get(config.dir().trim());
-        if (projectRoot == null || !Files.isDirectory(projectRoot)) {
-
-            if (configuredSiteDirPath.isAbsolute() && Files.isDirectory(configuredSiteDirPath)) {
-                configuredSiteDirPath = configuredSiteDirPath.normalize();
-            } else {
-                LOG.warn(
-                        "If not absolute, the Site directory is resolved relative to the project root, but Roq was not able to find the project root.");
-                return null;
-            }
+    private static RoqLocalDir resolveProjectDirs(RoqConfig config,
+            ProjectRootBuildItem projectRoot) {
+        final String configuredDir = toUnixPath(config.dir().trim());
+        if (configuredDir.isEmpty()) {
+            return new RoqLocalDir(projectRoot.path(), projectRoot.path());
         }
-
-        final Path siteRoot = Objects.requireNonNull(projectRoot).resolve(configuredSiteDirPath).normalize();
-
-        if (!Files.isDirectory(siteRoot)) {
+        final Path siteRoot = projectRoot.resolveSubDir(configuredDir);
+        if (siteRoot == null) {
             return null;
         }
-
-        return new RoqProjectBuildItem.RoqProject(projectRoot, siteRoot);
-    }
-
-    private static Path findProjectRoot(Path outputDirectory) {
-        Path currentPath = outputDirectory;
-        do {
-            if (Files.isDirectory(currentPath.resolve(Paths.get("src", "main")))
-                    || Files.exists(currentPath.resolve(Paths.get("config", "application.properties")))
-                    || Files.exists(currentPath.resolve(Paths.get("config", "application.yaml")))
-                    || Files.exists(currentPath.resolve(Paths.get("config", "application.yml")))) {
-                return currentPath.normalize();
-            }
-            if (currentPath.getParent() != null && Files.exists(currentPath.getParent())) {
-                currentPath = currentPath.getParent();
-            } else {
-                return null;
-            }
-        } while (true);
+        return new RoqLocalDir(projectRoot.path(), siteRoot);
     }
 
 }

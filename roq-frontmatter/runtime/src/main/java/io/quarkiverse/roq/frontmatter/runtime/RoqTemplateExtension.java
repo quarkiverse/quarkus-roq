@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
@@ -116,7 +116,7 @@ public class RoqTemplateExtension {
      * Example: "{'Hello World'.slugify}" → "Hello-World".
      */
     public static String slugify(String text) {
-        return PathUtils.slugify(text, false, false);
+        return StringPaths.slugify(text, false, false);
     }
 
     /**

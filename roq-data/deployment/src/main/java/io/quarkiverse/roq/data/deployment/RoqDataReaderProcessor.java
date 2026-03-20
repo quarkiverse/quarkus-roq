@@ -1,23 +1,18 @@
 package io.quarkiverse.roq.data.deployment;
 
-import static io.quarkiverse.roq.util.PathUtils.removeExtension;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -28,13 +23,20 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
-import io.quarkiverse.roq.data.deployment.exception.*;
+import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
+import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
+import io.quarkiverse.roq.data.deployment.exception.DataMappingRequiredFileException;
+import io.quarkiverse.roq.data.deployment.exception.DataScanningException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.tools.projectscanner.ProjectFile;
+import io.quarkiverse.tools.projectscanner.ProjectScannerBuildItem;
+import io.quarkiverse.tools.projectscanner.ProjectScannerLocalDirBuildItem;
+import io.quarkiverse.tools.projectscanner.ScanQueryBuilder;
 import io.quarkiverse.web.bundler.spi.items.WebBundlerWatchedDirBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -45,13 +47,14 @@ import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 
 public class RoqDataReaderProcessor {
 
-    private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".yaml", ".yml");
+    private static final String GLOB = "glob:**.{yaml,yml,json}";
     private static final Logger LOG = Logger.getLogger(RoqDataReaderProcessor.class);
     private static final DotName DATA_MAPPING_ANNOTATION = DotName.createSimple(DataMapping.class.getName());
     RoqDataConfig roqDataConfig;
 
     @BuildStep
     void scanDataFiles(RoqProjectBuildItem roqProject,
+            ProjectScannerBuildItem scanner,
             RoqDataConfig config,
             RoqJacksonBuildItem jackson,
             BuildProducer<RoqDataBuildItem> dataProducer,
@@ -59,7 +62,8 @@ public class RoqDataReaderProcessor {
         if (roqProject.isActive()) {
             DataConverterFinder converter = new DataConverterFinder(jackson.getJsonMapper(), jackson.getYamlMapper());
             try {
-                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, converter, watchedFilesProducer, config);
+                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, scanner, converter, watchedFilesProducer,
+                        config);
 
                 for (RoqDataBuildItem item : items) {
                     dataProducer.produce(item);
@@ -70,6 +74,12 @@ public class RoqDataReaderProcessor {
             }
         }
 
+    }
+
+    @BuildStep
+    void scanDataDir(BuildProducer<ProjectScannerLocalDirBuildItem> scanLocalDirProducer, RoqDataConfig dataConfig,
+            RoqProjectBuildItem roqProject) {
+        roqProject.addScannerForLocalRoqDir(scanLocalDirProducer, dataConfig.dir());
     }
 
     @BuildStep
@@ -196,64 +206,49 @@ public class RoqDataReaderProcessor {
     @BuildStep(onlyIf = IsDevelopment.class)
     void watch(RoqDataConfig config, RoqProjectBuildItem roqProject,
             BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch) {
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqProject.project().roqDir().resolve(config.dir())));
+        final Path localDataDir = roqProject.fromLocalRoqDir(config.dir());
+        if (localDataDir == null) {
+            return;
+        }
+        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(localDataDir));
     }
 
     public Collection<RoqDataBuildItem> scanDataFiles(RoqProjectBuildItem roqProject,
+            ProjectScannerBuildItem scanner,
             DataConverterFinder converter,
             BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
             RoqDataConfig config)
             throws IOException {
 
-        Map<String, RoqDataBuildItem> items = new HashMap<>();
+        List<RoqDataBuildItem> items = new ArrayList<>();
 
-        final Consumer<Path> roqDirConsumer = (path) -> {
-            if (Files.isDirectory(path)) {
-                try (Stream<Path> pathStream = Files.find(path, Integer.MAX_VALUE,
-                        (p, a) -> Files.isRegularFile(p) && isExtensionSupported(p))) {
-                    pathStream.forEach(addRoqDataBuildItem(converter, watchedFilesProducer, path, items));
-                } catch (IOException e) {
-                    throw new DataScanningException(
-                            "Error while scanning data files on location: '%s'".formatted(path.toString()), e);
-                }
-            }
-        };
-        roqProject.consumePathFromRoqDir(config.dir(), roqDirConsumer);
-        roqProject.consumePathFromRoqResourceDir(config.dir(), p -> roqDirConsumer.accept(p.getPath()));
-        return items.values();
-    }
+        // Query 1: Local project files under data dir
+        List<ProjectFile> localFiles = scanner.query()
+                .scopeDir(config.dir())
+                .origin(ProjectFile.Origin.LOCAL_PROJECT_FILE)
+                .matching(GLOB)
+                .list();
 
-    private static Consumer<Path> addRoqDataBuildItem(
-            DataConverterFinder converter,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
-            Path rootDir,
-            Map<String, RoqDataBuildItem> items) {
-        return file -> {
-            var name = toUnixPath(removeExtension(rootDir.relativize(file).toString()));
-            if (items.containsKey(name)) {
-                throw new DataConflictException("Multiple data files found for the name: '%s'.".formatted(name));
-            }
-            String filename = file.getFileName().toString();
-            if (Path.of("").getFileSystem().equals(file.getFileSystem())) {
-                // We don't need to watch file out of the local filesystem
-                watchedFilesProducer.produce(new HotDeploymentWatchedFileBuildItem(file.toAbsolutePath().toString(), true));
-            }
-            DataConverter dataConverter = converter.fromFileName(filename);
+        // Query 2: Classpath resources under roqResourceDir/data dir
+        List<ProjectFile> resourceFiles = scanner.query()
+                .scopeDir(roqProject.resolveRoqResourceSubDir(config.dir()))
+                .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                .matching(GLOB)
+                .list();
 
+        final List<ProjectFile> files = ScanQueryBuilder.mergeByScopedPath(localFiles, resourceFiles);
+        for (ProjectFile file : files) {
+            var name = removeExtension(toUnixPath(file.scopedPath()));
+            String watchPath = file.watchPath();
+            if (watchPath != null) {
+                watchedFilesProducer.produce(new HotDeploymentWatchedFileBuildItem(watchPath, true));
+            }
+            DataConverter dataConverter = converter.fromFileName(file.scopedPath());
             if (dataConverter != null) {
-                try {
-                    items.put(name, new RoqDataBuildItem(name, file, Files.readAllBytes(file), dataConverter));
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Error while reading data file: '%s'"
-                            .formatted(filename), e);
-                }
+                items.add(new RoqDataBuildItem(name, file.path(), file.content(), dataConverter));
             }
-        };
-    }
-
-    private static boolean isExtensionSupported(Path file) {
-        String fileName = file.getFileName().toString();
-        return SUPPORTED_EXTENSIONS.stream().anyMatch(fileName::endsWith);
+        }
+        return items;
     }
 
 }

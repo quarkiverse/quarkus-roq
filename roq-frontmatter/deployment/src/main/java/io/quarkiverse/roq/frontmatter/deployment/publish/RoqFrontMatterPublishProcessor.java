@@ -22,7 +22,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -95,7 +95,7 @@ class RoqFrontMatterPublishProcessor {
                 PageSource pageSource = pagination.source();
                 if (i > 1) {
                     pageSource = pageSource.generated(
-                            PathUtils.removeExtension(pageSource.id()) + "_p" + i + "." + pageSource.extension());
+                            StringPaths.removeExtension(pageSource.id()) + "_p" + i + "." + pageSource.extension());
                 }
 
                 paginatedPages.add(new PageToPublish(paginatedUrl, pageSource, data));

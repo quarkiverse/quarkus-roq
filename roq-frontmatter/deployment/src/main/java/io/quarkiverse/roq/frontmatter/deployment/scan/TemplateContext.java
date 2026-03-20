@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 
 public record TemplateContext(Path sourceFile, String templatePath, String content) {
 
     public String getExtension() {
-        return PathUtils.getExtension(templatePath);
+        return StringPaths.fileExtension(templatePath);
     }
 
     public static <T extends Predicate<TemplateContext>> Stream<T> streamFilter(List<T> items, TemplateContext context) {
