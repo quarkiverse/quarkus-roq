@@ -265,7 +265,7 @@ export class SyncManager {
             await this.refreshStatus(true);
         } else if (result?.hasConflicts) {
             await this.onConflict(result.conflictFiles);
-        } else if (result && !result.passphraseRequired) {
+        } else if (result && !result.authFailed) {
             this.onNotification(result.message || "Operation failed", 'error');
         }
         return result;

@@ -237,7 +237,7 @@ export class QwcRoqEditor extends LitElement {
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
             <passphrase-dialog
                 @passphrase-confirmed="${this._onPassphraseConfirmed}"
-                @passphrase-cancelled="${() => { this._pendingSyncOp = null; }}">
+                @passphrase-cancelled="${() => { this._pendingSyncOperation = null; }}">
             </passphrase-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
