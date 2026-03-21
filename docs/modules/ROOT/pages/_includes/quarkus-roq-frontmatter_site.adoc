@@ -327,7 +327,8 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`.
+Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`. Frontmatter `draft` takes precedence over this directory-based fallback.
+
 
 ifdef::add-copy-button-to-env-var[]
 Environment variable: env_var_with_copy_button:+++SITE_DRAFT_DIRECTORY+++[]

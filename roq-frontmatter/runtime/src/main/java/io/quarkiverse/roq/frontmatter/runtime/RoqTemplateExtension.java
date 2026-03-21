@@ -98,7 +98,14 @@ public class RoqTemplateExtension {
      * Returns the text part of this string by stripping all html tags.<br>
      * When {@code preserveParagraphs} is true, block-level HTML elements are converted to line breaks
      * and HTML entities are decoded, producing readable plain text with paragraph structure.<br>
-     * Example: "{'<p>Hello</p><p>World</p>'.stripHtml(true)}" → "Hello\n\nWorld".
+     * Example: "{'
+     * <p>
+     * Hello
+     * </p>
+     * <p>
+     * World
+     * </p>
+     * '.stripHtml(true)}" → "Hello\n\nWorld".
      */
     public static String stripHtml(String html, boolean preserveParagraphs) {
         if (!preserveParagraphs) {
