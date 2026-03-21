@@ -48,7 +48,7 @@ Use a phased approach with validation gates:
 
 | **A: Foundation**
 | Maven project + one page rendering correctly
-| Stop if content does not render or curly braces in code samples are parsed as Qute expressions
+| Stop if content does not render. For Markdown content with curly braces in code, verify they are not parsed as Qute expressions (AsciiDoc is not affected -- see <<qute-escaping>>).
 
 | **B: Styling + scale**
 | JavaScript, CSS/SCSS, all content pages
@@ -102,7 +102,7 @@ I need:
 2. A config/application.properties file with:
    - site.url=https://mysite.example.com
    - site.collections.posts.layout=post
-   - site.escaped-pages=posts/**  (if content has curly braces in code)
+   - (For Markdown content with curly braces in code, see the Qute escaping note below)
    - site.slugify-files=false
    - quarkus.default-locale=en
 
@@ -125,11 +125,24 @@ Here is the Roq blog pom.xml for reference:
 
 Include these in your prompt or verify manually after the LLM generates the scaffold:
 
-`site.escaped-pages`::
-Wraps content in Qute escape markers at build time.
-This prevents Qute from parsing curly-brace expressions in code samples as template variables.
-Use `site.escaped-pages=posts/++**++` (or `++**++` for all content) if your content contains code examples with curly braces (Java, JSON, etc.).
-This does NOT prevent AsciiDoc rendering -- only Qute parsing.
+[[qute-escaping]]
+Qute escaping and curly braces::
+Roq uses Qute templates, and Qute treats `++{...}++` as template expressions.
+Content with curly braces (Java code, JSON examples) must be escaped from Qute parsing.
++
+**AsciiDoc files:** Qute parsing is disabled by default (`quarkus.asciidoc.qute=false`).
+Curly braces in AsciiDoc content are safe without any extra configuration.
+To enable Qute parsing for a specific AsciiDoc file, add the `:qute:` attribute to the document header.
++
+**Markdown and HTML files:** Qute parsing is enabled by default.
+If your Markdown files contain curly braces in code samples, set `site.escaped-pages` in `application.properties`:
++
+[source,properties]
+----
+site.escaped-pages=posts/**
+----
++
+This wraps matched page content with Qute escape markers so curly braces are not parsed as template expressions.
 
 `site.collections`::
 Defining any custom collection replaces Roq's defaults.
@@ -155,7 +168,7 @@ TIP: If you have the Quarkus CLI installed, you can use `quarkus dev` instead of
 Verify:
 
 * The page renders with your content (AsciiDoc or Markdown)
-* Curly braces in code samples are NOT parsed as Qute expressions (if you configured `site.escaped-pages`)
+* Curly braces in code samples are NOT parsed as Qute expressions (AsciiDoc is safe by default; for Markdown, verify `site.escaped-pages` is configured if needed -- see <<qute-escaping>>)
 * Content files without YAML front matter are recognized as collection members (Roq discovers content by directory, not by front matter presence)
 * Files and directories starting with `_` inside `content/` (such as `_includes/` or `_attributes.adoc`) are NOT rendered as standalone pages
 * If you use AsciiDoc `include::` directives, they resolve correctly
@@ -440,7 +453,7 @@ Important Roq behaviors:
 - Defining ANY custom collection replaces ALL defaults (including posts)
   so always explicitly define site.collections.posts if you have blog posts
 - Set quarkus.roq.data.dir=_data to reuse Jekyll's data directory
-- Use site.escaped-pages for content directories with curly braces in code
+- For Markdown content with curly braces in code, use site.escaped-pages (AsciiDoc is not affected -- Qute is disabled by default)
 
 Here is my Jekyll _config.yml:
 [paste or attach _config.yml]
