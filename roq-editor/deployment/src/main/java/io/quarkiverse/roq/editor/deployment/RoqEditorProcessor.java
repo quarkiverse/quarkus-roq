@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.editor.deployment;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.microprofile.config.Config;
@@ -10,6 +11,7 @@ import io.quarkiverse.roq.editor.deployment.git.GitSyncService;
 import io.quarkiverse.roq.editor.deployment.git.GitSyncServiceImpl;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
+import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -81,7 +83,7 @@ public class RoqEditorProcessor {
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
-    CardPageBuildItem createDevUiCard(RoqEditorConfig editorConfig) {
+    CardPageBuildItem createDevUiCard(RoqEditorConfig editorConfig, List<RoqFrontMatterQuteMarkupBuildItem> markupItems) {
         CardPageBuildItem card = new CardPageBuildItem();
 
         card.addPage(Page.webComponentPageBuilder()
@@ -89,7 +91,11 @@ public class RoqEditorProcessor {
                 .componentLink("qwc-roq-editor.js")
                 .title("Roq Editor"));
 
-        card.addBuildTimeData("markups", List.of("markdown", "asciidoc", "html"));
+        List<String> markups = new ArrayList<>(markupItems.stream().map(RoqFrontMatterQuteMarkupBuildItem::name).toList());
+        if (!markups.contains("html")) {
+            markups.add("html");
+        }
+        card.addBuildTimeData("markups", markups);
         card.addBuildTimeData("config", editorConfig);
 
         return card;
