@@ -272,7 +272,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                     return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_REQUIRED, false, Collections.emptyList(), true);
                 }
 
-                operationHelper.stageChanges(git, repository);
+                operationHelper.stageChanges(git, repository, filePaths);
 
                 GitSyncResult stateResult = operationHelper.finalizeState(git, repository, commitMessage);
                 if (stateResult != null) {

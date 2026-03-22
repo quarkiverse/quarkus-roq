@@ -35,17 +35,23 @@ public class GitOperationHelper {
     }
 
     /**
-     * Stages all significant content changes and conflicting files.
+     * Stages all significant content changes and conflicting files or specified file paths.
      *
      * @param git the Git instance
      * @param repository the JGit repository
+     * @param filePaths the list of file paths to stage (if null or empty, all significant changes are staged)
      * @throws GitAPIException if staging fails
      */
-    public void stageChanges(Git git, Repository repository) throws GitAPIException {
-        Status status = git.status().call();
-        List<String> filesToAdd = new ArrayList<>(
-                contentFilter.extractSignificantContentChanges(status, contentFilter.resolveWorkingPrefix(repository)));
-        filesToAdd.addAll(status.getConflicting());
+    public void stageChanges(Git git, Repository repository, List<String> filePaths) throws GitAPIException {
+        List<String> filesToAdd;
+        if (filePaths != null && !filePaths.isEmpty()) {
+            filesToAdd = filePaths;
+        } else {
+            Status status = git.status().call();
+            filesToAdd = new ArrayList<>(
+                    contentFilter.extractSignificantContentChanges(status, contentFilter.resolveWorkingPrefix(repository)));
+            filesToAdd.addAll(status.getConflicting());
+        }
 
         if (!filesToAdd.isEmpty()) {
             for (String path : filesToAdd) {
