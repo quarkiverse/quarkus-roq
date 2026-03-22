@@ -303,9 +303,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                             "Partial resolution successful (State: " + state + "). Continue resolving/publishing.", false,
                             Collections.emptyList(), false);
                 }
-
-                // Important: we are still holding the lock, so push() call inside is safe but push itself must be careful with lock reentrancy.
-                // ReentrantLock allows the same thread to lock multiple times.
+                
                 return push(passphrase);
             }
         } catch (Exception e) {
