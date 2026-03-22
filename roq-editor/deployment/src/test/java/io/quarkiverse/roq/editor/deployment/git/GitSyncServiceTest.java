@@ -10,6 +10,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
@@ -470,6 +473,61 @@ class GitSyncServiceTest {
         assertThat(BranchTrackingStatus.of(localRepository.getRepository(), newBranch)).isNotNull();
 
         cleanDirectory(otherPersonDir);
+    }
+
+    @Test
+    void shouldPreserveUntrackedFilesDuringSyncWithAutoStash() throws Exception {
+        String remoteFileName = "content/remote.md";
+        String untrackedFileName = "content/new-untracked.md";
+        String branch = localRepository.getRepository().getBranch();
+
+        // Remote changes
+        Path otherPersonDir = Files.createTempDirectory("roq-other-person-");
+        try (Git otherGit = Git.cloneRepository()
+                .setURI(remoteDirectory.toUri().toString())
+                .setDirectory(otherPersonDir.toFile())
+                .setBranch(branch)
+                .call()) {
+            Files.writeString(otherPersonDir.resolve(remoteFileName), "remote content\n");
+            otherGit.add().addFilepattern(remoteFileName).call();
+            otherGit.commit().setMessage("Remote update").call();
+            otherGit.push().call();
+        }
+
+        // Create a new untracked file locally
+        Files.writeString(localDirectory.resolve(untrackedFileName), "untracked content\n");
+
+        GitSyncResult result = gitSyncService.sync(null);
+
+        assertThat(result.success()).isTrue();
+        assertThat(Files.exists(localDirectory.resolve(remoteFileName))).isTrue();
+        assertThat(Files.exists(localDirectory.resolve(untrackedFileName))).isTrue();
+        assertThat(Files.readString(localDirectory.resolve(untrackedFileName))).contains("untracked content");
+
+        cleanDirectory(otherPersonDir);
+    }
+
+    @Test
+    void shouldHandleConcurrentGitOperationsSafely() throws Exception {
+        int threadCount = 5;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            new Thread(() -> {
+                try {
+                    GitStatusInfo status = gitSyncService.getStatus(null, false);
+                    if (status.branch() != null) {
+                        successCount.incrementAndGet();
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(successCount.get()).isEqualTo(threadCount);
     }
 
     private RoqSiteConfig createSiteConfig() {
