@@ -240,15 +240,12 @@ export class SyncManager {
     }
 
     /**
-     * Centralized handler for Git operation results.
-     * Triggers notifications, dialogs, and status refreshes based on the result.
-     * 
-     * @param {Object} result - The result from the Git operation
-     * @param {string} successMessage - Message to show on success
-     * @returns {Object} The original result
-     * @private
+     * Handles the result of a Git operation, showing notifications and refreshing status.
+     * @param {Object} result The operation result
+     * @param {string} successMessage Message to show on success
+     * @param {boolean} fullRefresh Whether to perform a full status refresh (with fetch)
      */
-    async _handleOperationResult(result, successMessage) {
+    async _handleOperationResult(result, successMessage, fullRefresh = false) {
         if (result?.success) {
             this.onNotification(successMessage, 'success');
             // Optimistically update local status to reflect success immediately
@@ -262,7 +259,7 @@ export class SyncManager {
                 };
                 this.onStatusChange(this.status);
             }
-            await this.refreshStatus(true);
+            await this.refreshStatus(!fullRefresh);
         } else if (result?.hasConflicts) {
             await this.onConflict(result.conflictFiles);
         } else if (result && !result.authFailed) {
@@ -279,7 +276,7 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.syncContent({ passphrase: pass }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content synchronized successfully');
+        return this._handleOperationResult(result, 'Content synchronized successfully', true);
     }
 
     /**
@@ -292,7 +289,7 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.publishContent({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content published successfully');
+        return this._handleOperationResult(result, 'Content published successfully', true);
     }
 
     /**
@@ -305,6 +302,6 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.publishAndSync({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content published and synchronized successfully');
+        return this._handleOperationResult(result, 'Content published and synchronized successfully', true);
     }
 }

@@ -602,7 +602,7 @@ export class QwcRoqEditor extends LitElement {
         this._pendingSyncOperation = () => this._onSyncRequested();
         try {
             const result = await this._syncManager.manualSync();
-            if (!result?.passphraseRequired) {
+            if (!result?.authFailed) {
                 this._pendingSyncOperation = null;
                 if (result?.success) {
                     this._pendingRefreshPages = true;
@@ -637,7 +637,7 @@ export class QwcRoqEditor extends LitElement {
         this._pendingSyncOperation = () => this._onPublishRequested(event);
         try {
             const result = await this._syncManager.manualPublish(message, selectedFiles);
-            if (!result?.passphraseRequired) {
+            if (!result?.authFailed) {
                 this._pendingSyncOperation = null;
             }
         } catch (error) {

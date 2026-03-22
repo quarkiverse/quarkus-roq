@@ -1,4 +1,11 @@
 import { LitElement, html, css } from 'lit';
+import { dialogRenderer, dialogHeaderRenderer, dialogFooterRenderer } from '@vaadin/dialog/lit.js';
+import '@vaadin/dialog';
+import '@vaadin/button';
+import '@vaadin/text-field';
+import '@vaadin/password-field';
+import '@vaadin/icon';
+import '@vaadin/vertical-layout';
 
 /**
  * Dialog prompting the user for their SSH key passphrase.
@@ -7,46 +14,40 @@ import { LitElement, html, css } from 'lit';
  */
 export class PassphraseDialog extends LitElement {
     static properties = {
-        open: { type: Boolean },
-        _passphrase: { type: String, state: true },
-        _error: { type: String, state: true },
+        _open: { state: true },
+        _passphrase: { state: true },
+        _error: { state: true },
     };
 
     static styles = css`
-        .overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 1000;
+        :host {
+            display: contents;
         }
-        .dialog {
-            background: var(--lumo-base-color, #fff);
-            border-radius: 8px;
-            padding: 24px;
-            width: 380px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        .passphrase-icon {
+            color: var(--lumo-primary-color);
+            font-size: 48px;
+            margin-bottom: var(--lumo-space-m);
         }
-        h3 { margin: 0 0 8px; font-size: 1.1rem; }
-        p  { margin: 0 0 16px; font-size: 0.9rem; color: var(--lumo-secondary-text-color, #666); }
-        .error { color: var(--lumo-error-color, #e53e3e); font-size: 0.85rem; margin: 4px 0 8px; }
-        input {
-            width: 100%; box-sizing: border-box;
-            padding: 8px 10px; border-radius: 4px;
-            border: 1px solid var(--lumo-contrast-30pct, #ccc);
-            font-size: 1rem; margin-bottom: 16px;
+        .passphrase-message {
+            text-align: center;
+            line-height: 1.6;
+            color: var(--lumo-secondary-text-color);
+            margin-bottom: var(--lumo-space-m);
         }
-        .actions { display: flex; justify-content: flex-end; gap: 8px; }
-        button {
-            padding: 8px 18px; border-radius: 4px; border: none;
-            cursor: pointer; font-size: 0.9rem;
+        .error-message {
+            color: var(--lumo-error-text-color);
+            font-size: var(--lumo-font-size-s);
+            margin-top: var(--lumo-space-xs);
+            margin-bottom: var(--lumo-space-s);
         }
-        .cancel { background: var(--lumo-contrast-10pct, #eee); }
-        .confirm { background: var(--lumo-primary-color, #1976d2); color: #fff; }
+        vaadin-password-field {
+            width: 100%;
+        }
     `;
 
     constructor() {
         super();
-        this.open = false;
+        this._open = false;
         this._passphrase = '';
         this._error = '';
     }
@@ -54,20 +55,11 @@ export class PassphraseDialog extends LitElement {
     show(errorMessage = '') {
         this._passphrase = '';
         this._error = errorMessage;
-        this.open = true;
-        // focus input after render
-        this.updateComplete.then(() => {
-            this.shadowRoot?.querySelector('input')?.focus();
-        });
+        this._open = true;
     }
 
     hide() {
-        this.open = false;
-    }
-
-    _onKeyDown(e) {
-        if (e.key === 'Enter') this._confirm();
-        if (e.key === 'Escape') this._cancel();
+        this._open = false;
     }
 
     _confirm() {
@@ -90,26 +82,40 @@ export class PassphraseDialog extends LitElement {
     }
 
     render() {
-        if (!this.open) return html``;
         return html`
-            <div class="overlay" @click=${(e) => e.target === e.currentTarget && this._cancel()}>
-                <div class="dialog">
-                    <h3>🔑 SSH Key Passphrase</h3>
-                    <p>Your SSH key requires a passphrase. It will be kept in memory for this session only.</p>
-                    ${this._error ? html`<div class="error">${this._error}</div>` : ''}
-                    <input
-                        type="password"
-                        placeholder="Enter passphrase…"
-                        .value=${this._passphrase}
-                        @input=${(e) => { this._passphrase = e.target.value; this._error = ''; }}
-                        @keydown=${this._onKeyDown}
-                    />
-                    <div class="actions">
-                        <button class="cancel" @click=${this._cancel}>Cancel</button>
-                        <button class="confirm" @click=${this._confirm}>Confirm</button>
-                    </div>
-                </div>
-            </div>
+            <vaadin-dialog
+                .opened="${this._open}"
+                @opened-changed="${(e) => (this._open = e.detail.value)}"
+                ${dialogHeaderRenderer(() => html`
+                    <vaadin-horizontal-layout style="align-items: center; gap: var(--lumo-space-s);">
+                        <vaadin-icon icon="font-awesome-solid:key"></vaadin-icon>
+                        <span style="font-weight: bold;">SSH Key Passphrase</span>
+                    </vaadin-horizontal-layout>
+                `, [])}
+                ${dialogRenderer(() => html`
+                    <vaadin-vertical-layout style="align-items: center; width: 320px;">
+                        <vaadin-icon class="passphrase-icon" icon="font-awesome-solid:lock"></vaadin-icon>
+                        <div class="passphrase-message">
+                            Your SSH key requires a passphrase. It will be kept in memory for this session only.
+                        </div>
+                        
+                        <vaadin-password-field
+                            label="Passphrase"
+                            placeholder="Enter passphrase…"
+                            .value="${this._passphrase}"
+                            @input="${(e) => { this._passphrase = e.target.value; this._error = ''; }}"
+                            @keydown="${(e) => e.key === 'Enter' && this._confirm()}"
+                            autofocus
+                        ></vaadin-password-field>
+                        
+                        ${this._error ? html`<div class="error-message">${this._error}</div>` : ''}
+                    </vaadin-vertical-layout>
+                `, [this._passphrase, this._error])}
+                ${dialogFooterRenderer(() => html`
+                    <vaadin-button theme="tertiary" @click="${this._cancel}">Cancel</vaadin-button>
+                    <vaadin-button theme="primary" @click="${this._confirm}">Confirm</vaadin-button>
+                `, [this._passphrase])}
+            ></vaadin-dialog>
         `;
     }
 }
