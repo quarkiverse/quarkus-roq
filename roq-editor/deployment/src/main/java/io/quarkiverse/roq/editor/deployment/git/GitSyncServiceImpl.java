@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
@@ -45,6 +46,7 @@ public class GitSyncServiceImpl implements GitSyncService {
     private final File rootDirectory;
     private final GitContentFilter contentFilter;
     private final GitOperationHelper operationHelper;
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Creates a new instance of GitSyncServiceImpl.
@@ -69,6 +71,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     @Override
     public GitStatusInfo getStatus(String passphrase, boolean skipFetch) {
+        lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitStatusInfo(false, false, false, MSG_NO_GIT_REPO, 0, 0, Collections.emptyList(), false, false,
@@ -107,6 +110,8 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
         } catch (Exception e) {
             return handleStatusFailure(e);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -168,6 +173,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     @Override
     public GitSyncResult sync(String passphrase) {
+        lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
@@ -193,6 +199,8 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
         } catch (Exception e) {
             return handleSyncFailure(e);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -204,6 +212,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     @Override
     public GitSyncResult push(String passphrase) {
+        lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
@@ -249,6 +258,8 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
         } catch (Exception e) {
             return handlePushFailure(e);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -262,6 +273,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     @Override
     public GitSyncResult publish(String commitMessage, String passphrase, List<String> filePaths) {
+        lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
@@ -292,10 +304,14 @@ public class GitSyncServiceImpl implements GitSyncService {
                             Collections.emptyList(), false);
                 }
 
+                // Important: we are still holding the lock, so push() call inside is safe but push itself must be careful with lock reentrancy.
+                // ReentrantLock allows the same thread to lock multiple times.
                 return push(passphrase);
             }
         } catch (Exception e) {
             return handlePublishFailure(e);
+        } finally {
+            lock.unlock();
         }
     }
 

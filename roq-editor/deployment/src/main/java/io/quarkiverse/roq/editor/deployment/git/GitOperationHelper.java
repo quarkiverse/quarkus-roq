@@ -87,12 +87,24 @@ public class GitOperationHelper {
                 return new GitSyncResult(false, "Failed to continue rebase: " + e.getMessage(), false,
                         Collections.emptyList(), false);
             }
-        } else if (state == RepositoryState.MERGING || !isClean(git)) {
+        } else if (state == RepositoryState.MERGING || hasStagedChanges(git)) {
             String msg = (commitMessage == null || commitMessage.isBlank()) ? editorConfig.sync().commitMessage().template()
                     : commitMessage;
             git.commit().setMessage(msg).call();
         }
         return null;
+    }
+
+    /**
+     * Checks if there are any changes in the index (staged) that need to be committed.
+     *
+     * @param git the Git instance
+     * @return true if the index has changes
+     * @throws GitAPIException if status check fails
+     */
+    public boolean hasStagedChanges(Git git) throws GitAPIException {
+        Status status = git.status().call();
+        return !status.getAdded().isEmpty() || !status.getChanged().isEmpty() || !status.getRemoved().isEmpty();
     }
 
     /**
