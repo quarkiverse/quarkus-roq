@@ -231,6 +231,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "DimitriHautot",
+      "name": "Dimitri Hautot",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3765206?v=4",
+      "profile": "https://about.me/DimitriHautot",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
