@@ -12,7 +12,7 @@
     <td valign="top" >
   
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-25-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </td>
 <td valign="top">
@@ -79,6 +79,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/matheusandre1"><img src="https://avatars.githubusercontent.com/u/92062874?v=4?s=100" width="100px;" alt="Matheus André"/><br /><sub><b>Matheus André</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=matheusandre1" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://blog.sunix.org"><img src="https://avatars.githubusercontent.com/u/650571?v=4?s=100" width="100px;" alt="Sun S. D. Tan"/><br /><sub><b>Sun S. D. Tan</b></sub></a><br /><a href="#tutorial-sunix" title="Tutorials">✅</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://blog.omatheusmesmo.dev"><img src="https://avatars.githubusercontent.com/u/99829531?v=4?s=100" width="100px;" alt="Matheus Oliveira"/><br /><sub><b>Matheus Oliveira</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=omatheusmesmo" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://about.me/DimitriHautot"><img src="https://avatars.githubusercontent.com/u/3765206?v=4?s=100" width="100px;" alt="Dimitri Hautot"/><br /><sub><b>Dimitri Hautot</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-roq/commits?author=DimitriHautot" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
