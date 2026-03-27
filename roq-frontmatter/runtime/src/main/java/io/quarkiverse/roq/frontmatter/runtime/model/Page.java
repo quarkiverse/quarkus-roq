@@ -20,6 +20,8 @@ import jakarta.enterprise.inject.Vetoed;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig.RuntimeCacheMode;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
 import io.quarkus.arc.Arc;
@@ -39,6 +41,7 @@ public class Page {
 
     public static final String FM_TITLE = "title";
     public static final String FM_DESCRIPTION = "description";
+    public static final String FM_CACHED = "cached";
 
     private final RoqUrl url;
     private final JsonObject data;
@@ -51,6 +54,19 @@ public class Page {
         this.url = url;
         this.data = data;
         this.source = source;
+    }
+
+    /**
+     * Get the cache mode for this page.
+     * Returns the value from frontmatter data if specified, otherwise falls back to site config.
+     */
+    public RuntimeCacheMode getCachedWith(RoqSiteConfig config) {
+        Object cachedValue = data().getValue(FM_CACHED);
+        if (cachedValue != null) {
+            return RuntimeCacheMode
+                    .fromString(String.valueOf(cachedValue));
+        }
+        return config.runtimeCache();
     }
 
     /**

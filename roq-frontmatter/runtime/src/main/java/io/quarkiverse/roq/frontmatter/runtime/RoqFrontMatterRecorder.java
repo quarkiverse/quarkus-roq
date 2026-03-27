@@ -80,9 +80,10 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Handler<RoutingContext> handler(String rootPath,
-            Map<String, Supplier<? extends Page>> pageSuppliers) {
-        return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers, config, locales);
+    public Handler<RoutingContext> handler(Map<String, Supplier<? extends Page>> pageSuppliers) {
+        RoqRouteHandler handler = new RoqRouteHandler(httpConfig, pageSuppliers, config, locales);
+        handler.cacheStartupPages(config);
+        return handler;
     }
 
     public Handler<RoutingContext> aliasRoute(String target) {
