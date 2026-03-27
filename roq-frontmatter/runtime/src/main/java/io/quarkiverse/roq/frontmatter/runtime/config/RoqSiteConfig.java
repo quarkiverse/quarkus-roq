@@ -22,7 +22,7 @@ public interface RoqSiteConfig {
     String CONTENT_DIR = "content";
     String STATIC_DIR = "static";
     String PUBLIC_DIR = "public";
-    String IGNORED_FILES = "**.DS_Store,**Thumbs.db,**/_**,_**";
+    String IGNORED_FILES = "**/_**,_**";
 
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
             .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
@@ -57,13 +57,12 @@ public interface RoqSiteConfig {
     /**
      * The default ignored files (relative to the site directory) include:
      * <ul>
-     * <li><code>.DS_Store</code></li>
-     * <li><code>Thumbs.db</code></li>
      * <li>All files or directories starting with an underscore (<code>_</code>)</li>
      * </ul>
      *
      * <p>
-     * Only the <code>content/</code>, <code>public/</code>, and <code>static/</code> directories are scanned.
+     * These patterns are additional to the scanner's own OS-level defaults
+     * (e.g. <code>.DS_Store</code>, <code>Thumbs.db</code>, <code>*~</code>, <code>.class</code>).
      * </p>
      */
     @WithDefault(IGNORED_FILES)
