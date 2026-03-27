@@ -84,13 +84,11 @@ endif::add-copy-button-to-config-props[]
 --
 The default ignored files (relative to the site directory) include:
 
- - `.DS_Store`
- - `Thumbs.db`
  - All files or directories starting with an underscore (`_`)
 
 
 
-Only the `content/`, `public/`, and `static/` directories are scanned.
+These patterns are additional to the scanner's own OS-level defaults (e.g. `.DS_Store`, `Thumbs.db`, `++*++~`, `.class`).
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -101,7 +99,7 @@ Environment variable: `+++SITE_DEFAULT_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`+++**.DS_Store+++`, `+++**Thumbs.db+++`, `+++**/_**+++`, `+++_**+++`
+|`+++**/_**+++`, `+++_**+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
 ifdef::add-copy-button-to-config-props[]
@@ -327,7 +325,8 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`.
+Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`. Frontmatter `draft` takes precedence over this directory-based fallback.
+
 
 ifdef::add-copy-button-to-env-var[]
 Environment variable: env_var_with_copy_button:+++SITE_DRAFT_DIRECTORY+++[]
