@@ -463,7 +463,21 @@ public class RoqFrontMatterScanProcessor {
     public static Predicate<Path> isTemplate(QuteConfig config) {
         HashSet<String> suffixes = new HashSet<>(config.suffixes());
         suffixes.addAll(HTML_OUTPUT_EXTENSIONS);
-        return path -> suffixes.contains(getExtension(path.toString()));
+        return path -> {
+            String pathStr = path.toString();
+            // Fast path: simple extension match
+            if (suffixes.contains(getExtension(pathStr))) {
+                return true;
+            }
+            // Check compound suffixes (e.g., "qute.txt")
+            String name = fileName(pathStr);
+            for (String suffix : suffixes) {
+                if (suffix.contains(".") && name.endsWith("." + suffix)) {
+                    return true;
+                }
+            }
+            return false;
+        };
     }
 
     @SuppressWarnings("unchecked")
@@ -482,6 +496,7 @@ public class RoqFrontMatterScanProcessor {
         return file -> {
             final String relativePath = toUnixPath(siteDir.relativize(file).normalize().toString());
             String referencePath = toUnixPath(referenceDir.relativize(file).normalize().toString());
+            referencePath = referencePath.replace(".qute.", ".");
             SourceFile sourceFile = new SourceFile(toUnixPath(siteDir.normalize().toAbsolutePath().toString()), relativePath);
             final String fullContent;
             try {
