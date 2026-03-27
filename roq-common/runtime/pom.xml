@@ -10,4 +10,11 @@
     </parent>
     <artifactId>quarkus-roq-common</artifactId>
     <name>Quarkus Roq - Common</name>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkiverse.tools</groupId>
+            <artifactId>string-paths</artifactId>
+            <version>999-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

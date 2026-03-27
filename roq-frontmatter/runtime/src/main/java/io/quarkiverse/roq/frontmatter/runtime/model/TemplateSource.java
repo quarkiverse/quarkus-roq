@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateData;
 
 /**
@@ -79,18 +79,18 @@ public record TemplateSource(
      * The file name (e.g my-favorite-beer.md)
      */
     public String fileName() {
-        return PathUtils.fileName(path());
+        return StringPaths.fileName(path());
     }
 
     /**
      * The file name without the extension (e.g my-favorite-beer)
      */
     public String baseFileName() {
-        return PathUtils.removeExtension(fileName());
+        return StringPaths.removeExtension(fileName());
     }
 
     public String extension() {
-        return PathUtils.getExtension(fileName());
+        return StringPaths.fileExtension(fileName());
     }
 
 }

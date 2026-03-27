@@ -1,11 +1,11 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateData;
 
 /**
@@ -32,7 +32,7 @@ public record RootUrl(
      * @return the absolute root url (site url + root path)
      */
     public String absolute() {
-        return PathUtils.join(url, rootPath);
+        return StringPaths.join(url, rootPath);
     }
 
     /**

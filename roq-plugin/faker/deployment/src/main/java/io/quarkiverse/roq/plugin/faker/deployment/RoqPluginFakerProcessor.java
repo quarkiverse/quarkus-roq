@@ -2,8 +2,8 @@ package io.quarkiverse.roq.plugin.faker.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.getIncludeFilter;
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.normalizedLayout;
-import static io.quarkiverse.roq.util.PathUtils.slugify;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -125,7 +125,7 @@ public class RoqPluginFakerProcessor {
                                 id,
                                 "markdown",
                                 new SourceFile(
-                                        toUnixPath(roqProject.project().roqDir().normalize().toAbsolutePath().toString()),
+                                        toUnixPath(roqProject.local().roqDir().normalize().toAbsolutePath().toString()),
                                         path),
                                 path,
                                 id + ".html",

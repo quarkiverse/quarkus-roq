@@ -1,15 +1,15 @@
 package io.quarkiverse.roq.frontmatter.deployment.scan;
 
 import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.LAYOUTS_DIR_PREFIX;
+import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanUtils.LAYOUTS_DIR_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
-import static io.quarkiverse.roq.util.PathUtils.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 
 import java.util.Map;
 import java.util.Optional;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.http.impl.MimeMapping;
 
 public final class RoqFrontmatterTemplateUtils {
@@ -62,7 +62,7 @@ public final class RoqFrontmatterTemplateUtils {
         // normalized layout looks like this `layouts/foo`
         // we also keep theme layout `theme-layouts/roq-theme/foo` (contains and not startWith)
         if (!normalized.contains(LAYOUTS_DIR_PREFIX)) {
-            normalized = PathUtils.join(LAYOUTS_DIR_PREFIX, normalized);
+            normalized = StringPaths.join(LAYOUTS_DIR_PREFIX, normalized);
         }
         return removeExtension(normalized);
     }
@@ -96,6 +96,6 @@ public final class RoqFrontmatterTemplateUtils {
     }
 
     public static String stripFrontMatter(String content) {
-        return RoqFrontMatterScanProcessor.FRONTMATTER_PATTERN.matcher(content).replaceFirst("");
+        return RoqFrontMatterScanUtils.stripFrontMatter(content);
     }
 }

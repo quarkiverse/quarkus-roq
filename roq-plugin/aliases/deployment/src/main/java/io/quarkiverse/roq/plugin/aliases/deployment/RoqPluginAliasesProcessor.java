@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.plugin.aliases.deployment;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
 import java.util.HashMap;
 import java.util.HashSet;

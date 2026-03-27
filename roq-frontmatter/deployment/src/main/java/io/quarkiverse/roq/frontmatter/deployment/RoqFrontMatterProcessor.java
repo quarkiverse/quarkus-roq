@@ -1,9 +1,8 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.isLayoutSourceTemplate;
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.getExtension;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +38,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -219,7 +219,7 @@ public class RoqFrontMatterProcessor {
         if (config.generator()) {
             for (String path : roqOutput.allPagesByPath().keySet()) {
                 // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
-                final String selectedPath = getExtension(path) != null ? path : addTrailingSlash(path);
+                final String selectedPath = StringPaths.fileExtension(path) != null ? path : addTrailingSlash(path);
                 selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(selectedPath), null));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
