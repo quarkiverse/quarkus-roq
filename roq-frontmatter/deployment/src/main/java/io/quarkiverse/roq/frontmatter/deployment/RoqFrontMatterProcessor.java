@@ -29,12 +29,15 @@ import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -189,13 +192,16 @@ public class RoqFrontMatterProcessor {
                         RoqTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,
+                        PageSource.class,
+                        TemplateSource.class,
                         RoqUrl.class,
                         RootUrl.class,
                         DocumentPage.class,
                         NormalPage.class,
                         RoqCollections.class,
                         RoqCollection.class,
-                        Paginator.class)
+                        Paginator.class,
+                        SourceFile.class)
                 .setUnremovable().build());
     }
 
