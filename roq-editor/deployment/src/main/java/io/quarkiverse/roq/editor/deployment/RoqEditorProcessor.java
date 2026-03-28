@@ -7,8 +7,10 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorImageResource;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
 import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
@@ -80,5 +82,10 @@ class RoqEditorProcessor {
     @BuildStep
     JsonRPCProvidersBuildItem createJsonRPCServiceForCache() {
         return new JsonRPCProvidersBuildItem(RoqEditorJsonRPCService.class);
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    AdditionalBeanBuildItem registerImageResource() {
+        return AdditionalBeanBuildItem.unremovableOf(RoqEditorImageResource.class);
     }
 }
