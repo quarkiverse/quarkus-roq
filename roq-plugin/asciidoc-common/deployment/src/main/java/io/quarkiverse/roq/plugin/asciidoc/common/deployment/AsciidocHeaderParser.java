@@ -1,9 +1,9 @@
 package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.stripFrontMatter;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.stripFrontMatter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -20,7 +20,6 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
-import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.vertx.core.json.JsonObject;
 import io.yupiik.asciidoc.model.Header;
 import io.yupiik.asciidoc.parser.Parser;

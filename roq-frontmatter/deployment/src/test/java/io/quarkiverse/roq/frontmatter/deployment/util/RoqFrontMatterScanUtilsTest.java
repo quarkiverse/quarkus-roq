@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
@@ -18,10 +19,14 @@ public class RoqFrontMatterScanUtilsTest {
 
     // ── deriveSiteDirPath ───────────────────────────────────────────────
 
+    // Expected site dir path, computed dynamically to be OS-independent (Windows prepends drive letter)
+    private static final String SITE_CONTENT = toUnixPath(
+            Path.of("/site/content").normalize().toAbsolutePath().toString());
+
     @Test
     @DisplayName("deriveSiteDirPath resolves root-level file to its parent")
     void deriveSiteDirPathRoot() {
-        assertEquals("/site/content",
+        assertEquals(SITE_CONTENT,
                 RoqFrontMatterScanUtils.deriveSiteDirPath(
                         Path.of("/site/content/index.html"), "index.html"));
     }
@@ -29,7 +34,7 @@ public class RoqFrontMatterScanUtilsTest {
     @Test
     @DisplayName("deriveSiteDirPath resolves nested file to the content root")
     void deriveSiteDirPathNested() {
-        assertEquals("/site/content",
+        assertEquals(SITE_CONTENT,
                 RoqFrontMatterScanUtils.deriveSiteDirPath(
                         Path.of("/site/content/pages/about.html"), "pages/about.html"));
     }
@@ -37,7 +42,7 @@ public class RoqFrontMatterScanUtilsTest {
     @Test
     @DisplayName("deriveSiteDirPath resolves directory index to the content root")
     void deriveSiteDirPathDirectoryIndex() {
-        assertEquals("/site/content",
+        assertEquals(SITE_CONTENT,
                 RoqFrontMatterScanUtils.deriveSiteDirPath(
                         Path.of("/site/content/pages/gallery/index.html"), "pages/gallery/index.html"));
     }
@@ -45,7 +50,7 @@ public class RoqFrontMatterScanUtilsTest {
     @Test
     @DisplayName("deriveSiteDirPath resolves deeply nested file to the content root")
     void deriveSiteDirPathDeepNest() {
-        assertEquals("/site/content",
+        assertEquals(SITE_CONTENT,
                 RoqFrontMatterScanUtils.deriveSiteDirPath(
                         Path.of("/site/content/pages/gallery/sub/index.html"), "pages/gallery/sub/index.html"));
     }
@@ -53,7 +58,7 @@ public class RoqFrontMatterScanUtilsTest {
     @Test
     @DisplayName("deriveSiteDirPath resolves collection document to the content root")
     void deriveSiteDirPathCollection() {
-        assertEquals("/site/content",
+        assertEquals(SITE_CONTENT,
                 RoqFrontMatterScanUtils.deriveSiteDirPath(
                         Path.of("/site/content/posts/2024-03-10-my-post.html"), "posts/2024-03-10-my-post.html"));
     }
