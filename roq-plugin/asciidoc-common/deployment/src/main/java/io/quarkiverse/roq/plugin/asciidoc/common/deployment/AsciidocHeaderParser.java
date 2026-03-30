@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanUtils.ESCAPE_KEY;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.stripFrontMatter;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.ESCAPE_KEY;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.stripFrontMatter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,8 +16,8 @@ import java.util.function.Predicate;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateContext;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.vertx.core.json.JsonObject;
 import io.yupiik.asciidoc.model.Header;

@@ -14,7 +14,7 @@
         <dependency>
             <groupId>io.quarkiverse.tools</groupId>
             <artifactId>string-paths</artifactId>
-            <version>999-SNAPSHOT</version>
+            <version>${quarkus-web-bundler.version}</version>
         </dependency>
     </dependencies>
 </project>

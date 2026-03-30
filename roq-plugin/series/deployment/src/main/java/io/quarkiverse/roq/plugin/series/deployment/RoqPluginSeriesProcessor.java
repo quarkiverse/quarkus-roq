@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.plugin.series.runtime.Series;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesMessage;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesRecorder;
