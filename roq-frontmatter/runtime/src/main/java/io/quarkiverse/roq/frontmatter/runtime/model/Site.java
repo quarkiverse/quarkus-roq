@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolvePublicFile;
@@ -86,14 +88,14 @@ public final class Site {
      * The site title
      */
     public String title() {
-        return data().getString("title");
+        return data().getString(TITLE);
     }
 
     /**
      * The site description
      */
     public String description() {
-        return data().getString("description");
+        return data().getString(DESCRIPTION);
     }
 
     /**

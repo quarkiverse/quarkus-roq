@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.INDEX_FILES;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.TEMPLATES_DIR;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR_PREFIX;

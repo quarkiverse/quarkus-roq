@@ -42,7 +42,7 @@ Pages in `content/` use YAML frontmatter between `---` delimiters. Supported for
 ---
 title: "My Page Title"
 description: "Page description for SEO"
-layout: :theme/page
+layout: page
 image: photo.jpg
 date: 2024-08-29 13:32:20 +0200
 tags: [blogging, quarkus]
@@ -60,7 +60,7 @@ Page content here (Markdown, HTML, or AsciiDoc)
 Key fields:
 - **title** — Page title (falls back to source path if missing)
 - **description** — Used for SEO meta tags
-- **layout** — Qute layout template to wrap this page. Use `:theme/` prefix to reference theme layouts (e.g. `:theme/page`, `:theme/post`)
+- **layout** — Qute layout template to wrap this page. Resolves local first, then theme fallback (e.g. `page`, `post`). Use `theme-layout:` to explicitly target a theme layout
 - **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name (for directory pages)
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
@@ -104,24 +104,24 @@ layout: default
 </html>
 ```
 
-**Layout chain**: A page with `layout: :theme/post` → post layout has `layout: :theme/main` → main has `layout: :theme/default` → default is the root (no layout field). Each level uses `{#insert /}` where child content goes.
+**Layout chain**: A page with `layout: post` → post layout has `layout: main` → main has `layout: default` → default is the root (no layout field). Each level uses `{#insert /}` where child content goes.
 
-**Theme layout resolution**: `:theme/page` resolves to `theme-layouts/<theme-name>/page` when `site.theme` is configured. The default theme (`roq-default`) provides: `default`, `main`, `post`, `page`, `index`, `tag`, `404`. Override any theme layout by placing a file at `templates/layouts/<theme-name>/<layout>.html`.
+**Theme layout resolution**: `layout: page` resolves local first (`templates/layouts/page.html`), then falls back to the theme layout (`theme-layouts/<theme-name>/page`) when `site.theme` is configured. Use `theme-layout: page` to explicitly target the theme layout. The default theme (`roq-default`) provides: `default`, `main`, `post`, `page`, `index`, `tag`, `404`. Override any theme layout by placing a file at `templates/layouts/<layout>.html` with `theme-layout: <layout>` in frontmatter to inherit from the theme version.
 
 **IMPORTANT**: Use `{#insert /}` in layouts to render child content. NEVER use `{page.content}` in layouts — that causes recursive rendering issues.
 
 ### Collections
 
-Collections group related documents (e.g. blog posts). The default collection is `posts` with layout `:theme/post`.
+Collections group related documents (e.g. blog posts). The default collection is `posts` with layout `post`.
 
 **Configuration** (`application.properties`):
 ```properties
-site.collections.posts.layout=:theme/post
+site.collections.posts.layout=post
 site.collections.posts.future=false
 site.collections.posts.hidden=false
 
 # Custom collection
-site.collections.recipes.layout=:theme/page
+site.collections.recipes.layout=page
 site.collections.recipes.hidden=false
 ```
 
@@ -404,7 +404,7 @@ For advanced Qute template needs beyond the essentials above (e.g. `@TemplateExt
 - **Layout inheritance** — ALWAYS use the frontmatter `layout:` field for layout inheritance (e.g. `layout: main`). NEVER use Qute's `{#include}` or `{#layout}` directives for this purpose — they won't work with Roq's layout chain.
 - **`{page.content}` in layouts** — NEVER use `{page.content}` in layouts. Use `{#insert /}` to render child content. `{page.content}` causes recursive rendering.
 - **Wrong directory location** — Roq sites use **project root** for `content/`, `templates/`, `public/`, `data/`. NOT `src/main/resources/`.
-- **Missing `:theme/` prefix** — When using a theme, layout references must use `:theme/page` not `theme/page` or just `page`.
+- **Layout resolution** — `layout: page` resolves local first, then theme fallback. Use `theme-layout: page` for explicit theme targeting. The old `:theme/` prefix syntax is deprecated.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
 - **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. The `image` frontmatter field handles all three.
 - **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally. Add pages to `site.escaped-pages` config to skip Qute parsing entirely.

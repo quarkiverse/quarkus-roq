@@ -1,6 +1,11 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.*;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAYOUT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.THEME_LAYOUT;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
@@ -14,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+
+import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
@@ -42,12 +48,7 @@ import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterScanUtils {
 
-    public static final String TEMPLATES_DIR = "templates";
-
-    public static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml", "asciidoc",
-            "adoc");
-    public static final Set<String> INDEX_FILES = HTML_OUTPUT_EXTENSIONS.stream().map(e -> "index." + e)
-            .collect(Collectors.toSet());
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanUtils.class);
 
     private RoqFrontMatterScanUtils() {
     }
@@ -297,7 +298,8 @@ public final class RoqFrontMatterScanUtils {
                 : null;
 
         String layoutId = normalizedLayout(config.theme(),
-                data.getString("layout"),
+                data.getString(LAYOUT),
+                data.getString(THEME_LAYOUT),
                 defaultLayout);
 
         for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
@@ -306,15 +308,23 @@ public final class RoqFrontMatterScanUtils {
                             metadata.filePath(), metadata.referencePath(), collection, isPage, data));
         }
 
-        boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE_KEY, "false"));
+        boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE, "false"));
         TransformedContent transformed = applyContentTransforms(content, escaped, metadata.markup(), layoutId);
 
+        // Legacy-theme backward compat (c): remap layouts/{theme-name}/foo → layouts/foo
+        String templateId = metadata.templateId();
+        String outputPath = metadata.outputPath();
+        if (!isPage && !isThemeLayout) {
+            templateId = remapLegacyThemeLayoutOverride(config.theme(), templateId);
+            outputPath = removeLegacyThemeOverridePath(config.theme(), outputPath);
+        }
+
         TemplateSource source = TemplateSource.create(
-                metadata.templateId(),
+                templateId,
                 getMarkup(metadata.isHtml(), metadata.markup()),
                 metadata.sourceFile(),
                 metadata.referencePath(),
-                metadata.outputPath(),
+                outputPath,
                 !isPage,
                 metadata.isHtml(),
                 isIndex,

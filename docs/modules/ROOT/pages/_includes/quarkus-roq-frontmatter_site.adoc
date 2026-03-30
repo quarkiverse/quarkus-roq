@@ -136,7 +136,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme is defined.
+The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -147,7 +147,7 @@ Environment variable: `+++SITE_PAGE_LAYOUT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++:theme/page+++`
+|`+++page+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`site.content-dir`]##
 ifdef::add-copy-button-to-config-props[]
@@ -283,7 +283,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)
+The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter. With a theme, `layout: foo` resolves local first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -493,7 +493,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme defined.
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]

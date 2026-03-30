@@ -3,7 +3,7 @@ title: The Roqers Hall Of Fame
 link: roqers
 description: |
   Sites built with Roq! See what fellow Roqers have created—and share your own story.
-layout: :theme/page
+layout: page
 ---
 
 # 🎸 The Roqers Hall Of Fame

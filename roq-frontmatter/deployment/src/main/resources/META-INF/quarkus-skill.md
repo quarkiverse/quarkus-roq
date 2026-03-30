@@ -309,7 +309,7 @@ For advanced Qute template needs beyond the essentials above (e.g. `@TemplateExt
 - **Layout inheritance** — ALWAYS use the frontmatter `layout:` field for layout inheritance (e.g. `layout: main`). NEVER use Qute's `{#include}` or `{#layout}` directives for this purpose — they won't work with Roq's layout chain.
 - **`{page.content}` in layouts** — NEVER use `{page.content}` in layouts. Use `{#insert /}` to render child content. `{page.content}` causes recursive rendering.
 - **Wrong directory location** — Standalone Roq FrontMatter uses `src/main/resources/` for `content/`, `templates/`, `public/`, `data/`. NOT project root (project root is only for the full `quarkus-roq` extension).
-- **`:theme/` prefix without theme** — Don't use `:theme/page` as layout unless you have a theme extension dependency. Without a theme, reference layouts directly (e.g. `layout: page` resolves to `templates/layouts/page.html`).
+- **Layout resolution** — `layout: page` resolves local first (`templates/layouts/page.html`), then theme fallback. Use `theme-layout: page` to explicitly target the theme layout. The old `:theme/` prefix syntax is deprecated.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
 - **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages.
 - **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally.

@@ -1,36 +1,24 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR_PREFIX;
-import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FRONTMATTER_PATTERN;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
-import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
-import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
-import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterTemplateUtils {
-
-    public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
-    public static final String ESCAPE_KEY = "escape";
-    public static final String LAYOUTS_DIR_PREFIX = addTrailingSlash(LAYOUTS_DIR);
 
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
 
@@ -107,89 +95,9 @@ public final class RoqFrontMatterTemplateUtils {
         return !(lower.contains("<html") || lower.contains("<!doctype"));
     }
 
-    /**
-     * Resolve the default layout for a page.
-     * Returns null for layouts or when content is a full HTML document.
-     */
-    public static String resolveDefaultLayout(boolean isHtmlPartial, ConfiguredCollection collection,
-            RoqSiteConfig config) {
-        if (!isHtmlPartial) {
-            return null;
-        }
-        return collection != null ? collection.layout() : config.pageLayout().orElse(null);
-    }
-
-    // ── Layout resolution ───────────────────────────────────────────────
-
-    public static String getLayoutsDir(boolean isThemeLayout) {
-        if (isThemeLayout) {
-            return THEME_LAYOUTS_DIR_PREFIX + LAYOUTS_DIR;
-        }
-        return LAYOUTS_DIR;
-    }
-
-    public static String normalizedLayout(Optional<String> theme, String layout, String defaultLayout) {
-        String normalized = layout;
-
-        if (normalized == null) {
-            normalized = defaultLayout;
-            if (normalized == null || normalized.isBlank() || "none".equalsIgnoreCase(normalized)) {
-                return null;
-            }
-            if (normalized.contains(":theme/") && theme.isEmpty()) {
-                normalized = normalized.replace(":theme/", "");
-            }
-        }
-
-        if (normalized.contains(":theme")) {
-            if (theme.isPresent()) {
-                normalized = normalized.replace(":theme", theme.get());
-            } else {
-                throw new RoqThemeConfigurationException(
-                        "No theme detected! Using ':theme' in 'layout: %s' is only possible with a theme installed as a dependency."
-                                .formatted(layout));
-            }
-        }
-
-        if (!normalized.contains(LAYOUTS_DIR_PREFIX)) {
-            normalized = StringPaths.join(LAYOUTS_DIR_PREFIX, normalized);
-        }
-        return removeExtension(normalized);
-    }
-
-    public static String getLayoutKey(Optional<String> theme, String resolvedLayout) {
-        String result = resolvedLayout;
-        if (result.startsWith(LAYOUTS_DIR_PREFIX)) {
-            result = result.substring(LAYOUTS_DIR_PREFIX.length());
-
-            if (theme.isPresent() && result.contains(theme.get())) {
-                result = result.replace(theme.get(), ":theme");
-            }
-        }
-        return result;
-    }
-
-    public static String removeThemePrefix(String id) {
-        return id.replace(getLayoutsDir(true),
-                getLayoutsDir(false));
-    }
-
     // ── Content transforms ──────────────────────────────────────────────
 
     public record TransformedContent(String generatedTemplate, String contentWithMarkup) {
-    }
-
-    public static WrapperFilter getIncludeFilter(String layout) {
-        if (layout == null) {
-            return WrapperFilter.EMPTY;
-        }
-        String prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
-        return new WrapperFilter(prefix, "\n{/include}");
-    }
-
-    public static WrapperFilter getMarkupFilter(
-            Map<String, WrapperFilter> markups, String fileName) {
-        return RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection.find(markups, fileName, WrapperFilter.EMPTY);
     }
 
     static WrapperFilter getEscapeFilter(boolean escaped) {

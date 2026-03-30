@@ -99,7 +99,7 @@ public class RoqFrontMatterScanUtilsTest {
         // Must be a valid glob pattern
         assertTrue(glob.startsWith("glob:"));
         // Must cover all content types that produce HTML
-        for (String ext : RoqFrontMatterScanUtils.HTML_OUTPUT_EXTENSIONS) {
+        for (String ext : RoqFrontMatterConstants.HTML_OUTPUT_EXTENSIONS) {
             assertTrue(glob.contains(ext),
                     "Glob should cover extension '%s'".formatted(ext));
         }

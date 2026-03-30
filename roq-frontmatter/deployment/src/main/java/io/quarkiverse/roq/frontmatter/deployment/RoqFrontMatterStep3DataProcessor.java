@@ -1,6 +1,11 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.getLayoutKey;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FILE_NAME_DATE_PATTERN;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getLayoutKey;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DATE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -14,7 +19,6 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
@@ -45,11 +49,6 @@ import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterStep3DataProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterStep3DataProcessor.class);
-    public static final String LINK_KEY = "link";
-    public static final String PAGINATE_KEY = "paginate";
-    public static final String DRAFT_KEY = "draft";
-    private static final String DATE_KEY = "date";
-    public static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-");
 
     @BuildStep
     void prepareData(VertxHttpBuildTimeConfig httpConfig,
@@ -111,7 +110,7 @@ public class RoqFrontMatterStep3DataProcessor {
             }
 
             String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-            final boolean draft = Boolean.parseBoolean(data.getString(DRAFT_KEY, "false"));
+            final boolean draft = Boolean.parseBoolean(data.getString(DRAFT, "false"));
             if (!config.draft() && draft) {
                 continue;
             }
@@ -121,7 +120,7 @@ public class RoqFrontMatterStep3DataProcessor {
                     : null;
             final PageSource pageSource = new PageSource(item.templateSource(), draft, dateString, files, false);
             final String link = TemplateLink.pageLink(config.pathPrefixOrEmpty(),
-                    data.getString(LINK_KEY),
+                    data.getString(LINK),
                     new TemplateLink.PageLinkData(pageSource, item.collectionId(), data));
             RoqUrl url = rootUrl.resolve(link);
 
@@ -172,7 +171,7 @@ public class RoqFrontMatterStep3DataProcessor {
                 documentTemplatesProducer
                         .produce(new RoqFrontMatterDocumentBuildItem(item));
             } else {
-                if (item.data().containsKey(PAGINATE_KEY)) {
+                if (item.data().containsKey(PAGINATE)) {
                     // Pagination needs collections size so it's produced after
                     paginatedPagesProducer
                             .produce(new RoqFrontMatterPaginatePageBuildItem(item.url(), item.source(), item.data(),
@@ -216,18 +215,26 @@ public class RoqFrontMatterStep3DataProcessor {
     }
 
     private static String getAvailableLayouts(RoqSiteConfig config, Map<String, RoqFrontMatterRawLayoutBuildItem> byId) {
-        return byId.entrySet().stream()
+        String local = byId.entrySet().stream()
                 .filter(i -> !i.getValue().isThemeLayout())
                 .map(i -> getLayoutKey(config.theme(), i.getKey()))
                 .map("'%s'"::formatted).collect(Collectors.joining(", "));
+        String theme = byId.entrySet().stream()
+                .filter(i -> i.getValue().isThemeLayout())
+                .map(i -> getLayoutKey(config.theme(), i.getKey()))
+                .map("'%s'"::formatted).collect(Collectors.joining(", "));
+        if (theme.isEmpty()) {
+            return local;
+        }
+        return local + ". Theme layouts: " + theme;
     }
 
     static ZonedDateTime parsePublishDate(String path, JsonObject frontMatter, String dateFormat,
             ZoneId zoneId) {
         String dateString;
         final boolean fromFileName;
-        if (frontMatter.containsKey(DATE_KEY) && frontMatter.getString(DATE_KEY) != null) {
-            dateString = frontMatter.getString(DATE_KEY);
+        if (frontMatter.containsKey(DATE) && frontMatter.getString(DATE) != null) {
+            dateString = frontMatter.getString(DATE);
             fromFileName = false;
         } else {
             Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(path);

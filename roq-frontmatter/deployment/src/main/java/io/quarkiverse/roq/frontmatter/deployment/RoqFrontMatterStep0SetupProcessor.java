@@ -1,9 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.DRAFT_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.TEMPLATES_DIR;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -34,9 +35,9 @@ public class RoqFrontMatterStep0SetupProcessor {
         // Mark pages matching the "escaped-pages" glob patterns so their Qute expressions
         // are wrapped in escape delimiters (useful for pages containing code samples with { })
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
-            if (sourceData.isPage() && !sourceData.fm().containsKey(ESCAPE_KEY)
+            if (sourceData.isPage() && !sourceData.fm().containsKey(ESCAPE)
                     && isPageEscaped(config).test(sourceData.relativePath())) {
-                sourceData.fm().put(ESCAPE_KEY, true);
+                sourceData.fm().put(ESCAPE, true);
             }
             return sourceData.fm();
         }));
@@ -51,8 +52,8 @@ public class RoqFrontMatterStep0SetupProcessor {
             var isInDraftDirectory = sourceData.isPage() && sourceData.collection() != null
                     && sourceData.relativePath().contains(config.draftDirectory() + "/");
 
-            if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT_KEY)) {
-                sourceData.fm().put(DRAFT_KEY, true);
+            if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT)) {
+                sourceData.fm().put(DRAFT, true);
             }
             return sourceData.fm();
         }));

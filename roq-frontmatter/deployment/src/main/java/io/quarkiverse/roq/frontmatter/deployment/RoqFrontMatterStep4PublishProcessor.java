@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.PAGINATE_KEY;
 import static io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.DEFAULT_PAGINATE_LINK_TEMPLATE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,7 +140,7 @@ class RoqFrontMatterStep4PublishProcessor {
     }
 
     private static Paginate readPaginate(String name, JsonObject data, ConfiguredCollection defaultCollection) {
-        final Object value = data.getValue(PAGINATE_KEY);
+        final Object value = data.getValue(PAGINATE);
         if (value instanceof JsonObject paginate) {
             final String collection = paginate.getString("collection",
                     defaultCollection == null ? null : defaultCollection.id());

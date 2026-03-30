@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.removeThemePrefix;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.processTemplate;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.removeThemePrefix;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,8 +15,8 @@ import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRa
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedLayoutBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.ProcessedTemplate;
-import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -116,7 +116,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
             if (!regularLayoutIds.contains(overrideId)) {
                 LOGGER.debugf("Roq theme-layout producing override '%s'", overrideId);
                 rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
-                        processed.templateSource().changeIds(RoqFrontMatterTemplateUtils::removeThemePrefix),
+                        processed.templateSource().changeIds(RoqFrontMatterLayoutUtils::removeThemePrefix),
                         processed.layout(), processed.data(),
                         processed.generatedTemplate(), false));
             }

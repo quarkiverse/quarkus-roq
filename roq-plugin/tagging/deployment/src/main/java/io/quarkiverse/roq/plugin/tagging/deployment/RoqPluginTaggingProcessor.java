@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.plugin.tagging.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.LINK_KEY;
-import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.PAGINATE_KEY;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -122,7 +122,7 @@ public class RoqPluginTaggingProcessor {
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
 
                 // Dealing with pagination is as simple as those two lines:
-                if (data.containsKey(PAGINATE_KEY)) {
+                if (data.containsKey(PAGINATE)) {
                     paginatedPagesProducer
                             .produce(new RoqFrontMatterPaginatePageBuildItem(url, pageSource, data, configuredCollection));
                 } else {
@@ -139,7 +139,7 @@ public class RoqPluginTaggingProcessor {
             if (collection == null) {
                 throw new ConfigurationException("Invalid tagging configuration in " + name);
             }
-            return new Tagging(collection, paginate.getString(LINK_KEY, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE));
+            return new Tagging(collection, paginate.getString(LINK, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE));
         }
         if (value instanceof String collection) {
             return new Tagging(collection, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE);

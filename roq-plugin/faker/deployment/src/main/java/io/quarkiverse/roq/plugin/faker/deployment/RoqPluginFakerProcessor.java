@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.plugin.faker.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.getIncludeFilter;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.normalizedLayout;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.normalizedLayout;
 import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
@@ -118,7 +118,7 @@ public class RoqPluginFakerProcessor {
                 final String id = entry.getKey() + "/" + slugify(document.title(), false, false);
                 final String path = id + ".md";
                 final String layoutId = normalizedLayout(siteConfig.theme(),
-                        null,
+                        null, null,
                         collection.layout());
                 rawPagesProducer.produce(new RoqFrontMatterRawPageBuildItem(
                         TemplateSource.create(

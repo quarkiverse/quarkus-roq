@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
-import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.FILE_NAME_DATE_PATTERN;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FILE_NAME_DATE_PATTERN;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;

@@ -25,7 +25,7 @@ public interface RoqSiteConfig {
     String IGNORED_FILES = "**/_**,_**";
 
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
-            .of(new ConfiguredCollection("posts", false, false, false, ":theme/post"));
+            .of(new ConfiguredCollection("posts", false, false, false, "post"));
 
     /**
      * the base hostname & protocol for your site, e.g. http://example.com
@@ -90,9 +90,9 @@ public interface RoqSiteConfig {
      * The layout to use for normal html pages if not specified in FM.
      * When empty, the page will not use a layout when it doesn't specify it in FM.
      *
-     * ":theme/" is removed if no theme is defined.
+     * Resolves local layout first, then theme layout as fallback.
      */
-    @WithDefault(":theme/page")
+    @WithDefault("page")
     Optional<String> pageLayout();
 
     /**
@@ -137,7 +137,8 @@ public interface RoqSiteConfig {
     boolean future();
 
     /**
-     * This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)
+     * The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter.
+     * With a theme, `layout: foo` resolves local first, then theme layout as fallback.
      */
     Optional<String> theme();
 
@@ -250,7 +251,7 @@ public interface RoqSiteConfig {
          * The layout to use if not specified in FM data.
          * When empty, the document will not use a layout when it doesn't specify it in FM.
          *
-         * ":theme/" is removed if no theme defined.
+         * Resolves local layout first, then theme layout as fallback.
          */
         Optional<String> layout();
     }
