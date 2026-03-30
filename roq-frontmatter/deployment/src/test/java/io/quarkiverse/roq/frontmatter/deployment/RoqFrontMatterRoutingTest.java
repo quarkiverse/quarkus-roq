@@ -2,22 +2,33 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static org.hamcrest.Matchers.*;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.RestAssured;
 
-public class RoqFrontMatterTest {
+/**
+ * Site: {@code routing-site} (resource)
+ * <p>
+ * Config: path-prefix=/bar, root-path=/foo
+ * <p>
+ * Features tested: URL routing with path prefix and root-path, HTML posts,
+ * pages, index listing, directory pages/posts with attached files, static
+ * file serving, date-based filenames.
+ */
+@DisplayName("Roq FrontMatter - URL routing and path prefix")
+public class RoqFrontMatterRoutingTest {
 
-    // Start unit test with your extension loaded
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> jar
                     .addAsResource("application.properties")
-                    .addAsResource("site"));
+                    .addAsResource("routing-site"));
 
     @Test
+    @DisplayName("HTML post renders with correct title, base href, and content")
     public void testHtmlPost() {
         RestAssured.when().get("/bar/posts/awesome-post-1").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Post"))
@@ -31,6 +42,7 @@ public class RoqFrontMatterTest {
     }
 
     @Test
+    @DisplayName("Directory page renders with attached file served")
     public void testDirPage() {
         RestAssured.when().get("/bar/my-dir-page").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My dir page"))
@@ -42,6 +54,7 @@ public class RoqFrontMatterTest {
     }
 
     @Test
+    @DisplayName("Directory post renders with attached file served")
     public void testDirPost() {
         RestAssured.when().get("/bar/posts/dir-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("posts/2024-03-10-dir-post/index.html"))
@@ -51,11 +64,13 @@ public class RoqFrontMatterTest {
     }
 
     @Test
+    @DisplayName("Static image is served under path prefix")
     public void testStatic() {
         RestAssured.when().get("/bar/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
     }
 
     @Test
+    @DisplayName("Page renders with correct title, content, and layout data")
     public void testPage() {
         RestAssured.when().get("/bar/my-cool-page").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("My Cool Page"))
@@ -66,6 +81,7 @@ public class RoqFrontMatterTest {
     }
 
     @Test
+    @DisplayName("Index page lists posts and renders layout data")
     public void testIndex() {
         RestAssured.when().get("/bar").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
@@ -77,6 +93,7 @@ public class RoqFrontMatterTest {
     }
 
     @Test
+    @DisplayName("Date-based filename extracts publish date correctly")
     public void testDateFileName() {
         RestAssured.when().get("/bar/posts/old-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.body.article.span", equalTo("2020-10-24T00:00Z[UTC]"));

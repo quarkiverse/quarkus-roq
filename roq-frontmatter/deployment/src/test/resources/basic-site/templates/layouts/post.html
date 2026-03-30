@@ -1,0 +1,12 @@
+---
+layout: default
+link: /the-posts/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="post">
+  {#insert /}
+  <span>{page.date}</span>
+  <span class="source-path">{page.sourcePath}</span>
+  <span class="source-file-absolute">{page.source.file.absolutePath}</span>
+  <span class="collection-id">{page.collectionId}</span>
+</article>

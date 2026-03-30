@@ -1,0 +1,16 @@
+---
+layout: default
+link: /:year/:month/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="post-override">
+  {#insert /}
+  <span class="is-override">true</span>
+  <span class="page-url">{page.url.path}</span>
+  <span class="collection-id">{page.collectionId}</span>
+  <span class="has-next">{#if page.next}true{#else}false{/if}</span>
+  <span class="has-prev">{#if page.previous}true{#else}false{/if}</span>
+  {#if page.next}<span class="next-title">{page.next.title}</span>{/if}
+  {#if page.previous}<span class="prev-title">{page.previous.title}</span>{/if}
+  <span class="read-time">{page.readTime}</span>
+</article>

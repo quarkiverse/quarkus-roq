@@ -6,10 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Pure unit tests (no Quarkus runtime).
+ * <p>
+ * Features tested: publish date parsing from filename pattern (YYYY-MM-DD-title.md),
+ * from frontmatter 'date' field (date-only and datetime), timezone handling.
+ */
+@DisplayName("Roq FrontMatter - Publish date parsing")
 public class ParsePublishDateTest {
 
     @Test

@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
@@ -21,6 +22,14 @@ import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Pure unit tests (no Quarkus runtime).
+ * <p>
+ * Features tested: link pattern resolution with date placeholders (:year, :month, :day),
+ * slug/name generation, file extension handling, pagination links, case variants,
+ * directory index pages, invalid placeholder detection.
+ */
+@DisplayName("Roq FrontMatter - Template link pattern resolution")
 class TemplateLinkTest {
     @Test
     void testLink() {
