@@ -294,7 +294,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                 .list();
 
         for (ProjectFile file : files) {
-            LOGGER.debugf("Roq template scan found in local dir: scopedPath=%s, path=%s",
+            LOGGER.debugf("Roq template scan found in local dir: scopedPath=%s, origin=%s, path=%s",
                     file.scopedPath(), file.origin(), file.path());
             String link = toUnixPath(file.scopedPath());
             String content = new String(file.content(), file.charset());
