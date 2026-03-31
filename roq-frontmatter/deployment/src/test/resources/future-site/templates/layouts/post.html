@@ -4,4 +4,5 @@ layout: default
 <article>
   {#insert /}
   <span class="page-date">{page.date}</span>
+  <span class="has-date">{#if page.date}yes{#else}no{/if}</span>
 </article>

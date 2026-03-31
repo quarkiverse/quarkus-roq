@@ -76,4 +76,11 @@ public class RoqFrontMatterFutureDateTest {
                 .body("html.body.span.findAll { it.@class == 'post-title' }*.text()",
                         not(hasItems("Future Filename Post", "Future FM Post")));
     }
+
+    @Test
+    @DisplayName("Collection post with no date still has a date (fallback to now)")
+    public void testNoDatePostStillHasDate() {
+        RestAssured.when().get("/posts/no-date-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'has-date' }.text()", equalTo("yes"));
+    }
 }
