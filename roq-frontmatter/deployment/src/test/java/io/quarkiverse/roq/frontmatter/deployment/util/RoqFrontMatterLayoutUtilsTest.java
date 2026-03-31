@@ -33,12 +33,9 @@ public class RoqFrontMatterLayoutUtilsTest {
     }
 
     @Test
-    @DisplayName("Theme layouts use a different directory than regular layouts")
-    void layoutsDirThemeDiffersFromRegular() {
-        String themeDir = RoqFrontMatterLayoutUtils.getLayoutsDir(true);
-        String regularDir = RoqFrontMatterLayoutUtils.getLayoutsDir(false);
-        assertNotEquals(themeDir, regularDir,
-                "Theme layout directory should differ from regular layout directory");
+    @DisplayName("Theme layouts use the theme-layouts directory")
+    void layoutsDirTheme() {
+        assertEquals("theme-layouts", RoqFrontMatterLayoutUtils.getLayoutsDir(true));
     }
 
     // ── normalizedLayout: basic resolution ──────────────────────────────

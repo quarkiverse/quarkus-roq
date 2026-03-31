@@ -14,9 +14,11 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -36,7 +38,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTe
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPaginatePageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
@@ -194,9 +196,15 @@ public class RoqFrontMatterStep3DataProcessor {
     public static JsonObject mergeParents(RoqSiteConfig config, String layout, JsonObject data,
             String sourceAbsPath, Map<String, RoqFrontMatterRawLayoutBuildItem> byId) {
         Stack<JsonObject> fms = new Stack<>();
+        Set<String> visited = new HashSet<>();
         String parent = layout;
         fms.add(data);
         while (parent != null) {
+            if (!visited.add(parent)) {
+                throw new RuntimeException(
+                        "Circular layout reference detected for file '%s': layout '%s' forms a cycle."
+                                .formatted(sourceAbsPath, parent));
+            }
             if (!byId.containsKey(parent)) {
                 final String layoutKey = getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
@@ -235,14 +243,16 @@ public class RoqFrontMatterStep3DataProcessor {
             ZoneId zoneId) {
         String dateString;
         final boolean fromFileName;
-        if (frontMatter.containsKey(DATE) && frontMatter.getString(DATE) != null) {
-            dateString = frontMatter.getString(DATE);
+        if (frontMatter.containsKey(DATE) && frontMatter.getValue(DATE) != null) {
+            dateString = String.valueOf(frontMatter.getValue(DATE));
             fromFileName = false;
         } else {
             Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(path);
             if (!matcher.find()) {
-                // Lets fallback on using today's date if not specified
-                return ZonedDateTime.now();
+                // No date in frontmatter or filename: use today's date.
+                // Note: this means dateless pages get a different date on each build,
+                // which can affect sort order across builds.
+                return ZonedDateTime.now(zoneId);
             }
             dateString = matcher.group(1);
             fromFileName = true;

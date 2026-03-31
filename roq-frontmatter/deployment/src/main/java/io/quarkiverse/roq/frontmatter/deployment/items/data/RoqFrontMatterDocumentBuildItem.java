@@ -34,10 +34,6 @@ public final class RoqFrontMatterDocumentBuildItem extends MultiBuildItem {
         return template.data();
     }
 
-    public boolean isPage() {
-        return true;
-    }
-
     public static ConfiguredCollection getCollection(List<RoqFrontMatterDocumentBuildItem> items) {
         return items.isEmpty() ? null : items.iterator().next().collection();
     }

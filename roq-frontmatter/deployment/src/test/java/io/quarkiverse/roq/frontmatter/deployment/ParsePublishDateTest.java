@@ -100,8 +100,23 @@ public class ParsePublishDateTest {
         ZonedDateTime after = ZonedDateTime.now(GMT).truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
 
         assertNotNull(result);
+        assertEquals("GMT", result.getZone().getId(), "Fallback date should use the configured timezone");
         assertFalse(result.isBefore(before), "Fallback date should not be before test start");
         assertFalse(result.isAfter(after), "Fallback date should not be after test end");
+    }
+
+    @Test
+    @DisplayName("No date anywhere falls back to now with configured timezone")
+    public void testNoDateFallsBackToNowWithTimezone() {
+        ZoneId tokyo = ZoneId.of("Asia/Tokyo");
+        ZonedDateTime before = ZonedDateTime.now(tokyo).truncatedTo(ChronoUnit.SECONDS);
+        ZonedDateTime result = parsePublishDate("no-date-here.md", JsonObject.of(), DEFAULT_DATE_FORMAT, tokyo);
+        ZonedDateTime after = ZonedDateTime.now(tokyo).truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
+
+        assertNotNull(result);
+        assertEquals("Asia/Tokyo", result.getZone().getId(), "Fallback date should use the configured timezone");
+        assertFalse(result.isBefore(before));
+        assertFalse(result.isAfter(after));
     }
 
     @Test

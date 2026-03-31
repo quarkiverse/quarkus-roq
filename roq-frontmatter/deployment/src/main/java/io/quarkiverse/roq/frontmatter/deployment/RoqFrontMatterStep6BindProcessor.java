@@ -20,7 +20,7 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictExcept
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;

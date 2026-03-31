@@ -10,6 +10,9 @@ import io.vertx.core.json.JsonObject;
 /**
  * A build item representing a processed content page (normal or document).
  * Data is not yet merged with parent layouts.
+ * <p>
+ * This can be produced by plugins to inject synthetic pages into the pipeline
+ * (e.g. the faker plugin uses this to generate fake content).
  */
 public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
 

@@ -72,7 +72,13 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 * `layout: :theme/foo` is deprecated, use `layout: foo` (resolves local first, theme fallback) or `theme-layout: foo` (explicit theme).
 * If you have custom layouts in `templates/layouts/{theme-name}/`, move them to `templates/layouts/`.
-* Custom plugins consuming `RoqFrontMatterRawTemplateBuildItem` or `RoqFrontMatterScanProcessor` must be updated — these are replaced by the new step-based build items.
+* Roq plugins and themes must use the same version as roq.
+
+If you have custom plugins:
+
+* Consuming `RoqFrontMatterRawTemplateBuildItem` or `RoqFrontMatterScanProcessor` must be updated — these are replaced by the new step-based build items.
+* Build item packages moved: `deployment.scan.\*` → `deployment.items.scan.*`, `deployment.data.*` → `deployment.items.data.*`, `deployment.publish.*` → `deployment.items.publish.*`. New packages: `items.assemble.*`, `items.record.*`.
+* Constants like `PAGINATE_KEY` and `LINK_KEY` moved to `RoqFrontMatterKeys` (runtime module).
 
 === to 2.0
 

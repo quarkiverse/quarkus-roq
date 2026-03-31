@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.frontmatter.deployment.items.scan;
+package io.quarkiverse.roq.frontmatter.deployment.items.data;
 
 import java.nio.file.Path;
 
