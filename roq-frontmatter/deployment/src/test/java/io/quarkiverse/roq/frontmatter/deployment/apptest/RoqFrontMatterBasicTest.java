@@ -60,4 +60,11 @@ public class RoqFrontMatterBasicTest {
         RestAssured.when().get("/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
     }
 
+    @Test
+    @DisplayName("Normal page without date has null date")
+    public void testNormalPageNullDate() {
+        RestAssured.when().get("/page/some-page").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'has-date' }.text()", equalTo("no"));
+    }
+
 }
