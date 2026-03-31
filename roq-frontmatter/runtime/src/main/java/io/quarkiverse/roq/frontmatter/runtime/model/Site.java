@@ -286,12 +286,12 @@ public final class Site {
         Site site = (Site) o;
         return Objects.equals(url, site.url) && Objects.equals(imagesDir, site.imagesDir) && Objects.equals(data, site.data)
                 && Objects.equals(page, site.page)
-                && Objects.equals(pageContentCache, site.pageContentCache) && Objects.equals(allPages, site.allPages);
+                && Objects.equals(allPages, site.allPages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url, imagesDir, data, page, pageContentCache, allPages);
+        return Objects.hash(url, imagesDir, data, page, allPages);
     }
 
     @Override

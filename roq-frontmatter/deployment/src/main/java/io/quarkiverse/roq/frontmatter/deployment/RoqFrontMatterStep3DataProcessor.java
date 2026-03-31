@@ -16,6 +16,7 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -97,11 +98,12 @@ public class RoqFrontMatterStep3DataProcessor {
                     item.templateSource().file().absolutePath(), layoutsById);
 
             // Parse date from front matter "date" key, or from filename pattern (e.g. 2024-03-10-my-post)
-            ZonedDateTime date = parsePublishDate(item.templateSource().path(), data, config.dateFormat(),
-                    config.timeZoneOrDefault());
+            ZonedDateTime date = Objects.requireNonNull(
+                    parsePublishDate(item.templateSource().path(), data, config.dateFormat(), config.timeZoneOrDefault()),
+                    "parsePublishDate must never return null");
             final boolean noFuture = !config.future() && (item.collection() == null || !item.collection().future());
             ZonedDateTime now = ZonedDateTime.now();
-            if (date != null && noFuture && date.isAfter(now)) {
+            if (noFuture && date.isAfter(now)) {
                 LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
                         " To display future articles, use -Dsite.future=true%s.", item.templateSource().path(), date, now,
                         item.collection() == null ? ""

@@ -9,6 +9,15 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 {description}
 
+== Roq 2.1
+
+- 🎨 *Simplified layout resolution*: `layout: page` now resolves local layouts first, then falls back to the theme — no more `:theme/` prefix needed
+- 🆕 New `theme-layout: foo` front matter key to explicitly target a theme layout
+- 🔧 Internal refactoring: the frontmatter pipeline is now split into clear numbered steps (Step0-Step6) for better maintainability
+- 🔧 Migrated to `ProjectScanner` API and `StringPaths` library for file scanning
+
+→ Guide for migrating <<to-2-1>>
+
 == Roq 2.0
 
 - 🕵️ Added lightning filesystem watcher for live reload
@@ -58,6 +67,12 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 1. xref:advanced.adoc#updating-roq[Make sur you update using Quarkus CLI]
 2. Make sure you implemented xref:advanced.adoc#test-site-generation[generation tests]
+
+=== to 2.1
+
+* `layout: :theme/foo` is deprecated, use `layout: foo` (resolves local first, theme fallback) or `theme-layout: foo` (explicit theme).
+* If you have custom layouts in `templates/layouts/{theme-name}/`, move them to `templates/layouts/`.
+* Custom plugins consuming `RoqFrontMatterRawTemplateBuildItem` or `RoqFrontMatterScanProcessor` must be updated — these are replaced by the new step-based build items.
 
 === to 2.0
 

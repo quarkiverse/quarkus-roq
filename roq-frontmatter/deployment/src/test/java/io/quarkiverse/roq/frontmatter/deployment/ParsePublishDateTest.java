@@ -25,7 +25,7 @@ import io.vertx.core.json.JsonObject;
 @DisplayName("Roq FrontMatter - Publish date parsing")
 public class ParsePublishDateTest {
 
-    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd[ HH:mm][:ss][ Z]";
+    private static final String DEFAULT_DATE_FORMAT = "yyyy-M-d[ HH:mm][:ss][ Z]";
     private static final ZoneId GMT = ZoneId.of("GMT");
 
     @Test
@@ -34,6 +34,24 @@ public class ParsePublishDateTest {
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         assertEquals("2004-09-07T00:00:00Z[GMT]", publishDate);
+    }
+
+    @Test
+    @DisplayName("Single-digit day in filename is parsed")
+    public void testSingleDigitDayInFilename() {
+        String publishDate = parsePublishDate("2024-10-9-title.md", JsonObject.of(), DEFAULT_DATE_FORMAT, GMT)
+                .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+
+        assertEquals("2024-10-09T00:00:00Z[GMT]", publishDate);
+    }
+
+    @Test
+    @DisplayName("Single-digit month and day in filename is parsed")
+    public void testSingleDigitMonthAndDayInFilename() {
+        String publishDate = parsePublishDate("2024-3-5-title.md", JsonObject.of(), DEFAULT_DATE_FORMAT, GMT)
+                .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+
+        assertEquals("2024-03-05T00:00:00Z[GMT]", publishDate);
     }
 
     @Test
@@ -110,12 +128,34 @@ public class ParsePublishDateTest {
     }
 
     @Test
-    @DisplayName("Different timezone is applied")
-    public void testTimezoneApplied() {
+    @DisplayName("Filename date uses configured timezone")
+    public void testFilenameDateUsesTimezone() {
         ZoneId paris = ZoneId.of("Europe/Paris");
         ZonedDateTime result = parsePublishDate("2024-06-15-post.md", JsonObject.of(), DEFAULT_DATE_FORMAT, paris);
 
         assertEquals("Europe/Paris", result.getZone().getId());
+        assertEquals("2024-06-15T00:00:00+02:00[Europe/Paris]", result.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    }
+
+    @Test
+    @DisplayName("Frontmatter date uses configured timezone")
+    public void testFrontMatterDateUsesTimezone() {
+        ZoneId tokyo = ZoneId.of("Asia/Tokyo");
+        ZonedDateTime result = parsePublishDate("no-date.md", JsonObject.of("date", "2024-01-15 14:30"),
+                DEFAULT_DATE_FORMAT, tokyo);
+
+        assertEquals("Asia/Tokyo", result.getZone().getId());
+        assertEquals("2024-01-15T14:30:00+09:00[Asia/Tokyo]", result.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    }
+
+    @Test
+    @DisplayName("Configured timezone overrides explicit offset in frontmatter")
+    public void testConfiguredTimezoneOverridesExplicitOffset() {
+        ZonedDateTime result = parsePublishDate("no-date.md", JsonObject.of("date", "2024-06-15 10:00 +0530"),
+                DEFAULT_DATE_FORMAT, GMT);
+
+        // The configured timezone (GMT) takes precedence over the offset in the date string
+        assertEquals("GMT", result.getZone().getId());
     }
 
     @Test

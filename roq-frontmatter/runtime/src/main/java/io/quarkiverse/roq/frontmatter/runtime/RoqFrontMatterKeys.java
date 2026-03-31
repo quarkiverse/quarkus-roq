@@ -25,7 +25,7 @@ public final class RoqFrontMatterKeys {
     /** Draft marker — e.g. {@code draft: true} (hidden unless site.draft=true) */
     public static final String DRAFT = "draft";
 
-    /** Tags list — e.g. {@code tags: [blogging, quarkus]} */
+    /** Tags list, can be comma separated string — e.g. {@code tags: [blogging, quarkus]} */
     public static final String TAGS = "tags";
 
     /** Author identifier — e.g. {@code author: ia3andy} */
@@ -38,9 +38,6 @@ public final class RoqFrontMatterKeys {
 
     /** Explicit theme layout — e.g. {@code theme-layout: main} (targets theme layout directly) */
     public static final String THEME_LAYOUT = "theme-layout";
-
-    /** Theme name for resolution — e.g. {@code theme: roq-default} */
-    public static final String THEME = "theme";
 
     // ── Images ──────────────────────────────────────────────────────────
 

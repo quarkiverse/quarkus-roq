@@ -15,7 +15,7 @@ public final class RoqFrontMatterConstants {
     // ── Patterns ────────────────────────────────────────────────────────
 
     public static final Pattern FRONTMATTER_PATTERN = Pattern.compile("^---\\v.*?---(?:\\v|$)", Pattern.DOTALL);
-    public static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})-");
+    public static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{1,2}-\\d{1,2})-");
 
     // ── Directory and path constants ────────────────────────────────────
 

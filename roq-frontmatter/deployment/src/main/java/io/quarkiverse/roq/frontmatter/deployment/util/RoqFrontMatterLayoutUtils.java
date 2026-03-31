@@ -61,7 +61,7 @@ public final class RoqFrontMatterLayoutUtils {
      * <li>(a) {@code layout: :theme/foo} → strips {@code :theme/}, resolves as {@code layouts/foo}</li>
      * <li>(b) {@code layout: theme-layouts/{theme}/foo} → resolves as-is to that theme layout ID</li>
      * <li>(c) Layout override files at {@code layouts/{theme-name}/foo.html} — handled in
-     * {@link RoqFrontMatterScanUtils#processTemplate}</li>
+     * {@link RoqFrontMatterAssembleUtils#processTemplate}</li>
      * <li>(d) {@code layout: {theme-name}/foo} → strips theme name prefix, resolves as {@code layouts/foo}</li>
      * </ul>
      */
@@ -88,7 +88,7 @@ public final class RoqFrontMatterLayoutUtils {
         }
 
         // Legacy-theme backward compat (a): :theme/ syntax is deprecated — strip and warn
-        if (normalized.contains(":theme")) {
+        if (normalized.contains(":theme/")) {
             String simple = normalized.replace(":theme/", "").replace(":theme", "");
             LOGGER.warnf(
                     "DEPRECATED (legacy-theme): ':theme' in layout '%s' is deprecated. Use 'layout: %s' instead (resolves local first, theme fallback). "
