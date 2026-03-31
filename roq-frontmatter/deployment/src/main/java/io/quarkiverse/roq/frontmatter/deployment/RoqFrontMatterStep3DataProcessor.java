@@ -37,8 +37,8 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayout
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPaginatePageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
@@ -249,10 +249,8 @@ public class RoqFrontMatterStep3DataProcessor {
         } else {
             Matcher matcher = FILE_NAME_DATE_PATTERN.matcher(path);
             if (!matcher.find()) {
-                // No date in frontmatter or filename: use today's date.
-                // Note: this means dateless pages get a different date on each build,
-                // which can affect sort order across builds.
-                return ZonedDateTime.now(zoneId);
+                // No date in frontmatter or filename — caller decides the fallback.
+                return null;
             }
             dateString = matcher.group(1);
             fromFileName = true;

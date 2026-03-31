@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,30 +92,10 @@ public class ParsePublishDateTest {
     }
 
     @Test
-    @DisplayName("No date anywhere falls back to now")
-    public void testNoDateFallsBackToNow() {
-        ZonedDateTime before = ZonedDateTime.now(GMT).truncatedTo(ChronoUnit.SECONDS);
+    @DisplayName("No date anywhere returns null")
+    public void testNoDateReturnsNull() {
         ZonedDateTime result = parsePublishDate("no-date-here.md", JsonObject.of(), DEFAULT_DATE_FORMAT, GMT);
-        ZonedDateTime after = ZonedDateTime.now(GMT).truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
-
-        assertNotNull(result);
-        assertEquals("GMT", result.getZone().getId(), "Fallback date should use the configured timezone");
-        assertFalse(result.isBefore(before), "Fallback date should not be before test start");
-        assertFalse(result.isAfter(after), "Fallback date should not be after test end");
-    }
-
-    @Test
-    @DisplayName("No date anywhere falls back to now with configured timezone")
-    public void testNoDateFallsBackToNowWithTimezone() {
-        ZoneId tokyo = ZoneId.of("Asia/Tokyo");
-        ZonedDateTime before = ZonedDateTime.now(tokyo).truncatedTo(ChronoUnit.SECONDS);
-        ZonedDateTime result = parsePublishDate("no-date-here.md", JsonObject.of(), DEFAULT_DATE_FORMAT, tokyo);
-        ZonedDateTime after = ZonedDateTime.now(tokyo).truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
-
-        assertNotNull(result);
-        assertEquals("Asia/Tokyo", result.getZone().getId(), "Fallback date should use the configured timezone");
-        assertFalse(result.isBefore(before));
-        assertFalse(result.isAfter(after));
+        assertNull(result, "Pages with no date should return null");
     }
 
     @Test
@@ -130,16 +109,11 @@ public class ParsePublishDateTest {
     }
 
     @Test
-    @DisplayName("Null date value in frontmatter with no filename date falls back to now")
-    public void testNullDateValueNoFilenameFallsBackToNow() {
+    @DisplayName("Null date value in frontmatter with no filename date returns null")
+    public void testNullDateValueNoFilenameReturnsNull() {
         JsonObject fm = new JsonObject().put("date", (String) null);
-        ZonedDateTime before = ZonedDateTime.now(GMT).truncatedTo(ChronoUnit.SECONDS);
         ZonedDateTime result = parsePublishDate("no-date-here.md", fm, DEFAULT_DATE_FORMAT, GMT);
-        ZonedDateTime after = ZonedDateTime.now(GMT).truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
-
-        assertNotNull(result);
-        assertFalse(result.isBefore(before));
-        assertFalse(result.isAfter(after));
+        assertNull(result, "Null FM date with no filename date should return null");
     }
 
     @Test
