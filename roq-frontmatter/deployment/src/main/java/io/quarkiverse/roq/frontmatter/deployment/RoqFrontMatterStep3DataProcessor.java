@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
@@ -100,20 +99,26 @@ public class RoqFrontMatterStep3DataProcessor {
                     item.templateSource().file().absolutePath(), layoutsById);
 
             // Parse date from front matter "date" key, or from filename pattern (e.g. 2024-03-10-my-post)
-            ZonedDateTime date = Objects.requireNonNull(
-                    parsePublishDate(item.templateSource().path(), data, config.dateFormat(), config.timeZoneOrDefault()),
-                    "parsePublishDate must never return null");
+            ZonedDateTime date = parsePublishDate(item.templateSource().path(), data, config.dateFormat(),
+                    config.timeZoneOrDefault());
+
+            // Collection documents (posts, etc.) always need a date since templates use {post.date.format(...)}.
+            // Normal pages don't need one — null is fine.
+            if (date == null && item.collection() != null) {
+                date = ZonedDateTime.now(config.timeZoneOrDefault());
+            }
+
             final boolean noFuture = !config.future() && (item.collection() == null || !item.collection().future());
-            ZonedDateTime now = ZonedDateTime.now();
-            if (noFuture && date.isAfter(now)) {
+            if (noFuture && date != null && date.isAfter(ZonedDateTime.now())) {
                 LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
-                        " To display future articles, use -Dsite.future=true%s.", item.templateSource().path(), date, now,
+                        " To display future articles, use -Dsite.future=true%s.", item.templateSource().path(), date,
+                        ZonedDateTime.now(),
                         item.collection() == null ? ""
                                 : " or -Dsite.collections.%s.future=true".formatted(item.collection().id()));
                 continue;
             }
 
-            String dateString = date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            String dateString = date != null ? date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME) : null;
             final boolean draft = Boolean.parseBoolean(data.getString(DRAFT, "false"));
             if (!config.draft() && draft) {
                 continue;
