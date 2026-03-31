@@ -222,7 +222,7 @@ To install a theme, simply add the dependency to your pom.xml. Example with Roq'
 ----
 
 
-It will provide templates, scripts and styles for your site. To use a theme layout, refer to it with `:theme/` prefix (there is an example in the next part). For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
+It will provide templates, scripts and styles for your site. Theme layouts are automatically available: just use `layout: foo` and it resolves local first, then falls back to the theme. For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
 [#site-index]
 == Site index
@@ -236,7 +236,7 @@ Your site index page is required and should be located in `content/index.html` (
 
 title: Hello Roqers // <1>
 description: It is time to start Roqing 🎸!
-layout: :theme/index //<2>
+layout: index //<2>
 
 ---
 
@@ -250,7 +250,7 @@ layout: :theme/index //<2>
 ----
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
-<2> The layout to use (in this case `:theme/index` which refers to the `index` layout from the theme).
+<2> The layout to use (in this case `index` which resolves to the `index` layout, local first then theme fallback).
 <3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
 
 TIP: There are different ways to link your pages as explained in the  link:{site-baseurl}docs/advanced#links[Links & Urls] section.
@@ -405,7 +405,7 @@ Let's create your first page and spice things up a bit by using Markdown (includ
 
 title: Roq Bottom
 description: When you hit Roq bottom, try Roq to climb back up!
-layout: :theme/page
+layout: page
 link: /climb-back-up <1>
 the-rope: You Roq! <2>
 
@@ -578,7 +578,7 @@ By default, Roq is configured with a `posts` collection using the `content/posts
 
 title: Roq bad puns
 description: Roq is very good for bad puns 🤭
-layout: :theme/post <1>
+layout: post <1>
 tags: <2>
   - funny
   - ai
@@ -606,7 +606,7 @@ Here is a list of puns suggested by Chat GPT:
 15.	Stone Cold Roq – Referring to something very cool or emotionless.
 
 ----
-<1> This time we use the `post` layout from the theme.
+<1> This time we use the `post` layout (resolves local first, then theme fallback).
 <2> You can define tags (see xref:plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
 <3> You have shortcut on the `page` to access `title` and `description`.
 
@@ -678,11 +678,11 @@ In this example, we have two collections: `posts` and `docs`. Finally, you need 
 [source]
 ----
 site.collections.docs=true // <1>
-site.collections.docs.layout=":theme/post" //<2>
+site.collections.docs.layout="post" //<2>
 site.collections.docs.future=true // <3>
 
 site.collections.posts=true
-site.collections.posts.layout=":theme/post"
+site.collections.posts.layout="post"
 ----
 
 <1> We are adding the new collection `docs`;

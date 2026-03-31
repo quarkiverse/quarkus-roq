@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.plugin.series.runtime;
 
 import static io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection.BY_DATE;
+import static io.quarkiverse.roq.plugin.series.runtime.RoqSeriesKeys.SERIES;
 
 import java.util.List;
 import java.util.Map;
@@ -13,8 +14,6 @@ import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
 import io.quarkus.arc.impl.LazyValue;
 
 public record Series(Map<String, SeriesEntry> series) {
-
-    public static final String FM_SERIE = "series";
 
     public static final class SeriesEntry {
         private final String title;
@@ -70,9 +69,9 @@ public record Series(Map<String, SeriesEntry> series) {
     }
 
     public SeriesEntry get(Page page) {
-        if (!page.data().containsKey(FM_SERIE)) {
+        if (!page.data().containsKey(SERIES)) {
             return null;
         }
-        return series.get(page.data().getString(FM_SERIE));
+        return series.get(page.data().getString(SERIES));
     }
 }

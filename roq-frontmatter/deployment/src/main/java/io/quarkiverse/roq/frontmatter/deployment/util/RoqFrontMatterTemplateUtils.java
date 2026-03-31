@@ -1,0 +1,129 @@
+package io.quarkiverse.roq.frontmatter.deployment.util;
+
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FRONTMATTER_PATTERN;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
+import io.vertx.core.json.JsonObject;
+
+public final class RoqFrontMatterTemplateUtils {
+
+    private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
+
+    private RoqFrontMatterTemplateUtils() {
+    }
+
+    // ── FrontMatter parsing ─────────────────────────────────────────────
+
+    public static boolean hasFrontMatter(String content) {
+        return FRONTMATTER_PATTERN.matcher(content).find();
+    }
+
+    public static String getFrontMatter(String content) {
+        int endOfFrontMatter = content.indexOf("---", 3);
+        if (endOfFrontMatter != -1) {
+            return content.substring(3, endOfFrontMatter).trim();
+        }
+        return "";
+    }
+
+    @SuppressWarnings("unchecked")
+    public static JsonObject readFM(YAMLMapper mapper, String fullContent)
+            throws JsonProcessingException, IllegalArgumentException {
+        final String frontMatter = getFrontMatter(fullContent);
+        if (frontMatter.isBlank()) {
+            return new JsonObject();
+        }
+        JsonNode rootNode = mapper.readTree(frontMatter);
+        final Map<String, Object> map = mapper.convertValue(rootNode, Map.class);
+        return new JsonObject(map);
+    }
+
+    public static String stripFrontMatter(String content) {
+        return FRONTMATTER_PATTERN.matcher(content).replaceFirst("");
+    }
+
+    // ── Header parsing ──────────────────────────────────────────────────
+
+    public record ParsedHeaders(JsonObject data, String content) {
+    }
+
+    public static ParsedHeaders parseHeaders(List<RoqFrontMatterHeaderParserBuildItem> headerParsers,
+            TemplateContext templateContext, String fullContent) {
+        JsonObject data = new JsonObject();
+        String content = fullContent;
+        for (RoqFrontMatterHeaderParserBuildItem headerParser : headerParsers) {
+            data.mergeIn(headerParser.parse().apply(templateContext), true);
+            content = headerParser.removeHeader().apply(content);
+        }
+        return new ParsedHeaders(data, content);
+    }
+
+    // ── Template ID and type resolution ─────────────────────────────────
+
+    /**
+     * Resolve the template id from the reference path.
+     * Layouts strip the file extension; pages keep the full path.
+     */
+    public static String resolveTemplateId(String referencePath, boolean isLayout) {
+        if (isLayout) {
+            return removeExtension(referencePath);
+        }
+        return referencePath;
+    }
+
+    /**
+     * Check if content is an HTML partial page (HTML target but no full document markers).
+     */
+    public static boolean isHtmlPartial(String content, boolean isHtml) {
+        if (!isHtml) {
+            return false;
+        }
+        String lower = content.toLowerCase(Locale.ROOT);
+        return !(lower.contains("<html") || lower.contains("<!doctype"));
+    }
+
+    // ── Content transforms ──────────────────────────────────────────────
+
+    public record TransformedContent(String generatedTemplate, String contentWithMarkup) {
+    }
+
+    static WrapperFilter getEscapeFilter(boolean escaped) {
+        if (!escaped) {
+            return WrapperFilter.EMPTY;
+        }
+        return ESCAPE_FILTER;
+    }
+
+    static String getMarkup(boolean isHtml, RoqFrontMatterQuteMarkupBuildItem markup) {
+        if (isHtml) {
+            return markup != null ? markup.name() : "html";
+        }
+        return null;
+    }
+
+    /**
+     * Apply escape filter, markup wrapper, and layout include to produce the final generated templates.
+     */
+    public static TransformedContent applyContentTransforms(String content, boolean escaped,
+            RoqFrontMatterQuteMarkupBuildItem markup, String layoutId) {
+        WrapperFilter escapeFilter = getEscapeFilter(escaped);
+        WrapperFilter includeFilter = getIncludeFilter(layoutId);
+        String escapedContent = escapeFilter.apply(content);
+        String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
+        String generatedTemplate = includeFilter.apply(contentWithMarkup);
+        return new TransformedContent(generatedTemplate, contentWithMarkup);
+    }
+}

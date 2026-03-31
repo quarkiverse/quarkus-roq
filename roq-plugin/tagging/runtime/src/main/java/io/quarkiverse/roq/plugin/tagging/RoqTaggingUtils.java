@@ -3,6 +3,7 @@ package io.quarkiverse.roq.plugin.tagging;
 import java.util.List;
 import java.util.stream.Stream;
 
+import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.vertx.core.json.JsonObject;
 
@@ -12,7 +13,7 @@ public class RoqTaggingUtils {
     }
 
     static Stream<String> slugifiedTagStringsStream(JsonObject data) {
-        return RoqTemplateExtension.asStrings(data.getValue("tags")).stream()
+        return RoqTemplateExtension.asStrings(data.getValue(RoqFrontMatterKeys.TAGS)).stream()
                 .map(RoqTemplateExtension::slugify);
     }
 }

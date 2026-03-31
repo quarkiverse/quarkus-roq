@@ -1,0 +1,10 @@
+---
+title: Files Test Site
+layout: default
+image: cover.png
+---
+<h1>{site.title}</h1>
+{#if site.image != null}<span class="site-image-url">{site.image.path}</span>{/if}
+<span class="site-image-exists">{site.imageExists("cover.png")}</span>
+<span class="site-file-exists">{site.fileExists("docs/readme.txt")}</span>
+<span class="legacy-image-exists">{site.imageExists("legacy.png")}</span>

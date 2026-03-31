@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.frontmatter.runtime.utils;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.IMAGE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.IMG;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PICTURE;
 import static io.quarkiverse.roq.frontmatter.runtime.model.PageFiles.slugifyFile;
 
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
@@ -44,7 +47,7 @@ public final class Pages {
     }
 
     public static String getImgFromData(JsonObject data) {
-        return data.getString("img", data.getString("image", data.getString("picture")));
+        return data.getString(IMG, data.getString(IMAGE, data.getString(PICTURE)));
     }
 
 }

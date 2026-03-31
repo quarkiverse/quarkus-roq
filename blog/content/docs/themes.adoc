@@ -6,7 +6,7 @@ include::../../includes/edit-contrib.adoc[]
 
 It will provide templates, scripts and styles for your site. For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
 
-To use a theme layout, refer to it with this prefix`:theme/`.
+Theme layouts are automatically available: just use `layout: foo` and it resolves local first, then falls back to the theme. For explicit theme targeting, use `theme-layout: foo`.
 
 For example to use the page layout from the theme:
 [source,html]
@@ -14,7 +14,7 @@ For example to use the page layout from the theme:
 ----
 ---
 title: Roq Page
-layout: :theme/page
+layout: page
 ---
 
 <h1>Hello</h1>
