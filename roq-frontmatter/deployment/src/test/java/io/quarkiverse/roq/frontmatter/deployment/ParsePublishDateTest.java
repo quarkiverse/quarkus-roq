@@ -19,7 +19,7 @@ import io.vertx.core.json.JsonObject;
  * <p>
  * Features tested: publish date parsing from filename pattern (YYYY-MM-DD-title.md),
  * from frontmatter 'date' field (date-only and datetime), timezone handling,
- * fallback to now, null date in FM, invalid dates.
+ * null return when no date available, null date in FM, invalid dates.
  */
 @DisplayName("Roq FrontMatter - Publish date parsing")
 public class ParsePublishDateTest {

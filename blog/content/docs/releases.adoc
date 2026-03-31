@@ -15,6 +15,7 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 - 🆕 New `theme-layout: foo` front matter key to explicitly target a theme layout
 - 🔧 Internal refactoring: the frontmatter pipeline is now split into clear numbered steps (Step0-Step6) for better maintainability
 - 🔧 Migrated to `ProjectScanner` API and `StringPaths` library for file scanning
+- ⚠️ `page.date` now returns `null` for normal pages without a date. Collection documents (posts) still default to the current date.
 
 → Guide for migrating <<to-2-1>>
 
@@ -73,6 +74,7 @@ Give it a try, it is enabled on this site. If you want this for your site:
 * `layout: :theme/foo` is deprecated, use `layout: foo` (resolves local first, theme fallback) or `theme-layout: foo` (explicit theme).
 * If you have custom layouts in `templates/layouts/{theme-name}/`, move them to `templates/layouts/`.
 * Roq plugins and themes must use the same version as roq.
+* `page.date` is now `null` for normal pages without a date. If your layouts use `page.date` on non-collection pages, wrap with `{#if page.date}{page.date.format('yyyy, MMM dd')}{/if}`.
 
 If you have custom plugins:
 

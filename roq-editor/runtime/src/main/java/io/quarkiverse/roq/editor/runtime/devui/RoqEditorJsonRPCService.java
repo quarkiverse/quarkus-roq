@@ -47,7 +47,7 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public List<PageSource> getPosts() {
         return site.collections().get("posts").stream()
-                .sorted(Comparator.comparing(Page::date).reversed())
+                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
                         p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
                 .toList();

@@ -217,7 +217,7 @@ paginate:
 - `page.image` — page image (`RoqUrl`)
 - `page.image(name)` — resolve specific image
 - `page.imageExists(name)` — check if image exists
-- `page.date` — page date (`ZonedDateTime`)
+- `page.date` — page date (`ZonedDateTime`, null for normal pages without a date; always set for collection documents)
 - `page.data` — all frontmatter data (`JsonObject`)
 - `page.data(name)` — get specific frontmatter value
 - `page.rawContent` — raw content without frontmatter or layouts

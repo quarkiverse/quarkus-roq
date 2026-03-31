@@ -190,14 +190,14 @@ public class RoqTemplateExtension {
      * This only works when future is enabled on the collection.
      */
     public static List<DocumentPage> future(List<DocumentPage> list) {
-        return list.stream().filter(d -> d.date().isAfter(ZonedDateTime.now())).toList();
+        return list.stream().filter(d -> d.date() != null && d.date().isAfter(ZonedDateTime.now())).toList();
     }
 
     /**
      * Returns a new list containing only the documents dated in the past.
      */
     public static List<DocumentPage> past(List<DocumentPage> list) {
-        return list.stream().filter(d -> d.date().isBefore(ZonedDateTime.now())).toList();
+        return list.stream().filter(d -> d.date() != null && d.date().isBefore(ZonedDateTime.now())).toList();
     }
 
     /**
@@ -219,7 +219,7 @@ public class RoqTemplateExtension {
      * Example: {@code list.sortByDate(true)} → sorts by date in descending order.
      */
     public static List<DocumentPage> sortByDate(List<DocumentPage> list, boolean reverse) {
-        Comparator<DocumentPage> comparing = Comparator.comparing(Page::date);
+        Comparator<DocumentPage> comparing = Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder()));
         if (reverse) {
             comparing = comparing.reversed();
         }
