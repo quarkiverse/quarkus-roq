@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.plugin.sitemap.deployment;
 
-import static io.quarkiverse.roq.plugin.sitemap.runtime.RoqPluginSitemapTemplateExtension.LAST_MODIFIED_AT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAST_MODIFIED_AT;
 
 import java.nio.file.Path;
 import java.time.Instant;

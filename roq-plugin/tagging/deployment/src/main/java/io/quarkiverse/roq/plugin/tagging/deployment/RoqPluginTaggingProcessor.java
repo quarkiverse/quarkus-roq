@@ -2,6 +2,9 @@ package io.quarkiverse.roq.plugin.tagging.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAG;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAGGING;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAG_COLLECTION;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +72,7 @@ public class RoqPluginTaggingProcessor {
         // Let's find non page templates with the tagging data
         final List<RoqFrontMatterLayoutTemplateBuildItem> taggingTemplates = templates.stream()
                 // We filter out theme layouts
-                .filter(i -> !i.raw().isThemeLayout() && i.data().containsKey("tagging"))
+                .filter(i -> !i.raw().isThemeLayout() && i.data().containsKey(TAGGING))
                 .toList();
 
         if (taggingTemplates.isEmpty() || documents.isEmpty()) {
@@ -103,8 +106,8 @@ public class RoqPluginTaggingProcessor {
                 final JsonObject data = new JsonObject()
                         .mergeIn(item.data())
                         .put("title", "#" + e.getKey())
-                        .put("tag", e.getKey())
-                        .put("tagCollection", tagCollection);
+                        .put(TAG, e.getKey())
+                        .put(TAG_COLLECTION, tagCollection);
                 final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,
                         collection.hidden(),
                         collection.future(), collection.layout());
@@ -133,7 +136,7 @@ public class RoqPluginTaggingProcessor {
     }
 
     private static Tagging readTagging(String name, JsonObject data) {
-        final Object value = data.getValue("tagging");
+        final Object value = data.getValue(TAGGING);
         if (value instanceof JsonObject paginate) {
             final String collection = paginate.getString("collection");
             if (collection == null) {

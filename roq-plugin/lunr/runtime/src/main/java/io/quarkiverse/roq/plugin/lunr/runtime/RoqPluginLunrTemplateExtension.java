@@ -26,10 +26,8 @@ import io.vertx.core.json.JsonObject;
 @Unremovable
 public class RoqPluginLunrTemplateExtension {
 
-    public static final String INDEX_BOOST_KEY = "search-boost";
-
     public static boolean search(Page page) {
-        return page.source().isTargetHtml() && page.data().getBoolean("search", true);
+        return page.source().isTargetHtml() && page.data().getBoolean(RoqLunrKeys.SEARCH, true);
     }
 
     public static RawString searchIndex(Site site) {
@@ -62,8 +60,8 @@ public class RoqPluginLunrTemplateExtension {
             final List<String> tags = RoqTemplateExtension.asStrings(page.data("tags"));
             baseDoc.put("tags", tags);
         }
-        final long baseBoost = page.data().containsKey(INDEX_BOOST_KEY)
-                ? page.data().getLong(INDEX_BOOST_KEY)
+        final long baseBoost = page.data().containsKey(RoqLunrKeys.SEARCH_BOOST)
+                ? page.data().getLong(RoqLunrKeys.SEARCH_BOOST)
                 : 1;
         final String absoluteUrl = page.url().absolute();
         if (!anchors.isEmpty()) {

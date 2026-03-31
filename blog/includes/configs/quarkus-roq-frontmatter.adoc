@@ -357,7 +357,7 @@ Environment variable: `+++SITE_DATE_FORMAT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++yyyy-MM-dd[ HH:mm][:ss][ Z]+++`
+|`+++yyyy-M-d[ HH:mm][:ss][ Z]+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_site-time-zone[`site.time-zone`]##
 ifdef::add-copy-button-to-config-props[]

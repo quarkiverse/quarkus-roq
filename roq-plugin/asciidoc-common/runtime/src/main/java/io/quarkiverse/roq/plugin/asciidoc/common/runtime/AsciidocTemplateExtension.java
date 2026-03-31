@@ -10,12 +10,10 @@ import io.quarkus.qute.TemplateExtension;
 
 @Singleton
 public class AsciidocTemplateExtension {
-    public static final String FM_ASCIIDOC_ATTRIBUTES = "asciidoc-attributes";
-
     @TemplateExtension
     public static Map asciidocAttributes(Page page) {
-        if (page.data().containsKey(FM_ASCIIDOC_ATTRIBUTES)) {
-            return convertToStringMap(page.data().getJsonObject(FM_ASCIIDOC_ATTRIBUTES).getMap());
+        if (page.data().containsKey(RoqAsciidocKeys.ASCIIDOC_ATTRIBUTES)) {
+            return convertToStringMap(page.data().getJsonObject(RoqAsciidocKeys.ASCIIDOC_ATTRIBUTES).getMap());
         }
         return Map.of();
     }

@@ -1,6 +1,8 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FILE_NAME_DATE_PATTERN;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.SLUG;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
@@ -95,8 +97,8 @@ public class TemplateLink {
     }
 
     public static String resolveSlug(LinkData data) {
-        String title = data.data().getString("slug",
-                data.data().getString("title"));
+        String title = data.data().getString(SLUG,
+                data.data().getString(TITLE));
         if (title == null || title.isBlank()) {
             title = resolveName(data);
         }
