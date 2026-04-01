@@ -111,19 +111,23 @@ runs:
         cd ${{ env.SITE_DIR }}
         MAVEN_CMD="${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
-          -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
-          -Dsite.url=${{ env.SITE_URL }}"
-    
+          -Dquarkus.http.root-path=${{ env.SITE_PATH }}"
+
+        # Only override site.url if explicitly provided or resolved from GitHub Pages
+        if [ -n "${{ env.SITE_URL }}" ]; then
+          MAVEN_CMD="$MAVEN_CMD -Dsite.url=${{ env.SITE_URL }}"
+        fi
+
         # Add site.future if it's set
         if [ -n "${{ inputs.site-future }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.future=${{ inputs.site-future }}"
         fi
-    
+
         # Add site.draft if it's set
         if [ -n "${{ inputs.site-draft }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.draft=${{ inputs.site-draft }}"
         fi
-    
+
         # Run Maven build with the generated arguments
         $MAVEN_CMD
       env:
