@@ -1,0 +1,150 @@
+/* Prose Utilities - Tailwind Typography Base Configuration
+ *
+ * This file defines the foundational prose utilities used by both content-prose and asciidoc-prose.
+ * It configures Tailwind's @typography plugin with theme-specific styling.
+ *
+ * PROVIDES:
+ *   - CSS variables for prose styling (inline code, code blocks, etc.)
+ *   - @utility prose: Base typography styling with theme customization
+ *   - @utility prose-blockquote: Custom blockquote styling
+ *   - @utility prose-table: Custom table styling with theme colors
+ *
+ * REQUIRED VARIABLES:
+ *   This file requires the following color variables to be defined before import:
+ *
+ *   Theme colors:
+ *     --color-accent-{50,100,200,300,400,500,600,700,800,900,950}
+ *     --color-neutral-{50,100,200,300,400,500,600,700,800,900,950}
+ *
+ *   These are typically defined in _config.css or your custom theme configuration.
+ *
+ * CUSTOMIZATION:
+ *   To customize prose styling in your site, override these variables:
+ *
+ *   @theme inline {
+ *     --prose-code: var(--color-purple-900);
+ *     --prose-code-bg: var(--color-purple-50);
+ *     // ... other variables
+ *   }
+ *
+ * NOTE:
+ *   This file should not be imported alone. It is meant for content-prose or asciidoc-prose.
+ */
+
+/* Prose CSS Variables */
+@theme inline {
+    /* Prose inline code styling */
+    --prose-code: var(--color-accent-900);
+    --prose-code-bg: var(--color-neutral-100);
+    --prose-invert-code: var(--color-accent-400);
+    --prose-invert-code-bg: var(--color-neutral-800);
+    --prose-code-before: '';
+    --prose-code-after: '';
+
+    /* Prose code blocks - pre acts as border/frame around code */
+    --prose-pre-bg: var(--color-neutral-200);
+    --prose-pre-code: var(--color-neutral-900);
+    --prose-pre-code-bg: var(--color-neutral-50);
+    --prose-invert-pre-bg: var(--color-neutral-700);
+    --prose-invert-pre-code: var(--color-neutral-100);
+    --prose-invert-pre-code-bg: var(--color-neutral-950);
+}
+
+/* Global prose customization */
+@utility prose {
+    /* Map theme variables to Tailwind Typography variables */
+    --tw-prose-code: var(--prose-code);
+    --tw-prose-code-bg: var(--prose-code-bg);
+    --tw-prose-code-before: var(--prose-code-before);
+    --tw-prose-code-after: var(--prose-code-after);
+    --tw-prose-invert-code: var(--prose-invert-code);
+    --tw-prose-invert-code-bg: var(--prose-invert-code-bg);
+    --tw-prose-pre-bg: var(--prose-pre-bg);
+    --tw-prose-pre-code: var(--prose-pre-code);
+    --tw-prose-pre-code-bg: var(--prose-pre-code-bg);
+    --tw-prose-invert-pre-bg: var(--prose-invert-pre-bg);
+    --tw-prose-invert-pre-code: var(--prose-invert-pre-code);
+    --tw-prose-invert-pre-code-bg: var(--prose-invert-pre-code-bg);
+
+    /* Headings - common theme colors */
+    @apply prose-headings:text-accent-900 prose-headings:font-bold;
+    @apply dark:prose-headings:text-accent-400;
+
+    /* Strong - common theme colors */
+    @apply prose-strong:text-accent-900 prose-strong:font-bold;
+    @apply dark:prose-strong:text-accent-400;
+
+    /* Inline code styling */
+    @apply prose-code:bg-[var(--tw-prose-code-bg)];
+    @apply prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded;
+    @apply prose-code:font-semibold prose-code:text-sm;
+    @apply prose-code:before:content-[var(--tw-prose-code-before)];
+    @apply prose-code:after:content-[var(--tw-prose-code-after)];
+
+    /* Inline code dark mode */
+    @apply dark:prose-code:bg-[var(--tw-prose-invert-code-bg)];
+
+    /* Code blocks styling */
+    @apply prose-pre:p-2;
+    @apply prose-pre:shadow-sm;
+}
+
+/* Custom utility for blockquote styling - can be applied selectively */
+@utility prose-blockquote {
+    @apply border-l-4 border-accent-600;
+    @apply bg-neutral-50 py-2 px-4;
+    @apply rounded-r-lg italic;
+    @apply dark:bg-neutral-800 dark:border-accent-500;
+}
+
+/* Custom utility for table styling - can be applied selectively */
+@utility prose-table {
+    /* Structural */
+    @apply w-full border-collapse;
+    @apply border-spacing-0 text-base;
+    @apply leading-normal my-6;
+    @apply rounded-lg overflow-hidden;
+    @apply shadow-sm;
+
+    /* Theme colors */
+    @apply bg-white border border-neutral-300;
+    @apply dark:bg-neutral-900 dark:border-neutral-700;
+
+    /* Headers */
+    th {
+        @apply p-3 border border-neutral-300;
+        @apply text-left bg-neutral-100 font-bold;
+        @apply text-accent-900;
+        @apply dark:bg-neutral-800 dark:border-neutral-700;
+        @apply dark:text-accent-400;
+    }
+
+    /* Cells */
+    td {
+        @apply p-3 border border-neutral-300;
+        @apply dark:border-neutral-700;
+    }
+
+    /* Rows */
+    tbody tr:nth-of-type(even) {
+        @apply bg-neutral-50;
+        @apply dark:bg-neutral-800/50;
+    }
+
+    tbody tr:hover {
+        @apply bg-accent-50 transition-colors;
+        @apply dark:bg-neutral-800;
+    }
+}
+
+@layer components {
+    /* Target pre code specifically with regular CSS */
+    pre code {
+        --tw-prose-code-bg: var(--tw-prose-pre-code-bg);
+    }
+
+    .dark pre code {
+        --tw-prose-code-bg: var(--tw-prose-invert-pre-code-bg);
+    }
+
+}

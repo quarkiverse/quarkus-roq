@@ -444,6 +444,7 @@ All templates will be validated at generation. Sometimes, for example on Pull-Re
 
 First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
 
+|}
 .pom.xml
 [source,xml]
 ----
@@ -454,6 +455,7 @@ First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
         <scope>test</scope>
     </dependency>
 ----
+{|
 
 === Test Site Generation
 

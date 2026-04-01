@@ -211,10 +211,16 @@ asciidoc-attributes:
 [#asciidoc-toc]
 === Table of Content (TOC)
 
-To add a Table of Content, you can either use the Asciidoc solution and make it part of the content or add https://github.com/quarkiverse/quarkus-roq/blob/main/blog/web/toc.js[this script] to your site (source: Antora).
+To add a Table of Content, use the `page-content-toc` attribute in your AsciiDoc header:
 
+[source,asciidoc]
+----
+:page-content-toc: true
+:page-content-toc-title: Contents
+:page-content-toc-levels: 2
+----
 
-This will add a dynamic TOC in the `<aside class="toc sidebar"></aside>` of your layout. You can specify the title and content using `data-title` and `data-levels` attributes.
+This works with the default Roq theme and creates a dynamic sidebar TOC that highlights the current section as you scroll.
 
 
 [#asciidoc-data-conversion]
@@ -393,7 +399,7 @@ theme-layout: default
 
 ----
 
-. Inject the search result overlay in the `<body>` and search button in the navigation. For example with the default theme:
+. Inject the search resultverlay in the `<body>` and search button in the navigation. For example with the default theme:
 +
 .templates/layouts/main.html
 [source,html]

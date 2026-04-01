@@ -1,3 +1,4 @@
+
 package io.quarkiverse.roq.it;
 
 import io.quarkiverse.roq.testing.RoqAndRoll;
@@ -12,8 +13,8 @@ import static org.hamcrest.Matchers.*;
 @RoqAndRoll
 public class RoqBlogTest {
 
-    public static final String TITLE = "Hello, world! I’m Roq — a fun little SSG (Static Site Generator) with a Java soul and Quarkus energy.";
-    public static final String DESCRIPTION = "A static site generator (SSG) that makes it fun and easy to build websites and blogs.";
+    public static final String TITLE = "Hello, world! I’m Roq — a funny little SSG (Static Site Generator) with a Java soul and Quarkus energy — Open Source and Free.";
+    public static final String DESCRIPTION = "An Open Source static site generator (SSG) that makes it fun and easy to build websites and blogs.";
 
     @Test
     public void testIndex() {

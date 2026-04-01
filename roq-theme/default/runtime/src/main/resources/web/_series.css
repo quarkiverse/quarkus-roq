@@ -1,0 +1,67 @@
+/* Series Styles */
+
+@layer components {
+    /* === Series === */
+    .series {
+        @apply px-4 py-3;
+        @apply bg-neutral-50/50;
+        @apply border-t border-b border-neutral-200;
+        @apply dark:bg-neutral-800/30;
+        @apply dark:border-neutral-700;
+    }
+
+    .series li {
+        @apply mb-3 transition-all duration-200;
+        @apply flex items-center font-bold;
+        @apply text-neutral-900;
+        @apply dark:text-neutral-100;
+    }
+
+    .series li a {
+        @apply flex items-center;
+    }
+
+    .series a {
+        @apply no-underline font-normal;
+        @apply transition-colors duration-200;
+        @apply text-accent-700;
+        @apply hover:text-accent-900;
+        @apply dark:text-accent-400/70 dark:hover:text-accent-400;
+    }
+
+    .series .index {
+        @apply inline-flex items-center justify-center;
+        @apply w-6 text-base font-bold mr-3;
+        @apply text-accent-900;
+        @apply dark:text-accent-400;
+        @apply relative;
+    }
+
+    /* Dot indicator for current item */
+    .series .index::before {
+        @apply content-[''] absolute -left-3 top-1/2 -translate-y-1/2;
+        @apply w-1.5 h-1.5 rounded-full bg-accent-600;
+        @apply dark:bg-accent-500;
+    }
+
+    .series a .index {
+        @apply text-neutral-500;
+        @apply dark:text-neutral-400;
+    }
+
+    .series a .index::before {
+        @apply bg-neutral-300;
+        @apply dark:bg-neutral-600;
+        @apply transition-colors duration-200;
+    }
+
+    .series a:hover .index {
+        @apply text-accent-900;
+        @apply dark:text-accent-400;
+    }
+
+    .series a:hover .index::before {
+        @apply bg-accent-600;
+        @apply dark:bg-accent-500;
+    }
+}

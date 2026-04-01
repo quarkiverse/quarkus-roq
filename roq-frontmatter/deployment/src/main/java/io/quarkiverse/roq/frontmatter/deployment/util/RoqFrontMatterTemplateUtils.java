@@ -5,8 +5,8 @@ import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayou
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,6 +21,8 @@ import io.vertx.core.json.JsonObject;
 public final class RoqFrontMatterTemplateUtils {
 
     private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
+    private static final Pattern COMPLETE_HTML_PATTERN = Pattern.compile("^\\s*(?:<!--.*?-->\\s*)*(<!doctype|<html)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private RoqFrontMatterTemplateUtils() {
     }
@@ -85,14 +87,22 @@ public final class RoqFrontMatterTemplateUtils {
     }
 
     /**
-     * Check if content is an HTML partial page (HTML target but no full document markers).
+     * Check if content is a partial HTML document (not a complete HTML document with DOCTYPE/html tags).
+     * Partial HTML needs a layout wrapper. Complete HTML docs start with DOCTYPE or html tags.
+     * Uses regex to only match document markers at the start of content, preventing false positives
+     * from HTML code examples in documentation.
      */
-    public static boolean isHtmlPartial(String content, boolean isHtml) {
+    public static boolean isPartialHtmlDocument(String content, boolean isHtml) {
         if (!isHtml) {
             return false;
         }
-        String lower = content.toLowerCase(Locale.ROOT);
-        return !(lower.contains("<html") || lower.contains("<!doctype"));
+        // Fast path: if content doesn't contain <html or <!doctype, it's definitely partial
+        String lower = content.toLowerCase();
+        if (!lower.contains("<html") && !lower.contains("<!doctype")) {
+            return true;
+        }
+        // Only treat as complete HTML if the markers appear at the start of the document
+        return !COMPLETE_HTML_PATTERN.matcher(content).find();
     }
 
     // ── Content transforms ──────────────────────────────────────────────

@@ -1,0 +1,66 @@
+/* Content Prose Styles
+ *
+ * Provides typography styling for Markdown and generic content using Tailwind's @typography plugin.
+ * This is the counterpart to asciidoc-prose.css for non-AsciiDoc content.
+ *
+ * DEPENDENCIES:
+ *   - _prose.css: Provides base @utility prose, prose-blockquote, and prose-table utilities
+ *
+ * USAGE:
+ *   Apply the 'content-prose' class to wrap rich text content:
+ *
+ *   <div class="content-prose">
+ *     <h1>Your Markdown Content</h1>
+ *     <p>Lorem ipsum...</p>
+ *   </div>
+ *
+ * WHAT IT DOES:
+ *   - Applies Tailwind's prose styling for consistent typography
+ *   - Enables dark mode support (prose-invert)
+ *   - Handles code block horizontal scrolling
+ *   - Applies blockquote and table styling
+ *   - Ensures tables are mobile-responsive with horizontal scroll
+ *
+ * SCOPE:
+ *   This class is designed for user sites. You can:
+ *   - Use it in your custom layouts/templates
+ *   - Apply it to content sections that need prose styling
+ *   - Combine it with other utility classes for layout
+ *
+ * CUSTOMIZATION:
+ *   To customize colors, override CSS variables in _prose.css (see header for list).
+ *
+ * NOTE:
+ *   For AsciiDoc content, use 'asciidoc-prose' instead (see _asciidoc-prose.css).
+ *   The theme automatically applies the appropriate class based on markup type.
+ */
+
+@layer components {
+
+    .content-prose {
+        @apply prose prose-base max-w-none;
+        @apply dark:prose-invert;
+
+        /* Code blocks - horizontal scrolling */
+        @apply prose-pre:overflow-x-auto prose-pre:overflow-y-hidden;
+        @apply prose-pre:max-w-full prose-pre:whitespace-pre;
+    }
+
+    /* Apply blockquote styling to all blockquotes in content-prose */
+    .content-prose blockquote {
+        @apply prose-blockquote;
+    }
+
+    /* Apply table styling to all tables in content-prose */
+    .content-prose table {
+        @apply prose-table;
+    }
+
+    /* Table wrapper for mobile scrolling */
+    @media (max-width: 768px) {
+        .content-prose table {
+            @apply block overflow-x-auto;
+        }
+    }
+
+}
