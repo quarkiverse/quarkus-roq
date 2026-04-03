@@ -4,7 +4,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConst
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.TEMPLATES_DIR;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR_PREFIX;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
@@ -195,7 +195,7 @@ public class RoqFrontMatterStep1ScanProcessor {
         // Scan regular layouts from templates/layouts/ (local + classpath, merged)
         List<ProjectFile> layoutFiles = scanner.query()
                 .scopeDir(TEMPLATES_DIR)
-                .matchingGlob(LAYOUTS_DIR + "/**")
+                .matchingGlob(LAYOUTS_DIR + "**")
                 .matching(buildHtmlTemplateGlob())
                 .addExcluded(ignoredPatterns)
                 .list();
@@ -207,7 +207,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             List<ProjectFile> roqResourceLayouts = scanner.query()
                     .scopeDir(roqProject.resolveRoqResourceSubDir(TEMPLATES_DIR))
                     .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
-                    .matchingGlob(LAYOUTS_DIR + "/**")
+                    .matchingGlob(LAYOUTS_DIR + "**")
                     .matching(buildHtmlTemplateGlob())
                     .addExcluded(ignoredPatterns)
                     .list();
@@ -230,7 +230,7 @@ public class RoqFrontMatterStep1ScanProcessor {
         // Scan theme layouts from templates/theme-layouts/ (provided by theme dependencies)
         List<ProjectFile> themeLayoutFiles = scanner.query()
                 .scopeDir(TEMPLATES_DIR)
-                .matchingGlob(THEME_LAYOUTS_DIR_PREFIX + LAYOUTS_DIR + "/**")
+                .matchingGlob(THEME_LAYOUTS_DIR + "**")
                 .matching(buildHtmlTemplateGlob())
                 .addExcluded(ignoredPatterns)
                 .list();
@@ -240,7 +240,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             List<ProjectFile> roqResourceThemeLayouts = scanner.query()
                     .scopeDir(roqProject.resolveRoqResourceSubDir(TEMPLATES_DIR))
                     .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
-                    .matchingGlob(THEME_LAYOUTS_DIR_PREFIX + LAYOUTS_DIR + "/**")
+                    .matchingGlob(THEME_LAYOUTS_DIR + "**")
                     .matching(buildHtmlTemplateGlob())
                     .addExcluded(ignoredPatterns)
                     .list();
@@ -290,8 +290,8 @@ public class RoqFrontMatterStep1ScanProcessor {
                 .scopeDir(TEMPLATES_DIR)
                 .origin(ProjectFile.Origin.LOCAL_PROJECT_FILE)
                 .matching(buildTemplateGlob(quteConfig))
-                .exclude("glob:" + LAYOUTS_DIR + "/**")
-                .exclude("glob:" + THEME_LAYOUTS_DIR_PREFIX + "**")
+                .exclude("glob:" + LAYOUTS_DIR + "**")
+                .exclude("glob:" + THEME_LAYOUTS_DIR + "**")
                 .addExcluded(buildIgnoredPatterns(config))
                 .list();
 

@@ -1,23 +1,23 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.processTemplate;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.removeThemePrefix;
 
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterAvailableLayoutsBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
-import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 
@@ -25,10 +25,36 @@ public class RoqFrontMatterStep2AssembleProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterStep2AssembleProcessor.class);
 
+    // ── Available layouts index ─────────────────────────────────────────────
+
+    @BuildStep
+    void buildAvailableLayouts(List<RoqFrontMatterScannedLayoutBuildItem> scannedLayouts,
+            BuildProducer<RoqFrontMatterAvailableLayoutsBuildItem> producer) {
+        Map<String, SourceFile> layoutsById = new LinkedHashMap<>();
+        for (RoqFrontMatterScannedLayoutBuildItem scanned : scannedLayouts) {
+            String id = scanned.metadata().templateId();
+            SourceFile existing = layoutsById.put(id, scanned.metadata().sourceFile());
+            if (existing != null) {
+                throw new IllegalStateException(
+                        """
+
+                                Multiple layouts found with id '%s'.
+                                 - '%s'
+                                 - '%s'
+                                This usually happens when more than one 'layouts' directory provides a template with the same id. Please ensure layout IDs are unique across all themes and sources.
+                                """
+                                .formatted(id, existing.absolutePath(),
+                                        scanned.metadata().sourceFile().absolutePath()));
+            }
+        }
+        producer.produce(new RoqFrontMatterAvailableLayoutsBuildItem(layoutsById));
+    }
+
     // ── Content processing ───────────────────────────────────────────────
 
     @BuildStep
     void processContent(RoqSiteConfig config,
+            RoqFrontMatterAvailableLayoutsBuildItem availableLayouts,
             List<RoqFrontMatterScannedContentBuildItem> scannedContent,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
@@ -47,7 +73,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
             ProcessedTemplate processed = processTemplate(
                     scanned.metadata(), true, false, scanned.collection(),
                     scanned.isIndex(), scanned.isSiteIndex(),
-                    config, sortedModifications);
+                    config, availableLayouts, sortedModifications);
 
             LOGGER.debugf("Roq content processing producing raw page '%s'", processed.id());
             rawPageProducer.produce(new RoqFrontMatterRawPageBuildItem(
@@ -61,6 +87,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
 
     @BuildStep
     void processLayouts(RoqSiteConfig config,
+            RoqFrontMatterAvailableLayoutsBuildItem availableLayouts,
             List<RoqFrontMatterScannedLayoutBuildItem> scannedLayouts,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications,
             BuildProducer<RoqFrontMatterRawLayoutBuildItem> rawLayoutProducer) {
@@ -72,54 +99,17 @@ public class RoqFrontMatterStep2AssembleProcessor {
                 .sorted(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order))
                 .toList();
 
-        // Two-pass processing: regular layouts first, then theme layouts.
-        // This lets us track which ids are already defined, so theme layouts
-        // only produce a non-theme copy when not overridden by a regular layout.
-        Set<String> regularLayoutIds = new HashSet<>();
-
-        // Pass 1: regular layouts (from templates/layouts/)
         for (RoqFrontMatterScannedLayoutBuildItem scanned : scannedLayouts) {
-            if (scanned.isThemeLayout()) {
-                continue;
-            }
+            boolean isThemeLayout = scanned.isThemeLayout();
             ProcessedTemplate processed = processTemplate(
-                    scanned.metadata(), false, false, null,
+                    scanned.metadata(), false, isThemeLayout, null,
                     false, false,
-                    config, sortedModifications);
+                    config, availableLayouts, sortedModifications);
 
-            regularLayoutIds.add(processed.id());
             LOGGER.debugf("Roq layout processing producing raw layout '%s'", processed.id());
             rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
-                    processed.generatedTemplate(), false));
-        }
-
-        // Pass 2: theme layouts (from templates/theme-layouts/)
-        for (RoqFrontMatterScannedLayoutBuildItem scanned : scannedLayouts) {
-            if (!scanned.isThemeLayout()) {
-                continue;
-            }
-            ProcessedTemplate processed = processTemplate(
-                    scanned.metadata(), false, true, null,
-                    false, false,
-                    config, sortedModifications);
-
-            LOGGER.debugf("Roq theme-layout processing producing raw layout '%s'", processed.id());
-            rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
-                    processed.templateSource(), processed.layout(), processed.data(),
-                    processed.generatedTemplate(), true));
-
-            // Theme-layout dedup: produce a non-theme copy (themeLayout=false) so pages
-            // can reference this layout without the theme prefix, but only if no regular
-            // layout already provides it (regular layouts take precedence)
-            String overrideId = removeThemePrefix(processed.id());
-            if (!regularLayoutIds.contains(overrideId)) {
-                LOGGER.debugf("Roq theme-layout producing override '%s'", overrideId);
-                rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
-                        processed.templateSource().changeIds(RoqFrontMatterLayoutUtils::removeThemePrefix),
-                        processed.layout(), processed.data(),
-                        processed.generatedTemplate(), false));
-            }
+                    processed.generatedTemplate(), isThemeLayout));
         }
     }
 }

@@ -24,6 +24,8 @@ public class RoqFrontMatterBasicTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "basic-site")
+            .overrideConfigKey("quarkus.default-locale", "en")
+            .overrideConfigKey("site.time-zone", "UTC")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("basic-site"));
 
@@ -52,6 +54,28 @@ public class RoqFrontMatterBasicTest {
                 .body("html.head.title", equalTo("Simple Site"))
                 .body("html.body.div.h1[0]", containsString("New Post"))
                 .body("html.body.div.h1[1]", containsString("Some Post"));
+    }
+
+    @Test
+    @DisplayName("Post renders date format extensions")
+    public void testDateFormats() {
+        RestAssured.when().get("/the-posts/new-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'date-iso' }.text()", equalTo("2024-10-09T00:00:00Z"))
+                .body("html.body.article.span.find { it.@class == 'date-iso-date' }.text()", equalTo("2024-10-09"))
+                .body("html.body.article.span.find { it.@class == 'date-short-date' }.text()", equalTo("Oct 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-long-date' }.text()", equalTo("October 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-short-time' }.text()", containsString("12:00"))
+                .body("html.body.article.span.find { it.@class == 'date-short-time' }.text()", containsString("AM"))
+                .body("html.body.article.span.find { it.@class == 'date-long-time' }.text()", containsString("12:00:00"))
+                .body("html.body.article.span.find { it.@class == 'date-long-time' }.text()", containsString("AM"))
+                .body("html.body.article.span.find { it.@class == 'date-long-time' }.text()", containsString("UTC"))
+                .body("html.body.article.span.find { it.@class == 'date-short' }.text()", containsString("Oct 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-short' }.text()", containsString("12:00"))
+                .body("html.body.article.span.find { it.@class == 'date-long' }.text()", containsString("October 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-long' }.text()", containsString("12:00:00"))
+                .body("html.body.article.span.find { it.@class == 'date-long' }.text()", containsString("UTC"))
+                .body("html.body.article.span.find { it.@class == 'date-rfc822' }.text()",
+                        equalTo("Wed, 09 Oct 2024 00:00:00 +0000"));
     }
 
     @Test
