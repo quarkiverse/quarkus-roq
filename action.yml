@@ -100,7 +100,9 @@ runs:
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
         echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
-        echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        if [ -n "$SITE_URL" ]; then
+          echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        fi
         echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
