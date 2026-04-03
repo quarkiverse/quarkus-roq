@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-page-markup]] [.property-path]##link:#quarkus-roq-editor_editor-page-markup[`editor.page-markup`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-page-markup]] [.property-path]##link:#quarkus-roq-editor_editor-page-markup[`+++editor.page-markup+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.page-markup+++[]
 endif::add-copy-button-to-config-props[]
@@ -26,9 +26,9 @@ Environment variable: `+++EDITOR_PAGE_MARKUP+++`
 endif::add-copy-button-to-env-var[]
 --
 a|`markdown`, `asciidoc`, `html`
-|`+++markdown+++`
+|markdown
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-doc-markup]] [.property-path]##link:#quarkus-roq-editor_editor-doc-markup[`editor.doc-markup`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-doc-markup]] [.property-path]##link:#quarkus-roq-editor_editor-doc-markup[`+++editor.doc-markup+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.doc-markup+++[]
 endif::add-copy-button-to-config-props[]
@@ -47,9 +47,9 @@ Environment variable: `+++EDITOR_DOC_MARKUP+++`
 endif::add-copy-button-to-env-var[]
 --
 a|`markdown`, `asciidoc`, `html`
-|`+++markdown+++`
+|markdown
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-enabled[`editor.visual-editor.enabled`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-enabled[`+++editor.visual-editor.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.visual-editor.enabled+++[]
 endif::add-copy-button-to-config-props[]
@@ -68,9 +68,9 @@ Environment variable: `+++EDITOR_VISUAL_EDITOR_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|true
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-safe]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-safe[`editor.visual-editor.safe`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-visual-editor-safe]] [.property-path]##link:#quarkus-roq-editor_editor-visual-editor-safe[`+++editor.visual-editor.safe+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.visual-editor.safe+++[]
 endif::add-copy-button-to-config-props[]
@@ -89,9 +89,9 @@ Environment variable: `+++EDITOR_VISUAL_EDITOR_SAFE+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|true
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-suggested-path-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-suggested-path-enabled[`editor.suggested-path.enabled`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-suggested-path-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-suggested-path-enabled[`+++editor.suggested-path.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.suggested-path.enabled+++[]
 endif::add-copy-button-to-config-props[]
@@ -110,7 +110,7 @@ Environment variable: `+++EDITOR_SUGGESTED_PATH_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|true
 
 |===
 

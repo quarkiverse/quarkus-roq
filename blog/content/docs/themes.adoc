@@ -1,6 +1,7 @@
 = Themes
 include::../../includes/attributes.adoc[]
 :doc-name: themes
+:qute:
 
 include::../../includes/edit-contrib.adoc[]
 
@@ -24,6 +25,8 @@ layout: page
 == Roq Theme default
 
 This is the default Roq theme for a site or a blog (used on this site):
+
+// TODO Claude: add override instructions layouts and css, add more info about configuration from site index and available partials/tags/layouts
 
 image::themes/roq-default.jpg[Roq Default,500]
 

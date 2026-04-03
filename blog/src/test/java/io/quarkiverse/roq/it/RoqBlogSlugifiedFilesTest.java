@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.*;
 @TestProfile(RoqBlogSlugifiedFilesTest.SlugifyFilesConfig.class)
 public class RoqBlogSlugifiedFilesTest {
     public static final String TITLE = "Hello, world! I’m Roq";
-    public static final String DESCRIPTION = "A static site generator (SSG) that makes it fun and easy to build websites and blogs.";
+    public static final String DESCRIPTION = "An Open Source static site generator (SSG) that makes it fun and easy to build websites and blogs.";
 
     @Test
     public void testIndex() {

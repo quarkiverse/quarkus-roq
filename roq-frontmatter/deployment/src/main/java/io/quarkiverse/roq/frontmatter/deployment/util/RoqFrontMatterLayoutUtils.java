@@ -38,9 +38,9 @@ public final class RoqFrontMatterLayoutUtils {
      * Resolve the default layout for a page.
      * Returns null for layouts or when content is a full HTML document.
      */
-    public static String resolveDefaultLayout(boolean isHtmlPartial, ConfiguredCollection collection,
+    public static String resolveDefaultLayout(boolean isPartialHtmlDocument, ConfiguredCollection collection,
             RoqSiteConfig config) {
-        if (!isHtmlPartial) {
+        if (!isPartialHtmlDocument) {
             return null;
         }
         return collection != null ? collection.layout() : config.pageLayout().orElse(null);

@@ -16,7 +16,7 @@ Roq is a powerful static site generator that combines the best features of tools
   {#for id in cdi:authors.fields}
     {#let author=cdi:authors.get(id)}
     <!-- the author-card tag is defined in the default Roq theme -->
-    {#author-card name=author.name avatar=author.avatar nickname=author.nickname profile=author.profile /}
+    {#theme/authorCard name=author.name avatar=author.avatar nickname=author.nickname profile=author.profile /}
   {/for}
 </div>
 

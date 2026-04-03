@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-dir[`quarkus.roq.dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-dir[`+++quarkus.roq.dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -26,9 +26,9 @@ Environment variable: `+++QUARKUS_ROQ_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++the project root+++`
+|the project root
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-resource-dir[`quarkus.roq.resource-dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-resource-dir]] [.property-path]##link:#quarkus-roq_quarkus-roq-resource-dir[`+++quarkus.roq.resource-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.resource-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -47,9 +47,9 @@ Environment variable: `+++QUARKUS_ROQ_RESOURCE_DIR+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++the root of the resources+++`
+|the root of the resources
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties[`quarkus.roq.jackson.fail-on-unknown-properties`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-unknown-properties[`+++quarkus.roq.jackson.fail-on-unknown-properties+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.jackson.fail-on-unknown-properties+++[]
 endif::add-copy-button-to-config-props[]
@@ -70,9 +70,9 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_UNKNOWN_PROPERTIES+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|true
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans[`quarkus.roq.jackson.fail-on-empty-beans`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-fail-on-empty-beans[`+++quarkus.roq.jackson.fail-on-empty-beans+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.jackson.fail-on-empty-beans+++[]
 endif::add-copy-button-to-config-props[]
@@ -91,9 +91,9 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_FAIL_ON_EMPTY_BEANS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|true
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums[`quarkus.roq.jackson.accept-case-insensitive-enums`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-accept-case-insensitive-enums[`+++quarkus.roq.jackson.accept-case-insensitive-enums+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.jackson.accept-case-insensitive-enums+++[]
 endif::add-copy-button-to-config-props[]
@@ -112,9 +112,9 @@ Environment variable: `+++QUARKUS_ROQ_JACKSON_ACCEPT_CASE_INSENSITIVE_ENUMS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++false+++`
+|false
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-property-naming-strategy]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-property-naming-strategy[`quarkus.roq.jackson.property-naming-strategy`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq_quarkus-roq-jackson-property-naming-strategy]] [.property-path]##link:#quarkus-roq_quarkus-roq-jackson-property-naming-strategy[`+++quarkus.roq.jackson.property-naming-strategy+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.jackson.property-naming-strategy+++[]
 endif::add-copy-button-to-config-props[]

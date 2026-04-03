@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-tagging_quarkus-roq-tagging-lowercase]] [.property-path]##link:#quarkus-roq-plugin-tagging_quarkus-roq-tagging-lowercase[`quarkus.roq.tagging.lowercase`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-tagging_quarkus-roq-tagging-lowercase]] [.property-path]##link:#quarkus-roq-plugin-tagging_quarkus-roq-tagging-lowercase[`+++quarkus.roq.tagging.lowercase+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.tagging.lowercase+++[]
 endif::add-copy-button-to-config-props[]
@@ -26,7 +26,7 @@ Environment variable: `+++QUARKUS_ROQ_TAGGING_LOWERCASE+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++false+++`
+|false
 
 |===
 

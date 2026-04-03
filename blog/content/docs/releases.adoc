@@ -13,6 +13,7 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 - 🎨 *Simplified layout resolution*: `layout: page` now resolves local layouts first, then falls back to the theme — no more `:theme/` prefix needed
 - 🆕 New `theme-layout: foo` front matter key to explicitly target a theme layout
+- 🎨 *Default theme rewritten with TailwindCSS* instead of SCSS for better maintainability and modern styling
 - 🔧 Internal refactoring: the frontmatter pipeline is now split into clear numbered steps (Step0-Step6) for better maintainability
 - 🔧 Migrated to `ProjectScanner` API and `StringPaths` library for file scanning
 - ⚠️ `page.date` now returns `null` for normal pages without a date. Collection documents (posts) still default to the current date.
@@ -23,7 +24,7 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 - 🕵️ Added lightning filesystem watcher for live reload
 - 📂 Allow `web` directory at the root of the Roq site
-- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...) 
+- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...)
 - ⚡️ https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[TailwindCSS] support without any config
 - 💫 Directory support for data and allow iterating on nested data files using the directory name
 
@@ -71,47 +72,129 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 === to 2.1
 
-* `layout: :theme/foo` is deprecated, use `layout: foo` (resolves local first, theme fallback) or `theme-layout: foo` (explicit theme).
-* If you have custom layouts in `templates/layouts/{theme-name}/`, move them to `templates/layouts/`.
-* Roq plugins and themes must use the same version as roq.
-* `page.date` is now `null` for normal pages without a date. If your layouts use `page.date` on non-collection pages, wrap with `{#if page.date}{page.date.format('yyyy, MMM dd')}{/if}`.
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-If you have custom plugins:
+| All users
+| `layout: :theme/foo`
+| `layout: foo` or `theme-layout: foo`
+| ⚠ Update layout references in front matter
 
-* Consuming `RoqFrontMatterRawTemplateBuildItem` or `RoqFrontMatterScanProcessor` must be updated — these are replaced by the new step-based build items.
-* Build item packages moved: `deployment.scan.\*` → `deployment.items.scan.*`, `deployment.data.*` → `deployment.items.data.*`, `deployment.publish.*` → `deployment.items.publish.*`. New packages: `items.assemble.*`, `items.record.*`.
-* Constants like `PAGINATE_KEY` and `LINK_KEY` moved to `RoqFrontMatterKeys` (runtime module).
+| All users
+| Layouts in `templates/layouts/{theme-name}/`
+| `templates/layouts/`
+| ⚠ Move custom layouts
+
+| All users
+| `page.date` returns current date for all pages
+| Returns `null` for non-collection pages
+| ⚠ Wrap with `{#if page.date}...{/if}`
+
+| Theme users
+| SCSS (`app.scss`)
+| CSS with https://tailwindcss.com/[TailwindCSS]
+| ⚠ Migrate custom styles
+
+| Theme users
+| `{#author-card ...}` (kebab-case)
+| `{#theme/authorCard ...}` (namespaced camelCase)
+| ⚠ Update tag references
+
+| Plugin authors
+| `RoqFrontMatterScanProcessor`
+| Step-based build items
+| ⚠ Update plugin code
+
+| Plugin authors
+| `deployment.scan.\*`
+| `deployment.items.scan.*` (same for `data`, `publish`)
+| ⚠ Update imports
+
+| Plugin authors
+| `PAGINATE_KEY` in scan package
+| `RoqFrontMatterKeys` (runtime)
+| ⚠ Update imports
+
+| Theme users
+| Custom SCSS/CSS overrides
+| Theme CSS completely rewritten
+| ⚠ Review your overrides — some may be unnecessary now, others may need updating
+
+| Theme users
+| Custom CSS classes for prose
+| `not-prose` class to exclude from prose styling
+| ℹ Good to know
+
+| Theme users
+| No dark mode
+| Built-in with `dark:` variants
+| ℹ Good to know
+
+| Theme users
+| No hero layout
+| `layout: page-hero`
+| ℹ Good to know
+|===
 
 === to 2.0
 
-If you are using nested data, they are now mapped using `/`. E.g: `dir/bar.yml` is mapped to `dir/bar` instead of `dir_bar`.
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-Please report any other issue while migrating.
+| All users
+| Nested data mapped with `_` (e.g. `dir_bar`)
+| Mapped with `/` (e.g. `dir/bar`)
+| ⚠ Update data references
+|===
 
 === to 1.8
 
-*Make sure build and generation tests are passing:*
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-* `page.info()` has been rewritten and split into `page.source()` and `page.source().template()`.
-* Roq BuildItems has been modified to be easier to understand, all plugins have been updated accordingly. Unless you have your own custom plugins, this shouldn't affect you.
+| All users
+| `page.info()`
+| `page.source()` and `page.source().template()`
+| ⚠ Update page info calls
+
+| Plugin authors
+| Previous BuildItems API
+| Restructured BuildItems
+| ⚠ Update plugin code
+|===
 
 === to 1.7
 
-**Asciidoc support has been improved, if you use it, **you may need to check a few things when updating:
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-* Asciidoc files (.adoc and .asciidoc) will be escaped by default meaning no Qute parsing. Instead, it is possible to use asciidoc includes and vars instead (can be configured through `quarkus.asciidoc.qute=false`).
-* Config renamed `quarkus.asciidoctorj` -> `quarkus.asciidoc` (this is to be able to switch from one to the other asciidoc plugin)
-* `quarkus.asciidoc.qute` (instead of `quarkus.asciidoc.escape` in 1.7.0.CR1)
-* `:qute:` or `:qute: true` to enable Qute parsing per page
-* Remove config `quarkus.asciidoctorj.templates-dir` (toc can be handled by script).
+| AsciiDoc users
+| Qute parsing enabled by default
+| Disabled by default
+| ⚠ Use `:qute:` per page or `quarkus.asciidoc.qute=false`
 
-*Search plugin* has also been improved:
+| AsciiDoc users
+| `quarkus.asciidoctorj`
+| `quarkus.asciidoc`
+| ⚠ Rename config
 
-* Make sure your style is still valid with the new search result dom.
+| AsciiDoc users
+| `quarkus.asciidoctorj.templates-dir`
+| Removed (TOC handled by script)
+| ⚠ Remove config
 
-*Ignored files:*
+| Search users
+| Previous search result DOM
+| Updated DOM structure
+| ⚠ Verify custom search styles
 
-* `site.ignored-files` now *extends* `site.default-ignored-files` instead of replacing it.
-The default ignore list was updated to allow files starting with `.` (except `DS_Store` and `Thumbs.db`).
-Check your config to ensure it still works as expected.
+| All users
+| `site.ignored-files` replaces defaults
+| Now extends `site.default-ignored-files`
+| ⚠ Check ignore config
+|===
 

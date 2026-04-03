@@ -82,7 +82,7 @@ Thanks to Qute, Roq offers code completion, which is beneficial when working in 
 You may find a few interesting things in there, here are 3 random articles from our link:\{site-url}[blog].
 
 ++++
-<br/>
+<div class="not-prose not-doc" style="margin-top: 2rem;">
 {#if site.collections.get('posts')}
 {#for post in site.collections.get('posts').randomise.take(3)}
 <article class="post">
@@ -100,4 +100,5 @@ You may find a few interesting things in there, here are 3 random articles from 
 </article>
 {/for}
 {/if}
+</div>
 ++++
