@@ -52,7 +52,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void contentPageLocalLayout() {
             var layouts = availableLayouts("layouts/post", "theme-layouts/my-theme/post");
             assertEquals("layouts/post",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "post", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("post", false)));
         }
 
         @Test
@@ -60,7 +60,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void contentPageThemeFallback() {
             var layouts = availableLayouts("theme-layouts/my-theme/about");
             assertEquals("theme-layouts/my-theme/about",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "about", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("about", false)));
         }
 
         @Test
@@ -68,7 +68,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void contentPageLocalOverrideExists() {
             var layouts = availableLayouts("layouts/custom", "layouts/my-theme/custom", "theme-layouts/my-theme/custom");
             assertEquals("layouts/custom",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "custom", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("custom", false)));
         }
 
         @Test
@@ -76,7 +76,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void contentPageThemeDirOverride() {
             var layouts = availableLayouts("layouts/my-theme/custom", "theme-layouts/my-theme/custom");
             assertEquals("layouts/my-theme/custom",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "custom", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("custom", false)));
         }
 
         @Test
@@ -84,7 +84,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void crossThemeWithSlash() {
             var layouts = availableLayouts("theme-layouts/other-theme/foo");
             assertEquals("theme-layouts/other-theme/foo",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "other-theme/foo", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("other-theme/foo", false)));
         }
 
         @Test
@@ -92,7 +92,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void crossThemeLocalFirst() {
             var layouts = availableLayouts("layouts/other-theme/foo", "theme-layouts/other-theme/foo");
             assertEquals("layouts/other-theme/foo",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "other-theme/foo", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("other-theme/foo", false)));
         }
 
         @Test
@@ -100,7 +100,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutOwnEqualsActiveUserOverride() {
             var layouts = availableLayouts("layouts/page", "theme-layouts/my-theme/page");
             assertEquals("layouts/page",
-                    layouts.resolveLayoutId(MY_THEME, MY_THEME, "page", false));
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("page", false)));
         }
 
         @Test
@@ -108,7 +108,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutOwnEqualsActiveNoOverride() {
             var layouts = availableLayouts("theme-layouts/my-theme/about");
             assertEquals("theme-layouts/my-theme/about",
-                    layouts.resolveLayoutId(MY_THEME, MY_THEME, "about", false));
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("about", false)));
         }
 
         @Test
@@ -116,7 +116,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutOwnNotActive() {
             var layouts = availableLayouts("theme-layouts/other-theme/foo");
             assertEquals("theme-layouts/other-theme/foo",
-                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, "foo", false));
+                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, new LayoutRef("foo", false)));
         }
 
         @Test
@@ -124,7 +124,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutOwnNotActiveUserOverride() {
             var layouts = availableLayouts("layouts/other-theme/foo", "theme-layouts/other-theme/foo");
             assertEquals("layouts/other-theme/foo",
-                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, "foo", false));
+                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, new LayoutRef("foo", false)));
         }
 
         @Test
@@ -132,21 +132,21 @@ public class RoqFrontMatterLayoutUtilsTest {
         void throwsWhenNotFound() {
             var layouts = availableLayouts();
             assertThrows(RoqLayoutNotFoundException.class,
-                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "nonexistent", false));
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("nonexistent", false)));
         }
 
         @Test
         @DisplayName("Returns null for null value")
         void nullValueReturnsNull() {
             var layouts = availableLayouts();
-            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, null, false));
+            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef(null, false)));
         }
 
         @Test
         @DisplayName("Returns null for blank value")
         void blankValueReturnsNull() {
             var layouts = availableLayouts();
-            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "  ", false));
+            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("  ", false)));
         }
 
         @Test
@@ -154,7 +154,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void extensionStripped() {
             var layouts = availableLayouts("layouts/post");
             assertEquals("layouts/post",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "post.html", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("post.html", false)));
         }
     }
 
@@ -167,7 +167,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutWithSlash() {
             var layouts = availableLayouts("theme-layouts/my-theme/page");
             assertEquals("theme-layouts/my-theme/page",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "my-theme/page", true));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("my-theme/page", true)));
         }
 
         @Test
@@ -175,15 +175,15 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutNoSlashFromContent() {
             var layouts = availableLayouts("theme-layouts/my-theme/page");
             assertEquals("theme-layouts/my-theme/page",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "page", true));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("page", true)));
         }
 
         @Test
-        @DisplayName("#13 theme-layout: no / from theme layout fails")
-        void themeLayoutNoSlashFromThemeLayoutFails() {
+        @DisplayName("#13 theme-layout: no / from theme layout resolves to own theme")
+        void themeLayoutNoSlashFromThemeLayoutResolvesToOwn() {
             var layouts = availableLayouts("theme-layouts/my-theme/page");
-            assertThrows(RoqThemeConfigurationException.class,
-                    () -> layouts.resolveLayoutId(MY_THEME, MY_THEME, "page", true));
+            assertEquals("theme-layouts/my-theme/page",
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("page", true)));
         }
 
         @Test
@@ -191,7 +191,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutNoThemeThrows() {
             var layouts = availableLayouts("theme-layouts/my-theme/page");
             assertThrows(RoqThemeConfigurationException.class,
-                    () -> layouts.resolveLayoutId(NO_THEME, NO_SOURCE, "page", true));
+                    () -> layouts.resolveLayoutId(NO_THEME, NO_SOURCE, new LayoutRef("page", true)));
         }
 
         @Test
@@ -199,7 +199,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void themeLayoutWithSlashNotFound() {
             var layouts = availableLayouts();
             assertThrows(RoqLayoutNotFoundException.class,
-                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "my-theme/nonexistent", true));
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("my-theme/nonexistent", true)));
         }
     }
 
@@ -212,7 +212,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void legacyColonTheme() {
             var layouts = availableLayouts("layouts/post");
             assertEquals("layouts/post",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, ":theme/post", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef(":theme/post", false)));
         }
 
         @Test
@@ -220,7 +220,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void legacyFullThemeLayoutsPath() {
             var layouts = availableLayouts("theme-layouts/my-theme/page");
             assertEquals("theme-layouts/my-theme/page",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "theme-layouts/my-theme/page", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("theme-layouts/my-theme/page", false)));
         }
 
         @Test
@@ -228,7 +228,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void legacyLayoutsPrefix() {
             var layouts = availableLayouts("layouts/post");
             assertEquals("layouts/post",
-                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "layouts/post", false));
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("layouts/post", false)));
         }
 
         @Test
@@ -236,7 +236,7 @@ public class RoqFrontMatterLayoutUtilsTest {
         void legacyFullPathNotFound() {
             var layouts = availableLayouts();
             assertThrows(RoqLayoutNotFoundException.class,
-                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, "theme-layouts/my-theme/gone", false));
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("theme-layouts/my-theme/gone", false)));
         }
     }
 

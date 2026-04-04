@@ -57,8 +57,7 @@ public final class RoqFrontMatterAssembleUtils {
 
         LayoutRef layoutRef = resolveLayoutRef(data, isPage, metadata.isPartial(), collection, config);
         Optional<String> sourceTheme = extractSourceTheme(isThemeLayout, metadata.templateId());
-        String layoutId = availableLayouts.resolveLayoutId(
-                config.theme(), sourceTheme, layoutRef.value(), layoutRef.scopeToTheme());
+        String layoutId = availableLayouts.resolveLayoutId(config.theme(), sourceTheme, layoutRef);
 
         for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
             data = modification.modifier()
@@ -94,7 +93,7 @@ public final class RoqFrontMatterAssembleUtils {
      * Pick the layout value from front matter: {@code theme-layout:} takes precedence,
      * then {@code layout:}, then the default for pages.
      */
-    public static LayoutRef resolveLayoutRef(JsonObject data, boolean isPage, boolean isPartial,
+    static LayoutRef resolveLayoutRef(JsonObject data, boolean isPage, boolean isPartial,
             ConfiguredCollection collection, RoqSiteConfig config) {
         String themeLayout = data.getString(THEME_LAYOUT);
         if (themeLayout != null && !themeLayout.isBlank()) {
@@ -114,7 +113,7 @@ public final class RoqFrontMatterAssembleUtils {
      * Extract the theme name that a layout belongs to from its template ID.
      * Returns empty for content pages and user layouts.
      */
-    public static Optional<String> extractSourceTheme(boolean isThemeLayout, String templateId) {
+    static Optional<String> extractSourceTheme(boolean isThemeLayout, String templateId) {
         if (!isThemeLayout) {
             return Optional.empty();
         }

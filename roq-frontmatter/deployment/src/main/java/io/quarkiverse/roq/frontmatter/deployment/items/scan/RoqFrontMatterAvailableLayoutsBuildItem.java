@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkus.builder.item.SimpleBuildItem;
 
@@ -41,17 +43,17 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
      *
      * @param activeTheme the active theme name
      * @param sourceTheme which theme the calling layout belongs to (empty for content/user layouts)
-     * @param layoutValue the raw value from front matter
-     * @param scopeToTheme true if the value came from {@code theme-layout:} (direct theme reference)
+     * @param ref the layout reference (value + whether it came from {@code theme-layout:})
      * @return the resolved layout ID, or null if layoutValue is null/blank
-     * @throws RoqThemeConfigurationException if resolution fails
+     * @throws RoqLayoutNotFoundException if the layout cannot be found
+     * @throws RoqThemeConfigurationException if theme configuration is invalid
      */
-    public String resolveLayoutId(Optional<String> activeTheme, Optional<String> sourceTheme,
-            String layoutValue, boolean scopeToTheme) {
-        if (layoutValue == null || layoutValue.isBlank()) {
+    public String resolveLayoutId(Optional<String> activeTheme, Optional<String> sourceTheme, LayoutRef ref) {
+        if (ref.value() == null || ref.value().isBlank()) {
             return null;
         }
 
+        String layoutValue = ref.value();
         String value = removeExtension(layoutValue);
 
         // 1. Legacy: starts with "theme-layouts/" or "layouts/" -> warn, direct match or fail
@@ -71,7 +73,7 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
 
         // 2. Legacy: contains ":theme/" -> warn, strip, continue
         if (value.contains(":theme/")) {
-            String stripped = value.replace(":theme/", "").replace(":theme", "");
+            String stripped = value.replaceFirst(":theme/", "");
             LOGGER.warnf(
                     "DEPRECATED: ':theme' in layout '%s' is deprecated. Use 'layout: %s' instead.",
                     value, stripped);
@@ -79,16 +81,14 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
         }
 
         // theme-layout: resolution (scopeToTheme = true)
-        if (scopeToTheme) {
+        if (ref.scopeToTheme()) {
             // 3. theme-layout: with "/" -> direct match theme-layouts/X/foo
             if (value.contains("/")) {
                 return findOrFail(THEME_LAYOUTS_DIR + value, layoutValue);
             }
-            // 4. theme-layout: no "/" + from theme layout -> fail
+            // 4. theme-layout: no "/" + from theme layout -> theme-layouts/{own}/foo
             if (sourceTheme.isPresent()) {
-                throw new RoqThemeConfigurationException(
-                        "theme-layout: '%s' in a theme layout must be fully qualified (e.g. 'theme-layout: %s/%s')."
-                                .formatted(layoutValue, sourceTheme.get(), value));
+                return findOrFail(THEME_LAYOUTS_DIR + sourceTheme.get() + "/" + value, layoutValue);
             }
             // 5. theme-layout: no "/" + from content/user -> theme-layouts/{active}/foo
             if (activeTheme.isEmpty()) {
@@ -149,9 +149,12 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
     }
 
     private String buildError(String originalName, List<String> candidates) {
+        String available = layoutsById.keySet().stream()
+                .limit(20)
+                .collect(Collectors.joining(", ", "[", layoutsById.size() > 20 ? ", ...]" : "]"));
         return "Layout '%s' could not be resolved. Tried:\n%s\nAvailable layouts: %s".formatted(
                 originalName,
                 String.join("\n", candidates.stream().map(s -> "  - " + s).toList()),
-                layoutsById.keySet());
+                available);
     }
 }
