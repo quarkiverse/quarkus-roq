@@ -1,11 +1,14 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +16,8 @@ import java.util.regex.Pattern;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateExtension;
+import io.quarkus.qute.TemplateExtension.TemplateAttribute;
+import io.quarkus.qute.TemplateInstance;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -224,6 +229,104 @@ public class RoqTemplateExtension {
             comparing = comparing.reversed();
         }
         return list.stream().sorted(comparing).toList();
+    }
+
+    // ── Date formatting ──────────────────────────────────────────────────
+
+    private static final DateTimeFormatter RFC_822 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z",
+            Locale.ENGLISH);
+
+    /**
+     * Returns the ISO 8601 date-time string (e.g. "2024-03-15T10:30:00+01:00").<br>
+     * Example: "{page.date.iso}".
+     */
+    public static String iso(ZonedDateTime date) {
+        return date.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    /**
+     * Returns the ISO 8601 date string (e.g. "2024-03-15").<br>
+     * Example: "{page.date.isoDate}".
+     */
+    public static String isoDate(ZonedDateTime date) {
+        return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    /**
+     * Returns a short date string (e.g. "Mar 15, 2024"), locale-aware.<br>
+     * Example: "{page.date.shortDate}".
+     */
+    public static String shortDate(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns a long date string (e.g. "March 15, 2024"), locale-aware.<br>
+     * Example: "{page.date.longDate}".
+     */
+    public static String longDate(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns a short time string (e.g. "10:30 AM"), locale-aware.<br>
+     * Example: "{page.date.shortTime}".
+     */
+    public static String shortTime(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns a long time string (e.g. "10:30:00 AM CET"), locale-aware.<br>
+     * Example: "{page.date.longTime}".
+     */
+    public static String longTime(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG).withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns a short date-time string (e.g. "Mar 15, 2024, 10:30 AM"), locale-aware.<br>
+     * Example: "{page.date.short}".
+     */
+    @TemplateExtension(matchName = "short")
+    public static String shortDateTime(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+                .withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns a long date-time string (e.g. "March 15, 2024, 10:30:00 AM CET"), locale-aware.<br>
+     * Example: "{page.date.long}".
+     */
+    @TemplateExtension(matchName = "long")
+    public static String longDateTime(ZonedDateTime date,
+            @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
+        return date.format(
+                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withLocale(resolveLocale(locale)));
+    }
+
+    /**
+     * Returns an RFC 822 date-time string (e.g. "Fri, 15 Mar 2024 10:30:00 +0100"),
+     * always in English as required by the RFC spec. Used for RSS feeds.<br>
+     * Example: "{page.date.rfc822}".
+     */
+    public static String rfc822(ZonedDateTime date) {
+        return date.format(RFC_822);
+    }
+
+    private static Locale resolveLocale(Object locale) {
+        if (locale instanceof Locale l) {
+            return l;
+        }
+        if (locale instanceof String s && !s.isEmpty()) {
+            return Locale.forLanguageTag(s);
+        }
+        return Locale.getDefault();
     }
 
     private static long ceilDiv(long x, long y) {

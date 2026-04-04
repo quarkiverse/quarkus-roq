@@ -2,253 +2,392 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterAvailableLayoutsBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
+import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Pure unit tests for layout utility methods in {@link RoqFrontMatterLayoutUtils}.
+ * Pure unit tests for layout resolution, layout ref picking, and utility methods.
  */
-@DisplayName("Roq FrontMatter - Layout utility methods")
+@DisplayName("Roq FrontMatter - Layout resolution")
 public class RoqFrontMatterLayoutUtilsTest {
 
-    // ── resolveDefaultLayout ─────────────────────────────────────────────
-
-    @Test
-    @DisplayName("Full HTML document (not partial) has no default layout")
-    void defaultLayoutNullWhenNotPartial() {
-        assertNull(RoqFrontMatterLayoutUtils.resolveDefaultLayout(false, null, null));
+    private static SourceFile sourceFile(String path) {
+        return new SourceFile(".", path);
     }
 
-    // ── getLayoutsDir ───────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("Regular layouts use the standard layouts directory")
-    void layoutsDirRegular() {
-        assertEquals("layouts", RoqFrontMatterLayoutUtils.getLayoutsDir(false));
+    private static RoqFrontMatterAvailableLayoutsBuildItem availableLayouts(String... ids) {
+        Map<String, SourceFile> map = new LinkedHashMap<>();
+        for (String id : ids) {
+            map.put(id, sourceFile(id + ".html"));
+        }
+        return new RoqFrontMatterAvailableLayoutsBuildItem(map);
     }
 
-    @Test
-    @DisplayName("Theme layouts use the theme-layouts directory")
-    void layoutsDirTheme() {
-        assertEquals("theme-layouts", RoqFrontMatterLayoutUtils.getLayoutsDir(true));
+    private static final Optional<String> MY_THEME = Optional.of("my-theme");
+    private static final Optional<String> OTHER_THEME = Optional.of("other-theme");
+    private static final Optional<String> NO_THEME = Optional.empty();
+    private static final Optional<String> NO_SOURCE = Optional.empty();
+
+    // ── resolveLayoutId ─────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("resolveLayoutId: layout: resolution")
+    class LayoutResolution {
+
+        @Test
+        @DisplayName("#1 Content page, local layout exists")
+        void contentPageLocalLayout() {
+            var layouts = availableLayouts("layouts/post", "theme-layouts/my-theme/post");
+            assertEquals("layouts/post",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("post", false)));
+        }
+
+        @Test
+        @DisplayName("#2 Content page, no local, theme fallback")
+        void contentPageThemeFallback() {
+            var layouts = availableLayouts("theme-layouts/my-theme/about");
+            assertEquals("theme-layouts/my-theme/about",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("about", false)));
+        }
+
+        @Test
+        @DisplayName("#3a Content page, local override exists")
+        void contentPageLocalOverrideExists() {
+            var layouts = availableLayouts("layouts/custom", "layouts/my-theme/custom", "theme-layouts/my-theme/custom");
+            assertEquals("layouts/custom",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("custom", false)));
+        }
+
+        @Test
+        @DisplayName("#3b Content page, theme-dir override")
+        void contentPageThemeDirOverride() {
+            var layouts = availableLayouts("layouts/my-theme/custom", "theme-layouts/my-theme/custom");
+            assertEquals("layouts/my-theme/custom",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("custom", false)));
+        }
+
+        @Test
+        @DisplayName("#4 Cross-theme with /")
+        void crossThemeWithSlash() {
+            var layouts = availableLayouts("theme-layouts/other-theme/foo");
+            assertEquals("theme-layouts/other-theme/foo",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("other-theme/foo", false)));
+        }
+
+        @Test
+        @DisplayName("#4 Cross-theme with / prefers layouts/ over theme-layouts/")
+        void crossThemeLocalFirst() {
+            var layouts = availableLayouts("layouts/other-theme/foo", "theme-layouts/other-theme/foo");
+            assertEquals("layouts/other-theme/foo",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("other-theme/foo", false)));
+        }
+
+        @Test
+        @DisplayName("#5 Theme layout, own == active, user override wins")
+        void themeLayoutOwnEqualsActiveUserOverride() {
+            var layouts = availableLayouts("layouts/page", "theme-layouts/my-theme/page");
+            assertEquals("layouts/page",
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("page", false)));
+        }
+
+        @Test
+        @DisplayName("#6 Theme layout, own == active, no override")
+        void themeLayoutOwnEqualsActiveNoOverride() {
+            var layouts = availableLayouts("theme-layouts/my-theme/about");
+            assertEquals("theme-layouts/my-theme/about",
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("about", false)));
+        }
+
+        @Test
+        @DisplayName("#7 Theme layout, own != active")
+        void themeLayoutOwnNotActive() {
+            var layouts = availableLayouts("theme-layouts/other-theme/foo");
+            assertEquals("theme-layouts/other-theme/foo",
+                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, new LayoutRef("foo", false)));
+        }
+
+        @Test
+        @DisplayName("#7 Theme layout, own != active, user override in layouts/{own}/")
+        void themeLayoutOwnNotActiveUserOverride() {
+            var layouts = availableLayouts("layouts/other-theme/foo", "theme-layouts/other-theme/foo");
+            assertEquals("layouts/other-theme/foo",
+                    layouts.resolveLayoutId(MY_THEME, OTHER_THEME, new LayoutRef("foo", false)));
+        }
+
+        @Test
+        @DisplayName("Throws when layout not found")
+        void throwsWhenNotFound() {
+            var layouts = availableLayouts();
+            assertThrows(RoqLayoutNotFoundException.class,
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("nonexistent", false)));
+        }
+
+        @Test
+        @DisplayName("Returns null for null value")
+        void nullValueReturnsNull() {
+            var layouts = availableLayouts();
+            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef(null, false)));
+        }
+
+        @Test
+        @DisplayName("Returns null for blank value")
+        void blankValueReturnsNull() {
+            var layouts = availableLayouts();
+            assertNull(layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("  ", false)));
+        }
+
+        @Test
+        @DisplayName("File extension is stripped")
+        void extensionStripped() {
+            var layouts = availableLayouts("layouts/post");
+            assertEquals("layouts/post",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("post.html", false)));
+        }
     }
 
-    // ── normalizedLayout: basic resolution ──────────────────────────────
+    @Nested
+    @DisplayName("resolveLayoutId: theme-layout: resolution")
+    class ThemeLayoutResolution {
 
-    @Test
-    @DisplayName("Returns null when both layout and default are unset")
-    void normalizedLayoutNull() {
-        assertNull(RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), null, null, null));
+        @Test
+        @DisplayName("#11 theme-layout: with / direct match")
+        void themeLayoutWithSlash() {
+            var layouts = availableLayouts("theme-layouts/my-theme/page");
+            assertEquals("theme-layouts/my-theme/page",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("my-theme/page", true)));
+        }
+
+        @Test
+        @DisplayName("#12 theme-layout: no / from content page")
+        void themeLayoutNoSlashFromContent() {
+            var layouts = availableLayouts("theme-layouts/my-theme/page");
+            assertEquals("theme-layouts/my-theme/page",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("page", true)));
+        }
+
+        @Test
+        @DisplayName("#13 theme-layout: no / from theme layout resolves to own theme")
+        void themeLayoutNoSlashFromThemeLayoutResolvesToOwn() {
+            var layouts = availableLayouts("theme-layouts/my-theme/page");
+            assertEquals("theme-layouts/my-theme/page",
+                    layouts.resolveLayoutId(MY_THEME, MY_THEME, new LayoutRef("page", true)));
+        }
+
+        @Test
+        @DisplayName("theme-layout: without theme configured throws")
+        void themeLayoutNoThemeThrows() {
+            var layouts = availableLayouts("theme-layouts/my-theme/page");
+            assertThrows(RoqThemeConfigurationException.class,
+                    () -> layouts.resolveLayoutId(NO_THEME, NO_SOURCE, new LayoutRef("page", true)));
+        }
+
+        @Test
+        @DisplayName("theme-layout: with / not found throws")
+        void themeLayoutWithSlashNotFound() {
+            var layouts = availableLayouts();
+            assertThrows(RoqLayoutNotFoundException.class,
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("my-theme/nonexistent", true)));
+        }
     }
 
-    @Test
-    @DisplayName("Returns null when default layout is 'none'")
-    void normalizedLayoutNone() {
-        assertNull(RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), null, null, "none"));
+    @Nested
+    @DisplayName("resolveLayoutId: legacy support")
+    class LegacyResolution {
+
+        @Test
+        @DisplayName("#8 Legacy :theme/ stripped, resolves normally")
+        void legacyColonTheme() {
+            var layouts = availableLayouts("layouts/post");
+            assertEquals("layouts/post",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef(":theme/post", false)));
+        }
+
+        @Test
+        @DisplayName("#9 Legacy full theme-layouts/ path, direct match")
+        void legacyFullThemeLayoutsPath() {
+            var layouts = availableLayouts("theme-layouts/my-theme/page");
+            assertEquals("theme-layouts/my-theme/page",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("theme-layouts/my-theme/page", false)));
+        }
+
+        @Test
+        @DisplayName("#10 Legacy layouts/ prefix, direct match")
+        void legacyLayoutsPrefix() {
+            var layouts = availableLayouts("layouts/post");
+            assertEquals("layouts/post",
+                    layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("layouts/post", false)));
+        }
+
+        @Test
+        @DisplayName("Legacy full path not found throws")
+        void legacyFullPathNotFound() {
+            var layouts = availableLayouts();
+            assertThrows(RoqLayoutNotFoundException.class,
+                    () -> layouts.resolveLayoutId(MY_THEME, NO_SOURCE, new LayoutRef("theme-layouts/my-theme/gone", false)));
+        }
     }
 
-    @Test
-    @DisplayName("Short layout name is resolved to a full layout path")
-    void normalizedLayoutResolvesShortName() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), "default", null, null);
-        assertEquals("layouts/default", result);
+    // ── extractSourceTheme ──────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("extractSourceTheme")
+    class ExtractSourceTheme {
+
+        @Test
+        @DisplayName("Theme layout returns theme name")
+        void themeLayout() {
+            assertEquals(Optional.of("roq-default"),
+                    RoqFrontMatterAssembleUtils.extractSourceTheme(true, "theme-layouts/roq-default/page"));
+        }
+
+        @Test
+        @DisplayName("Non-theme layout returns empty")
+        void nonThemeLayout() {
+            assertEquals(Optional.empty(),
+                    RoqFrontMatterAssembleUtils.extractSourceTheme(false, "layouts/page"));
+        }
+
+        @Test
+        @DisplayName("Content page returns empty")
+        void contentPage() {
+            assertEquals(Optional.empty(),
+                    RoqFrontMatterAssembleUtils.extractSourceTheme(false, "content/pages/about"));
+        }
+
+        @Test
+        @DisplayName("Theme layout without slash after theme name returns empty")
+        void themeLayoutNoSlash() {
+            assertEquals(Optional.empty(),
+                    RoqFrontMatterAssembleUtils.extractSourceTheme(true, "theme-layouts/orphan"));
+        }
     }
 
-    @Test
-    @DisplayName("Already-qualified layout path is not double-prefixed")
-    void normalizedLayoutNoDoublePrefix() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), "layouts/default", null, null);
-        assertFalse(result.contains("layouts/layouts/"),
-                "Should not double-prefix an already-qualified path");
-    }
+    // ── resolveLayoutRef ────────────────────────────────────────────────
 
-    @Test
-    @DisplayName("File extension is stripped from layout reference")
-    void normalizedLayoutStripsExtension() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), "default.html", null, null);
-        assertFalse(result.endsWith(".html"), "Extension should be stripped");
-    }
+    @Nested
+    @DisplayName("resolveLayoutRef")
+    class ResolveLayoutRef {
 
-    @Test
-    @DisplayName("Falls back to default layout when explicit layout is null")
-    void normalizedLayoutUsesDefault() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), null, null, "page");
-        assertNotNull(result);
-        assertEquals("layouts/page", result);
-    }
+        @Test
+        @DisplayName("theme-layout: takes precedence over layout:")
+        void themeLayoutPrecedence() {
+            JsonObject data = new JsonObject().put("layout", "page").put("theme-layout", "custom");
+            LayoutRef ref = RoqFrontMatterAssembleUtils.resolveLayoutRef(data, true, true, null, null);
+            assertEquals("custom", ref.value());
+            assertTrue(ref.scopeToTheme());
+        }
 
-    // ── normalizedLayout: new syntax (layout: foo) ──────────────────────
+        @Test
+        @DisplayName("layout: used when no theme-layout:")
+        void layoutUsed() {
+            JsonObject data = new JsonObject().put("layout", "page");
+            LayoutRef ref = RoqFrontMatterAssembleUtils.resolveLayoutRef(data, true, true, null, null);
+            assertEquals("page", ref.value());
+            assertFalse(ref.scopeToTheme());
+        }
 
-    @Test
-    @DisplayName("Simple layout name resolves to layouts/ path")
-    void simpleLayoutName() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), "post", null, null);
-        assertEquals("layouts/post", result);
-    }
+        @Test
+        @DisplayName("Non-page with no layout returns null value")
+        void nonPageNoLayout() {
+            JsonObject data = new JsonObject();
+            LayoutRef ref = RoqFrontMatterAssembleUtils.resolveLayoutRef(data, false, true, null, null);
+            assertNull(ref.value());
+            assertFalse(ref.scopeToTheme());
+        }
 
-    @Test
-    @DisplayName("Simple layout name works without theme configured")
-    void simpleLayoutNameNoTheme() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), "post", null, null);
-        assertEquals("layouts/post", result);
-    }
-
-    // ── normalizedLayout: new syntax (theme-layout: foo) ────────────────
-
-    @Test
-    @DisplayName("theme-layout resolves to theme-layouts/{theme}/foo path")
-    void themeLayoutResolvesToThemeLayoutPath() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), null, "post", null);
-        assertEquals("theme-layouts/my-theme/post", result);
-    }
-
-    @Test
-    @DisplayName("theme-layout takes precedence over layout")
-    void themeLayoutTakesPrecedence() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), "default", "post", null);
-        assertEquals("theme-layouts/my-theme/post", result);
-    }
-
-    @Test
-    @DisplayName("theme-layout without theme configured throws exception")
-    void themeLayoutWithoutThemeThrows() {
-        assertThrows(RoqThemeConfigurationException.class,
-                () -> RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), null, "post", null));
-    }
-
-    @Test
-    @DisplayName("theme-layout strips file extension")
-    void themeLayoutStripsExtension() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), null, "post.html", null);
-        assertEquals("theme-layouts/my-theme/post", result);
-    }
-
-    // ── normalizedLayout: legacy-theme backward compat (a) :theme/ ──────
-
-    @Test
-    @DisplayName("Legacy-theme: :theme/foo resolves to layouts/foo")
-    void legacyThemeColonResolvesToSimplePath() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), ":theme/post", null, null);
-        assertEquals("layouts/post", result,
-                ":theme/ should be stripped, resolving to simple layout path");
-    }
-
-    @Test
-    @DisplayName("Legacy-theme: :theme/ in default layout is stripped when no theme")
-    void legacyThemeColonDefaultStrippedNoTheme() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), null, null, ":theme/page");
-        assertEquals("layouts/page", result,
-                ":theme/ should be stripped from defaults when no theme configured");
-    }
-
-    @Test
-    @DisplayName("Legacy-theme: :theme/ in default layout is stripped when theme present")
-    void legacyThemeColonDefaultStrippedWithTheme() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"), null, null, ":theme/page");
-        assertEquals("layouts/page", result,
-                ":theme/ should be stripped from defaults, resolving to simple path");
-    }
-
-    // ── normalizedLayout: legacy-theme backward compat (d) {theme-name}/foo ──
-
-    @Test
-    @DisplayName("Legacy-theme: {theme-name}/foo resolves to layouts/foo")
-    void legacyThemeNamePrefixResolvesToSimplePath() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("roq-default"), "roq-default/main", null,
-                null);
-        assertEquals("layouts/main", result,
-                "{theme-name}/ prefix should be stripped, resolving to simple layout path");
-    }
-
-    @Test
-    @DisplayName("Legacy-theme: {theme-name}/foo does not match when no theme configured")
-    void themeNamePrefixIgnoredWhenNoTheme() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.empty(), "roq-default/main", null, null);
-        assertEquals("layouts/roq-default/main", result,
-                "Without a theme, the value should be treated as a regular path");
-    }
-
-    // ── normalizedLayout: legacy-theme backward compat (b) full path ────
-
-    @Test
-    @DisplayName("Legacy-theme: Full theme-layouts/ path resolves as-is")
-    void legacyThemeFullThemeLayoutsPath() {
-        String result = RoqFrontMatterLayoutUtils.normalizedLayout(Optional.of("my-theme"),
-                "theme-layouts/my-theme/default", null, null);
-        assertEquals("theme-layouts/my-theme/default", result,
-                "Full theme-layouts/ path should resolve to the actual theme layout ID");
+        @Test
+        @DisplayName("Blank theme-layout: is ignored")
+        void blankThemeLayoutIgnored() {
+            JsonObject data = new JsonObject().put("theme-layout", "  ").put("layout", "page");
+            LayoutRef ref = RoqFrontMatterAssembleUtils.resolveLayoutRef(data, true, true, null, null);
+            assertEquals("page", ref.value());
+            assertFalse(ref.scopeToTheme());
+        }
     }
 
     // ── getLayoutKey ────────────────────────────────────────────────────
 
-    @Test
-    @DisplayName("Layout key strips the layouts directory prefix")
-    void layoutKeyStripsPrefix() {
-        String key = RoqFrontMatterLayoutUtils.getLayoutKey(Optional.empty(), "layouts/default");
-        assertEquals("default", key);
-    }
+    @Nested
+    @DisplayName("getLayoutKey")
+    class GetLayoutKey {
 
-    @Test
-    @DisplayName("Layout key for theme layout strips theme-layouts/{theme}/ prefix")
-    void layoutKeyForThemeLayout() {
-        String key = RoqFrontMatterLayoutUtils.getLayoutKey(Optional.of("my-theme"), "theme-layouts/my-theme/post");
-        assertEquals("post", key);
-    }
+        @Test
+        @DisplayName("Strips layouts/ prefix")
+        void stripsLayoutsPrefix() {
+            assertEquals("default",
+                    RoqFrontMatterLayoutUtils.getLayoutKey(NO_THEME, "layouts/default"));
+        }
 
-    @Test
-    @DisplayName("Layout key for simple layout strips layouts/ prefix")
-    void layoutKeyForSimpleLayout() {
-        String key = RoqFrontMatterLayoutUtils.getLayoutKey(Optional.empty(), "layouts/post");
-        assertEquals("post", key);
-    }
+        @Test
+        @DisplayName("Strips theme-layouts/{theme}/ prefix")
+        void stripsThemeLayoutsPrefix() {
+            assertEquals("post",
+                    RoqFrontMatterLayoutUtils.getLayoutKey(MY_THEME, "theme-layouts/my-theme/post"));
+        }
 
-    @Test
-    @DisplayName("Layout key without layouts/ prefix is returned as-is")
-    void layoutKeyNoPrefix() {
-        assertEquals("custom/thing",
-                RoqFrontMatterLayoutUtils.getLayoutKey(Optional.empty(), "custom/thing"));
+        @Test
+        @DisplayName("No prefix returns as-is")
+        void noPrefix() {
+            assertEquals("custom/thing",
+                    RoqFrontMatterLayoutUtils.getLayoutKey(NO_THEME, "custom/thing"));
+        }
     }
 
     // ── removeThemePrefix ───────────────────────────────────────────────
 
-    @Test
-    @DisplayName("removeThemePrefix strips both theme dir prefix AND theme name")
-    void removesThemePrefixStripsThemeName() {
-        String result = RoqFrontMatterLayoutUtils.removeThemePrefix("theme-layouts/my-theme/post");
-        assertEquals("layouts/post", result,
-                "Should strip theme-layouts/ prefix AND theme name segment");
-    }
+    @Nested
+    @DisplayName("removeThemePrefix")
+    class RemoveThemePrefix {
 
-    @Test
-    @DisplayName("Regular layout path is unchanged by removeThemePrefix")
-    void removesThemePrefixNoOp() {
-        String regularPath = "layouts/default";
-        assertEquals(regularPath, RoqFrontMatterLayoutUtils.removeThemePrefix(regularPath));
+        @Test
+        @DisplayName("Strips theme-layouts/ and theme name")
+        void stripsThemePrefix() {
+            assertEquals("layouts/post",
+                    RoqFrontMatterLayoutUtils.removeThemePrefix("theme-layouts/my-theme/post"));
+        }
+
+        @Test
+        @DisplayName("Non-theme path unchanged")
+        void nonThemePath() {
+            assertEquals("layouts/default",
+                    RoqFrontMatterLayoutUtils.removeThemePrefix("layouts/default"));
+        }
     }
 
     // ── getIncludeFilter ────────────────────────────────────────────────
 
-    @Test
-    @DisplayName("Null layout produces an identity filter (no wrapping)")
-    void includeFilterNull() {
-        WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter(null);
-        assertEquals("content", filter.apply("content"),
-                "Null layout should not modify content");
-    }
+    @Nested
+    @DisplayName("getIncludeFilter")
+    class GetIncludeFilter {
 
-    @Test
-    @DisplayName("Non-null layout wraps content with Qute include/end directives")
-    void includeFilterWraps() {
-        WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter("layouts/default");
-        String result = filter.apply("body content");
-        assertTrue(result.contains("body content"), "Wrapped content should preserve the body");
-        assertTrue(result.contains("{#include"), "Should open a Qute include block");
-        assertTrue(result.contains("{/include}"), "Should close the Qute include block");
-        assertTrue(result.contains("layouts/default"), "Should reference the layout");
+        @Test
+        @DisplayName("Null layout produces identity filter")
+        void nullLayout() {
+            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter(null);
+            assertEquals("content", filter.apply("content"));
+        }
+
+        @Test
+        @DisplayName("Non-null layout wraps with Qute include")
+        void wrapsContent() {
+            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter("layouts/default");
+            String result = filter.apply("body");
+            assertTrue(result.contains("{#include"));
+            assertTrue(result.contains("{/include}"));
+            assertTrue(result.contains("layouts/default"));
+        }
     }
 }

@@ -69,10 +69,8 @@ public class RoqPluginTaggingProcessor {
             BuildProducer<RoqFrontMatterPaginatePageBuildItem> paginatedPagesProducer,
             BuildProducer<RoqFrontMatterPublishNormalPageBuildItem> pagesProducer) {
 
-        // Let's find non page templates with the tagging data
         final List<RoqFrontMatterLayoutTemplateBuildItem> taggingTemplates = templates.stream()
-                // We filter out theme layouts
-                .filter(i -> !i.raw().isThemeLayout() && i.data().containsKey(TAGGING))
+                .filter(i -> i.data().containsKey(TAGGING))
                 .toList();
 
         if (taggingTemplates.isEmpty() || documents.isEmpty()) {

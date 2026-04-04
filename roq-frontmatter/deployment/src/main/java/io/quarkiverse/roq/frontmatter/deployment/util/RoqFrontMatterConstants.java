@@ -1,8 +1,5 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
-import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
-
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -20,7 +17,6 @@ public final class RoqFrontMatterConstants {
     // ── Directory and path constants ────────────────────────────────────
 
     public static final String TEMPLATES_DIR = "templates";
-    public static final String LAYOUTS_DIR_PREFIX = addTrailingSlash(LAYOUTS_DIR);
 
     // ── File extensions ─────────────────────────────────────────────────
 
