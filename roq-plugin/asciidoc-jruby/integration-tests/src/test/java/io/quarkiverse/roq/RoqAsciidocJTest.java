@@ -37,6 +37,9 @@ public class RoqAsciidocJTest {
                 """);
         assertThat(body)
                 .containsIgnoringWhitespaces("<img src=\"/guides/images/iamroq.png\" alt=\"Architecture\" width=\"80%\">");
+        // Verify Java file include with tag extraction
+        assertThat(body).contains("public class HelloWorld");
+        assertThat(body).contains("Hello, World!");
     }
 
     @Test

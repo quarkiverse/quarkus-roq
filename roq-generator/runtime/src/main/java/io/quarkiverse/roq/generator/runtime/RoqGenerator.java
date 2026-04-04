@@ -3,7 +3,8 @@ package io.quarkiverse.roq.generator.runtime;
 import static io.quarkiverse.roq.generator.runtime.RoqSelection.prepare;
 import static io.quarkiverse.roq.generator.runtime.StaticFile.FetchType.CLASSPATH;
 import static io.quarkiverse.roq.generator.runtime.StaticFile.FetchType.FILE;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static io.quarkiverse.tools.stringpaths.StringPaths.join;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +25,6 @@ import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.util.PathUtils;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
@@ -93,7 +93,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     public String outputDir() {
-        return toUnixPath(PathUtils.join(ConfiguredPathsProvider.targetDir(), config.outputDir()));
+        return toUnixPath(join(ConfiguredPathsProvider.targetDir(), config.outputDir()));
     }
 
     private WebClient client() {
@@ -152,7 +152,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
     }
 
     private Uni<Void> pollRoqPing() {
-        final String pingPath = PathUtils.join(httpBuildTimeConfig.rootPath(), "/roq/ping");
+        final String pingPath = join(httpBuildTimeConfig.rootPath(), "/roq/ping");
         return Multi.createFrom().ticks().every(Duration.ofMillis(500))
                 .onItem().transformToUniAndMerge(tick -> getSend(pingPath)
                         .map(r -> true)
@@ -183,7 +183,7 @@ public class RoqGenerator implements Handler<RoutingContext> {
             }
         }
 
-        final String fullPath = encode(PathUtils.join(httpBuildTimeConfig.rootPath(), path));
+        final String fullPath = encode(join(httpBuildTimeConfig.rootPath(), path));
         LOGGER.debugf("Roq is reading %s from http", fullPath);
         return getSend(fullPath)
                 .onFailure().invoke(t -> LOGGER.errorf(t, "Roq request failed %s", fullPath))

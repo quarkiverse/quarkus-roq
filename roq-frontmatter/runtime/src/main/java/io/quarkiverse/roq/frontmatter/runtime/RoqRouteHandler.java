@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
-import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

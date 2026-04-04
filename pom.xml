@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse</groupId>
         <artifactId>quarkiverse-parent</artifactId>
-        <version>20</version>
+        <version>21</version>
     </parent>
     <groupId>io.quarkiverse.roq</groupId>
     <artifactId>quarkus-roq-project-parent</artifactId>
@@ -35,14 +35,13 @@
 
     <properties>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.version>3.29.4</quarkus.version>
         <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
-        <asciidoctorj.version>3.0.1</asciidoctorj.version>
-        <asciidoctorj-diagram.version>3.1.0</asciidoctorj-diagram.version>
-        <quarkus-web-bundler.version>2.2.1</quarkus-web-bundler.version>
+        <asciidoctorj.version>3.0.1</asciidoctorj.version><asciidoctorj-diagram.version>3.2.1</asciidoctorj-diagram.version>
+        <quarkus-web-bundler.version>2.3.0</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.13</asciidoc-java.version>
         <jandex.version>3.5.3</jandex.version>
         <jsoup.version>1.22.1</jsoup.version>

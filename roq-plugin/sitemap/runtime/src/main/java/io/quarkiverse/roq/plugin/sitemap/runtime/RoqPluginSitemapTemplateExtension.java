@@ -1,5 +1,8 @@
 package io.quarkiverse.roq.plugin.sitemap.runtime;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAST_MODIFIED_AT;
+import static io.quarkiverse.roq.plugin.sitemap.runtime.RoqSitemapKeys.SITEMAP;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -11,8 +14,6 @@ import io.quarkus.qute.TemplateExtension;
 @Unremovable
 public class RoqPluginSitemapTemplateExtension {
 
-    public static final String LAST_MODIFIED_AT = "last-modified-at";
-
     public static ZonedDateTime lastModifiedAt(Page page) {
         if (page.data().containsKey(LAST_MODIFIED_AT)) {
             return ZonedDateTime.parse(page.data().getString(LAST_MODIFIED_AT));
@@ -22,7 +23,7 @@ public class RoqPluginSitemapTemplateExtension {
     }
 
     public static boolean sitemap(Page page) {
-        return page.data().getBoolean("sitemap", true);
+        return page.data().getBoolean(SITEMAP, true);
     }
 
     public static String iso(ZonedDateTime date) {

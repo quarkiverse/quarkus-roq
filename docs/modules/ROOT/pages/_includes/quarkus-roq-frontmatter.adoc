@@ -84,13 +84,11 @@ endif::add-copy-button-to-config-props[]
 --
 The default ignored files (relative to the site directory) include:
 
- - `.DS_Store`
- - `Thumbs.db`
  - All files or directories starting with an underscore (`_`)
 
 
 
-Only the `content/`, `public/`, and `static/` directories are scanned.
+These patterns are additional to the scanner's own OS-level defaults (e.g. `.DS_Store`, `Thumbs.db`, `++*++~`, `.class`).
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -101,7 +99,7 @@ Environment variable: `+++SITE_DEFAULT_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`+++**.DS_Store+++`, `+++**Thumbs.db+++`, `+++**/_**+++`, `+++_**+++`
+|`+++**/_**+++`, `+++_**+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
 ifdef::add-copy-button-to-config-props[]
@@ -138,7 +136,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme is defined.
+The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -149,7 +147,7 @@ Environment variable: `+++SITE_PAGE_LAYOUT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++:theme/page+++`
+|`+++page+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`site.content-dir`]##
 ifdef::add-copy-button-to-config-props[]
@@ -285,7 +283,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)
+The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter. With a theme, `layout: foo` resolves local first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -327,7 +325,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Directory under which all documents will be considered as drafts.
+Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`. Frontmatter `draft` takes precedence over this directory-based fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -359,7 +357,7 @@ Environment variable: `+++SITE_DATE_FORMAT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++yyyy-MM-dd[ HH:mm][:ss][ Z]+++`
+|`+++yyyy-M-d[ HH:mm][:ss][ Z]+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_site-time-zone[`site.time-zone`]##
 ifdef::add-copy-button-to-config-props[]
@@ -495,7 +493,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme defined.
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]

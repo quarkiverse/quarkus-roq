@@ -89,7 +89,7 @@ To create an alias, create a page and add `aliases: [your-alias-here, another-al
 .content/posts/2024-08-29-welcome-to-roq.md
 ----
 ---
-layout: :theme/post
+layout: post
 title: "Welcome to Roq!"
 date: 2024-08-29 13:32:20 +0200
 description: This is the first article ever made with Quarkus Roq
@@ -295,10 +295,10 @@ quarkus ext add quarkus-roq-plugin-series
 Edit the layout for your posts, for example when using roq-default theme:
 
 [source,html]
-.templates/layouts/roq-default/post-series.html
+.templates/layouts/post-series.html
 ----
 ---
-layout: theme-layouts/roq-default/post
+theme-layout: post
 ---
 
 {#include partials/roq-series /} //<1>
@@ -376,11 +376,11 @@ quarkus ext add quarkus-roq-plugin-lunr
 
 . Inject the search script in the `<head>` of your layout. For example with the default theme:
 +
-.templates/layouts/roq-default/default.html
+.templates/layouts/default.html
 [source,html]
 ----
 ---
-layout: theme-layouts/roq-default/default
+theme-layout: default
 ---
 
 {#insert /}
@@ -395,11 +395,11 @@ layout: theme-layouts/roq-default/default
 
 . Inject the search result overlay in the `<body>` and search button in the navigation. For example with the default theme:
 +
-.templates/layouts/roq-default/main.html
+.templates/layouts/main.html
 [source,html]
 ----
 ---
-layout: theme-layouts/roq-default/main
+theme-layout: main
 ---
 
 {#search-overlay /}
