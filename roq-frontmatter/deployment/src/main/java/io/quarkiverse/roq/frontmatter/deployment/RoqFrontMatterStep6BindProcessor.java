@@ -187,6 +187,15 @@ public class RoqFrontMatterStep6BindProcessor {
     }
 
     // Register runtime model classes as CDI beans so they can be injected and
+    // Register template extensions unconditionally so Qute can validate templates
+    // (e.g. fm/rss.html) even when no Roq site is configured (e.g. in plugin tests)
+    @BuildStep
+    void registerTemplateExtensions(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClasses(RoqTemplateExtension.class)
+                .setUnremovable().build());
+    }
+
     // are recognized by Qute's type-safe expressions
     @BuildStep
     void registerAdditionalBeans(RoqFrontMatterOutputBuildItem roqOutput,
@@ -198,7 +207,6 @@ public class RoqFrontMatterStep6BindProcessor {
                 .addBeanClasses(
                         RoqQuteEngineObserver.class,
                         RoqFrontMatterMessages.class,
-                        RoqTemplateExtension.class,
                         RoqTemplateGlobal.class,
                         Page.class,
                         PageSource.class,
