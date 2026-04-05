@@ -25,6 +25,10 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.mvnpm</groupId>
+            <artifactId>raclette</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
