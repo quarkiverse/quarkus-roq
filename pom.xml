@@ -46,6 +46,8 @@
         <jandex.version>3.5.3</jandex.version>
         <jsoup.version>1.22.1</jsoup.version>
         <assertj.version>3.27.7</assertj.version>
+        <jgit.version>7.5.0.202512021534-r</jgit.version>
+        <bouncycastle.version>1.83</bouncycastle.version>
     </properties>
 
     <dependencyManagement>

@@ -7,15 +7,27 @@ import './components/tags-list.js';
 import './components/visual-editor/visual-editor.js';
 import './components/simple-editor.js';
 import './components/loading-dialog.js';
+import './components/sync-status-bar.js';
+import './components/sync-controls.js';
 import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
+import {showConflictDialog} from './components/conflict-dialog.js';
+import './components/passphrase-dialog.js';
+import {showFileSelector} from './components/file-selector-dialog.js';
+import {SyncManager} from './utils/sync-manager.js';
 import {markups, config} from 'build-time-data';
 import {containsDataRawTag, containsPotentialHtml, containsQuteSection} from "./utils/utils.js";
 
 export class QwcRoqEditor extends LitElement {
 
     jsonRpc = new JsonRpc(this);
+    gitJsonRpc = {
+        getSyncStatus: (params) => this.jsonRpc.getSyncStatus(params),
+        syncContent: (params) => this.jsonRpc.syncContent(params),
+        publishContent: (params) => this.jsonRpc.publishContent(params),
+        publishAndSync: (params) => this.jsonRpc.publishAndSync(params)
+    };
 
     // Track connection state for refreshing preview URL after hot reload
     _previousConnectionState = null;
@@ -33,6 +45,15 @@ export class QwcRoqEditor extends LitElement {
             overflow: auto;
             padding: var(--lumo-space-m);
         }
+        .sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--lumo-space-s) var(--lumo-space-m);
+            background: var(--lumo-base-color);
+            border-bottom: 1px solid var(--lumo-contrast-10pct);
+            margin-bottom: var(--lumo-space-m);
+        }
     `;
 
     // Component properties
@@ -44,7 +65,10 @@ export class QwcRoqEditor extends LitElement {
         "_visualEditorEnabled": {state: true},
         "_loadingContent": {state: true},
         "_pendingRefreshPages": {state: true},
-        "_dateFormat": {state: true}
+        "_dateFormat": {state: true},
+        "_syncStatus": {state: true},
+        "_syncing": {state: true},
+        "_publishing": {state: true}
     }
 
     constructor() {
@@ -56,6 +80,11 @@ export class QwcRoqEditor extends LitElement {
         this._loadingContent = false;
         this._pendingRefreshPages = false;
         this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
+        this._syncStatus = null;
+        this._syncing = false;
+        this._publishing = false;
+        this._syncManager = null;
+        this._pendingSyncOperation = null; // operation waiting for passphrase
     }
 
     // Components callbacks
@@ -86,16 +115,38 @@ export class QwcRoqEditor extends LitElement {
         }
 
 
-        // Subscribe to connection state changes for preview URL refresh after hot reload
         this._previousConnectionState = connectionState.current?.isConnected ?? false;
         this._connectionStateObserver = () => this._onConnectionStateChange();
         connectionState.addObserver(this._connectionStateObserver);
+
+        // Subscribe to connection state changes for preview URL refresh after hot reload
+        if (config.sync?.enabled) {
+            if (!this._syncManager) {
+                this._syncManager = new SyncManager(
+                    this.gitJsonRpc,
+                    (status) => { this._syncStatus = status; },
+                    config.sync,
+                    {
+                        onPassphraseRequired: (errorMsg) => this._showPassphraseDialog(errorMsg),
+                        onNotification: (msg, type) => showNotification(msg, type),
+                        onConflict: (files) => showConflictDialog(files),
+                        onBusy: (isBusy) => { this._syncing = isBusy; }
+                    }
+                );
+            } else {
+                this._syncManager.updateJsonRpc(this.gitJsonRpc);
+            }
+            this._syncManager.start();
+        }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this._connectionStateObserver) {
             connectionState.removeObserver(this._connectionStateObserver);
+        }
+        if (this._syncManager) {
+            this._syncManager.stop();
         }
     }
 
@@ -104,8 +155,25 @@ export class QwcRoqEditor extends LitElement {
         const wasConnected = this._previousConnectionState;
 
         // Detect reconnection: was not connected, now connected
-        if (!wasConnected && currentConnected && this._pendingRefreshPages) {
-            this._refreshPageInfo();
+        if (!wasConnected && currentConnected) {
+            if (this._pendingRefreshPages) {
+                this._refreshPageInfo();
+            }
+            if (this._syncManager) {
+                this._syncManager.updateJsonRpc(this.gitJsonRpc);
+                this._syncManager.start();
+                this._syncManager.refreshStatus(false);
+            }
+        } else if (wasConnected && !currentConnected) {
+            if (this._syncManager) {
+                this._syncManager.stop();
+            }
+        }
+
+        // ALWAYS reset syncing/publishing states if the connection state changes
+        if (wasConnected !== currentConnected) {
+            this._syncing = false;
+            this._publishing = false;
         }
 
         this._previousConnectionState = currentConnected;
@@ -147,9 +215,30 @@ export class QwcRoqEditor extends LitElement {
     }
 
     render() {
+        const isGitRepo = this._syncStatus?.branch && this._syncStatus.branch !== 'no-git-repo';
         return html`
           <div class="content-area">
+            ${config.sync?.enabled && isGitRepo ? html`
+                <div class="sync-header">
+                    <qwc-sync-status-bar
+                        .status="${this._syncStatus}"
+                        .syncing="${this._syncing || this._publishing}"
+                        @show-conflicts="${(e) => showConflictDialog(e.detail.files)}">
+                    </qwc-sync-status-bar>
+                    <qwc-sync-controls
+                        .status="${this._syncStatus}"
+                        .syncing="${this._syncing}"
+                        .publishing="${this._publishing}"
+                        @sync-requested="${this._onSyncRequested}"
+                        @publish-requested="${this._onPublishRequested}">
+                    </qwc-sync-controls>
+                </div>
+            ` : ''}
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
+            <passphrase-dialog
+                @passphrase-confirmed="${this._onPassphraseConfirmed}"
+                @passphrase-cancelled="${() => { this._pendingSyncOperation = null; }}">
+            </passphrase-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
               : this._renderContent()
@@ -259,6 +348,11 @@ export class QwcRoqEditor extends LitElement {
                     } else {
                         this._pages = [result.page].concat(this._pages);
                     }
+                    
+                    // Centralized Git handling
+                    this._syncManager?.markAsDirty();
+                    this._syncManager?.refreshStatus(true);
+
                     this._onPageOpen({detail: {page: result.page, content: result.content}});
                 }).catch(error => {
                     showNotification('Error creating page: ' + error.message);
@@ -318,6 +412,11 @@ export class QwcRoqEditor extends LitElement {
             if (this._selectedPage?.path === page.path) {
                 this._selectedPage = updated;
             }
+            
+            // Centralized Git handling
+            this._syncManager?.markAsDirty();
+            this._syncManager?.refreshStatus(true);
+
             this._pendingRefreshPages = true;
         }).catch(error => {
             showNotification('Error syncing page path: ' + error.message);
@@ -410,7 +509,6 @@ export class QwcRoqEditor extends LitElement {
         // Save file content to backend
         this.jsonRpc.savePageContent({path, content, date, title}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
-            // Check if result contains an error
             if (result?.error) {
                 // Handle error
                 if (target && target.markSaveError) {
@@ -431,6 +529,10 @@ export class QwcRoqEditor extends LitElement {
                 }
 
                 this._pendingRefreshPages = "background";
+
+                // Centralized Git handling
+                this._syncManager?.markAsDirty();
+                this._syncManager?.refreshStatus(true);
 
                 if (target && target.markSaved) {
                     target.markSaved();
@@ -467,6 +569,10 @@ export class QwcRoqEditor extends LitElement {
                 } else {
                     this._pages = updated;
                 }
+                
+                // Centralized Git handling
+                this._syncManager?.markAsDirty();
+                this._syncManager?.refreshStatus(true);
 
             } else {
                 showNotification('Error deleting page: ' + (result || 'Unknown error'));
@@ -475,6 +581,70 @@ export class QwcRoqEditor extends LitElement {
             showNotification('Error deleting page: ' + error.message);
             console.error(error);
         });
+    }
+
+    _showPassphraseDialog(errorMsg) {
+        this.shadowRoot?.querySelector('passphrase-dialog')?.show(errorMsg);
+    }
+
+    async _onPassphraseConfirmed(e) {
+        const { passphrase } = e.detail;
+        await this._syncManager.setPassphrase(passphrase);
+        if (this._pendingSyncOperation) {
+            const operation = this._pendingSyncOperation;
+            this._pendingSyncOperation = null;
+            operation();
+        }
+    }
+
+    async _onSyncRequested() {
+        this._syncing = true;
+        this._pendingSyncOperation = () => this._onSyncRequested();
+        try {
+            const result = await this._syncManager.manualSync();
+            if (!result?.authFailed) {
+                this._pendingSyncOperation = null;
+                if (result?.success) {
+                    this._pendingRefreshPages = true;
+                    this._refreshPageInfo();
+                }
+            }
+        } catch (error) {
+            showNotification('Sync failed: ' + error.message, 'error');
+        } finally {
+            this._syncing = false;
+        }
+    }
+
+    async _onPublishRequested(event) {
+        const freshStatus = await this._syncManager?.refreshStatus(false);
+        const files = freshStatus?.pendingFiles ?? [];
+
+        let selectedFiles = files;
+        if (files.length > 1) {
+            selectedFiles = await showFileSelector(files);
+            if (selectedFiles === null) return;
+        }
+
+        const needsCommit = selectedFiles.length > 0 || freshStatus?.repositoryState === 'MERGING';
+        let message = null;
+        if (needsCommit) {
+            message = await showPrompt('Commit message', config.sync?.commitMessage?.template || 'Update content via Roq Editor');
+            if (!message) return;
+        }
+
+        this._publishing = true;
+        this._pendingSyncOperation = () => this._onPublishRequested(event);
+        try {
+            const result = await this._syncManager.manualPublish(message, selectedFiles);
+            if (!result?.authFailed) {
+                this._pendingSyncOperation = null;
+            }
+        } catch (error) {
+            showNotification('Publish failed: ' + error.message, 'error');
+        } finally {
+            this._publishing = false;
+        }
     }
 
 }
