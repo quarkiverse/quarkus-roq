@@ -78,7 +78,8 @@ public class RoqFrontMatterStep2AssembleProcessor {
             LOGGER.debugf("Roq content processing producing raw page '%s'", processed.id());
             rawPageProducer.produce(new RoqFrontMatterRawPageBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
-                    scanned.collection(), processed.generatedTemplate(),
+                    scanned.collection(), scanned.metadata().parserConfig(),
+                    processed.generatedTemplate(),
                     processed.generatedContentTemplate(), scanned.attachments()));
         }
     }
@@ -109,6 +110,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
             LOGGER.debugf("Roq layout processing producing raw layout '%s'", processed.id());
             rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
+                    scanned.metadata().parserConfig(),
                     processed.generatedTemplate(), isThemeLayout));
         }
     }
