@@ -1,0 +1,21 @@
+---
+title: Collection Test Site
+layout: default
+paginate:
+  collection: posts
+  size: 2
+---
+<span class="posts-count">{site.collections.posts.size}</span>
+<span class="guides-count">{site.collections.guides.size}</span>
+<span class="collection-list-size">{site.collections.list.size}</span>
+<span class="alice-posts-count">{site.collections.posts.filter("author", "alice").size}</span>
+<span class="past-posts-count">{site.collections.posts.past.size}</span>
+{#for post in site.collections.posts.paginated(page.paginator)}
+  <span class="post-title">{post.title}</span>
+{/for}
+<span class="paginator-total">{page.paginator.total}</span>
+<span class="paginator-current">{page.paginator.currentIndex}</span>
+<span class="paginator-limit">{page.paginator.limit}</span>
+<span class="paginator-collection-size">{page.paginator.collectionSize}</span>
+<span class="paginator-is-first">{page.paginator.isFirst}</span>
+{#if page.paginator.next != null}<span class="paginator-next">{page.paginator.next.path}</span>{/if}

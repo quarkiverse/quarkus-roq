@@ -1,0 +1,10 @@
+---
+layout: default
+link: /:slug
+---
+<article class="page">
+  {#insert /}
+  <span class="is-index">{page.source.isIndex}</span>
+  <span class="has-files">{page.source.hasFiles}</span>
+  {#if page.source.hasFiles}<span class="files-count">{page.files.size}</span>{/if}
+</article>

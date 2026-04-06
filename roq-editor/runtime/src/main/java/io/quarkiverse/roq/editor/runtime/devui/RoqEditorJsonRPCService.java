@@ -25,7 +25,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.smallrye.common.annotation.Blocking;
 
 @ApplicationScoped
@@ -47,7 +47,7 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public List<PageSource> getPosts() {
         return site.collections().get("posts").stream()
-                .sorted(Comparator.comparing(Page::date).reversed())
+                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
                         p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
                 .toList();
@@ -327,7 +327,7 @@ public class RoqEditorJsonRPCService {
         if (title == null || title.isBlank()) {
             return "";
         }
-        return PathUtils.slugify(title.toLowerCase().trim(), false, false);
+        return StringPaths.slugify(title.toLowerCase().trim(), false, false);
     }
 
     private String getCurrentSuggestedPath(Page page) {
@@ -343,7 +343,7 @@ public class RoqEditorJsonRPCService {
         boolean isDirPage = page.source().isIndex();
         Path currentFilePath = getPageAbsolutePath(page);
         String currentName = isDirPage ? currentFilePath.getParent().getFileName().toString()
-                : PathUtils.removeExtension(currentFilePath.getFileName().toString());
+                : StringPaths.removeExtension(currentFilePath.getFileName().toString());
         Matcher matcher = POST_NAME_PATTERN.matcher(currentName);
         if (!matcher.matches()) {
             return null;

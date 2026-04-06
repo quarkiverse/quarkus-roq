@@ -192,11 +192,11 @@ It is possible to define `insert` sections that provide overridable default cont
 ==== Example
 Let’s override the `roq-default` theme’s main layout so that our customizations apply everywhere it is used.
 
-.templates/layouts/roq-default/main.html
+.templates/layouts/main.html
 [source,html]
 ----
 ---
-layout: theme-layouts/roq-default/main // <1>
+theme-layout: main // <1>
 ---
 
 {#insert /} // <2>
@@ -211,11 +211,11 @@ And here the footer
 </footer>
 {/}
 ----
-<1> *Inherits from the theme layout:* This layout uses the original theme layout (`roq-default/main`) as a base.
+<1> *Inherits from the theme layout:* `theme-layout: main` explicitly targets the theme's `main` layout as a base.
 <2> *Inheritance mechanism:* `{#insert /}` ensures that this layout will inherit sections defined in the theme layout.
 <3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
 
-Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
+Now, everywhere `layout: main` is used (even in the theme), your override will be used.
 
 ==== How it Works Internally
 

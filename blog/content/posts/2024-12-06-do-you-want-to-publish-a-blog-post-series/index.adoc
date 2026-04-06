@@ -25,10 +25,10 @@ This is as simple as adding a `series` attribute to the front matter of your pos
 *Step 2:* Edit the layout for your posts, for example when using roq-default theme:
 
 [source,html]
-.templates/layouts/roq-default/post-series.html
+.templates/layouts/post-series.html
 ----
 ---
-layout: theme-layouts/roq-default/post
+theme-layout: post
 ---
 
 {#include partials/roq-series /} <1>

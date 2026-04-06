@@ -8,7 +8,7 @@ import java.util.Objects;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateData;
 
 /**
@@ -53,7 +53,7 @@ public record RoqUrl(
         if (isExternal()) {
             return resourcePath();
         }
-        final String path = PathUtils.join(root.rootPath(), resourcePath());
+        final String path = StringPaths.join(root.rootPath(), resourcePath());
         return encoded ? encode(path) : path;
     }
 
@@ -79,7 +79,7 @@ public record RoqUrl(
         if (isExternal()) {
             return resourcePath();
         }
-        return PathUtils.join(root().url(), path());
+        return StringPaths.join(root().url(), path());
     }
 
     /**
@@ -110,7 +110,7 @@ public record RoqUrl(
         if (isFullPath(other.toString())) {
             return new RoqUrl(null, other.toString());
         }
-        return new RoqUrl(root(), PathUtils.join(resourcePath(), other.toString()));
+        return new RoqUrl(root(), StringPaths.join(resourcePath(), other.toString()));
     }
 
     /**

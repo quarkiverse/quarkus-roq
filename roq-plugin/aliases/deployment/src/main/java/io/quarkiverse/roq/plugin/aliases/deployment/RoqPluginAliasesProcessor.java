@@ -1,7 +1,10 @@
 package io.quarkiverse.roq.plugin.aliases.deployment;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlash;
-import static io.quarkiverse.roq.util.PathUtils.prefixWithSlash;
+import static io.quarkiverse.roq.plugin.aliases.runtime.RoqAliasesKeys.ALIASES;
+import static io.quarkiverse.roq.plugin.aliases.runtime.RoqAliasesKeys.REDIRECT_FROM;
+import static io.quarkiverse.roq.plugin.aliases.runtime.RoqAliasesKeys.REDIRECT_FROM_HYPHEN;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPageTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -29,7 +32,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqPluginAliasesProcessor {
 
     private static final String FEATURE = "roq-plugin-aliases";
-    private static final Set<String> ALIASES_FOR_REDIRECTING = Set.of("redirect_from", "redirect-from", "aliases");
+    private static final Set<String> ALIASES_FOR_REDIRECTING = Set.of(REDIRECT_FROM, REDIRECT_FROM_HYPHEN, ALIASES);
 
     @BuildStep
     FeatureBuildItem feature() {

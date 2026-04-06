@@ -19,7 +19,7 @@ import org.asciidoctor.extension.PreprocessorReader;
 import org.asciidoctor.log.LogRecord;
 import org.asciidoctor.log.Severity;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 
 public class AsciidocJInclude extends IncludeProcessor {
     private static final Pattern URL_PREFIX_PATTERN = Pattern.compile("^((https?|file|ftp|irc)://|mailto:)");
@@ -60,7 +60,7 @@ public class AsciidocJInclude extends IncludeProcessor {
             }
         }
 
-        String resourcePath = PathUtils.toUnixPath(targetPath.toString());
+        String resourcePath = StringPaths.toUnixPath(targetPath.toString());
         try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
             if (resource != null) {
                 pushInclude(reader, new String(resource.readAllBytes(), charset), target, attributes);
