@@ -13,7 +13,7 @@ Roq is a powerful static site generator that combines the best features of tools
 
 ## Origins
 
-I wrote a [blog post]({site.url('posts/roq-with-blogs')}) explaining how it all started.
+I wrote a [blog post]({=site.url('posts/roq-with-blogs')}) explaining how it all started.
 
 ## Credits
 

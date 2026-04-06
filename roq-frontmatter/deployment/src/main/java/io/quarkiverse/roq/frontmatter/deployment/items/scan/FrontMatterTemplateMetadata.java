@@ -4,6 +4,7 @@ import java.nio.file.Path;
 
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.quarkus.qute.ParserConfig;
 
 /**
  * All file-derived information extracted at scan time.
@@ -17,5 +18,6 @@ public record FrontMatterTemplateMetadata(
         String templateId,
         String outputPath,
         boolean isHtml,
-        boolean isPartial) {
+        boolean isPartial,
+        ParserConfig parserConfig) {
 }
