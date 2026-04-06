@@ -3,10 +3,12 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FRONTMATTER_PATTERN;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -72,6 +74,24 @@ public final class RoqFrontMatterTemplateUtils {
     }
 
     // ── Template ID and type resolution ─────────────────────────────────
+
+    private static final Pattern QUTE_SUFFIX_PATTERN = Pattern.compile("\\.qute\\.([^.]+)$");
+
+    /**
+     * Normalize a reference path: convert to unix path and strip the ".qute." marker.
+     * Files named "foo.qute.txt" are Qute templates that output as "foo.txt".
+     */
+    public static String normalizeReferencePath(String referencePath) {
+        String path = toUnixPath(referencePath);
+        if (path.contains(".qute.")) {
+            path = QUTE_SUFFIX_PATTERN.matcher(path).replaceFirst(".$1");
+        }
+        return path;
+    }
+
+    public static boolean isDotQuteTemplate(String path) {
+        return path.contains(".qute.") && QUTE_SUFFIX_PATTERN.matcher(path).find();
+    }
 
     /**
      * Resolve the template id from the reference path.

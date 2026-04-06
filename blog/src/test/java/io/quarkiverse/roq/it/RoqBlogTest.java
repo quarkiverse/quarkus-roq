@@ -79,6 +79,28 @@ public class RoqBlogTest {
     }
 
     @Test
+    public void testLlmsTxt() {
+        RestAssured.when().get("/llms.txt").then().statusCode(200)
+                .contentType(containsString("text/plain"))
+                .body(startsWith("# "))
+                .body(containsString("## Posts"))
+                .body(containsString("## Pages"))
+                .body(containsString("[Welcome to Roq!]"))
+                .body(not(containsString("<")));
+    }
+
+    @Test
+    public void testLlmsFullTxt() {
+        RestAssured.when().get("/llms-full.txt").then().statusCode(200)
+                .contentType(containsString("text/plain"))
+                .body(startsWith("# "))
+                .body(containsString("## Posts"))
+                .body(containsString("### [Welcome to Roq!]"))
+                .body(not(containsString("<div")))
+                .body(not(containsString("<p>")));
+    }
+
+    @Test
     public void testSitemap() {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200)
                 .body(containsString("<urlset"))

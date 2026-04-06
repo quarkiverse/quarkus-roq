@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
@@ -80,7 +81,18 @@ public final class RoqFrontMatterScanUtils {
     public static Predicate<Path> isTemplate(QuteConfig config) {
         HashSet<String> suffixes = new HashSet<>(config.suffixes());
         suffixes.addAll(HTML_OUTPUT_EXTENSIONS);
-        return path -> suffixes.contains(fileExtension(path.toString()));
+        return path -> {
+            String pathStr = path.toString();
+            if (isDotQuteTemplate(pathStr)) {
+                return true;
+            }
+            for (String suffix : suffixes) {
+                if (pathStr.endsWith("." + suffix)) {
+                    return true;
+                }
+            }
+            return false;
+        };
     }
 
     public static boolean isTemplateTargetHtml(String path) {
@@ -230,7 +242,7 @@ public final class RoqFrontMatterScanUtils {
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList) {
 
-        String referencePath = toUnixPath(file.scopedPath());
+        String referencePath = normalizeReferencePath(file.scopedPath());
         String relativePath = toUnixPath(file.indexPath());
         String siteDirPath = deriveSiteDirPath(file.path(), relativePath);
         String fullContent = new String(file.content(), file.charset());

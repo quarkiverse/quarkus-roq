@@ -29,6 +29,13 @@ public class RoqTemplateExtension {
 
     private static final Pattern COUNT_WORDS = Pattern.compile("\\b\\w+\\b");
     private static final Pattern STRIP_HTML_PATTERN = Pattern.compile("<[^>]*>");
+    private static final Pattern BR_PATTERN = Pattern.compile("(?i)<br\\s*/?>");
+    private static final Pattern BLOCK_CLOSE_PATTERN = Pattern
+            .compile("(?i)</(p|h[1-6]|div|blockquote|ul|ol|table)\\s*>");
+    private static final Pattern LI_CLOSE_PATTERN = Pattern.compile("(?i)</li\\s*>");
+    private static final Pattern SPACES_PATTERN = Pattern.compile("[ \\t]+");
+    private static final Pattern TRAILING_SPACES_PATTERN = Pattern.compile(" *\\n");
+    private static final Pattern MULTI_NEWLINES_PATTERN = Pattern.compile("\\n{3,}");
 
     /**
      * Returns the number of words in the given text.<br>
@@ -90,6 +97,39 @@ public class RoqTemplateExtension {
             return null;
         }
         return STRIP_HTML_PATTERN.matcher(html).replaceAll("");
+    }
+
+    /**
+     * Returns the text part of this string by stripping all html tags.<br>
+     * When {@code preserveParagraphs} is true, block-level HTML elements are converted to line breaks
+     * and HTML entities are decoded, producing readable plain text with paragraph structure.<br>
+     * Example: "{'
+     * <p>
+     * Hello
+     * </p>
+     * <p>
+     * World
+     * </p>
+     * '.stripHtml(true)}" → "Hello\n\nWorld".
+     */
+    public static String stripHtml(String html, boolean preserveParagraphs) {
+        if (!preserveParagraphs) {
+            return stripHtml(html);
+        }
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+        String text = html;
+        text = BR_PATTERN.matcher(text).replaceAll("\n");
+        text = BLOCK_CLOSE_PATTERN.matcher(text).replaceAll("\n\n");
+        text = LI_CLOSE_PATTERN.matcher(text).replaceAll("\n");
+        text = STRIP_HTML_PATTERN.matcher(text).replaceAll("");
+        text = text.replace("&amp;", "&").replace("&quot;", "\"")
+                .replace("&#39;", "'").replace("&nbsp;", " ");
+        text = SPACES_PATTERN.matcher(text).replaceAll(" ");
+        text = TRAILING_SPACES_PATTERN.matcher(text).replaceAll("\n");
+        text = MULTI_NEWLINES_PATTERN.matcher(text).replaceAll("\n\n");
+        return text.strip();
     }
 
     /**

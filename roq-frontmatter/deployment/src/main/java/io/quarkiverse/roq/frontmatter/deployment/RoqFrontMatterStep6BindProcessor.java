@@ -22,6 +22,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTe
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqLlmsTxtTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
@@ -192,7 +193,7 @@ public class RoqFrontMatterStep6BindProcessor {
     @BuildStep
     void registerTemplateExtensions(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses(RoqTemplateExtension.class)
+                .addBeanClasses(RoqTemplateExtension.class, RoqLlmsTxtTemplateExtension.class)
                 .setUnremovable().build());
     }
 
