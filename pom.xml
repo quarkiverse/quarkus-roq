@@ -46,6 +46,7 @@
         <jandex.version>3.5.3</jandex.version>
         <jsoup.version>1.22.1</jsoup.version>
         <assertj.version>3.27.7</assertj.version>
+        <raclette.version>0.1.0.CR3</raclette.version>
     </properties>
 
     <dependencyManagement>
@@ -56,6 +57,11 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.mvnpm</groupId>
+                <artifactId>raclette</artifactId>
+                <version>${raclette.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
