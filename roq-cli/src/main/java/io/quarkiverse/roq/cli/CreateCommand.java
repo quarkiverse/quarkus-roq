@@ -2,18 +2,11 @@ package io.quarkiverse.roq.cli;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import io.quarkus.cli.common.OutputOptionMixin;
-import io.quarkus.devtools.commands.CreateProject;
-import io.quarkus.devtools.commands.data.QuarkusCommandOutcome;
 import io.quarkus.devtools.project.BuildTool;
-import io.quarkus.devtools.project.QuarkusProject;
-import io.quarkus.devtools.project.QuarkusProjectHelper;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -21,10 +14,6 @@ import picocli.CommandLine.Parameters;
 
 @Command(name = "create", mixinStandardHelpOptions = true, description = "Create a new Roq site")
 public class CreateCommand implements Callable<Integer> {
-
-    private static final String ROQ_GROUP_ID = "io.quarkiverse.roq";
-    private static final String ROQ_EXTENSION = ROQ_GROUP_ID + ":quarkus-roq";
-    private static final String ROQ_PREFIX = ROQ_GROUP_ID + ":quarkus-roq-";
 
     @CommandLine.Mixin(name = "output")
     OutputOptionMixin output;
@@ -64,15 +53,6 @@ public class CreateCommand implements Callable<Integer> {
                 return CommandLine.ExitCode.USAGE;
             }
 
-            Set<String> extensions = new HashSet<>();
-            extensions.add(withVersion(ROQ_EXTENSION));
-
-            if (extra != null) {
-                for (String ext : extra) {
-                    extensions.add(withVersion(resolveExtension(ext.trim())));
-                }
-            }
-
             BuildTool buildTool = BuildTool.MAVEN;
             if (gradleKotlinDsl) {
                 buildTool = BuildTool.GRADLE_KOTLIN_DSL;
@@ -81,38 +61,17 @@ public class CreateCommand implements Callable<Integer> {
             }
 
             output.info("Creating Roq site: " + name);
-            output.info("Extensions: " + extensions);
 
-            QuarkusProject qp = QuarkusProjectHelper.getProject(projectDir, buildTool);
-
-            CreateProject createProject = new CreateProject(qp)
+            boolean success = new RoqProjectCreator(projectDir, name)
                     .groupId(groupId)
-                    .artifactId(name)
                     .version(version)
-                    .extensions(extensions);
+                    .roqVersion(roqVersion)
+                    .buildTool(buildTool)
+                    .noCode(noCode)
+                    .extensions(extra)
+                    .create();
 
-            if (noCode) {
-                createProject.noCode();
-            }
-
-            QuarkusCommandOutcome outcome = createProject.execute();
-
-            if (outcome.isSuccess()) {
-                // Move application.properties to config/
-                Path propsSource = projectDir.resolve("src/main/resources/application.properties");
-                Path configDir = projectDir.resolve("config");
-                Files.createDirectories(configDir);
-                Path propsDest = configDir.resolve("application.properties");
-                if (Files.exists(propsSource)) {
-                    Files.move(propsSource, propsDest);
-                } else {
-                    Files.createFile(propsDest);
-                }
-
-                // Remove src/ and docker files (not needed for a Roq site)
-                deleteDir(projectDir.resolve("src"));
-                Files.deleteIfExists(projectDir.resolve(".dockerignore"));
-
+            if (success) {
                 output.info("\nRoq site created in ./" + name);
                 output.info("Next steps:");
                 output.info("  cd " + name);
@@ -125,43 +84,5 @@ public class CreateCommand implements Callable<Integer> {
         } catch (Exception e) {
             return output.handleCommandException(e, "Unable to create project: " + e.getMessage());
         }
-    }
-
-    private void deleteDir(Path dir) throws Exception {
-        if (Files.exists(dir)) {
-            try (var stream = Files.walk(dir)) {
-                stream.sorted(Comparator.reverseOrder())
-                        .forEach(p -> {
-                            try {
-                                Files.delete(p);
-                            } catch (Exception e) {
-                                output.warn("Could not delete: " + p);
-                            }
-                        });
-            }
-        }
-    }
-
-    private String withVersion(String gav) {
-        if (roqVersion != null && gav.startsWith(ROQ_GROUP_ID + ":")) {
-            return gav + ":" + roqVersion;
-        }
-        return gav;
-    }
-
-    private String resolveExtension(String value) {
-        if (value.contains(":")) {
-            return value; // Already a full GAV
-        }
-        if (value.startsWith("theme:")) {
-            return ROQ_PREFIX + "theme-" + value.substring(6);
-        }
-        if (value.startsWith("plugin:")) {
-            return ROQ_PREFIX + "plugin-" + value.substring(7);
-        }
-        if (value.startsWith("web:")) {
-            return "io.quarkiverse.web-bundler:quarkus-web-bundler-" + value.substring(4);
-        }
-        return ROQ_PREFIX + value;
     }
 }

@@ -99,6 +99,8 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <shadedClassifierName>fatjar</shadedClassifierName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>
