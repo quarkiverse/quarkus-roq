@@ -2,8 +2,8 @@
   "catalogs": {},
   "aliases": {
     "roq": {
-      "description": "Serve the generated static website locally",
-      "script-ref": "roq.java"
+      "description": "Roq CLI - static site generator",
+      "script-ref": "ga:io.quarkiverse.roq:quarkus-roq-cli:999-SNAPSHOT@fatjar"
     }
   },
   "templates": {}

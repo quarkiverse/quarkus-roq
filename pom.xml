@@ -24,6 +24,7 @@
         <module>roq-testing</module>
         <module>roq-plugin</module>
         <module>roq-theme</module>
+        <module>roq-cli</module>
     </modules>
 
     <scm>
