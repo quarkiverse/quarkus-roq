@@ -16,6 +16,11 @@ public class StartCommand extends BuildToolDelegatingCommand {
     }
 
     @Override
+    public void prepareMaven(BuildToolContext context) {
+        // Skip resources:resources, dev mode handles resources itself
+    }
+
+    @Override
     public Map<BuildTool, String> getActionMapping() {
         return Map.of(
                 BuildTool.MAVEN, "quarkus:dev",
