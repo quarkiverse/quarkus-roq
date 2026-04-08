@@ -16,6 +16,11 @@ public class GenerateCommand extends BuildToolDelegatingCommand {
             BuildTool.GRADLE_KOTLIN_DSL, "build quarkusRun -x test");
 
     @Override
+    public void prepareMaven(BuildToolContext context) {
+        // Skip resources:resources, already part of the package lifecycle
+    }
+
+    @Override
     public Map<BuildTool, String> getActionMapping() {
         return ACTION_MAPPING;
     }
