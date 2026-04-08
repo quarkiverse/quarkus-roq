@@ -69,7 +69,6 @@ public class RoqFrontMatterStep6BindProcessor {
     }
 
     // Write generated Qute templates to disk and register them with the Qute engine.
-    // Each page produces two templates: "full" (with layout include) and "content" (body only).
     // Also sets up type-safe validation so Qute knows page/site variable types.
     @BuildStep
     void bindQuteTemplates(
@@ -106,6 +105,7 @@ public class RoqFrontMatterStep6BindProcessor {
                                 .fullPath(filePath)
                                 .path(item.raw().templateSource().generatedQuteTemplateId())
                                 .content(item.raw().generatedTemplate())
+                                .parserConfig(item.raw().parserConfig())
                                 .extensionInfo(FEATURE)
                                 .build());
 
@@ -126,6 +126,7 @@ public class RoqFrontMatterStep6BindProcessor {
                         .produce(TemplatePathBuildItem.builder()
                                 .path(item.raw().templateSource().generatedQuteTemplateId())
                                 .fullPath(filePath)
+                                .parserConfig(item.raw().parserConfig())
                                 .extensionInfo(FEATURE)
                                 .content(item.raw().generatedTemplate()).build());
                 layoutTemplates.add(item.raw().templateSource().generatedQuteTemplateId());

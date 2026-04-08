@@ -356,6 +356,21 @@ TIP: By default, url will be rendered as the path from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
+== Alternative expression syntax
+
+Qute supports an alternative expression syntax where output expressions use `{=expr}` instead of `{expr}`. This makes templates safer when content contains curly braces (e.g. code samples, JSON) since only `{=...}` and `{#...}` are interpreted as Qute expressions, everything else is plain text.
+
+NOTE: This will become the default syntax for Roq in a future version.
+
+To enable it, add to your configuration:
+
+[source,properties]
+----
+quarkus.qute.alt-expr-syntax=true
+----
+
+With this enabled, templates use `{=page.title}` for expressions and `{#for ...}` / `{#include ...}` for sections (sections are unaffected). Regular `{foo}` is treated as plain text.
+
 == Escaping pages content
 
 There are cases where you might not want your page content to be parsed by Qute, to avoid conflicts with the content. You have different options:
@@ -506,6 +521,8 @@ The releases and migration info can be found xref:releases.adoc[here].
 == Site Configuration
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
+
+NOTE: In a multi-module Maven project, use `src/main/resources/application.properties` instead. The `config/application.properties` location is resolved relative to the JVM working directory, which may not match the module directory when building from the reactor root.
 
 
 include::../../includes/configs/quarkus-roq-frontmatter_site.adoc[]

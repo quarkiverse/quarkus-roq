@@ -9,6 +9,7 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.FrontMatterTemplateMetadata;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterDependencyParserConfigsBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
@@ -43,6 +46,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.qute.ParserConfig;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
@@ -91,6 +95,60 @@ public class RoqFrontMatterStep1ScanProcessor {
         roqProject.addScannerForLocalRoqDir(scanLocalDirProducer, TEMPLATES_DIR);
     }
 
+    // ── Dependency parser config scanning ─────────────────────────────────
+
+    private static final String QUTE_CONFIG_FILE = ".qute";
+    private static final String ALT_EXPR_PROPERTY = "alt-expr-syntax";
+
+    @BuildStep
+    RoqFrontMatterDependencyParserConfigsBuildItem scanDependencyParserConfigs(
+            RoqProjectBuildItem roqProject,
+            ProjectScannerBuildItem scanner) throws IOException {
+        if (!roqProject.isActive()) {
+            return new RoqFrontMatterDependencyParserConfigsBuildItem(Map.of());
+        }
+
+        Map<Path, ParserConfig> result = new HashMap<>();
+
+        // Query .qute files from the main templates dir
+        List<ProjectFile> quteFiles = scanner.query()
+                .scopeDir(TEMPLATES_DIR)
+                .matchingGlob(QUTE_CONFIG_FILE)
+                .origin(ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                .list();
+
+        // Also check the roq resource sub-dir for themes
+        if (!roqProject.isRoqResourcesInRoot()) {
+            List<ProjectFile> roqResourceQuteFiles = scanner.query()
+                    .scopeDir(roqProject.resolveRoqResourceSubDir(TEMPLATES_DIR))
+                    .matchingGlob(QUTE_CONFIG_FILE)
+                    .origin(ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                    .list();
+            quteFiles = ScanQueryBuilder.mergeByScopedPath(quteFiles, roqResourceQuteFiles);
+        }
+
+        for (ProjectFile f : quteFiles) {
+            Path templateRoot = resolveTemplateRoot(f);
+            if (templateRoot == null) {
+                continue;
+            }
+            Properties props = new Properties();
+            try {
+                props.load(new ByteArrayInputStream(f.content()));
+            } catch (IOException e) {
+                LOGGER.warnf("Unable to read %s file: %s", f.file(), e);
+                continue;
+            }
+            String altExprValue = props.getProperty(ALT_EXPR_PROPERTY, "false");
+            if (Boolean.parseBoolean(altExprValue)) {
+                LOGGER.debugf("Dependency template root %s has alt-expr-syntax enabled", templateRoot);
+                result.put(templateRoot, TemplatePathBuildItem.ALT_PARSER_CONFIG);
+            }
+        }
+
+        return new RoqFrontMatterDependencyParserConfigsBuildItem(result);
+    }
+
     // ── Content scanning ─────────────────────────────────────────────────
 
     record ContentEntry(ProjectFile file, boolean isIndex, boolean isSiteIndex,
@@ -103,6 +161,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             ProjectScannerBuildItem scanner,
             RoqSiteConfig config,
             QuteConfig quteConfig,
+            RoqFrontMatterDependencyParserConfigsBuildItem depParserConfigs,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             BuildProducer<RoqFrontMatterScannedContentBuildItem> scannedContentProducer) throws IOException {
@@ -176,7 +235,8 @@ public class RoqFrontMatterStep1ScanProcessor {
 
         // Second pass: collect metadata (front matter, markup) and produce scanned build items
         for (ContentEntry entry : entries) {
-            FrontMatterTemplateMetadata metadata = collectMetadata(entry.file(), false, markupList, headerParserList);
+            FrontMatterTemplateMetadata metadata = collectMetadata(entry.file(), false, markupList, headerParserList,
+                    quteConfig, depParserConfigs.configs());
 
             LOGGER.debugf("Roq content scan producing scanned template '%s'", metadata.templateId());
             scannedContentProducer.produce(new RoqFrontMatterScannedContentBuildItem(
@@ -191,6 +251,8 @@ public class RoqFrontMatterStep1ScanProcessor {
     void scanLayouts(RoqProjectBuildItem roqProject,
             ProjectScannerBuildItem scanner,
             RoqSiteConfig config,
+            QuteConfig quteConfig,
+            RoqFrontMatterDependencyParserConfigsBuildItem depParserConfigs,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
             BuildProducer<RoqFrontMatterScannedLayoutBuildItem> scannedLayoutProducer) throws IOException {
@@ -227,7 +289,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                 continue;
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
-                    headerParserList);
+                    headerParserList, quteConfig, depParserConfigs.configs());
 
             LOGGER.debugf("Roq layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -259,7 +321,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                 continue;
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
-                    headerParserList);
+                    headerParserList, quteConfig, depParserConfigs.configs());
 
             LOGGER.debugf("Roq theme-layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -290,6 +352,10 @@ public class RoqFrontMatterStep1ScanProcessor {
             templateRootProducer.produce(new TemplateRootBuildItem(
                     StringPaths.join(roqProject.roqResourceDir(), TEMPLATES_DIR)));
         }
+
+        ParserConfig appParserConfig = quteConfig.altExprSyntax()
+                ? TemplatePathBuildItem.ALT_PARSER_CONFIG
+                : ParserConfig.DEFAULT;
 
         List<ProjectFile> files = scanner.query()
                 .scopeDir(TEMPLATES_DIR)
@@ -323,6 +389,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                     .path(link)
                     .fullPath(file.file())
                     .content(content)
+                    .parserConfig(appParserConfig)
                     .extensionInfo(RoqFrontMatterStep6BindProcessor.FEATURE)
                     .build());
 

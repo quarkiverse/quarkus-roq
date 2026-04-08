@@ -8,16 +8,16 @@ content-toc-levels: 3
 
 {#page-header}
 <section class="page-header">
-  <a href="/marketplace/#{page.data.kind}s" class="marketplace-back"><i class="fa-solid fa-arrow-left"></i> Marketplace</a>
-  <h1 class="page-title">{page.title}</h1>
+  <a href="/marketplace/#{=page.data.kind}s" class="marketplace-back"><i class="fa-solid fa-arrow-left"></i> Marketplace</a>
+  <h1 class="page-title">{=page.title}</h1>
   <div class="marketplace-detail-header">
-    <div class="marketplace-detail-icon"><i class="{page.data.icon}"></i></div>
-    <span class="marketplace-type-badge marketplace-type-{page.data.kind}">{page.data.kind}</span>
+    <div class="marketplace-detail-icon"><i class="{=page.data.icon}"></i></div>
+    <span class="marketplace-type-badge marketplace-type-{=page.data.kind}">{=page.data.kind}</span>
     {#if page.data.source??}
-    <a href="{page.data.source}" class="btn btn-link" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> Source</a>
+    <a href="{=page.data.source}" class="btn btn-link" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> Source</a>
     {/if}
   </div>
-  <p class="page-header-intro">{page.description}</p>
+  <p class="page-header-intro">{=page.description}</p>
 </section>
 {/page-header}
 
@@ -26,11 +26,11 @@ content-toc-levels: 3
 <div class="roq-gallery">
   {#for shot in page.data.screenshots}
   <figure>
-    <img src="{page.image(shot.source)}" alt="{shot.label}">
+    <img src="{=page.image(shot.source)}" alt="{=shot.label}">
     {#if shot.label?? || shot.description??}
     <figcaption>
-      {#if shot.label??}<strong>{shot.label}</strong>{/if}
-      {#if shot.description??}<span>{shot.description}</span>{/if}
+      {#if shot.label??}<strong>{=shot.label}</strong>{/if}
+      {#if shot.description??}<span>{=shot.description}</span>{/if}
     </figcaption>
     {/if}
   </figure>
@@ -48,16 +48,16 @@ content-toc-levels: 3
       <span class="roq-terminal-dot green"></span>
       <span class="roq-terminal-title">Terminal</span>
       {#if page.data.kind == 'theme'}
-      <button class="roq-copy-btn" title="Copy command" data-copy="roq create -x theme:{page.data.install-name}"><i class="fa-regular fa-copy"></i></button>
+      <button class="roq-copy-btn" title="Copy command" data-copy="roq create -x theme:{=page.data.install-name}"><i class="fa-regular fa-copy"></i></button>
       {#else}
-      <button class="roq-copy-btn" title="Copy command" data-copy="roq add {page.data.kind}:{page.data.install-name}"><i class="fa-regular fa-copy"></i></button>
+      <button class="roq-copy-btn" title="Copy command" data-copy="roq add {=page.data.kind}:{=page.data.install-name}"><i class="fa-regular fa-copy"></i></button>
       {/if}
     </div>
     <div class="roq-terminal-body">
       {#if page.data.kind == 'theme'}
-      <span class="line"><span class="prompt">$</span> <span class="cmd">roq</span> create -x theme:{page.data.install-name}</span>
+      <span class="line"><span class="prompt">$</span> <span class="cmd">roq</span> create -x theme:{=page.data.install-name}</span>
       {#else}
-      <span class="line"><span class="prompt">$</span> <span class="cmd">roq</span> add {page.data.kind}:{page.data.install-name}</span>
+      <span class="line"><span class="prompt">$</span> <span class="cmd">roq</span> add {=page.data.kind}:{=page.data.install-name}</span>
       {/if}
     </div>
   </div>
@@ -70,7 +70,7 @@ content-toc-levels: 3
 {#after-page}
 {#if page.data.doc??}
 <div class="marketplace-detail-links">
-  <a href="{page.data.doc}" class="btn btn-primary"><i class="fa-solid fa-book"></i> Documentation</a>
+  <a href="{=page.data.doc}" class="btn btn-primary"><i class="fa-solid fa-book"></i> Documentation</a>
 </div>
 {/if}
 {/after-page}

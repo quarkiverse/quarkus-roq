@@ -38,7 +38,7 @@ layout: home
           <div class="rss-feed-slider" id="rssFeedSlider">
             <div class="rss-batch">
               {#for post in site.collections.get('posts')}
-              <span class="rss-line"><span class="rss-date">{post.date.format('yyyy-MM-dd')}</span> <a class="rss-title" href="{post.url}">{post.title}</a>{#if post.data.tags??} <a class="rss-tag" href="/posts/tag/{post.data.tags.asStrings.getFirst()}/">#{post.data.tags.asStrings.getFirst()}</a>{/if}</span>
+              <span class="rss-line"><span class="rss-date">{=post.date.format('yyyy-MM-dd')}</span> <a class="rss-title" href="{=post.url}">{=post.title}</a>{#if post.data.tags??} <a class="rss-tag" href="/posts/tag/{=post.data.tags.asStrings.getFirst()}/">#{=post.data.tags.asStrings.getFirst()}</a>{/if}</span>
               {/for}
             </div>
           </div>
@@ -51,11 +51,11 @@ layout: home
         {#if line.blank??}
         <span class="line">&nbsp;</span>
         {#else if line.prompt??}
-        <span class="line"><span class="prompt">{line.prompt}</span> <span class="cmd">{line.cmd}</span> {line.args??}</span>
+        <span class="line"><span class="prompt">{=line.prompt}</span> <span class="cmd">{=line.cmd}</span> {=line.args??}</span>
         {#else if line.output??}
-        <span class="line"><span class="output">{line.output}</span></span>
+        <span class="line"><span class="output">{=line.output}</span></span>
         {#else if line.success??}
-        <span class="line"><span class="success">{line.success}</span>{#if line.cursor??}<span class="cursor"></span>{/if}</span>
+        <span class="line"><span class="success">{=line.success}</span>{#if line.cursor??}<span class="cursor"></span>{/if}</span>
         {/if}
         {/for}
       </div>

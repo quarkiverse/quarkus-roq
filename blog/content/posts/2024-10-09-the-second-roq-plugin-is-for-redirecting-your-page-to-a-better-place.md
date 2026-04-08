@@ -10,9 +10,9 @@ series: roq-plugins
 
 In the last post, we saw how easy it is to use Quarkus for static site generator (@ia3andy's was right!). I am excited to share that we now have a new plugin that allows you to set up redirects for your blog posts! For this post, I've created three aliases.
 
-- [aliases-very-cool](<{site.url('/aliases-very-cool/')}>)
-- [aliases-4-ever](<{site.url('/aliases-4-ever/')}>)
-- [aliases-again](<{site.url('/aliases-again/')}>)
+- [aliases-very-cool](<{=site.url('/aliases-very-cool/')}>)
+- [aliases-4-ever](<{=site.url('/aliases-4-ever/')}>)
+- [aliases-again](<{=site.url('/aliases-again/')}>)
 
 > If you click on at least one alias, you will be redirected here again!
 

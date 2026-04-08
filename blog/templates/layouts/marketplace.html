@@ -7,7 +7,7 @@ page-class: page-alt page-wide
 
 {#page-header}
 <section class="marketplace-header">
-  <h1 class="marketplace-title">{page.title}</h1>
+  <h1 class="marketplace-title">{=page.title}</h1>
   <div class="marketplace-search">
     <i class="fa-solid fa-magnifying-glass marketplace-search-icon"></i>
     <input type="text" id="marketplace-search" placeholder="Search plugins and themes..." class="marketplace-search-input" autocomplete="off">
@@ -27,25 +27,25 @@ page-class: page-alt page-wide
 <div class="marketplace-grid" id="marketplace-grid">
   {#for item in site.collections.get('marketplace').sortBy('title', false)}
   {#if item.data.kind??}
-  <a href="{item.url}" class="card marketplace-card{#if item.image??} marketplace-card-featured{/if}" data-type="{item.data.kind}" data-tags="{#if item.data.tags??}{#for tag in item.data.tags.asStrings}{tag}{#if tag_hasNext} {/if}{/for}{/if}">
+  <a href="{=item.url}" class="card marketplace-card{#if item.image??} marketplace-card-featured{/if}" data-type="{=item.data.kind}" data-tags="{#if item.data.tags??}{#for tag in item.data.tags.asStrings}{=tag}{#if tag_hasNext} {/if}{/for}{/if}">
     <div class="marketplace-card-topbar">
-      <div class="marketplace-card-icon-wrap"><i class="{item.data.icon ?: ''}"></i></div>
-      <span class="marketplace-type-badge marketplace-type-{item.data.kind}">{item.data.kind}</span>
+      <div class="marketplace-card-icon-wrap"><i class="{=item.data.icon ?: ''}"></i></div>
+      <span class="marketplace-type-badge marketplace-type-{=item.data.kind}">{=item.data.kind}</span>
       {#if item.data.tags??}
       {#for tag in item.data.tags.asStrings}
-      <span class="marketplace-tag">{tag}</span>
+      <span class="marketplace-tag">{=tag}</span>
       {/for}
       {/if}
     </div>
     <div class="marketplace-card-lower">
       {#if item.image??}
       <div class="marketplace-card-screenshot">
-        <img src="{item.image}" alt="{item.title}">
+        <img src="{=item.image}" alt="{=item.title}">
       </div>
       {/if}
       <div class="marketplace-card-body">
-        <h3 class="marketplace-card-title">{item.title}</h3>
-        <p class="marketplace-card-desc">{item.description}</p>
+        <h3 class="marketplace-card-title">{=item.title}</h3>
+        <p class="marketplace-card-desc">{=item.description}</p>
       </div>
     </div>
   </a>
