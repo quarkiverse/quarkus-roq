@@ -42,6 +42,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
+import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
@@ -50,6 +51,18 @@ import io.quarkus.qute.runtime.QuteConfig;
 public class RoqFrontMatterStep1ScanProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterStep1ScanProcessor.class);
+
+    // Workaround for SmallRye Config greedy wildcard bug (smallrye/smallrye-config#1492).
+    // PropertyName.equals() lets site.collections.* match site.collections.*.hidden,
+    // causing the @WithParentName @WithDefault("true") value to bleed into sub-keys.
+    // TODO: remove when Quarkus upgrades to SmallRye Config 3.17+
+    @BuildStep
+    void suppressWildcardMapMismatch(BuildProducer<SuppressNonRuntimeConfigChangedWarningBuildItem> producer) {
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.hidden"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.future"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.layout"));
+    }
 
     // ── Dir declarations ─────────────────────────────────────────────────
 
