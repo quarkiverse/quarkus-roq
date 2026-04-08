@@ -39,7 +39,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.version>3.29.4</quarkus.version>
-        <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
+        <quarkus-qute-web.version>3.4.5</quarkus-qute-web.version>
         <asciidoctorj.version>3.0.1</asciidoctorj.version><asciidoctorj-diagram.version>3.2.1</asciidoctorj-diagram.version>
         <quarkus-web-bundler.version>2.3.0</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.13</asciidoc-java.version>
