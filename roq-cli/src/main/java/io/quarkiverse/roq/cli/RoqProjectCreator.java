@@ -89,7 +89,8 @@ public class RoqProjectCreator {
                 .groupId(groupId)
                 .artifactId(artifactId)
                 .version(version)
-                .extensions(allExtensions);
+                .extensions(allExtensions)
+                .noDockerfiles();
 
         if (noCode) {
             createProject.noCode();
@@ -116,9 +117,8 @@ public class RoqProjectCreator {
             Files.createFile(propsDest);
         }
 
-        // Remove src/ and docker files (not needed for a Roq site)
+        // Remove src/ (not needed for a Roq site)
         deleteDir(projectDir.resolve("src"));
-        Files.deleteIfExists(projectDir.resolve(".dockerignore"));
     }
 
     private String withVersion(String gav) {
