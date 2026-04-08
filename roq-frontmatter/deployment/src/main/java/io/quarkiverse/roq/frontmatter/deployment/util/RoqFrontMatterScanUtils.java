@@ -167,7 +167,7 @@ public final class RoqFrontMatterScanUtils {
 
         List<ProjectFile> resourceFiles = scanner.query()
                 .scopeDir(roqProject.resolveRoqResourceSubDir(subDir))
-                .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                .origin(ProjectFile.Origin.ROOT_APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
                 .addExcluded(ignoredPatterns)
                 .list();
 
@@ -189,8 +189,8 @@ public final class RoqFrontMatterScanUtils {
             if (config.slugifyFiles()) {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
-            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.path()));
-            produceWatch(f.watchPath(), watch);
+            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
+            produceWatch(f.liveReloadWatchPath(), watch);
         }
 
         // Public dir files (served at root path)
@@ -199,8 +199,8 @@ public final class RoqFrontMatterScanUtils {
             if (config.slugifyFiles()) {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
-            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.path()));
-            produceWatch(f.watchPath(), watch);
+            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
+            produceWatch(f.liveReloadWatchPath(), watch);
         }
     }
 
@@ -244,12 +244,12 @@ public final class RoqFrontMatterScanUtils {
 
         String referencePath = normalizeReferencePath(file.scopedPath());
         String relativePath = toUnixPath(file.indexPath());
-        String siteDirPath = deriveSiteDirPath(file.path(), relativePath);
+        String siteDirPath = deriveSiteDirPath(file.file(), relativePath);
         String fullContent = new String(file.content(), file.charset());
 
         SourceFile sourceFile = new SourceFile(siteDirPath != null ? siteDirPath : "", relativePath);
 
-        TemplateContext templateContext = new TemplateContext(file.path(), referencePath, fullContent);
+        TemplateContext templateContext = new TemplateContext(file.file(), referencePath, fullContent);
         RoqFrontMatterQuteMarkupBuildItem markup = RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter(markupList,
                 templateContext);
         List<RoqFrontMatterHeaderParserBuildItem> headerParsers = RoqFrontMatterHeaderParserBuildItem
@@ -263,7 +263,7 @@ public final class RoqFrontMatterScanUtils {
         boolean isHtml = isTemplateTargetHtml(referencePath);
         boolean isPartial = isHtmlPartial(parsed.content(), isHtml);
 
-        return new FrontMatterTemplateMetadata(file.path(), referencePath, sourceFile, markup, parsed,
+        return new FrontMatterTemplateMetadata(file.file(), referencePath, sourceFile, markup, parsed,
                 templateId, outputPath, isHtml, isPartial);
     }
 

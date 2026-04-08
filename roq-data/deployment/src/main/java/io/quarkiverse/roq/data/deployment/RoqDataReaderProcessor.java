@@ -238,20 +238,20 @@ public class RoqDataReaderProcessor {
         // Query 2: Classpath resources under roqResourceDir/data dir
         List<ProjectFile> resourceFiles = scanner.query()
                 .scopeDir(roqProject.resolveRoqResourceSubDir(config.dir()))
-                .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                .origin(ProjectFile.Origin.ROOT_APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
                 .matching(GLOB)
                 .list();
 
         final List<ProjectFile> files = ScanQueryBuilder.mergeByScopedPath(localFiles, resourceFiles);
         for (ProjectFile file : files) {
             var name = removeExtension(toUnixPath(file.scopedPath()));
-            String watchPath = file.watchPath();
+            String watchPath = file.liveReloadWatchPath();
             if (watchPath != null) {
                 watchedFilesProducer.produce(new HotDeploymentWatchedFileBuildItem(watchPath, true));
             }
             DataConverter dataConverter = converter.fromFileName(file.scopedPath());
             if (dataConverter != null) {
-                items.add(new RoqDataBuildItem(name, file.path(), file.content(), dataConverter));
+                items.add(new RoqDataBuildItem(name, file.file(), file.content(), dataConverter));
             }
         }
         return items;

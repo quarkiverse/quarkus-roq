@@ -171,8 +171,8 @@ public class RoqFrontMatterStep1ScanProcessor {
                     if (config.slugifyFiles()) {
                         name = PageFiles.slugifyFile(name);
                     }
-                    pageAttachments.get(ownerDir).add(new RoqFrontMatterAttachment(name, f.path()));
-                    produceWatch(f.watchPath(), watch);
+                    pageAttachments.get(ownerDir).add(new RoqFrontMatterAttachment(name, f.file()));
+                    produceWatch(f.liveReloadWatchPath(), watch);
                 }
             }
         }
@@ -180,7 +180,7 @@ public class RoqFrontMatterStep1ScanProcessor {
         // Second pass: collect metadata (front matter, markup) and produce scanned build items
         for (ContentEntry entry : entries) {
             FrontMatterTemplateMetadata metadata = collectMetadata(entry.file(), false, markupList, headerParserList);
-            produceWatch(entry.file().watchPath(), watch);
+            produceWatch(entry.file().liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq content scan producing scanned template '%s'", metadata.templateId());
             scannedContentProducer.produce(new RoqFrontMatterScannedContentBuildItem(
@@ -219,7 +219,7 @@ public class RoqFrontMatterStep1ScanProcessor {
         if (!roqProject.isRoqResourcesInRoot()) {
             List<ProjectFile> roqResourceLayouts = scanner.query()
                     .scopeDir(roqProject.resolveRoqResourceSubDir(TEMPLATES_DIR))
-                    .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                    .origin(ProjectFile.Origin.ROOT_APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
                     .matchingGlob(LAYOUTS_DIR + "**")
                     .matching(buildHtmlTemplateGlob())
                     .addExcluded(ignoredPatterns)
@@ -233,7 +233,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
                     headerParserList);
-            produceWatch(file.watchPath(), watch);
+            produceWatch(file.liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -252,7 +252,7 @@ public class RoqFrontMatterStep1ScanProcessor {
         if (!roqProject.isRoqResourcesInRoot()) {
             List<ProjectFile> roqResourceThemeLayouts = scanner.query()
                     .scopeDir(roqProject.resolveRoqResourceSubDir(TEMPLATES_DIR))
-                    .origin(ProjectFile.Origin.APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                    .origin(ProjectFile.Origin.ROOT_APPLICATION_RESOURCE, ProjectFile.Origin.DEPENDENCY_RESOURCE)
                     .matchingGlob(THEME_LAYOUTS_DIR + "**")
                     .matching(buildHtmlTemplateGlob())
                     .addExcluded(ignoredPatterns)
@@ -266,7 +266,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
                     headerParserList);
-            produceWatch(file.watchPath(), watch);
+            produceWatch(file.liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq theme-layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -310,7 +310,7 @@ public class RoqFrontMatterStep1ScanProcessor {
 
         for (ProjectFile file : files) {
             LOGGER.debugf("Roq template scan found in local dir: scopedPath=%s, origin=%s, path=%s",
-                    file.scopedPath(), file.origin(), file.path());
+                    file.scopedPath(), file.origin(), file.file());
             String link = toUnixPath(file.scopedPath());
             String content = new String(file.content(), file.charset());
 
@@ -329,12 +329,12 @@ public class RoqFrontMatterStep1ScanProcessor {
             templatePathProducer.produce(TemplatePathBuildItem.builder()
                     .priority(ROOT_ARCHIVE_PRIORITY)
                     .path(link)
-                    .fullPath(file.path())
+                    .fullPath(file.file())
                     .content(content)
                     .extensionInfo(RoqFrontMatterStep6BindProcessor.FEATURE)
                     .build());
 
-            String watchPath = file.watchPath();
+            String watchPath = file.liveReloadWatchPath();
             if (watchPath != null) {
                 watch.produce(HotDeploymentWatchedFileBuildItem.builder()
                         .setLocation(watchPath).build());
