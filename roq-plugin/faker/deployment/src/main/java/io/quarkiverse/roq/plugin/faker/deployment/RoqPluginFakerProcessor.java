@@ -142,8 +142,7 @@ public class RoqPluginFakerProcessor {
                                                 .format(DateTimeFormatter.ofPattern(siteConfig.dateFormat())))
                                 .put("tags", new JsonArray(document.tags())),
                         collection,
-                        getIncludeFilter(layoutId).apply(document.content()),
-                        document.content(),
+                        getIncludeFilter(layoutId, true).apply(document.content()),
                         List.of()));
             }
         }
