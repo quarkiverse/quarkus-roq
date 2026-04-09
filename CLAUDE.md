@@ -2,6 +2,14 @@
 
 **Remind me to commit when changes are consequent enough**
 
+## PRs and Issues
+
+When creating pull requests or issues, keep descriptions concise and informative:
+- Summarize what changed and why in a few bullet points.
+- Do not add a "Validation" or "Test plan" section.
+- No boilerplate, checklists, or filler text.
+- Do not add "Generated with Claude Code" or similar attribution lines.
+
 
 # Roq Blog Development Guide
 
