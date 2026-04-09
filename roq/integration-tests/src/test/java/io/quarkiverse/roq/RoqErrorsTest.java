@@ -1,6 +1,7 @@
 package io.quarkiverse.roq;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,14 @@ import io.restassured.RestAssured;
 
 @QuarkusTest
 public class RoqErrorsTest extends AbstractRoqTest {
+
+    @Test
+    public void testDefaultTheme404Page() {
+        RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails()
+                .body("html.head.title", equalTo("Oops! Roq is saying 404 - Hello, world! I'm Roq"))
+                .body("html.body.@class", equalTo("page-not-found"))
+                .body(containsString("<div class=\"main\">"));
+    }
 
     @Test
     public void testErrorFilePage() {
