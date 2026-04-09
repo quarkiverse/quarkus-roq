@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-diagram_quarkus-enabled]] [.property-path]##link:#quarkus-roq-plugin-diagram_quarkus-enabled[`quarkus.enabled`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-diagram_quarkus-enabled]] [.property-path]##link:#quarkus-roq-plugin-diagram_quarkus-enabled[`+++quarkus.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.enabled+++[]
 endif::add-copy-button-to-config-props[]
@@ -28,7 +28,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-diagram_quarkus-image-name]] [.property-path]##link:#quarkus-roq-plugin-diagram_quarkus-image-name[`quarkus.image-name`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-diagram_quarkus-image-name]] [.property-path]##link:#quarkus-roq-plugin-diagram_quarkus-image-name[`+++quarkus.image-name+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.image-name+++[]
 endif::add-copy-button-to-config-props[]
