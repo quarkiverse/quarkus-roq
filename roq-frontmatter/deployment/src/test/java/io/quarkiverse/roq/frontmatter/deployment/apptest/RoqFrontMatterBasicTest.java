@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.apptest;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,8 +53,8 @@ public class RoqFrontMatterBasicTest {
     public void testIndex() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Simple Site"))
-                .body("html.body.div.h1[0]", containsString("New Post"))
-                .body("html.body.div.h1[1]", containsString("Some Post"));
+                .body("html.body.div.h1[0]", containsString("Override Post"))
+                .body("html.body.div.h1[1]", containsString("New Post"));
     }
 
     @Test
@@ -82,6 +83,31 @@ public class RoqFrontMatterBasicTest {
     @DisplayName("Static image file is served")
     public void testStatic() {
         RestAssured.when().get("/images/iamroq.png").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Test
+    @DisplayName("Page can render another page's content and contentAbstract")
+    public void testPageContent() {
+        String body = RestAssured.when().get("/page/content-test").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        // Verify page.content renders the post's inner content (without layout)
+        assertTrue(body.contains("New post with html"), "Should contain post heading from content");
+        assertTrue(body.contains("This is a new post."), "Should contain post paragraph from content");
+        // Verify contentAbstract strips HTML and limits words
+        assertTrue(body.contains("post-abstract-"), "Should contain abstract div");
+        // Verify content of a post with insert overrides (override-post)
+        assertTrue(body.contains("Override post content"), "Should contain override post's heading from content");
+        assertTrue(body.contains("This post uses an insert override."),
+                "Should contain override post's paragraph from content");
+    }
+
+    @Test
+    @DisplayName("Post with insert override renders content")
+    public void testInsertOverride() {
+        // TODO: insert overrides inside fragments not supported yet (https://github.com/quarkusio/quarkus/issues/53518)
+        String body = RestAssured.when().get("/the-posts/override-post").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        assertTrue(body.contains("Override post content"), "Should contain the main post content");
     }
 
     @Test

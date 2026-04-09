@@ -79,7 +79,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
             rawPageProducer.produce(new RoqFrontMatterRawPageBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
                     scanned.collection(), processed.generatedTemplate(),
-                    processed.generatedContentTemplate(), scanned.attachments()));
+                    scanned.attachments()));
         }
     }
 

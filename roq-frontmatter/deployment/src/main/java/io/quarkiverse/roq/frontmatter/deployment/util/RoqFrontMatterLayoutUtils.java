@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR;
 
 import java.util.Optional;
@@ -65,11 +66,20 @@ public final class RoqFrontMatterLayoutUtils {
 
     // ── Include filter ──────────────────────────────────────────────────
 
-    public static WrapperFilter getIncludeFilter(String layout) {
+    public static WrapperFilter getIncludeFilter(String layout, boolean isPage) {
         if (layout == null) {
             return WrapperFilter.EMPTY;
         }
-        String prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
-        return new WrapperFilter(prefix, "\n{/include}");
+        String prefix;
+        String suffix;
+        if (isPage) {
+            prefix = "{#include %s%s}\n{#fragment %s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout,
+                    ROQ_PAGE_CONTENT_FRAGMENT);
+            suffix = "\n{/fragment}\n{/include}";
+        } else {
+            prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
+            suffix = "\n{/include}";
+        }
+        return new WrapperFilter(prefix, suffix);
     }
 }
