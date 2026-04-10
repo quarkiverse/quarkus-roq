@@ -6,3 +6,7 @@ and an images: {site.image('hello.png')}, {site.image('hello.foo.png')} and {pag
 
 page by path: {site.page('élo you$@.html').url}
 document by path: {site.document('posts/markdown-post-k8s.md').url}
+
+### To see the Hybrid mode working :)
+
+{cdi:database.contributors}

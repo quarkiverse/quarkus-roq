@@ -550,5 +550,34 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-runtime-cache]] [.property-path]##link:#quarkus-roq-frontmatter_site-runtime-cache[`+++site.runtime-cache+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.runtime-cache+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Controls when templates are cached.
+
+ - `false`: Templates are rendered at runtime (no caching)
+ - `startup`: Templates are cached at application startup
+ - `lazy`: Templates are cached on first request
+
+
+
+This allows mixing static generation with runtime rendering for hybrid applications.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_RUNTIME_CACHE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_RUNTIME_CACHE+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`false`, `startup`, `lazy`
+|`+++false+++`
+
 |===
 
