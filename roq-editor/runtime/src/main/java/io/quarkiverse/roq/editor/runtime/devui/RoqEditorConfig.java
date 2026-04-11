@@ -7,7 +7,15 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
-@ConfigMapping(prefix = "editor")
+/**
+ * Configuration for the Roq editor extension.
+ * <p>
+ * NOTE: Prior versions used the {@code editor.*} configuration prefix. This has been
+ * changed to {@code quarkus.roq.editor.*}. Existing configurations must be migrated
+ * by renaming keys from {@code editor.*} to {@code quarkus.roq.editor.*}, otherwise
+ * they will no longer be read.
+ */
+@ConfigMapping(prefix = "quarkus.roq.editor")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface RoqEditorConfig {
 
@@ -58,8 +66,6 @@ public interface RoqEditorConfig {
 
     /**
      * Suggested path configuration
-     *
-     * @return
      */
     @JsonProperty("suggestedPath")
     SuggestedPathConfig suggestedPath();
@@ -73,6 +79,81 @@ public interface RoqEditorConfig {
         @WithDefault("true")
         boolean enabled();
 
+    }
+
+    /**
+     * Git sync configuration
+     */
+    @JsonProperty("sync")
+    SyncConfig sync();
+
+    interface SyncConfig {
+
+        /**
+         * Enable Git sync feature (commit, push, pull via the Editor UI)
+         */
+        @JsonProperty("enabled")
+        @WithDefault("true")
+        boolean enabled();
+
+        /**
+         * Auto-sync configuration (pull from remote)
+         */
+        @JsonProperty("autoSync")
+        AutoSyncConfig autoSync();
+
+        interface AutoSyncConfig {
+            /**
+             * Enable automatic sync (pull) from remote
+             */
+            @JsonProperty("enabled")
+            @WithDefault("false")
+            boolean enabled();
+
+            /**
+             * Auto-sync interval in seconds
+             */
+            @JsonProperty("intervalSeconds")
+            @WithDefault("60")
+            int intervalSeconds();
+        }
+
+        /**
+         * Auto-publish configuration (commit + push)
+         */
+        @JsonProperty("autoPublish")
+        AutoPublishConfig autoPublish();
+
+        interface AutoPublishConfig {
+            /**
+             * Enable automatic publish (commit + push) on content changes
+             */
+            @JsonProperty("enabled")
+            @WithDefault("false")
+            boolean enabled();
+
+            /**
+             * Auto-publish interval in seconds
+             */
+            @JsonProperty("intervalSeconds")
+            @WithDefault("300")
+            int intervalSeconds();
+        }
+
+        /**
+         * Commit message configuration
+         */
+        @JsonProperty("commitMessage")
+        CommitMessageConfig commitMessage();
+
+        interface CommitMessageConfig {
+            /**
+             * Default commit message template
+             */
+            @JsonProperty("template")
+            @WithDefault("Update content via Roq Editor")
+            String template();
+        }
     }
 
 }
