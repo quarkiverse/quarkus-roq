@@ -227,7 +227,7 @@ class RoqFrontMatterStep5RecordProcessor {
                 .routeFunction(httpRootPath.relativePath(StringPaths.join(config.pathPrefixOrEmpty(), "/*")),
                         recorder.initializeRoute())
                 .handlerType(HandlerType.BLOCKING)
-                .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))
+                .handler(recorder.handler(roqFrontMatterOutput.allPagesByPath()))
                 .build();
     }
 }
