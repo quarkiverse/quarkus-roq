@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-url]] [.property-path]##link:#quarkus-roq-frontmatter_site-url[`site.url`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-url]] [.property-path]##link:#quarkus-roq-frontmatter_site-url[`+++site.url+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.url+++[]
 endif::add-copy-button-to-config-props[]
@@ -28,7 +28,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-route-order]] [.property-path]##link:#quarkus-roq-frontmatter_site-route-order[`site.route-order`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-route-order]] [.property-path]##link:#quarkus-roq-frontmatter_site-route-order[`+++site.route-order+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.route-order+++[]
 endif::add-copy-button-to-config-props[]
@@ -51,7 +51,7 @@ endif::add-copy-button-to-env-var[]
 |int
 |`+++1100+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-ignored-files[`site.ignored-files`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-ignored-files[`+++site.ignored-files+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.ignored-files+++[]
 endif::add-copy-button-to-config-props[]
@@ -74,7 +74,7 @@ endif::add-copy-button-to-env-var[]
 |list of string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-ignored-files[`site.default-ignored-files`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-ignored-files[`+++site.default-ignored-files+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.default-ignored-files+++[]
 endif::add-copy-button-to-config-props[]
@@ -84,13 +84,11 @@ endif::add-copy-button-to-config-props[]
 --
 The default ignored files (relative to the site directory) include:
 
- - `.DS_Store`
- - `Thumbs.db`
  - All files or directories starting with an underscore (`_`)
 
 
 
-Only the `content/`, `public/`, and `static/` directories are scanned.
+These patterns are additional to the scanner's own OS-level defaults (e.g. `.DS_Store`, `Thumbs.db`, `++*++~`, `.class`).
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -101,9 +99,9 @@ Environment variable: `+++SITE_DEFAULT_IGNORED_FILES+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`+++**.DS_Store+++`, `+++**Thumbs.db+++`, `+++**/_**+++`, `+++_**+++`
+|`+++**/_**+++`, `+++_**+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`site.escaped-pages`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_site-escaped-pages[`+++site.escaped-pages+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.escaped-pages+++[]
 endif::add-copy-button-to-config-props[]
@@ -130,7 +128,7 @@ endif::add-copy-button-to-env-var[]
 |list of string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-page-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-page-layout[`site.page-layout`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-page-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-page-layout[`+++site.page-layout+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.page-layout+++[]
 endif::add-copy-button-to-config-props[]
@@ -138,7 +136,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme is defined.
+The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -149,9 +147,9 @@ Environment variable: `+++SITE_PAGE_LAYOUT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++:theme/page+++`
+|`+++page+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`site.content-dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-content-dir[`+++site.content-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.content-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -172,7 +170,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++content+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-static-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-static-dir[`site.static-dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-static-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-static-dir[`+++site.static-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.static-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -193,7 +191,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++static+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-public-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-public-dir[`site.public-dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-public-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-public-dir[`+++site.public-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.public-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -214,7 +212,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++public+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-images-path[`site.images-path`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_site-images-path[`+++site.images-path+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.images-path+++[]
 endif::add-copy-button-to-config-props[]
@@ -235,7 +233,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++images/+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_site-generator[`site.generator`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generator]] [.property-path]##link:#quarkus-roq-frontmatter_site-generator[`+++site.generator+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.generator+++[]
 endif::add-copy-button-to-config-props[]
@@ -256,7 +254,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-future]] [.property-path]##link:#quarkus-roq-frontmatter_site-future[`site.future`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-future]] [.property-path]##link:#quarkus-roq-frontmatter_site-future[`+++site.future+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.future+++[]
 endif::add-copy-button-to-config-props[]
@@ -277,7 +275,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-theme]] [.property-path]##link:#quarkus-roq-frontmatter_site-theme[`site.theme`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-theme]] [.property-path]##link:#quarkus-roq-frontmatter_site-theme[`+++site.theme+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.theme+++[]
 endif::add-copy-button-to-config-props[]
@@ -285,7 +283,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-This will be used to replace `:theme` when resolving layouts (e.g. `layout: :theme/main.html`)
+The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter. With a theme, `layout: foo` resolves local first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -298,7 +296,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft[`site.draft`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft[`+++site.draft+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.draft+++[]
 endif::add-copy-button-to-config-props[]
@@ -319,7 +317,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft-directory]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft-directory[`site.draft-directory`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft-directory]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft-directory[`+++site.draft-directory+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.draft-directory+++[]
 endif::add-copy-button-to-config-props[]
@@ -327,7 +325,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Directory under which all documents will be considered as drafts.
+Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`. Frontmatter `draft` takes precedence over this directory-based fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -340,7 +338,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++drafts+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-date-format]] [.property-path]##link:#quarkus-roq-frontmatter_site-date-format[`site.date-format`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-date-format]] [.property-path]##link:#quarkus-roq-frontmatter_site-date-format[`+++site.date-format+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.date-format+++[]
 endif::add-copy-button-to-config-props[]
@@ -359,9 +357,9 @@ Environment variable: `+++SITE_DATE_FORMAT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++yyyy-MM-dd[ HH:mm][:ss][ Z]+++`
+|`+++yyyy-M-d[ HH:mm][:ss][ Z]+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_site-time-zone[`site.time-zone`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_site-time-zone[`+++site.time-zone+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.time-zone+++[]
 endif::add-copy-button-to-config-props[]
@@ -382,7 +380,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++document timezone if provided or system timezone+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-locale]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-locale[`site.default-locale`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-default-locale]] [.property-path]##link:#quarkus-roq-frontmatter_site-default-locale[`+++site.default-locale+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.default-locale+++[]
 endif::add-copy-button-to-config-props[]
@@ -403,7 +401,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++en+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-slugify-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-slugify-files[`site.slugify-files`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-slugify-files]] [.property-path]##link:#quarkus-roq-frontmatter_site-slugify-files[`+++site.slugify-files+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.slugify-files+++[]
 endif::add-copy-button-to-config-props[]
@@ -424,7 +422,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map[`site.collections."collections-map"`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map[`+++site.collections."collections-map"+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.collections."collections-map"+++[]
 endif::add-copy-button-to-config-props[]
@@ -445,7 +443,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-future]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-future[`site.collections."collections-map".future`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-future]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-future[`+++site.collections."collections-map".future+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.collections."collections-map".future+++[]
 endif::add-copy-button-to-config-props[]
@@ -466,7 +464,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-hidden[`site.collections."collections-map".hidden`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-hidden[`+++site.collections."collections-map".hidden+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.collections."collections-map".hidden+++[]
 endif::add-copy-button-to-config-props[]
@@ -487,7 +485,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-layout[`site.collections."collections-map".layout`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-layout]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-layout[`+++site.collections."collections-map".layout+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.collections."collections-map".layout+++[]
 endif::add-copy-button-to-config-props[]
@@ -495,7 +493,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. ":theme/" is removed if no theme defined.
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -508,7 +506,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`site.generated-templates-output-dir`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`+++site.generated-templates-output-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.generated-templates-output-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -529,7 +527,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++roq-templates+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-path-prefix]] [.property-path]##link:#quarkus-roq-frontmatter_site-path-prefix[`site.path-prefix`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-path-prefix]] [.property-path]##link:#quarkus-roq-frontmatter_site-path-prefix[`+++site.path-prefix+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.path-prefix+++[]
 endif::add-copy-button-to-config-props[]

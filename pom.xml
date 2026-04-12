@@ -24,6 +24,7 @@
         <module>roq-testing</module>
         <module>roq-plugin</module>
         <module>roq-theme</module>
+        <module>roq-cli</module>
     </modules>
 
     <scm>
@@ -35,18 +36,18 @@
 
     <properties>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.29.4</quarkus.version>
-        <quarkus-qute-web.version>3.4.4</quarkus-qute-web.version>
-        <asciidoctorj.version>3.0.1</asciidoctorj.version>
-        <asciidoctorj-diagram.version>3.1.0</asciidoctorj-diagram.version>
-        <quarkus-web-bundler.version>2.2.1</quarkus-web-bundler.version>
+        <quarkus.version>3.34.2</quarkus.version>
+        <quarkus-qute-web.version>3.4.5</quarkus-qute-web.version>
+        <asciidoctorj.version>3.0.1</asciidoctorj.version><asciidoctorj-diagram.version>3.2.1</asciidoctorj-diagram.version>
+        <quarkus-web-bundler.version>2.3.1</quarkus-web-bundler.version>
         <asciidoc-java.version>1.2.13</asciidoc-java.version>
         <jandex.version>3.5.3</jandex.version>
         <jsoup.version>1.22.1</jsoup.version>
         <assertj.version>3.27.7</assertj.version>
+        <raclette.version>0.1.0.CR3</raclette.version>
     </properties>
 
     <dependencyManagement>
@@ -57,6 +58,11 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.mvnpm</groupId>
+                <artifactId>raclette</artifactId>
+                <version>${raclette.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>

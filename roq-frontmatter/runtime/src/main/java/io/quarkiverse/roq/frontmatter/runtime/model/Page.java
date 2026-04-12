@@ -1,9 +1,12 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,9 +39,6 @@ import io.vertx.core.json.JsonObject;
 public class Page {
 
     private static final Logger LOG = Logger.getLogger(Page.class);
-
-    public static final String FM_TITLE = "title";
-    public static final String FM_DESCRIPTION = "description";
 
     private final RoqUrl url;
     private final JsonObject data;
@@ -102,12 +102,14 @@ public class Page {
     private String resolveContentLazy() {
         try {
             final Engine engine = Arc.container().instance(Engine.class).get();
-            final String id = source().template().generatedQuteContentTemplateId();
+            final String id = source().template().generatedQuteTemplateId();
             final Template template = engine.getTemplate(id);
             if (template == null) {
                 return "";
             }
-            return template.render(Map.of(
+            // Use the fragment for pages with a layout, or the full template otherwise
+            final Template contentTemplate = template.getFragment(ROQ_PAGE_CONTENT_FRAGMENT);
+            return (contentTemplate != null ? contentTemplate : template).render(Map.of(
                     "page", this,
                     "site", site()));
 
@@ -118,7 +120,7 @@ public class Page {
     }
 
     private String resolveRawContentLazy() {
-        final String templateResource = "/templates/" + source().template().generatedQuteContentTemplateId();
+        final String templateResource = "/templates/" + source().template().generatedQuteTemplateId();
         try (InputStream resource = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(templateResource)) {
             if (resource != null) {
@@ -163,14 +165,14 @@ public class Page {
      * The page title (`title` from FM data)
      */
     public String title() {
-        return data().getString(FM_TITLE, sourcePath());
+        return data().getString(TITLE, sourcePath());
     }
 
     /**
      * The page description (`description` from FM data)
      */
     public String description() {
-        return data().getString(FM_DESCRIPTION);
+        return data().getString(DESCRIPTION);
     }
 
     /**

@@ -1,7 +1,9 @@
 package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor.ESCAPE_KEY;
-import static io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontmatterTemplateUtils.stripFrontMatter;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.stripFrontMatter;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,9 +18,8 @@ import java.util.function.Predicate;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterHeaderParserBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.scan.TemplateContext;
-import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
 import io.vertx.core.json.JsonObject;
 import io.yupiik.asciidoc.model.Header;
 import io.yupiik.asciidoc.parser.Parser;
@@ -47,8 +48,8 @@ public class AsciidocHeaderParser {
                 escape = !(quteAttribute.isEmpty() || Boolean.parseBoolean(quteAttribute));
             }
 
-            if (!pageData.containsKey(ESCAPE_KEY)) {
-                pageData.put(ESCAPE_KEY, escape);
+            if (!pageData.containsKey(ESCAPE)) {
+                pageData.put(ESCAPE, escape);
             }
             return pageData;
         }, Function.identity(), 20);
@@ -65,10 +66,10 @@ public class AsciidocHeaderParser {
             }
         }
         if (!header.title().isBlank()) {
-            pageData.put(Page.FM_TITLE, header.title());
+            pageData.put(TITLE, header.title());
         }
-        if (header.attributes().containsKey(Page.FM_DESCRIPTION) && !header.attributes().get(Page.FM_DESCRIPTION).isBlank()) {
-            pageData.put(Page.FM_DESCRIPTION, header.attributes().get("description"));
+        if (header.attributes().containsKey(DESCRIPTION) && !header.attributes().get(DESCRIPTION).isBlank()) {
+            pageData.put(DESCRIPTION, header.attributes().get("description"));
         }
         if (!header.author().name().isBlank()) {
             pageData.put("author", header.author().name());
@@ -81,7 +82,7 @@ public class AsciidocHeaderParser {
                     .put("remark", header.revision().revmark()));
         }
         if (attributes.containsKey("description")) {
-            pageData.put(Page.FM_DESCRIPTION, attributes.get("description"));
+            pageData.put(DESCRIPTION, attributes.get("description"));
         }
         if (attributes.containsKey("image")) {
             pageData.put("image", attributes.get("image"));

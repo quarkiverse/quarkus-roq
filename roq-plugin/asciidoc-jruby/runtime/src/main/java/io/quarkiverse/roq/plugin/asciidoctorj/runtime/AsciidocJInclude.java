@@ -19,19 +19,25 @@ import org.asciidoctor.extension.PreprocessorReader;
 import org.asciidoctor.log.LogRecord;
 import org.asciidoctor.log.Severity;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 
 public class AsciidocJInclude extends IncludeProcessor {
     private static final Pattern URL_PREFIX_PATTERN = Pattern.compile("^((https?|file|ftp|irc)://|mailto:)");
     private static final Pattern HEADING_PATTERN = Pattern.compile("^(=+)(\\s+.*)$");
+    private static final Pattern TAG_START_PATTERN = Pattern.compile("^(?://|#|--|;;|<!--)\\s*tag::(\\S+?)\\[\\]");
+    private static final Pattern TAG_END_PATTERN = Pattern.compile("^(?://|#|--|;;|<!--)\\s*end::(\\S+?)\\[\\]");
 
     public AsciidocJInclude() {
-
     }
 
+    /**
+     * Handles all include targets except external URLs.
+     * This ensures cross-directory and classpath includes work for all file types,
+     * since Roq loads AsciiDoc content as strings without file context.
+     */
     @Override
     public boolean handles(String target) {
-        return !URL_PREFIX_PATTERN.matcher(target).matches() && (target.endsWith(".adoc") || target.endsWith(".asciidoc"));
+        return !URL_PREFIX_PATTERN.matcher(target).find();
     }
 
     @Override
@@ -46,7 +52,7 @@ public class AsciidocJInclude extends IncludeProcessor {
         final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
         final Path rootDir = Path.of(document.getOptions().getOrDefault(ROOTDIR, "").toString());
         Path p = Path.of(target);
-        Path targetPath = p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target).normalize();
+        Path targetPath = (p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target)).normalize();
 
         if (safeLevel >= SafeMode.SAFE.getLevel()) {
             if (!targetPath.startsWith(rootDir.normalize())) {
@@ -54,7 +60,7 @@ public class AsciidocJInclude extends IncludeProcessor {
             }
         }
 
-        String resourcePath = PathUtils.toUnixPath(targetPath.toString());
+        String resourcePath = StringPaths.toUnixPath(targetPath.toString());
         try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
             if (resource != null) {
                 pushInclude(reader, new String(resource.readAllBytes(), charset), target, attributes);
@@ -122,19 +128,22 @@ public class AsciidocJInclude extends IncludeProcessor {
     // --- Helper methods: direct port of Ruby logic ---
 
     // Extract lines between tag::...[] and end::...[]
+    // Supports standard AsciiDoc comment styles: //, #, --, ;;, <!--
     private static List<String> extractTag(List<String> lines, String tag) {
-        // Ruby: start = /^\/\/\s*tag::#{tag}\[\]/
-        //       end   = /^\/\/\s*end::#{tag}\[\]/
-        Pattern start = Pattern.compile("^//\\s*tag::" + Pattern.quote(tag) + "\\[\\]");
-        Pattern end = Pattern.compile("^//\\s*end::" + Pattern.quote(tag) + "\\[\\]");
         List<String> result = new ArrayList<>();
         boolean inTag = false;
         for (String line : lines) {
-            if (!inTag && start.matcher(line).find()) {
-                inTag = true;
-                continue; // skip the tag line itself
-            } else if (inTag && end.matcher(line).find()) {
-                break; // stop after end tag
+            if (!inTag) {
+                Matcher m = TAG_START_PATTERN.matcher(line);
+                if (m.find() && m.group(1).equals(tag)) {
+                    inTag = true;
+                    continue;
+                }
+            } else {
+                Matcher m = TAG_END_PATTERN.matcher(line);
+                if (m.find() && m.group(1).equals(tag)) {
+                    break;
+                }
             }
             if (inTag) {
                 result.add(line);

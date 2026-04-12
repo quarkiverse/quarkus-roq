@@ -33,4 +33,10 @@ image::iamroq.png[alt=Architecture, align=center,width=80%]
 
 xref:another-doc.adoc[Another Doc]
 
-include::../_include-parent.adoc
+include::../_include-parent.adoc[]
+== Java Include
+
+[source,java]
+----
+include::{includes}/foo/HelloWorld.java[tag=greeting]
+----

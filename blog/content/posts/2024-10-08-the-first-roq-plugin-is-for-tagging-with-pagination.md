@@ -1,5 +1,5 @@
 ---
-layout: :theme/post
+layout: post
 title: The first Roq plugin is for tagging (with pagination)
 image: tagging.png
 description: We introduced the first Roq plugin, it is for collection tagging & with pagination support!

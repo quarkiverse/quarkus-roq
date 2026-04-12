@@ -1,0 +1,10 @@
+---
+title: Timezone Test Site
+layout: default
+paginate: posts
+---
+<span class="posts-count">{site.collections.posts.size}</span>
+{#for post in site.collections.posts}
+  <span class="post-title">{post.title}</span>
+  <span class="post-date">{post.date}</span>
+{/for}

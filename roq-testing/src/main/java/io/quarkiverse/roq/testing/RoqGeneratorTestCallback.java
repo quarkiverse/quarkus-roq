@@ -53,6 +53,7 @@ public class RoqGeneratorTestCallback
                     final RoqGenerator roqGenerator = Arc.container().instance(RoqGenerator.class).get();
                     final Vertx vertx = Arc.container().instance(Vertx.class).get();
                     final Path outputDir = roqGenerator.generateBlocking();
+                    RoqLinks.configure(outputDir);
 
                     staticHandler = StaticHandler.create(FileSystemAccess.ROOT, outputDir.toAbsolutePath().toString());
                     Router router = Router.router(vertx);

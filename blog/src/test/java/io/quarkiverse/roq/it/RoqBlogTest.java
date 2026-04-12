@@ -1,12 +1,14 @@
 package io.quarkiverse.roq.it;
 
 import io.quarkiverse.roq.testing.RoqAndRoll;
+import io.quarkiverse.roq.testing.RoqLinks;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @RoqAndRoll
@@ -77,6 +79,28 @@ public class RoqBlogTest {
     }
 
     @Test
+    public void testLlmsTxt() {
+        RestAssured.when().get("/llms.txt").then().statusCode(200)
+                .contentType(containsString("text/plain"))
+                .body(startsWith("# "))
+                .body(containsString("## Posts"))
+                .body(containsString("## Pages"))
+                .body(containsString("[Welcome to Roq!]"))
+                .body(not(containsString("<")));
+    }
+
+    @Test
+    public void testLlmsFullTxt() {
+        RestAssured.when().get("/llms-full.txt").then().statusCode(200)
+                .contentType(containsString("text/plain"))
+                .body(startsWith("# "))
+                .body(containsString("## Posts"))
+                .body(containsString("### [Welcome to Roq!]"))
+                .body(not(containsString("<div")))
+                .body(not(containsString("<p>")));
+    }
+
+    @Test
     public void testSitemap() {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200)
                 .body(containsString("<urlset"))
@@ -85,5 +109,11 @@ public class RoqBlogTest {
                 .body(containsString("<loc>/posts/tag/plugin/</loc>"))
                 .body(not(containsString("<loc>/404.html</loc>")))
                 .body(containsString("</urlset>"));
+    }
+
+    @Test
+    public void testLinks() {
+        assertFalse(RoqLinks.collect().isEmpty(), "Should collect links from the generated site");
+        assertTrue(RoqLinks.checkInternal().isEmpty(), "Should have no broken internal links");
     }
 }

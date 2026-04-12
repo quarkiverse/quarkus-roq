@@ -95,6 +95,55 @@ It will automatically use the FrontMatter data to fill the tags.
 <meta property="og:type" content="article" />
 ----
 
+== LLMs.txt
+
+Roq includes built-in support for generating `/llms.txt` and `/llms-full.txt` following the https://llmstxt.org/[llms.txt specification]. AI systems like ChatGPT, Claude, and Perplexity use these files to understand site structure and content.
+
+* `/llms.txt` — A structured index containing the site title, summary, and a list of all pages with their titles and descriptions.
+* `/llms-full.txt` — The same structure, with the full plain-text content of each page included.
+
+To enable llms.txt generation, create the following content files (same activation pattern as RSS):
+
+**`content/llms.qute.txt`**:
+[source,html]
+----
+{#include fm/llms.html}
+----
+
+**`content/llms-full.qute.txt`**:
+[source,html]
+----
+{#include fm/llms-full.html}
+----
+
+Example `/llms.txt` output:
+
+[source,markdown]
+----
+# My Roq Site
+
+> A blog about Quarkus and web development
+
+## Posts
+
+- [Getting Started with Roq](/posts/getting-started): Learn how to create your first Roq site
+- [Theming Guide](/posts/theming): Customize your site with themes and Tailwind CSS
+
+## Pages
+
+- [About](/about): About the author and this site
+----
+
+To exclude a specific page, set `llmstxt: false` in its frontmatter:
+
+[source,yaml]
+----
+---
+title: My Secret Page
+llmstxt: false
+---
+----
+
 == RSS
 
 Incorporating and RSS feed of your posts is as simple as inserting this tag into your `<head>` section:
@@ -143,11 +192,11 @@ It is possible to define `insert` sections that provide overridable default cont
 ==== Example
 Let’s override the `roq-default` theme’s main layout so that our customizations apply everywhere it is used.
 
-.templates/layouts/roq-default/main.html
+.templates/layouts/main.html
 [source,html]
 ----
 ---
-layout: theme-layouts/roq-default/main // <1>
+theme-layout: main // <1>
 ---
 
 {#insert /} // <2>
@@ -162,11 +211,11 @@ And here the footer
 </footer>
 {/}
 ----
-<1> *Inherits from the theme layout:* This layout uses the original theme layout (`roq-default/main`) as a base.
+<1> *Inherits from the theme layout:* `theme-layout: main` explicitly targets the theme's `main` layout as a base.
 <2> *Inheritance mechanism:* `{#insert /}` ensures that this layout will inherit sections defined in the theme layout.
 <3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
 
-Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
+Now, everywhere `layout: main` is used (even in the theme), your override will be used.
 
 ==== How it Works Internally
 

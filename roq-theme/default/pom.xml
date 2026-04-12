@@ -53,12 +53,12 @@
                     <dependency>
                         <groupId>org.mvnpm.at.fortawesome</groupId>
                         <artifactId>fontawesome-free</artifactId>
-                        <version>7.1.0</version>
+                        <version>7.2.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.fontsource</groupId>
                         <artifactId>pt-serif</artifactId>
-                        <version>5.1.0</version>
+                        <version>5.2.8</version>
                     </dependency>
                 </dependencies>
             </plugin>

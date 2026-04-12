@@ -57,9 +57,6 @@ public class RoqQuteEngineObserver {
         templatePathMapping.putAll(sources.list().stream()
                 .collect(Collectors.toMap(TemplateSource::generatedQuteTemplateId, TemplateSource::file,
                         (a, b) -> a)));
-        templatePathMapping.putAll(sources.list().stream()
-                .collect(Collectors.toMap(TemplateSource::generatedQuteContentTemplateId, TemplateSource::file,
-                        (a, b) -> a)));
         return templatePathMapping;
     }
 }
