@@ -1,0 +1,26 @@
+{@java.util.List<io.quarkiverse.roq.theme.antoroq.NavigationItem> items}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page current}
+{@int level}
+{#if items}
+<ul class="nav-list">
+  {#for item in items}
+    {#if !item.hidden}
+    <li class="nav-item{#if item.url == current.url.path} is-current-page{/if}" data-depth="{level}">
+      {#if item.hasItems}
+      <button class="nav-item-toggle" aria-label="Toggle expand/collapse"></button>
+      {/if}
+      {#if item.external}
+      <a class="nav-link" href="{item.externalUrl}" target="_blank" rel="noopener">{item.navTitle}</a>
+      {#else if item.url && item.url != '#'}
+      <a class="nav-link" href="{item.url}">{item.navTitle}</a>
+      {#else}
+      <span class="nav-text">{item.navTitle}</span>
+      {/if}
+      {#if item.hasItems}
+        {#include partials/roq-antoroq/nav-tree.html items=item.items current=current level=(level + 1) /}
+      {/if}
+    </li>
+    {/if}
+  {/for}
+</ul>
+{/if}

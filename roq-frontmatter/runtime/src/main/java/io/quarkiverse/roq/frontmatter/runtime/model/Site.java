@@ -235,10 +235,24 @@ public final class Site {
     }
 
     /**
-     * @return The site url
+     * @return the site url
      */
     public RoqUrl url() {
         return url;
+    }
+
+    /**
+     * UI root path for theme assets (same as site url path for now).
+     */
+    public String uiRootPath() {
+        return url != null ? url.path().toString() : "/";
+    }
+
+    /**
+     * Home URL for this site.
+     */
+    public String homeUrl() {
+        return "/";
     }
 
     /**

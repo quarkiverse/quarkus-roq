@@ -1,0 +1,10 @@
+{#if page.versions}
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">Version</button>
+  <div class="version-menu">
+{#for v in page.versions}
+    <a class="version{#if v.version == page.data.version} is-current{/if}{#if v.missing} is-missing{/if}" href="{v.url}">{v.displayVersion}</a>
+{/for}
+  </div>
+</div>
+{/if}

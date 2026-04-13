@@ -1,0 +1,21 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+<div class="nav-panel-explore" data-panel="explore">
+{#if site.title}
+<div class="context">
+<span class="title">{site.title}</span>
+</div>
+{/if}
+<ul class="components">
+<li class="component">
+<div class="title"><a href="/">Home</a></div>
+</li>
+{#for p in site.pages}
+{#if !p.source.isSiteIndex}
+<li class="component{#if p.url.path == page.url.path} is-current{/if}">
+<div class="title"><a href="{p.url.path}">{p.title}</a></div>
+</li>
+{/if}
+{/for}
+</ul>
+</div>

@@ -1,0 +1,11 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title">
+      <a href="/">{site.title}</a>
+    </h3>
+    {#include partials/roq-antoroq/nav-tree.html items=cdi:navigationBean.getRootItems(site) current=page level=0 /}
+  </nav>
+</div>

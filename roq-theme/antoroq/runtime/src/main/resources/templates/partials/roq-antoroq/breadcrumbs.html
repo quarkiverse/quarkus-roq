@@ -1,0 +1,17 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+{#for crumb in cdi:navigationBean.getBreadcrumbs(site, page)}
+  <ul>
+    <li>
+      {#if crumb.url && crumb.url != '/'}
+      <a href="{crumb.url}">{crumb.navTitle}</a>
+      {#else if crumb.url == '/'}
+      <a href="/">{site.title}</a>
+      {#else}
+      {crumb.navTitle}
+      {/if}
+    </li>
+  </ul>
+{/for}
+</nav>

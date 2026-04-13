@@ -1,0 +1,58 @@
+---
+title: Roq FrontMatter
+nav_order: 20
+---
+include::./_includes/attributes.adoc[]
+
+= Roq FrontMatter
+
+Roq FrontMatter builds websites from Markdown, AsciiDoc, and HTML pages using YAML frontmatter headers for metadata, layouts, URLs, and SEO.
+
+For full documentation, visit the https://iamroq.com/docs/[Roq website].
+
+== Quick Start
+
+Create a page with frontmatter:
+
+[source,asciidoc]
+----
+---
+title: My Page
+layout: page
+---
+= My Page
+
+Content goes here.
+----
+
+== Frontmatter Options
+
+|===
+| Key | Description
+| `title` | Page title (required)
+| `layout` | Template layout to use
+| `url` | Custom URL path
+| `date` | Publication date (ISO format)
+| `draft` | Exclude from production builds
+| `description` | SEO meta description
+| `image` | Social sharing image
+|===
+
+[[standalone-installation]]
+== Standalone Installation
+
+Roq FrontMatter is included in `io.quarkiverse.roq:quarkus-roq`. For standalone usage:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-frontmatter</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[[extension-configuration-reference]]
+== Configuration Reference
+
+include::_includes/quarkus-roq-frontmatter_site.adoc[leveloffset=+1, opts=optional]

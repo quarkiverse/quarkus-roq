@@ -1,0 +1,17 @@
+name: Roq Theme - Antoroq
+description: An Antora-style documentation theme for Quarkus Roq
+metadata:
+  keywords:
+    - website
+    - theme
+    - documentation
+    - antora
+    - docs
+    - roq
+  guide: https://github.com/quarkiverse/quarkus-roq/issues/810
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "site"
+  status: "preview"

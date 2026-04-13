@@ -1,0 +1,101 @@
+---
+title: Roq Data
+nav_order: 10
+---
+include::./_includes/attributes.adoc[]
+
+= Roq Data
+
+Roq Data is a Quarkus extension that registers JSON/YAML files as CDI beans, making them available in Qute templates with type safety.
+
+CAUTION: Roq Data is included in the Roq Static Site Generator (`io.quarkiverse.roq:quarkus-roq`). For standalone usage, see <<standalone-installation>>.
+
+== Quick Start
+
+Add data files to your project's `data` directory:
+
+[source,json]
+.data/mountain.json
+----
+{
+  "name": "Lhotse",
+  "elevation": 8516
+}
+----
+
+== Usage Options
+
+=== Type-Safe Mapping
+
+Create a Java record with `@DataMapping`:
+
+[source,java]
+.Mountain.java
+----
+import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
+
+@DataMapping("mountain") // <1>
+public record Mountain(String name, Integer elevation) {}
+----
+<1> Matches the filename without extension.
+
+Inject anywhere:
+
+[source,java]
+----
+@Inject Mountain mountain;
+----
+
+=== Dynamic JsonObject
+
+Access data without a class mapping:
+
+[source,java]
+----
+@Inject @Named("mountain") JsonObject mountain;
+----
+
+== Array Data
+
+For JSON arrays, use `parentArray = true`:
+
+[source,java]
+----
+@DataMapping(value = "mountains", parentArray = true)
+public record Mountains(List<Mountain> list) {}
+----
+
+Or inject as `JsonArray`:
+
+[source,java]
+----
+@Inject @Named("mountains") JsonArray mountains;
+----
+
+== Qute Templates
+
+Access data in any template:
+
+[source,html]
+----
+{#for mountain in cdi:mountains}
+<li>{mountain.name}: {mountain.elevation}</li>
+{/for}
+----
+
+[[standalone-installation]]
+== Standalone Installation
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-data</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[[extension-configuration-reference]]
+== Configuration Reference
+
+include::_includes/quarkus-roq-data.adoc[leveloffset=+1, opts=optional]
