@@ -1,0 +1,11 @@
+<main class="article">
+{#include partials/roq-antoroq/toolbar /}
+  <div class="content">
+{#if page.layout == '404'}
+{#include partials/roq-antoroq/article-404 /}
+{#else}
+{#include partials/roq-antoroq/toc /}
+{#include partials/roq-antoroq/article /}
+{/if}
+  </div>
+</main>

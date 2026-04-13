@@ -1,0 +1,9 @@
+:tocnav:
+:toctitle: Contents
+:sectanchors: true
+:toclevels: 2
+:idprefix:
+:idseparator: -
+:page-layout: doc
+:imagesdir: {site-path}images/docs
+:roqjavadocurl: https://javadoc.io/doc/io.quarkiverse.roq/quarkus-roq-frontmatter/latest/io/quarkiverse/roq/frontmatter/runtime/

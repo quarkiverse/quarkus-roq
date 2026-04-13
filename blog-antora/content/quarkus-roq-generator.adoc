@@ -1,0 +1,84 @@
+---
+title: Roq Generator
+nav_order: 30
+---
+include::./_includes/attributes.adoc[]
+
+= Roq Generator
+
+Roq Generator extracts any Quarkus web application into a directory of static files (HTML and assets).
+
+CAUTION: Roq Generator is included in `io.quarkiverse.roq:quarkus-roq`. For standalone usage, see <<standalone-installation>>.
+
+== Generate Static Site
+
+[source,shell]
+----
+QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run -DskipTests
+----
+
+Output goes to `target/roq/` by default.
+
+TIP: When using Roq Static Site Generator, this is pre-configured. Disable with `site.generator=false`.
+
+== Preview Generated Site
+
+[source,shell]
+----
+$ jbang app install --fresh roq@quarkiverse/quarkus-roq
+$ roq
+Serving: target/roq/
+Server started on http://localhost:8181
+----
+
+== GitHub Pages Deployment
+
+See the https://github.com/quarkiverse/quarkus-roq/blob/main/.github/workflows/deploy-blog.yml[Roq blog workflow] for GitHub Pages configuration.
+
+== Configuration
+
+=== Static Paths
+
+[source,properties]
+----
+quarkus.roq.generator.paths=/,/static/**,/blog/
+----
+
+TIP: Paths ending with `/` generate `index.html` (e.g., `/blog/` → `/blog/index.html`).
+
+=== Custom Output Paths
+
+[source,properties]
+----
+quarkus.roq.generator.custom-paths."/api/foo"=/foo.json
+----
+
+=== Dynamic Selection
+
+[source,java]
+----
+@Produces @Singleton
+RoqSelection produce() {
+    return new RoqSelection(List.of(
+        SelectedPath.builder().html("/blog/hello-roq").build(),
+        SelectedPath.builder().path("/api/data").outputPath("/data.json").build()
+    ));
+}
+----
+
+[[standalone-installation]]
+== Standalone Installation
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-generator</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[[extension-configuration-reference]]
+== Configuration Reference
+
+include::_includes/quarkus-roq-generator.adoc[leveloffset=+1, opts=optional]

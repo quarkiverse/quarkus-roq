@@ -1,0 +1,7 @@
+---
+title: Installation
+nav_order: 10
+---
+= Installation
+
+How to install Quarkus Roq.

@@ -1,0 +1,21 @@
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">{site.title}</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        {#for p in site.pages}
+          {#if !p.source.isSiteIndex}
+            <a class="navbar-item{#if p.url.path == page.url.path} is-active{/if}" href="{p.url.path}">{p.title}</a>
+          {/if}
+        {/for}
+      </div>
+    </div>
+  </nav>
+</header>

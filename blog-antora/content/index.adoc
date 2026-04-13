@@ -1,0 +1,26 @@
+---
+title: Quarkus Roq
+nav_order: 1
+---
+include::./_includes/attributes.adoc[]
+
+= Quarkus Roq
+
+Quarkus Roq is a static site generator that leverages Quarkus to build blogs, documentation sites, and static websites with ease.
+
+For full documentation, visit the https://iamroq.com/docs/[Roq website].
+
+== Core Extensions
+
+Roq consists of several extensions that can be used independently:
+
+* link:/quarkus-roq-data/[*Roq Data*] - Access JSON/YAML data files from templates with type safety
+* link:/quarkus-roq-frontmatter/[*Roq FrontMatter*] - Build websites from Markdown/AsciiDoc/HTML pages with frontmatter headers
+* link:/quarkus-roq-generator/[*Roq Generator*] - Extract any Quarkus web application as pure static files
+
+[[extension-configuration-reference]]
+== Configuration Reference
+
+include::_includes/quarkus-roq-frontmatter_site.adoc[leveloffset=+1, opts=optional]
+
+include::_includes/quarkus-roq.adoc[leveloffset=+1, opts=optional]

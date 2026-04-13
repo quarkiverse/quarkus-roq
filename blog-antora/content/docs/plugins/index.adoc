@@ -1,0 +1,7 @@
+---
+title: Plugins
+nav_order: 20
+---
+= Plugins
+
+Explore Quarkus Roq plugins.

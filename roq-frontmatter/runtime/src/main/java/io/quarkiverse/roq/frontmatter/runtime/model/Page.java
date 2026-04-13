@@ -314,6 +314,187 @@ public class Page {
         return null;
     }
 
+    /**
+     * The canonical URL for this page (from page data or computed from url).
+     */
+    public String canonicalUrl() {
+        Object canonical = data("canonicalUrl");
+        if (canonical != null && !canonical.toString().isEmpty()) {
+            return canonical.toString();
+        }
+        return url != null ? url.path().toString() : sourcePath();
+    }
+
+    /**
+     * The page keywords from FM data.
+     */
+    public String keywords() {
+        Object keywords = data("keywords");
+        return keywords != null ? keywords.toString() : null;
+    }
+
+    /**
+     * Whether this is the home page.
+     */
+    public boolean home() {
+        return source().isSiteIndex();
+    }
+
+    /**
+     * The layout name for this page (from FM data).
+     */
+    public String layout() {
+        Object layout = data("layout");
+        return layout != null ? layout.toString() : null;
+    }
+
+    /**
+     * Previous page (for pagination, from FM data).
+     */
+    public Page previous() {
+        Object prev = data("page.previous");
+        if (prev instanceof Page) {
+            return (Page) prev;
+        }
+        return null;
+    }
+
+    /**
+     * Next page (for pagination, from FM data).
+     */
+    public Page next() {
+        Object nxt = data("page.next");
+        if (nxt instanceof Page) {
+            return (Page) nxt;
+        }
+        return null;
+    }
+
+    /**
+     * Breadcrumbs for this page (from FM data).
+     * Returns a list of breadcrumb items with url, content, and urlType properties.
+     */
+    public List<Breadcrumb> breadcrumbs() {
+        Object crumbs = data("breadcrumbs");
+        if (crumbs instanceof List) {
+            return (List<Breadcrumb>) crumbs;
+        }
+        return null;
+    }
+
+    /**
+     * Page versions (from FM data).
+     */
+    public List<PageVersion> versions() {
+        Object vers = data("page.versions");
+        if (vers instanceof List) {
+            return (List<PageVersion>) vers;
+        }
+        return null;
+    }
+
+    /**
+     * Edit URL for this page (from FM data).
+     */
+    public String editUrl() {
+        Object edit = data("editUrl");
+        return edit != null ? edit.toString() : null;
+    }
+
+    /**
+     * File URI for this page (from FM data).
+     */
+    public String fileUri() {
+        Object uri = data("fileUri");
+        return uri != null ? uri.toString() : null;
+    }
+
+    /**
+     * Origin info for this page (from FM data).
+     */
+    public Origin origin() {
+        Object orig = data("origin");
+        if (orig instanceof Origin) {
+            return (Origin) orig;
+        }
+        return null;
+    }
+
+    /**
+     * Breadcrumb item structure.
+     */
+    public static class Breadcrumb {
+        private final String url;
+        private final String content;
+        private final String urlType;
+
+        public Breadcrumb(String url, String content, String urlType) {
+            this.url = url;
+            this.content = content;
+            this.urlType = urlType;
+        }
+
+        public String url() {
+            return url;
+        }
+
+        public String content() {
+            return content;
+        }
+
+        public String urlType() {
+            return urlType;
+        }
+    }
+
+    /**
+     * Page version structure.
+     */
+    public static class PageVersion {
+        private final String version;
+        private final String url;
+        private final String displayVersion;
+        private final boolean missing;
+
+        public PageVersion(String version, String url, String displayVersion, boolean missing) {
+            this.version = version;
+            this.url = url;
+            this.displayVersion = displayVersion;
+            this.missing = missing;
+        }
+
+        public String version() {
+            return version;
+        }
+
+        public String url() {
+            return url;
+        }
+
+        public String displayVersion() {
+            return displayVersion;
+        }
+
+        public boolean missing() {
+            return missing;
+        }
+    }
+
+    /**
+     * Origin info structure.
+     */
+    public static class Origin {
+        private final boolean private_;
+
+        public Origin(boolean private_) {
+            this.private_ = private_;
+        }
+
+        public boolean private_() {
+            return private_;
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())

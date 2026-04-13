@@ -1,0 +1,8 @@
+---
+title: Asciidoc Plugin
+nav_order: 10
+nav_title: Asciidoc
+---
+= Asciidoc Plugin
+
+Asciidoc support for Quarkus Roq.

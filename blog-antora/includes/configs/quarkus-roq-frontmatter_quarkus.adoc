@@ -1,0 +1,554 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-url]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-url[`+++quarkus.url+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.url+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+the base hostname & protocol for your site, e.g. http://example.com
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_URL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_URL+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-route-order]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-route-order[`+++quarkus.route-order+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.route-order+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The order of the route which handles the templates.
+<p>
+By default, the route is executed before the default routes (static resources, etc.).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROUTE_ORDER+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROUTE_ORDER+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++1100+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-ignored-files[`+++quarkus.ignored-files+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.ignored-files+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Add new ignored files to the default list. The ignored files (relative to the site directory).
+
+Only the `content/`, `public/`, and `static/` directories are scanned.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_IGNORED_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_IGNORED_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-default-ignored-files]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-default-ignored-files[`+++quarkus.default-ignored-files+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.default-ignored-files+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The default ignored files (relative to the site directory) include:
+
+ - All files or directories starting with an underscore (`_`)
+
+
+
+These patterns are additional to the scanner's own OS-level defaults (e.g. `.DS_Store`, `Thumbs.db`, `++*++~`, `.class`).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_DEFAULT_IGNORED_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_DEFAULT_IGNORED_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|`+++**/_**+++`, `+++_**+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-escaped-pages]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-escaped-pages[`+++quarkus.escaped-pages+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.escaped-pages+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Pages whose content should be escaped— i.e., included in Qute rendering but not parsed for Qute expressions.
+
+This is based on the page's relative path from the content directory.
+
+This applies only to _pages_ (not layouts or partials).
+
+Supports glob expressions.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ESCAPED_PAGES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ESCAPED_PAGES+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-page-layout]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-page-layout[`+++quarkus.page-layout+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.page-layout+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_PAGE_LAYOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_PAGE_LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++page+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-content-dir]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-content-dir[`+++quarkus.content-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.content-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The directory which contains content (pages and collections) in the Roq site directory.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_CONTENT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_CONTENT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++content+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-static-dir]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-static-dir[`+++quarkus.static-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.static-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The directory (dir name) which contains static files to be served (with 'static/' prefix).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_STATIC_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_STATIC_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++static+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-public-dir]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-public-dir[`+++quarkus.public-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.public-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The directory which contains public static files to be served without processing (dir name)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_PUBLIC_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_PUBLIC_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++public+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-images-path]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-images-path[`+++quarkus.images-path+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.images-path+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The path containing static images (in the public directory)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_IMAGES_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_IMAGES_PATH+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++images/+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-generator]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-generator[`+++quarkus.generator+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.generator+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+When enabled it will select all FrontMatter pages in Roq Generator
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GENERATOR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GENERATOR+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-future]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-future[`+++quarkus.future+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.future+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Show future documents
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FUTURE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FUTURE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-theme]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-theme[`+++quarkus.theme+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.theme+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter. With a theme, `layout: foo` resolves local first, then theme layout as fallback.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_THEME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_THEME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-draft]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-draft[`+++quarkus.draft+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.draft+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Show draft pages
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_DRAFT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_DRAFT+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-draft-directory]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-draft-directory[`+++quarkus.draft-directory+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.draft-directory+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Directory name used to mark collection documents as draft when frontmatter does not define attribute `draft`. Frontmatter `draft` takes precedence over this directory-based fallback.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_DRAFT_DIRECTORY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_DRAFT_DIRECTORY+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++drafts+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-date-format]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-date-format[`+++quarkus.date-format+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.date-format+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Format for dates
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_DATE_FORMAT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_DATE_FORMAT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++yyyy-M-d[ HH:mm][:ss][ Z]+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-time-zone]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-time-zone[`+++quarkus.time-zone+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.time-zone+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The default timezone
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_TIME_ZONE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_TIME_ZONE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-default-locale]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-default-locale[`+++quarkus.default-locale+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.default-locale+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The default language to use when no language is specified in the frontmatter. This language will be used as a fallback for articles that don't have a 'locale' property.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_DEFAULT_LOCALE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_DEFAULT_LOCALE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++en+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-slugify-files]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-slugify-files[`+++quarkus.slugify-files+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.slugify-files+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Indicates whether file names in the public directory and files attached to pages should be slugified (converted to a URL-friendly format). When enabled, file names will automatically be transformed into a URL-safe format. Additionally, `page.file` and `site.file` references can use the original file names, as they will also be slugified during the process.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_SLUGIFY_FILES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_SLUGIFY_FILES+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-collections-collections-map]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-collections-collections-map[`+++quarkus.collections."collections-map"+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.collections."collections-map"+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If this collection is enabled
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP_+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP_+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-collections-collections-map-future]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-collections-collections-map-future[`+++quarkus.collections."collections-map".future+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.collections."collections-map".future+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Show future documents (overrides global future for this collection)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__FUTURE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__FUTURE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-collections-collections-map-hidden]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-collections-collections-map-hidden[`+++quarkus.collections."collections-map".hidden+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.collections."collections-map".hidden+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If true, the collection won't be available on path but consumable as data.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__HIDDEN+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__HIDDEN+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-collections-collections-map-layout]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-collections-collections-map-layout[`+++quarkus.collections."collections-map".layout+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.collections."collections-map".layout+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__LAYOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_COLLECTIONS__COLLECTIONS_MAP__LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-generated-templates-output-dir[`+++quarkus.generated-templates-output-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.generated-templates-output-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The directory where the generated templates should be created inside the output directory.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GENERATED_TEMPLATES_OUTPUT_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GENERATED_TEMPLATES_OUTPUT_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++roq-templates+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_quarkus-path-prefix]] [.property-path]##link:#quarkus-roq-frontmatter_quarkus-path-prefix[`+++quarkus.path-prefix+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.path-prefix+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+*READ CAREFULLY:* +
+The root path of your site (e.g. `/blog`) should be set using `quarkus.http.root-path`. +
+This path prefix should be relative to the Quarkus HTTP root path and is meant to be used only when the Roq site is served alongside a Quarkus application on a separate path.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_PATH_PREFIX+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_PATH_PREFIX+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+|===
+

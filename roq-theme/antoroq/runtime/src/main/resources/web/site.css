@@ -1,0 +1,18 @@
+/* Antoroq - Main Stylesheet */
+/* Based on Antora UI Default - MPL 2.0 */
+
+@import url('css/vars.css');
+@import url('css/base.css');
+@import url('css/body.css');
+@import url('css/header.css');
+@import url('css/nav.css');
+@import url('css/main.css');
+@import url('css/toolbar.css');
+@import url('css/breadcrumbs.css');
+@import url('css/page-versions.css');
+@import url('css/toc.css');
+@import url('css/doc.css');
+@import url('css/footer.css');
+@import url('css/pagination.css');
+@import url('css/highlight.css');
+@import url('css/print.css');
