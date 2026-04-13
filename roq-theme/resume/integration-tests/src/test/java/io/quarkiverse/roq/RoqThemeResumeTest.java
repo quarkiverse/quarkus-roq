@@ -21,23 +21,21 @@ public class RoqThemeResumeTest {
         final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
         // Check experience section
-        assertThat(body).contains("I transform boring markdown files into beautiful websites");
-        assertThat(body).contains("Aug 2024 to Present");
-        assertThat(body).contains("Static Site Generator");
+        assertThat(body).contains("Mathematician and Writer");
+        assertThat(body).contains("1842 - 1843");
 
         // Check education section
-        assertThat(body).contains("School of Quarkus");
-        assertThat(body).contains("Making Java Cool Again for Web Development");
+        assertThat(body).contains("Private Tutoring");
+        assertThat(body).contains("Meeting Charles Babbage");
 
         // Check skills section
-        assertThat(body).contains("Super Powers");
-        assertThat(body).contains("Party Tricks");
+        assertThat(body).contains("Mathematics");
+        assertThat(body).contains("Languages");
 
         // Check profile
-        assertThat(body).contains("Iam");
-        assertThat(body).contains("Roq");
-        assertThat(body).contains(
-                "Roq is a modern static site generator built on Quarkus, combining the power of Java with the simplicity of static site generation.");
+        assertThat(body).contains("Ada");
+        assertThat(body).contains("Lovelace");
+        assertThat(body).contains("Computational Pioneer");
     }
 
     @Test

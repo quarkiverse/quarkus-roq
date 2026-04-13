@@ -1,0 +1,90 @@
+/* Shared Component Classes */
+
+@layer components {
+
+    /* === Cards === */
+    .card {
+        @apply bg-white border border-neutral-300 rounded-xl;
+        @apply transition-all duration-200;
+        @apply dark:bg-neutral-800 dark:border-neutral-600;
+    }
+
+    .card:hover {
+        @apply border-accent-300 dark:border-accent-600;
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-accent-500) 8%, transparent);
+    }
+
+    .card-highlighted {
+        @apply relative bg-white rounded-xl overflow-hidden;
+        @apply transition-all duration-200;
+        @apply dark:bg-neutral-800;
+        @apply border border-neutral-200 dark:border-neutral-700;
+    }
+
+    .card-highlighted::before {
+        content: '';
+        @apply absolute top-0 left-[10%] right-[10%] h-[2px] rounded-b-sm;
+        background: var(--separator-gradient);
+    }
+
+    /* === Buttons === */
+    .btn {
+        @apply inline-flex items-center gap-2;
+        @apply py-2.5 px-6 rounded-lg;
+        @apply font-semibold text-sm;
+        @apply no-underline;
+        @apply transition-all duration-200;
+        @apply font-heading;
+    }
+
+    .btn-primary {
+        @apply bg-pop-600 text-white;
+        @apply border border-transparent;
+        @apply hover:bg-pop-700;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--color-pop-600) 30%, transparent);
+    }
+
+    .btn-primary:hover {
+        @apply -translate-y-px;
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-pop-600) 40%, transparent);
+    }
+
+    .btn-secondary {
+        @apply bg-transparent;
+        @apply text-neutral-600 dark:text-neutral-300;
+        @apply border border-neutral-300 dark:border-neutral-700;
+    }
+
+    .btn-secondary:hover {
+        @apply border-accent-500 dark:border-accent-500;
+        @apply text-accent-600 dark:text-accent-400;
+    }
+
+    .btn-link {
+        @apply bg-transparent border-none shadow-none;
+        @apply px-0 py-1 mt-2;
+        @apply text-accent-600 dark:text-accent-400;
+        @apply text-xs font-medium;
+    }
+
+    .btn-link:hover {
+        @apply text-accent-700 dark:text-accent-300;
+        @apply translate-x-0.5;
+    }
+
+    /* === Toast === */
+    .roq-toast {
+        @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50;
+        @apply px-4 py-2 rounded-lg;
+        @apply bg-neutral-800 border border-neutral-700 text-neutral-200;
+        @apply font-heading text-sm;
+        @apply opacity-0 translate-y-2;
+        @apply transition-all duration-300;
+        pointer-events: none;
+    }
+
+    .roq-toast.show {
+        @apply opacity-100 translate-y-0;
+    }
+
+}

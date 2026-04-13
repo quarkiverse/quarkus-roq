@@ -1,0 +1,105 @@
+/* Terminal Component */
+
+@layer components {
+
+.roq-terminal {
+    @apply rounded-xl overflow-hidden;
+    @apply bg-neutral-800 border border-neutral-700;
+    @apply dark:bg-neutral-950 dark:border-neutral-700;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.dark .roq-terminal {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.roq-terminal-bar {
+    @apply flex items-center gap-1.5;
+    @apply py-2.5 px-3;
+    @apply bg-neutral-700 border-b border-neutral-600;
+    @apply dark:bg-neutral-800 dark:border-neutral-700;
+}
+
+.roq-terminal-dot {
+    @apply w-2.5 h-2.5 rounded-full;
+}
+.roq-terminal-dot.red { @apply bg-red-500; }
+.roq-terminal-dot.yellow { @apply bg-yellow-500; }
+.roq-terminal-dot.green { @apply bg-green-500; }
+
+.roq-terminal-title {
+    @apply flex-1 text-center mr-8;
+    @apply font-heading text-[0.7rem] text-neutral-300;
+}
+
+.roq-terminal-body {
+    @apply p-5;
+    @apply font-heading text-[0.78rem] leading-[1.8];
+    @apply text-neutral-300;
+}
+
+.roq-terminal-body .prompt { @apply text-accent-400; }
+.roq-terminal-body .cmd { @apply text-white; }
+.roq-terminal-body .output { @apply text-neutral-500; }
+.roq-terminal-body .success { @apply text-green-500; }
+
+.roq-terminal-body .line {
+    @apply block overflow-hidden whitespace-nowrap;
+}
+
+.cursor {
+    @apply inline-block w-2 align-text-bottom ml-0.5;
+    @apply bg-accent-400;
+    height: 1em;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Static terminal (default for tag usage) */
+.roq-terminal-static .line {
+    @apply opacity-100;
+}
+
+/* Animated terminal (line-by-line reveal) */
+.roq-terminal-animated .roq-terminal-body .line {
+    @apply opacity-0;
+    animation: termTypeLine 0.4s ease-out forwards;
+    animation-delay: calc(var(--term-delay, 0) * 1s + var(--line-index, 0) * 0.4s);
+}
+
+@keyframes termTypeLine {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tabs */
+.roq-terminal-tabs {
+    @apply flex-1 flex gap-0.5 justify-center mr-8;
+}
+
+.roq-terminal-tab {
+    @apply px-3 py-0.5 rounded-t-sm;
+    @apply font-heading text-[0.7rem] text-neutral-200;
+    @apply bg-transparent border-0 cursor-pointer;
+    @apply transition-colors duration-150;
+}
+.roq-terminal-tab:hover {
+    @apply text-neutral-300;
+}
+.roq-terminal-tab.active {
+    @apply text-accent-300 bg-neutral-800 dark:bg-neutral-900;
+}
+
+.roq-terminal-pane {
+    @apply hidden;
+}
+.roq-terminal-pane.active {
+    @apply block;
+}
+
+} /* End @layer components */
+

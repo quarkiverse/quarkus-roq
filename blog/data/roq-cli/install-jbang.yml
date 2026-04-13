@@ -1,0 +1,19 @@
+tabs:
+  - title: Linux/macOS
+    commands:
+      - prompt: "$"
+        cmd: "curl"
+        args: "-Ls https://sh.jbang.dev | bash -s - trust add https://repo1.maven.org/maven2/io/quarkiverse/roq/"
+      - prompt: "$"
+        cmd: "curl"
+        args: "-Ls https://sh.jbang.dev | bash -s - app install --fresh --force roq@quarkiverse/quarkus-roq"
+      - success: "✓ roq installed"
+  - title: Windows
+    commands:
+      - prompt: ">"
+        cmd: "iex"
+        args: "\"& { $(iwr https://ps.jbang.dev) } trust add https://repo1.maven.org/maven2/io/quarkiverse/roq/\""
+      - prompt: ">"
+        cmd: "iex"
+        args: "\"& { $(iwr https://ps.jbang.dev) } app install --fresh --force roq@quarkiverse/quarkus-roq\""
+      - success: "✓ roq installed"

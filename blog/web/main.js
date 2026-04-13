@@ -1,4 +1,5 @@
 import hljs from 'highlight.js';
-import 'highlight.js/scss/a11y-dark.scss';
+import 'highlight.js/styles/github.css';
+import './_hljs-dark.css';
 
 hljs.highlightAll();

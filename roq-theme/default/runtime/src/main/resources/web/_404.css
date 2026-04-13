@@ -1,0 +1,42 @@
+/* 404 Page Not Found */
+
+@layer components {
+    .wrapper.page-not-found {
+        max-width: none;
+        height: 100vh;
+        width: 100vw;
+        @apply bg-gradient-to-br from-neutral-100 via-neutral-50 to-accent-50;
+        @apply dark:from-neutral-950 dark:via-neutral-900 dark:to-accent-950;
+    }
+
+    .notfound {
+        @apply h-full flex flex-col items-center justify-center px-6;
+    }
+
+    .notfound-code {
+        @apply text-[8rem] md:text-[12rem] font-heading font-bold leading-none;
+        @apply select-none;
+    }
+
+    .notfound-mascot {
+        @apply w-36 md:w-48 h-auto my-4;
+        animation: notfound-float 4s ease-in-out infinite;
+    }
+
+    .notfound-title {
+        @apply text-xl md:text-2xl font-heading font-bold mt-2 mb-3;
+        @apply text-neutral-800 dark:text-neutral-100;
+    }
+
+    .notfound-text {
+        @apply text-sm md:text-base mb-6;
+        @apply text-neutral-500 dark:text-neutral-400;
+        @apply flex flex-col items-center gap-4;
+    }
+
+}
+
+@keyframes notfound-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}

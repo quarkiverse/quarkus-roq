@@ -182,7 +182,8 @@ public class RoqFrontMatterStep3DataProcessor {
                 documentTemplatesProducer
                         .produce(new RoqFrontMatterDocumentBuildItem(item));
             } else {
-                if (item.data().containsKey(PAGINATE)) {
+                Object paginate = item.data().getValue(PAGINATE);
+                if (paginate != null && !Boolean.FALSE.equals(paginate)) {
                     // Pagination needs collections size so it's produced after
                     paginatedPagesProducer
                             .produce(new RoqFrontMatterPaginatePageBuildItem(item.url(), item.source(), item.data(),

@@ -17,7 +17,7 @@ metadata:
     - asciidoc
     - asciidoctor
     - plugin
-  guide: https://iamroq.com/docs/plugins/#plugin-asciidoc
+  guide: https://iamroq.dev/plugin/asciidoc-jruby/
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"

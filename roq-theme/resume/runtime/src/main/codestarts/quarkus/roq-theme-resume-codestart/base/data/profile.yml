@@ -1,0 +1,11 @@
+firstName: Ada
+lastName: Lovelace
+picture: ada.png
+jobTitle: Computational Pioneer
+city: London
+country: United Kingdom
+bio: |
+  Ada Lovelace was a 19th-century mathematician known for her
+  visionary work on Charles Babbage's Analytical Engine.
+  She wrote the first published algorithm designed for a machine,
+  making her one of the most influential figures in computing history.

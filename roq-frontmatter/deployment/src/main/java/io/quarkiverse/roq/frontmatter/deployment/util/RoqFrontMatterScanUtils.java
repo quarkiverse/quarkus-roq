@@ -250,7 +250,7 @@ public final class RoqFrontMatterScanUtils {
         ParsedHeaders parsed = parseHeaders(headerParsers, templateContext, fullContent);
 
         boolean isHtml = isTemplateTargetHtml(referencePath);
-        boolean isPartial = isHtmlPartial(parsed.content(), isHtml);
+        boolean isPartial = isPartialHtmlDocument(parsed.content(), isHtml);
 
         return new FrontMatterTemplateMetadata(file.file(), referencePath, sourceFile, markup, parsed,
                 templateId, outputPath, isHtml, isPartial);

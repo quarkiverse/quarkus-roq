@@ -2,7 +2,6 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.enterprise.inject.Vetoed;
 
@@ -46,7 +44,7 @@ public class Page {
     private final PageSource source;
     private final SoftLazyValue<String> contentLazy = new SoftLazyValue<>(this::resolveContentLazy);
     private final SoftLazyValue<String> rawContentLazy = new SoftLazyValue<>(this::resolveRawContentLazy);
-    private AtomicBoolean resolvingContent = new AtomicBoolean(false);
+    private final ThreadLocal<Boolean> resolvingContent = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     protected Page(RoqUrl url, PageSource source, JsonObject data) {
         this.url = url;
@@ -80,11 +78,12 @@ public class Page {
      * Renders the inner content (without the layouts) of the given {@link Page} using the Qute template engine.
      */
     public String content() {
-        if (resolvingContent.getAndSet(true)) {
+        if (resolvingContent.get()) {
             LOG.warnf("Recursive call to {page.content} detected in page: '%s'",
                     sourcePath());
-            return ""; // or throw new IllegalStateException(...)
+            return "";
         }
+        resolvingContent.set(true);
         try {
             return contentLazy.get();
         } finally {
@@ -103,14 +102,12 @@ public class Page {
     private String resolveContentLazy() {
         try {
             final Engine engine = Arc.container().instance(Engine.class).get();
-            final String id = source().template().generatedQuteTemplateId();
+            final String id = source().template().generatedQuteContentTemplateId();
             final Template template = engine.getTemplate(id);
             if (template == null) {
                 return "";
             }
-            // Use the fragment for pages with a layout, or the full template otherwise
-            final Template contentTemplate = template.getFragment(ROQ_PAGE_CONTENT_FRAGMENT);
-            return (contentTemplate != null ? contentTemplate : template).render(Map.of(
+            return template.render(Map.of(
                     "page", this,
                     "site", site()));
 
@@ -121,7 +118,7 @@ public class Page {
     }
 
     private String resolveRawContentLazy() {
-        final String templateResource = "/templates/" + source().template().generatedQuteTemplateId();
+        final String templateResource = "/templates/" + source().template().generatedQuteContentTemplateId();
         try (InputStream resource = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(templateResource)) {
             if (resource != null) {
@@ -314,6 +311,17 @@ public class Page {
             return data().getValue(name);
         }
         return null;
+    }
+
+    /**
+     * Like {@link #data(String)} but specifying a default value to return if there is no entry.
+     *
+     * @param name the data key name
+     * @param defaultValue the default value to use if the entry is not present
+     * @return the value or {@code defaultValue} if no entry present
+     */
+    public Object data(String name, Object defaultValue) {
+        return data().getValue(name, defaultValue);
     }
 
     @Override

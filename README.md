@@ -24,13 +24,13 @@
 </div>
 </div>
 
-Roq is a static site generator that makes it easy to build websites and blogs(such as [Roq's blog](https://iamroq.com). It’s built with Java and Quarkus under the hood—but you don’t need to know them to get started.
+Roq is an Open Source static site generator that makes it easy to build websites and blogs(such as [Roq's blog](https://iamroq.dev). It’s free, built with Java and Quarkus under the hood (but you don’t need to know them to get started).
 
-Get started [here](https://iamroq.com/docs/)!
+Get started [here](https://iamroq.dev/docs/)!
 
 ## GitHub action usage 🚀
 
-Roq is also available in the GitHub Actions marketplace to simplify deployment. See the [documentation](https://iamroq.com/docs/publishing/#github-action) for details.
+Roq is also available in the GitHub Actions marketplace to simplify deployment. See the [documentation](https://iamroq.dev/docs/publishing/#github-action) for details.
 
 ## Standalone usage
 

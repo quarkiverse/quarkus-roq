@@ -15,12 +15,12 @@ Here’s a feature comparison with some popular SSGs to highlight how Roq stacks
 | **Setup**            | Requires JDK (for now)                        | Single binary install                | Requires Ruby & Bundler              | Requires Java & Gradle/Maven                          |
 | **Dynamic Features** | Can integrate with Quarkus for hybrid use     | Mostly static, some JS workarounds   | Plugins enable some dynamic behavior | Fully static                                          |
 | **Community**        | Growing, part of Quarkus ecosystem            | Large, well-established              | Large, long history                  | Niche, less active                                    |
-| **Learning Curve**   | Begginer friendly, easier for Java developers | Can be difficult due to Go templates | Complex to setup and update          | Moderate, depends on template engine                  |
+| **Learning Curve**   | Beginner friendly, easier for Java developers | Can be difficult due to Go templates | Complex to setup and update          | Moderate, depends on template engine                  |
 
 
 ### A Quick Note About Roq
 
-Roq is highly extensible through [plugins]({site.url('/docs/plugins')}), which are built as Quarkus extensions (dependencies). Key features like SEO, Search and Sitemap are already available, with more features in the works, including:
+Roq is highly extensible through [plugins]({site.url('/marketplace/#plugins')}), which are built as Quarkus extensions (dependencies). Key features like SEO, Search and Sitemap are already available, with more features in the works, including:
 
 - Image processing ([Issue #42](https://github.com/quarkiverse/quarkus-web-bundler/issues/42))
 - Theme catalog to help get started ([Issue #270](https://github.com/quarkiverse/quarkus-roq/issues/270)). While it’s not difficult to convert themes from other SSGs to Roq, I’m working on an AI-based theme converter ([Issue #365](https://github.com/quarkiverse/quarkus-roq/issues/365)) to make this process even easier 😁.

@@ -20,6 +20,7 @@ public class RoqFrontMatterThemeLayoutNoThemeTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "theme-layout-no-theme-site")
+            .overrideConfigKey("site.theme", "")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("theme-layout-no-theme-site"))
             .assertException(e -> {

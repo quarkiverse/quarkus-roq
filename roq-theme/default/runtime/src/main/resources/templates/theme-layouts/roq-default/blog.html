@@ -1,0 +1,45 @@
+---
+layout: page
+page-class: page-alt page-wide
+paginate:
+  collection: posts
+  size: 10
+featured: 2
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+{#insert /}
+
+{#if site.collections.get('posts')}
+{#let posts=site.collections.get('posts').paginated(page.paginator)}
+
+<div class="blog-list">
+
+  {! Featured posts on first page !}
+  {#if page.paginator.isFirst}
+  <div class="blog-featured-grid">
+    {#for post in posts.featured(page.data.featured)}
+    {#roq/postCard post /}
+    {/for}
+  </div>
+  {/if}
+
+  {! Post grid: skip featured on first page !}
+  <div class="blog-grid">
+    {#if page.paginator.isFirst}
+    {#for post in posts.rest(page.data.featured)}
+    {#roq/postCard post /}
+    {/for}
+    {#else}
+    {#for post in posts}
+    {#roq/postCard post /}
+    {/for}
+    {/if}
+  </div>
+
+</div>
+
+{/let}
+
+{#include partials/roq-default/pagination.html/}
+{/if}

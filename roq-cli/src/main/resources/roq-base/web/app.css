@@ -1,0 +1,106 @@
+/* Roq base — minimal starting point, edit freely */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+:root {
+  --font: system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  --text: #1e293b;
+  --muted: #64748b;
+  --bg: #f8fafc;
+  --surface: #fff;
+  --border: #e2e8f0;
+  --accent: #2b9eb3;
+  --radius: 0.5rem;
+}
+
+html {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.875em;
+  background: var(--bg);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 4rem 1.5rem 2.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+/* Content */
+.content {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2,
+.card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  color: var(--muted);
+}
+
+.card p + p {
+  margin-top: 0.5rem;
+}
+
+.card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.grid .card {
+  margin-bottom: 0;
+}

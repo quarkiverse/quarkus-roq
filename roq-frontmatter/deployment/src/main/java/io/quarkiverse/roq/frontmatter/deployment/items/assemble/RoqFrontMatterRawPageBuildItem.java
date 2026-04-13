@@ -21,16 +21,18 @@ public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
     private final JsonObject data;
     private final ConfiguredCollection collection;
     private final String generatedTemplate;
+    private final String generatedContentTemplate;
     private final List<RoqFrontMatterAttachment> attachments;
 
     public RoqFrontMatterRawPageBuildItem(TemplateSource templateSource, String layout, JsonObject data,
-            ConfiguredCollection collection, String generatedTemplate,
+            ConfiguredCollection collection, String generatedTemplate, String generatedContentTemplate,
             List<RoqFrontMatterAttachment> attachments) {
         this.templateSource = templateSource;
         this.layout = layout;
         this.data = data;
         this.collection = collection;
         this.generatedTemplate = generatedTemplate;
+        this.generatedContentTemplate = generatedContentTemplate;
         this.attachments = attachments;
     }
 
@@ -60,6 +62,10 @@ public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
 
     public String generatedTemplate() {
         return generatedTemplate;
+    }
+
+    public String generatedContentTemplate() {
+        return generatedContentTemplate;
     }
 
     public List<RoqFrontMatterAttachment> attachments() {

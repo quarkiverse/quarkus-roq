@@ -14,7 +14,7 @@
   </h2>
   {#let picture = (profile.picture ?: 'profile.jpg')}
   {#if site.imageExists(picture)}
-  <div class="-mx-5 mt-10 lg:-mx-16">
+  <div class="-mx-5 mt-10 text-center lg:-mx-16">
     <img
       src="{site.image(picture)}"
       class="inline-block rounded-[var(--radius-profile)] border-profile-border dark:border-profile-border-dark"
@@ -121,7 +121,7 @@
       <a
         class="truncate font-medium text-link underline hover:text-link-hover dark:text-link-dark dark:hover:text-link-hover-dark"
         href="{profile.site}"
-        target="_blank"
+        target="_blank" rel="noopener noreferrer"
       >
         {profile.site}
       </a>

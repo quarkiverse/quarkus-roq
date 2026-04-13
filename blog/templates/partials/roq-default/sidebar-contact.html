@@ -1,0 +1,17 @@
+<section class="contact">
+    <h3 class="section-title contact-title">{roq_theme:contact_title}</h3>
+    <ul>
+        {#for entry in brand.entrySet()}
+        {#if site.data.get(entry.key)??}
+        <li>
+            <a href="{entry.value.prefix()}{site.data.get(entry.key)}" target="_blank" rel="noopener noreferrer">
+                <i class="{entry.value.icon()}" aria-hidden="true"></i>
+            </a>
+        </li>
+        {/if}
+        {/for}
+    </ul>
+    <div class="mt-2" style="display: flex; justify-content: center;">
+      <a class="github-button" href="https://github.com/quarkiverse/quarkus-roq" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star quarkiverse/quarkus-roq on GitHub">Star</a>
+    </div>
+</section>

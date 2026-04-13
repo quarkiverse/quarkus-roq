@@ -4,7 +4,6 @@ link: /the-posts/:slug
 ---
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
 <article class="post">
-  {#insert before-content /}
   {#insert /}
   <span>{page.date}</span>
   <span class="date-iso">{page.date.iso}</span>

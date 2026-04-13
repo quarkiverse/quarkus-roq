@@ -140,6 +140,7 @@ public interface RoqSiteConfig {
      * The theme name. Used to resolve theme layouts when using `theme-layout:` in front matter.
      * With a theme, `layout: foo` resolves local first, then theme layout as fallback.
      */
+    @WithDefault("roq-base")
     Optional<String> theme();
 
     /**
@@ -193,7 +194,7 @@ public interface RoqSiteConfig {
      * The directory names (in the Roq site directory) containing collections as key
      * and the corresponding collection config as value
      */
-    @ConfigDocDefault("posts=true")
+    @ConfigDocDefault("posts=true,posts.layout=post")
     @WithName("collections")
     Map<String, CollectionConfig> collectionsMap();
 
@@ -205,12 +206,13 @@ public interface RoqSiteConfig {
     String generatedTemplatesOutputDir();
 
     default List<ConfiguredCollection> collections() {
-        if (collectionsMap().isEmpty()) {
-            return DEFAULT_COLLECTIONS;
-        }
-        return collectionsMap().entrySet().stream().filter(e -> e.getValue().enabled())
-                .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
-                        e.getValue().layout().orElse(null)))
+        return java.util.stream.Stream.concat(
+                collectionsMap().entrySet().stream()
+                        .filter(e -> e.getValue().enabled())
+                        .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
+                                e.getValue().layout().orElse(null))),
+                DEFAULT_COLLECTIONS.stream()
+                        .filter(dc -> !collectionsMap().containsKey(dc.id())))
                 .toList();
     }
 

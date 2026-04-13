@@ -1,19 +1,99 @@
 ---
-title: Hello, world! I’m Roq — a fun little SSG (Static Site Generator) with a Java soul and Quarkus energy.
-description: A static site generator (SSG) that makes it fun and easy to build websites and blogs. It’s built with Java and Quarkus under the hood—but you don’t need to know them.
+title: Hello, world! I'm Roq — a funny little SSG (Static Site Generator) with a Java soul and Quarkus energy — Open Source and Free.
+description: An Open Source static site generator (SSG) that makes it fun and easy to build websites and blogs. It's built with Java and Quarkus under the hood.
 name: I am ROQ
 simple-name: ROQ
-image: roq-icon.svg
-icon: ico.png
+image: social-media-hero.png
+logo: mascot.svg
 social-twitter: quarkusio
 social-facebook:
 social-github: quarkiverse/quarkus-roq
 social-linkedin: quarkusio
-layout: index
-paginate:
-  collection: posts
-  size: 10
+layout: home
 ---
-<h1>A blog under the Roq</h1>
 
-If you haven't yet, be sure to check out our <b><a href="{site.url('docs/getting-started')}">getting started</a></b> page!
+<section class="roq-hero">
+  <div class="roq-hero-main">
+    <img src="/images/logo.svg" alt="" class="roq-hero-logo">
+    <h1>Build <span class="shimmer">Static</span> Sites</h1>
+    <p class="roq-hero-tagline">Imagined for AI & Coders</p>
+    <div class="roq-hero-sep"></div>
+    <p class="roq-hero-subtitle">A Quarkus-powered static site generator that makes it fun and easy to build websites and blogs. Open Source and free.</p>
+    <div class="roq-hero-actions">
+      <a href="/docs/getting-started" class="btn btn-primary">Get Started <i class="fa-solid fa-arrow-right"></i></a>
+      <a href="https://github.com/quarkiverse/quarkus-roq" class="btn btn-secondary"><i class="fa-brands fa-github"></i> GitHub</a>
+    </div>
+  </div>
+  <div class="roq-hero-right">
+    <div class="roq-terminal">
+      <div class="roq-terminal-bar">
+        <span class="roq-terminal-dot red"></span>
+        <span class="roq-terminal-dot yellow"></span>
+        <span class="roq-terminal-dot green"></span>
+        <span class="roq-terminal-title">Terminal</span>
+      </div>
+      <div class="roq-terminal-body roq-term-top">
+        <span class="line"><span class="prompt">$</span> <span class="cmd">roq</span> blog</span>
+        <div class="rss-feed-viewport">
+          <div class="rss-feed-slider" id="rssFeedSlider">
+            <div class="rss-batch">
+              {#for post in site.collections.get('posts')}
+              <span class="rss-line"><span class="rss-date">{post.date.format('yyyy-MM-dd')}</span> <a class="rss-title" href="{post.url}">{post.title}</a>{#if post.data.tags??} <a class="rss-tag" href="/posts/tag/{post.data.tags.asStrings.getFirst()}/">#{post.data.tags.asStrings.getFirst()}</a>{/if}</span>
+              {/for}
+            </div>
+          </div>
+        </div>
+        <div class="rss-pager" id="rssPager"><span class="rss-pager-text">-- Press <kbd>SPACE</kbd> for more --</span></div>
+      </div>
+      <div class="roq-term-divider roq-term-reveal"></div>
+      <div class="roq-terminal-body roq-term-bottom roq-term-reveal">
+        {#for line in cdi:home-terminal.commands}
+        {#if line.blank??}
+        <span class="line">&nbsp;</span>
+        {#else if line.prompt??}
+        <span class="line"><span class="prompt">{line.prompt}</span> <span class="cmd">{line.cmd}</span> {line.args??}</span>
+        {#else if line.output??}
+        <span class="line"><span class="output">{line.output}</span></span>
+        {#else if line.success??}
+        <span class="line"><span class="success">{line.success}</span>{#if line.cursor??}<span class="cursor"></span>{/if}</span>
+        {/if}
+        {/for}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="roq-site-badge">
+  <i class="fa-solid fa-circle-info"></i>
+  <span>This site is made with Roq, thanks to GitHub Pages for free hosting</span>
+  <a href="https://github.com/quarkiverse/quarkus-roq/tree/main/blog" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> View source</a>
+</div>
+
+<div class="roq-features">
+  {#roq/featureCard icon="fa-bolt" title="Java & Quarkus" highlighted=true link="https://quarkus.io" link-text="Quarkus"}
+    Built with Java and Quarkus under the hood, but you don't need to know them. Just enjoy blazing fast dev mode with live-reload.
+  {/}
+  {#roq/featureCard icon="fa-puzzle-piece" title="Plugin System" highlighted=true link="/marketplace/#plugins" link-text="Browse plugins"}
+    Markdown, AsciiDoc, tagging, search, diagrams, series, sitemap and more. All as Quarkus extensions.
+  {/}
+  {#roq/featureCard icon="fa-palette" title="Themes & Templates" highlighted=true link="/marketplace/#themes" link-text="Browse themes"}
+    Qute templates with simple and readable syntax. Themes are just Quarkus extensions.
+  {/}
+  {#roq/featureCard icon="fa-arrow-up-right-from-square" title="Easy to Deploy" highlighted=true link="/docs/publishing/" link-text="Publishing guide"}
+    Generate static files and deploy anywhere: GitHub Pages, Netlify, or any static server.
+  {/}
+  {#roq/featureCard icon="fa-box-open" title="Web Bundler & mvnpm" highlighted=true link="/marketplace/#webs" link-text="Browse web extensions"}
+    Use any npm package as a Maven dependency through mvnpm. CSS, JS, and web assets bundled automatically via esbuild. No Node.js required.
+  {/}
+  {#roq/featureCard icon="fa-pen-to-square" title="Live Editor" highlighted=true link="/posts/set-it-in-roq-the-editor-that-change-the-game/" link-text="About the editor"}
+    Edit your content directly in the browser with a built-in WYSIWYG editor. Preview changes instantly in dev mode.
+  {/}
+</div>
+
+<section class="roq-section">
+  <h2>What is Roq?</h2>
+  <p class="roq-section-lead">Roq is a static site generator that lets your ideas flow naturally.</p>
+  <p>Static sites are the best option for content-driven websites: SEO-friendly, efficient, and future-proof. But tweaking plugins, debugging upgrades, and fighting your tools shouldn't be part of the creative process. Roq opens a new path for static site generation with live-reload, type-safe templates, and an extensible plugin system.</p>
+  <p class="roq-section-punchline">Built with Java, powered by Quarkus.</p>
+  <p>Already using Roq? Join the <a href="/roqers">Roqers Hall of Fame</a> and share your site with the community.</p>
+</section>

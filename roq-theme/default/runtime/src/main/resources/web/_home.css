@@ -1,0 +1,194 @@
+/* Home Layout Components */
+
+@layer components {
+
+/* Home content wrapper - no prose/article constraints */
+.home-content {
+  @apply px-4 py-6;
+  @apply md:px-10 md:py-8;
+}
+
+/* ===== Hero Section ===== */
+.roq-hero {
+  @apply relative mb-14;
+  @apply py-6 md:py-8;
+}
+
+/* Two-column grid only when hero-right content is present */
+.roq-hero:has(.roq-hero-right) {
+  @apply grid grid-cols-1 gap-6 items-center;
+  @apply md:grid-cols-2 md:gap-10;
+}
+
+.roq-hero-main {
+  @apply flex flex-col items-center text-center;
+}
+
+.roq-hero-logo {
+  @apply w-[280px] h-auto mb-5 block;
+  @apply drop-shadow-[0_2px_12px_rgba(0,0,0,0.1)];
+}
+
+.roq-hero h1 {
+  @apply text-4xl md:text-5xl font-bold mb-2 leading-tight;
+  @apply text-neutral-800 dark:text-neutral-100;
+  @apply font-heading;
+}
+
+.roq-hero-tagline {
+  @apply text-base md:text-lg font-semibold mb-3;
+  @apply text-pop-600 dark:text-pop-400;
+  @apply font-heading tracking-wide;
+}
+
+.roq-hero-sep {
+  @apply h-[2px] w-full max-w-xs mb-4 mx-auto;
+  background: var(--separator-gradient);
+}
+
+.roq-hero-subtitle {
+  @apply text-base md:text-lg leading-relaxed mb-6;
+  @apply text-neutral-500 dark:text-neutral-400;
+}
+
+.roq-hero-actions {
+  @apply flex gap-3 flex-wrap;
+}
+
+/* ===== Feature Cards ===== */
+.roq-features {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-5 mb-14;
+}
+
+.roq-feature {
+  @apply p-6 text-center;
+}
+
+.roq-feature .roq-feature-icon {
+  @apply w-12 h-12 mx-auto mb-4;
+  @apply flex items-center justify-center;
+  @apply text-xl rounded-full;
+  @apply bg-accent-50 text-accent-600;
+  @apply dark:bg-accent-950 dark:text-accent-400;
+}
+
+.roq-feature:nth-child(odd) .roq-feature-icon {
+  @apply text-pop-500;
+  @apply dark:text-pop-400;
+}
+
+.roq-feature h3 {
+  @apply text-base font-semibold mb-2;
+  @apply text-neutral-800 dark:text-neutral-100;
+  @apply font-heading;
+}
+
+.roq-feature p {
+  @apply text-sm leading-relaxed m-0;
+  @apply text-neutral-500 dark:text-neutral-400;
+}
+
+
+/* ===== Content Sections ===== */
+.roq-section {
+  @apply mb-14 text-center;
+}
+
+.roq-section h2 {
+  @apply text-xl md:text-2xl font-bold mb-10;
+  @apply text-neutral-800 dark:text-neutral-100;
+  @apply font-heading;
+}
+
+.roq-section h2::after {
+  content: '';
+  @apply block h-[2px] w-full max-w-xs mx-auto mt-3;
+  background: var(--separator-gradient);
+}
+
+.roq-section p {
+  @apply text-neutral-600 dark:text-neutral-300;
+  @apply leading-relaxed text-sm md:text-base;
+  @apply max-w-2xl mx-auto mb-4;
+}
+
+.roq-section-lead {
+  @apply text-lg md:text-xl font-medium;
+  @apply text-neutral-800 dark:text-neutral-100;
+}
+
+.roq-section-punchline {
+  @apply text-base md:text-lg font-semibold mt-2;
+  @apply text-pop-600 dark:text-pop-400;
+  @apply font-heading;
+}
+
+.roq-section code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  @apply bg-accent-50 text-accent-700;
+  @apply dark:bg-accent-950 dark:text-accent-300;
+  @apply font-heading;
+}
+
+.roq-section a {
+  @apply text-accent-600 dark:text-accent-400 font-medium underline;
+  @apply decoration-accent-300 underline-offset-[3px];
+}
+
+.roq-section a:hover {
+  @apply text-accent-500;
+}
+
+/* ===== Code Block ===== */
+.roq-code {
+  @apply bg-neutral-900 rounded-lg p-5 overflow-x-auto mt-3;
+}
+
+.roq-code code {
+  @apply text-sm leading-relaxed;
+  @apply text-neutral-300;
+  @apply font-heading;
+}
+
+.roq-code .keyword {
+  @apply text-accent-400;
+}
+
+.roq-code .tag {
+  @apply text-neutral-500;
+}
+
+/* ===== Shimmer Text Animation ===== */
+.shimmer {
+  background: linear-gradient(135deg,
+    var(--color-accent-600),
+    var(--color-accent-400),
+    var(--color-pop-400),
+    var(--color-accent-600));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 12s ease-in-out infinite;
+}
+
+.dark .shimmer {
+  background: linear-gradient(135deg,
+    var(--color-accent-400),
+    var(--color-accent-300),
+    var(--color-pop-300),
+    var(--color-accent-400));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 12s ease-in-out infinite;
+}
+
+} /* End @layer components */
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

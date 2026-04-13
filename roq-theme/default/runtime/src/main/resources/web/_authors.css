@@ -1,0 +1,64 @@
+/* Authors Grid and Author Cards */
+
+@layer components {
+    /* === Authors Grid === */
+    .authors {
+        @apply grid grid-cols-1 gap-6;
+        @apply sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+        @apply p-0;
+    }
+
+    .author-card {
+        @apply flex flex-col items-center p-6;
+    }
+
+    .author-card .avatar {
+        @apply w-20 h-20 overflow-hidden rounded-full mb-4;
+        @apply flex items-center justify-center;
+        @apply ring-4 ring-neutral-200 ring-offset-2;
+        @apply transition-all duration-300;
+        @apply dark:ring-neutral-700;
+    }
+
+    .author-card:hover .avatar {
+        @apply ring-accent-300 scale-105;
+        @apply dark:ring-accent-600;
+    }
+
+    .author-card .avatar img {
+        @apply w-full h-full object-cover;
+        @apply transition-transform duration-300;
+    }
+
+    .author-card:hover .avatar img {
+        @apply scale-110;
+    }
+
+    .author-card .details {
+        @apply text-center flex flex-col;
+    }
+
+    .author-card .name {
+        @apply mt-2 text-xl font-bold mb-1 text-neutral-900;
+        @apply dark:text-neutral-100;
+    }
+
+    .author-card .author {
+        @apply inline-block px-2 py-0.5 rounded-full;
+        @apply bg-accent-100 text-accent-900;
+        @apply font-semibold text-xs uppercase tracking-wide;
+        @apply dark:bg-accent-500/20 dark:text-accent-400;
+    }
+
+    .author-card .login {
+        @apply text-base text-neutral-500 mb-2 font-mono;
+        @apply dark:text-neutral-400;
+    }
+
+    .author-card .profile-link {
+        @apply text-base text-accent-900 no-underline font-medium;
+        @apply transition-colors duration-200;
+        @apply hover:text-accent-600 hover:underline hover:underline-offset-2;
+        @apply dark:text-accent-400 dark:hover:text-accent-300;
+    }
+}

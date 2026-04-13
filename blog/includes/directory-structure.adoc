@@ -19,18 +19,25 @@ my-site/
 │   └── index.html                       // <5>
 │
 ├── public/                              // <6>
-│   └── style.css
+│   └── images/
+│       └── logo.png
 │
-└── templates/                           // <7>
-    ├── partials/                        // <8>
-    │   ├── head.html
-    │   └── pagination.html
-    │
-    └── layouts/                         // <9>
-        ├── base.html
-        ├── page.html
-        └── post.html
-└── pom.xml                              // <10>
+├── web/                                 // <7>
+│   ├── app.js
+│   └── app.css
+│
+├── templates/                           // <8>
+│   ├── partials/                        // <9>
+│   │   ├── head.html
+│   │   └── pagination.html
+│   │
+│   └── layouts/                         // <10>
+│       ├── base.html
+│       ├── page.html
+│       └── post.html
+├── config/
+│   └── application.properties           // <11>
+└── pom.xml                              // <12>
 ----
 
 <1> **Roq Data Files**
@@ -49,18 +56,24 @@ You may provide additional pages files like `roq-page.md` outside a collection. 
 The `index.html` file is required and serves as the homepage. It provides site-wide data using FrontMatter.
 
 <6> **Static Files**
-The `public/` directory holds static files, such as images, CSS, or JavaScript files. These files will not be processed.
+The `public/` directory holds static files such as images, PDFs, or other assets. These files are served as-is without processing. The default image directory is `public/images/`.
 
-<7> **Templates**
+<7> **Web Bundler**
+The `web/` directory contains JavaScript and CSS source files bundled by the Quarkus Web Bundler (included by default with Roq).
+
+<8> **Templates**
 The `templates/` directory is optional as templates can be provided by a theme. It contains Qute templates for partials and layouts.
 
-<8> **Qute Partials**
+<9> **Qute Partials**
 The `partials/` directory contains reusable Qute template fragments, such as `head.html` and `pagination.html`, which can be included in layouts.
 
-<9> **Layouts**
+<10> **Layouts**
 The `layouts/` directory defines the structure for pages and documents. For example:
 - `base.html` is the main layout.
 - `page.html` and `post.html` are specific layouts for pages and posts.
 
-<10> **Build files**
+<11> **Configuration**
+The `config/application.properties` file contains the site configuration such as collections, theme, and other settings.
+
+<12> **Build files**
 The build file such as a `pom.xml` is needed to configure the build. It contains dependencies for your site such as theme and plugins.

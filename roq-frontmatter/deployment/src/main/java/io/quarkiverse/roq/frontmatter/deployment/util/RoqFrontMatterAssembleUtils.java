@@ -34,7 +34,8 @@ public final class RoqFrontMatterAssembleUtils {
             TemplateSource templateSource,
             String layout,
             JsonObject data,
-            String generatedTemplate) {
+            String generatedTemplate,
+            String generatedContentTemplate) {
 
         public String id() {
             return templateSource.id();
@@ -65,7 +66,7 @@ public final class RoqFrontMatterAssembleUtils {
         }
 
         boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE, "false"));
-        TransformedContent transformed = applyContentTransforms(content, escaped, metadata.markup(), layoutId, isPage);
+        TransformedContent transformed = applyContentTransforms(content, escaped, metadata.markup(), layoutId);
 
         TemplateSource source = TemplateSource.create(
                 metadata.templateId(),
@@ -79,7 +80,8 @@ public final class RoqFrontMatterAssembleUtils {
                 isSiteIndex);
 
         return new ProcessedTemplate(source, layoutId, data,
-                transformed.generatedTemplate());
+                transformed.generatedTemplate(),
+                transformed.contentWithMarkup());
     }
 
     // ── Layout helpers ──────────────────────────────────────────────────

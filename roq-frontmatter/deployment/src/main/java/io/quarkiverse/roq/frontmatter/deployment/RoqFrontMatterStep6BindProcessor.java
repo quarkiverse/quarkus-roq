@@ -23,6 +23,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStatic
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqLlmsTxtTemplateExtension;
+import io.quarkiverse.roq.frontmatter.runtime.RoqNoOpBundleSectionHelperFactory;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
@@ -43,6 +44,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -95,7 +97,7 @@ public class RoqFrontMatterStep6BindProcessor {
             // Produce generated Qute templates
             for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
                 final Path filePath = roqTemplatesOutputDir
-                        .resolve("content")
+                        .resolve("full")
                         .resolve(item.raw().templateSource().generatedQuteId());
                 createTemplateResource(generatedResourceProducer, nativeImageResourceProducer, filePath,
                         item.raw().generatedTemplate(), item.raw().templateSource().generatedQuteTemplateId());
@@ -107,9 +109,29 @@ public class RoqFrontMatterStep6BindProcessor {
                                 .extensionInfo(FEATURE)
                                 .build());
 
+                // Add the template for the content
+                final Path contentFilePath = roqTemplatesOutputDir
+                        .resolve("content")
+                        .resolve(item.raw().templateSource().generatedQuteId());
+                Files.createDirectories(contentFilePath.getParent());
+                Files.writeString(contentFilePath, item.raw().generatedContentTemplate());
+                final String contentResourceName = "templates/" + item.raw().templateSource().generatedQuteContentTemplateId();
+                generatedResourceProducer
+                        .produce(new GeneratedResourceBuildItem(
+                                contentResourceName,
+                                item.raw().generatedContentTemplate().getBytes(StandardCharsets.UTF_8)));
+                nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(contentResourceName));
+                templatePathProducer.produce(TemplatePathBuildItem.builder()
+                        .fullPath(contentFilePath)
+                        .path(item.raw().templateSource().generatedQuteContentTemplateId())
+                        .content(item.raw().generatedContentTemplate())
+                        .extensionInfo(FEATURE)
+                        .build());
                 if (item.raw().collection() != null) {
+                    docTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
                     docTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
                 } else {
+                    pageTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
                     pageTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
                 }
 
@@ -168,25 +190,20 @@ public class RoqFrontMatterStep6BindProcessor {
         nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(resourceName));
     }
 
-    // Register runtime model classes as CDI beans so they can be injected and
-    // Register template extensions unconditionally so Qute can validate templates
-    // (e.g. fm/rss.html) even when no Roq site is configured (e.g. in plugin tests)
-    @BuildStep
-    void registerTemplateExtensions(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        additionalBeans.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses(RoqTemplateExtension.class, RoqLlmsTxtTemplateExtension.class)
-                .setUnremovable().build());
-    }
-
-    // are recognized by Qute's type-safe expressions
+    // Register runtime beans (model classes, template extensions, engine observer).
+    // Always registered so Qute can validate templates even when no Roq site is configured
+    // (e.g. in plugin tests). Marked unremovable only when a Roq site is actually present.
     @BuildStep
     void registerAdditionalBeans(RoqFrontMatterOutputBuildItem roqOutput,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        if (roqOutput == null) {
-            return;
+        // This is if frontmatter is not used with the web bundler
+        if (!QuarkusClassLoader.isClassPresentAtRuntime("io.quarkiverse.web.bundler.runtime.Bundle")) {
+            additionalBeans.produce(new AdditionalBeanBuildItem(RoqNoOpBundleSectionHelperFactory.class));
         }
-        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+        var builder = AdditionalBeanBuildItem.builder()
                 .addBeanClasses(
+                        RoqTemplateExtension.class,
+                        RoqLlmsTxtTemplateExtension.class,
                         RoqQuteEngineObserver.class,
                         RoqFrontMatterMessages.class,
                         RoqTemplateGlobal.class,
@@ -200,8 +217,11 @@ public class RoqFrontMatterStep6BindProcessor {
                         RoqCollections.class,
                         RoqCollection.class,
                         Paginator.class,
-                        SourceFile.class)
-                .setUnremovable().build());
+                        SourceFile.class);
+        if (roqOutput != null) {
+            builder.setUnremovable();
+        }
+        additionalBeans.produce(builder.build());
     }
 
     // Register page paths with Roq Generator (for static site generation)

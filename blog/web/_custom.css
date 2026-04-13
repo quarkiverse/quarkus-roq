@@ -1,0 +1,164 @@
+@import "./_terminal-home.css";
+@import "./_blog-list.css";
+@import "./_marketplace.css";
+
+/* === Color overrides === */
+
+@theme inline {
+    /* Cyan accent */
+    --color-accent-50: #e8f7fa;
+    --color-accent-100: #c9ecf2;
+    --color-accent-200: #94d9e5;
+    --color-accent-300: #5ec5d8;
+    --color-accent-400: #35afc5;
+    --color-accent-500: #2b9eb3;
+    --color-accent-600: #237f90;
+    --color-accent-700: #1d6573;
+    --color-accent-800: #174d58;
+    --color-accent-900: #11363e;
+    --color-accent-950: #0a1f24;
+
+    /* Pop color override (orange) */
+    --color-pop-50: #fef3eb;
+    --color-pop-100: #fde0cc;
+    --color-pop-200: #fbc199;
+    --color-pop-300: #f9a166;
+    --color-pop-400: #f08240;
+    --color-pop-500: #e8712c;
+    --color-pop-600: #c45d22;
+    --color-pop-700: #9e4a1b;
+    --color-pop-800: #793814;
+    --color-pop-900: #54270e;
+    --color-pop-950: #3a1a08;
+
+    /* Flashy gradients (accent → pop) */
+    --separator-gradient: linear-gradient(to right, transparent, var(--color-accent-400), var(--color-pop-400), transparent);
+    --dot-gradient: linear-gradient(135deg, var(--color-accent-500), var(--color-pop-500));
+}
+
+/* === Sidebar overrides === */
+.about .site-name {
+    @apply mb-0 pb-0;
+}
+
+.about .site-name::after {
+    @apply content-none;
+}
+
+.about .roq-version {
+    @apply mt-3 mb-4 md:mt-0;
+}
+
+.about .roq-version a {
+    @apply inline-block text-xs font-mono px-2 py-0.5 rounded-full no-underline;
+    @apply bg-neutral-700 text-accent-400;
+    @apply transition-colors duration-200;
+    @apply hover:bg-neutral-600 hover:text-accent-300;
+}
+
+.about .site-logo {
+    @apply w-[350px] md:w-[180px] mb-0 md:mb-2.5;
+}
+
+.about .site-logo img {
+    @apply w-full;
+    @apply drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)];
+}
+
+/* Sidebar search trigger input (always dark, lives in dark sidebar) */
+.sidebar.main .search-trigger-input {
+    @apply bg-transparent rounded-[0.35rem];
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sidebar.main .search-trigger-input:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.sidebar.main .search-trigger-icon {
+    fill: var(--color-pop-500);
+}
+.sidebar.main .search-trigger-text {
+    @apply text-neutral-300;
+}
+.sidebar.main .search-trigger-shortcut {
+    @apply text-neutral-500 bg-transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* === Social icons === */
+.contact ul li a {
+    @apply text-neutral-300;
+}
+
+/* === Dark mode toggle (always dark like sidebar) === */
+.dark-mode-toggle {
+    @apply border border-neutral-700 shadow-none;
+    background: var(--color-neutral-800);
+    color: var(--color-pop-400);
+}
+.dark-mode-toggle:hover {
+    @apply border-accent-500 text-white;
+    background: var(--color-accent-600);
+}
+
+/* === Site badge === */
+.roq-site-badge {
+    @apply flex items-center justify-center gap-4 mx-auto mt-8 mb-14 px-6 py-4;
+    @apply rounded-lg text-base;
+    @apply bg-accent-50 border border-accent-200 text-accent-800;
+    @apply dark:bg-accent-950/50 dark:border-accent-800 dark:text-accent-200;
+}
+
+.roq-site-badge i.fa-circle-info {
+    @apply text-accent-500 dark:text-accent-400;
+}
+
+.roq-site-badge a {
+    @apply inline-flex items-center gap-1.5 font-semibold no-underline;
+    @apply text-pop-600 dark:text-pop-400;
+    @apply hover:text-pop-500 dark:hover:text-pop-300;
+}
+
+/* === Home page overrides === */
+.roq-tagline {
+    @apply text-sm tracking-wide mt-1 mb-2;
+    background: linear-gradient(135deg, var(--color-accent-400), var(--color-pop-400));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* === Blog content === */
+.giscus {
+    @apply p-2.5;
+}
+
+.page-content div.flex-block > .sectionbody {
+    @apply flex items-start gap-8;
+}
+
+@media only screen and (max-width : 768px) {
+    .page-content div.flex-block > .sectionbody {
+        @apply flex-col items-center;
+    }
+}
+
+.page-content div.flex-block > .sectionbody:first-child {
+    @apply shrink-0;
+}
+
+.page-content div.flex-block > .sectionbody:last-child {
+    @apply flex-1;
+}
+
+.page-content div.flex-block > .sectionbody img {
+    @apply max-w-[300px] block;
+}
+
+/* === Pagination === */
+.pagination a {
+    @apply text-accent-600;
+}
+.pagination a:hover {
+    color: var(--color-pop-500);
+}

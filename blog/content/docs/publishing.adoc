@@ -10,8 +10,8 @@ include::../../includes/edit-contrib.adoc[]
 This command:
 [source,shell]
 ----
-quarkus build -Dquarkus.roq.generator.batch
-quarkus run
+roq generate
+roq serve
 ----
 
 🚀 The site will be generated in `target/roq`.

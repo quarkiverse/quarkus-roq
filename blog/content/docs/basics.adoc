@@ -14,11 +14,11 @@ All templates may use the awesome type-safe https://quarkus.io/guides/qute-refer
 
 [TIP]
 ====
-Type-safety doesn't make it more complex—it just means that using wrong variables will result in a build error.  
+Type-safety doesn't make it more complex—it just means that using wrong variables will result in a build error.
 This prevents issues from leaking into production.
 ====
 
-Templates for layouts, documents, and pages may also declare a FrontMatter (FM) header, delimited by two `---`.  
+Templates for layouts, documents, and pages may also declare a FrontMatter (FM) header, delimited by two `---`.
 This header contains YAML data used to configure things like:
 
 * Routing
@@ -48,15 +48,269 @@ Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or u
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
+[#site-index]
+=== Site index
+
+Your site index page is required and should be located in `content/index.html` (you can also use a markup extension).
+
+[source,html]
+.content/index.html
+----
+---
+
+title: Hello Roqers // <1>
+description: It is time to start Roqing 🎸!
+
+---
+
+<h1>Hello fellow Roqers 🤘</h1>
+
+<p>
+  With Roq, it is very easy to link to another
+  <a href="{site.url('/roq-page')}">page</a>. // <2>
+</p>
+
+----
+
+<1> The index.html also describe your `site` information through a FrontMatter header.
+<2> We use the `{site.url(path)}` using Qute to manually resolve other pages urls.
+
+TIP: There are different ways to link your pages as explained in the  link:{site-baseurl}docs/advanced#links[Links & Urls] section.
+
+[#pages]
+=== Pages
+
+Any <<content, content template file>> without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
+
+Let's create your first page and spice things up a bit by using Markdown (included by default with Roq).
+
+[source,markdown]
+.roq-bottom.md
+----
+---
+
+title: Roq Bottom
+description: When you hit Roq bottom, try Roq to climb back up!
+link: /climb-back-up <1>
+the-rope: You Roq! <2>
+
+---
+
+# Roq Bottom
+
+If you thought you hit Roq Bottom, take this 🪢 because :
+
+__{page.data.the-rope}!__ <3>
+
+----
+
+<1> you can use `link` to give this page a custom link (by default it will use the file-name).
+<2> you can add other FM data.
+<3> FM data is available through `page.data`.
+
+NOTE: By default, pages use the `page` layout and documents in collections use the `post` layout (from the theme if <<install-theme, using one>>). You can override this with `layout:` in the FrontMatter.
+
+=== Markup languages
+
+You can use different markup languages in Roq content.
+
+==== Markdown
+
+Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).
+To write pages or documents in Markdown, simply use the `.md` or `.markdown` file extension.
+
+This plugin also allows converting *Qute* data that contains Markdown
+into HTML using the `mdToHtml` template extension.
+
+[source,html]
+.content/page.html
+----
+---
+bar: |
+    ## Hello
+
+    This is using **Markdown**
+---
+
+{page.data.bar.mdToHtml}
+
+----
+
+[TIP]
+====
+If you don't need Markdown, you can disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
+====
+
+
+
+==== AsciiDoc
+
+AsciiDoc is also fully supported in Roq via the link:/plugin/asciidoc/[AsciiDoc plugin].
+Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
+
+[#collections]
+=== Collections
+
+Collections are a great way to group related content such as blog posts, recipes, member of a team or talks at a conference.
+Once created you can easily iterate and link to them.
+
+By default, Roq is configured with a `posts` collection using the `content/posts` directory. Let's create our first post:
+
+[source,markdown]
+.content/posts/2024-10-14-roq-solid.md
+----
+---
+
+title: Roq bad puns
+description: Roq is very good for bad puns 🤭
+tags: <1>
+  - funny
+  - ai
+img: 2024/10/roq-solid.jpg
+
+---
+
+# {page.title} <2>
+
+Here is a list of puns suggested by Chat GPT:
+1.	Roq and Rule – A play on "rock and roll," implying dominance or success.
+2.	Between a Roq and a Hard Place – Classic pun meaning stuck in a difficult situation.
+3.	Roq Solid – Something that is extremely reliable or stable.
+4.	You Roq! – A compliment, suggesting someone is awesome or does something well.
+5.	Roq Bottom – Referring to the lowest possible point, often used metaphorically.
+6.	Roq the Boat – To cause trouble or disturb the status quo.
+7.	Roq Star – A person who excels or stands out in their field.
+8.	Let's Roq – Slang for getting started or doing something exciting.
+9.	Roq On! – An enthusiastic way to say "keep going" or "stay awesome."
+10.	Roqy Road – Could be literal (the type of road) or metaphorical for a difficult journey.
+11.	Roq of Ages – A historical reference, often implying something long-standing and unchanging.
+12.	Roq the Cradle – Can be literal or a pun about nurturing or starting something new.
+13.	Roqy Relationship – A tumultuous or unstable relationship.
+14.	Heavy as a Roq – Something burdensome or difficult to manage.
+15.	Stone Cold Roq – Referring to something very cool or emotionless.
+
+----
+<1> You can define tags (see link:/plugin/tagging/[Tagging plugin] to create pages for tags).
+<2> You have shortcut on the `page` to access `title` and `description`.
+
+Ok, to dive a bit deeper, we could create a json listing all posts with some info:
+
+[source,html]
+.content/posts.json
+----
+[
+{#for post in site.collections.posts} // <1>
+  {
+    "title": "{post.title}",
+    "url": "{post.url.absolute}", // <2>
+    "image": "{post.image.absolute}", // <3>
+    "date": "{post.date}", // <4>
+    "read-time": "{post.readTime}" // <5>
+  }{#if !post_isLast},{/if}
+{/for}
+]
+----
+<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  xref:advanced.adoc#pagination[paginate]).
+<2> `post.url` contains the post url (as a RoqUrl), `absolute` to get the absolute url.
+<3> `post.image` is smart and is already resolved to the image url (as a RoqUrl), `absolute` to get the absolute url.
+<4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
+<5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
+
+==== Draft and Future
+
+To create a draft page or document, you can use the frontmatter field `draft: true`. Drafts are hidden by default unless you set `%dev.site.draft=true` in your Quarkus configuration (the `%dev` makes it effective only in dev mode).
+
+You can also place draft documents (for collections) in a `drafts/` (for example `posts/drafts/`) directory.
+Documents in that directory are treated as drafts only when their frontmatter does not define `draft`.
+If frontmatter explicitly sets `draft`, that value takes precedence.
+
+TIP: You may also start roq with the option: `roq -Dsite.draft`.
+
+By default, documents with a date in the future (FrontMatter data or file name) will not be visible unless you have `%dev.site.future=true` in your Quarkus configuration (the `%dev` makes it only available in dev-mode).
+
+TIP: You may also start roq with the option: `roq -Dsite.future`.
+
+It is possible to configure a collection to always show future documents:
+[source,properties]
+----
+site.collections.events.future=true // <1>
+----
+<1> Always show future documents for the "events" collection.
+
+==== How to create custom collections?
+
+You can easily create your own collection, such as documentation, recipes, team members, or conference talks. To do this, simply create a new folder under the `content` directory. For example, if you're adding `docs`, it would look like this:
+
+[source]
+----
+content/
+├── docs
+│   ├── 01-chap
+│   │   ├── image1.png
+│   │   └── index.adoc
+│   ├── 02-chap
+│   │   ├── image2.png
+│   │   ├── index.adoc
+└── posts
+    └── 2025-01-02-my-first-blog
+        └── index.md
+----
+
+In this example, we have two collections: `posts` and `docs`. You need to define the new collection in the `config/application.properties` (or `src/main/resources/application.properties`) file. If you created your site with `roq create`, this file already exists with the `posts` collection configured:
+
+[source]
+----
+site.collections.docs=true // <1>
+site.collections.docs.layout="page" //<2>
+site.collections.docs.future=true // <3>
+
+site.collections.posts=true
+site.collections.posts.layout="post"
+----
+
+<1> We are adding the new collection `docs`;
+<2> Here, we set the layout for docs pages to `page`;
+<3> Since the new collection is not a time-based collection, we need to set `future` as true to show all files.
+
+NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
+
+Now, we can access all the new collection `docs` data as follows:
+
+[source]
+----
+{#for doc in site.collections.docs}
+- [{doc.title}]({doc.url})
+{/for}
+----
+
+Since the new collection is also a normal page, we can use all variables described in the link:#variables[variable section].
+
+[#install-theme]
+== Using a theme
+
+If you created your site with `roq create`, you already have a theme installed. A theme provides layouts, styles, and scripts for your site. Pages automatically use layouts from the theme (local layouts take priority if they exist).
+
+The link:/theme/default-theme/[default theme] comes with a full blog layout, dark mode, sidebar, and SEO support. The link:/theme/base-theme/[base theme] provides a minimal HTML structure with just SEO, favicon, and Web Bundler, giving you full control over the design.
+
+Browse all available themes in the link:/marketplace/#themes[Plugins & Themes] directory. For advanced usage (overriding, developing), refer to the xref:advanced.adoc#themes[*Themes section*].
+
+|}
+To add a theme to an existing project (adds the dependency only, without initial site files):
+[source,shell]
+----
+roq add theme:default
+----
+{|
+
 [#templates]
 == Templates (Layouts, Partials, and User Tags)
 
-Layouts, partials, and user tags are templates and must use one of the following extensions:  
+Layouts, partials, and user tags are templates and must use one of the following extensions:
 `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, or `xml`.
 
 INFO: `.md` and `.adoc` files are not parsed as templates. Instead, you can use markup inside templates through Qute sections `{#md}` and `{#adoc}`, provided the corresponding <<Markup languages,plugins>> are available.
 
-=== Layouts 
+=== Layouts
 
 For your site, you will have one or more kind of pages, this is what we call "layouts", located by default in `templates/layouts/`. For example:
 
@@ -69,7 +323,7 @@ A layout may be specified in pages through the `layout` FrontMatter key (e.g., `
 
 TIP: Roq layouts are using the Qute `include` section under the hood to achieve template inheritance. For more details, see the Qute documentation on includes: https://quarkus.io/guides/qute-reference#include_helper[Qute includes]. Unlike <<partials, partials>>, layouts can also define Frontmatter data, which is inherited along with the template structure.
 
-NOTE: if you don't already have layouts and partials in your project, <<install-theme>> or create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/src/main/resources/templates[example templates]).
+NOTE: If you're not using a theme, you can create your own templates (https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/runtime/src/main/resources/templates[example templates]).
 
 ==== How to create a layout page
 
@@ -117,7 +371,7 @@ title: And now for something completely different <2>
 <footer> Toes </footer>
 ----
 <1> Uses the `default` layout.
-<2> Defines a default `title` attribute value for all it's child.
+<2> Defines a default `title` attribute value for all its children.
 
 Finally, you can create a `content.html` file as followed:
 
@@ -153,22 +407,22 @@ Then it will be rendered as followed:
 </html>
 ----
 
-To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as mush as for the FrontMatter data.
+To summarize, each page will be rendered using their parent layout _recursively_. The inheritance system works for the page content as much as for the FrontMatter data.
 
 
 === Partials
 
-You can split layouts into partial, reusable templates.  
+You can split layouts into partial, reusable templates.
 **Partials** make it easier to maintain different sections of your layouts. By default, they are located in `templates/partials/`.
 
 For example:
 
-➡️ `templates/partials/pagination.html`  
+➡️ `templates/partials/pagination.html`
   can be included using: `{#include partials/pagination /}`
 
 === Tags
 
-Tags (User Tags) are custom reusable snippets of code, similar to small components.  
+Tags (User Tags) are custom reusable snippets of code, similar to small components.
 They help reduce duplication and let you create reusable sections.
 
 For example, create a tag in `templates/partials/post-link.html`:
@@ -202,59 +456,141 @@ For example:
 
 * `site.document('posts/2025-09-08-my-article.md')`
 * `site.page('about.md')`
-==== 
+====
 
 To learn more, see the https://quarkus.io/guides/qute-reference#user_tags[Qute User Tags guide,window=_blank].
 
+== Built-in features
 
+[[favicon]]
+=== Favicon
 
-[#install-theme]
-== Install a theme
+Roq automatically discovers favicon files from your `public/` directory. Place any of the following files and they will be included in the HTML head:
 
-To install a theme, simply add the dependency to your pom.xml. Example with Roq's default theme:
-[source,xml]
+* `favicon.svg` (preferred, scalable)
+* `favicon.ico` (legacy fallback)
+* `favicon.png` (PNG fallback)
+* `apple-touch-icon.png` (iOS devices)
+
+To override auto-discovery, set `icon` or `favicon` in your site index frontmatter:
+
+[source,yaml]
 ----
-<dependency>
-    <groupId>io.quarkiverse.roq</groupId>
-    <artifactId>quarkus-roq-theme-default</artifactId>
-    <version>{cdi:project-info.release.current-version}</version>
-</dependency>
+icon: my-custom-icon.svg
 ----
 
+[[seo]]
+=== SEO
 
-It will provide templates, scripts and styles for your site. Theme layouts are automatically available: just use `layout: foo` and it resolves local first, then falls back to the theme. For advanced usage, refer to the xref:advanced.adoc#themes[*Theme section*].
-
-[#site-index]
-== Site index
-
-Your site index page is required and should be located in `content/index.html` (you can also use a markup extension).
+Roq includes built-in SEO support with meta tags, Open Graph, and Twitter cards. The `\{#seo page site /}` tag is automatically included by the default theme. If you use a custom layout, add it to your HTML head:
 
 [source,html]
-.content/index.html
 ----
----
-
-title: Hello Roqers // <1>
-description: It is time to start Roqing 🎸!
-layout: index //<2>
-
----
-
-<h1>Hello fellow Roqers 🤘</h1>
-
-<p>
-  With Roq, it is very easy to a link to another.
-  <a href="{site.url('/roq-page')}">page</a>. // <3>
-</p>
-
+<head>
+  {#seo page site /}
+</head>
 ----
 
-<1> The index.html also describe your `site` information through a FrontMatter header.
-<2> The layout to use (in this case `index` which resolves to the `index` layout, local first then theme fallback).
-<3> We use the `{site.url(path)}` using Qute to manual resolve other pages urls.
+It will automatically generate `<title>`, `<meta>` author/description, Open Graph and Twitter card tags from the FrontMatter data.
 
-TIP: There are different ways to link your pages as explained in the  link:{site-baseurl}docs/advanced#links[Links & Urls] section.
+Configure SEO data through the site index frontmatter:
 
+[cols="1,3"]
+|===
+| Key | Description
+
+| `author`
+| Default author name for meta tags (can be overridden per page)
+
+| `lang`
+| Default language/locale (e.g. `en`, `fr`)
+
+| `twitter`
+| Twitter/X handle for Twitter cards (e.g. `quarkusio`)
+
+|===
+
+==== Facebook Open Graph
+
+[source,yaml]
+----
+facebook:
+  app_id: "123456789"
+  publisher: "https://www.facebook.com/yourpage"
+  admins: "your-fb-admin-id"
+----
+
+==== Webmaster Verifications
+
+[source,yaml]
+----
+webmasterVerifications:
+  google: "your-google-verification-code"
+  bing: "your-bing-verification-code"
+  yandex: "your-yandex-verification-code"
+----
+
+Available keys: `google`, `bing`, `alexa`, `yandex`, `baidu`, `facebook`.
+
+[[analytics]]
+=== Analytics
+
+To add Google Analytics 4, configure it in the site index frontmatter (used by the default theme):
+
+[source,yaml]
+----
+analytics:
+  ga4: XXXXXXXXXX
+----
+
+If you use a custom layout, add the `\{#ga4 /}` tag to your HTML head.
+
+[[rss]]
+=== RSS
+
+The `\{#rss site /}` tag is automatically included by the default theme. If you use a custom layout, add it to your HTML head:
+
+[source,html]
+----
+<head>
+  {#rss site /}
+</head>
+----
+
+Then create a `content/rss.xml` file with:
+
+[source,html]
+----
+{#include fm/rss.html}
+----
+
+Roq will generate a valid RSS feed from your blog posts FrontMatter data.
+
+[[llmstxt]]
+=== LLMs.txt
+
+Roq includes built-in support for generating `/llms.txt` and `/llms-full.txt` following the https://llmstxt.org/[llms.txt specification]. AI systems like ChatGPT, Claude, and Perplexity use these files to understand site structure and content.
+
+* `/llms.txt` — A structured index containing the site title, summary, and a list of all pages with their titles and descriptions.
+* `/llms-full.txt` — The same structure, with the full plain-text content of each page included.
+
+To enable llms.txt generation, create the following content files:
+
+**`content/llms.qute.txt`**:
+[source,html]
+----
+{#include fm/llms.html}
+----
+
+**`content/llms-full.qute.txt`**:
+[source,html]
+----
+{#include fm/llms-full.html}
+----
+
+To exclude a specific page, set `llmstxt: false` in its frontmatter.
+
+[#variables]
 == Variables
 
 You can use Qute to access site and pages data. For this use the `site` and `page` variables:
@@ -306,12 +642,12 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | `site.image(String relativePath)`
 | `RoqUrl`
 | The image from the public images directory with disk check
-| `site.image('foo.jpg') => http://example.com/images/foo.jpg`
+| `site.image(‘foo.jpg’) => http://example.com/images/foo.jpg`
 
 | `site.file(String relativePath)`
 | `RoqUrl`
 | The file from the public directory with disk check
-| `site.file('foo.pdf') => http://example.com/foo.pdf`
+| `site.file(‘foo.pdf’) => http://example.com/foo.pdf`
 
 | `site.url(String path, String... others)`
 | `RoqUrl`
@@ -321,7 +657,7 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | `site.page(String sourcePath)`
 | `Page`
 |  Get a page or document page by source path (e.g. pages/first-page.html)
-| `site.page('foo.html').url.absolute => http://example.com/the-foo-page`
+| `site.page(‘foo.html’).url.absolute => http://example.com/the-foo-page`
 
 |===
 ====
@@ -378,12 +714,12 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | `page.image(String relativePath)`
 | `RoqUrl`
 | The image from the attached files (for index pages) or from the public image directory with disk check (for other pages)
-| `page.image('foo.jpg') => http://example.com/foo-page/foo.jpg`
+| `page.image(‘foo.jpg’) => http://example.com/foo-page/foo.jpg`
 
-| `site.file(String relativePath)`
+| `page.file(String relativePath)`
 | `RoqUrl`
 | The file from the attached files with disk check
-| `page.file('foo.pdf') => http://example.com/foo-page/foo.pdf`
+| `page.file(‘foo.pdf’) => http://example.com/foo-page/foo.pdf`
 
 | `page.date`
 | `ZonedDateTime`
@@ -391,75 +727,6 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 | `2023-10-01T12:00:00Z`
 |===
 ====
-
-== Pages
-
-Any <<content, content template file>> without the `_` prefix in the site `content/` directory (and subdirectories) will be scanned as pages.
-
-Let's create your first page and spice things up a bit by using Markdown (included by default with Roq).
-
-[source,markdown]
-.roq-bottom.md
-----
----
-
-title: Roq Bottom
-description: When you hit Roq bottom, try Roq to climb back up!
-layout: page
-link: /climb-back-up <1>
-the-rope: You Roq! <2>
-
----
-
-# Roq Bottom
-
-If you thought you hit Roq Bottom, take this 🪢 because :
-
-__{page.data.the-rope}!__ <3>
-
-----
-
-<1> you can use `link` to give this page a custom link (by default it will use the file-name).
-<2> you can add other FM data.
-<3> FM data is available through `page.data`.
-
-== Markup languages
-
-You can use different markup languages in Roq content.
-
-=== Markdown
-
-Roq ships with Markdown support out of the box (powered by https://github.com/commonmark/commonmark-java[commonmark-java,window=_blank]).  
-To write pages or documents in Markdown, simply use the `.md` or `.markdown` file extension.
-
-This plugin also allows converting *Qute* data that contains Markdown
-into HTML using the `mdToHtml` template extension.
-
-[source,html]
-.content/page.html
-----
----
-bar: |
-    ## Hello
-
-    This is using **Markdown** 
----
-
-{page.data.foo.mdToHtml}
-
-----
-
-[TIP]
-====
-If you don’t need Markdown, you can disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
-====
-
-
-
-=== AsciiDoc
-
-AsciiDoc is also fully supported in Roq via the xref:plugins.adoc#plugin-asciidoc[AsciiDoc plugin].
-Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
 
 == Global data
 
@@ -473,13 +740,13 @@ For example:
 bar: Roq
 ----
 
-Can be access with `{cdi:foo.bar}` in any template.
+Can be accessed with `{cdi:foo.bar}` in any template.
 
-You can also have a structure (Java type mapping) for the data amongs other feature,  link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank].
+You can also have a structure (Java type mapping) for the data among other features,  link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank].
 
 == Template Extensions
 
-The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functional to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable,as well as keeping our templates clean:
+The Qute templating language supports a concept called https://quarkus.io/guides/qute#template-extension-methods[template extension methods]. These methods allow us to add functionality to types and expose it in our templates. Moving logic from the template to Java code gives us the ability to use a more robust language for more complex logic and makes the functionality more easily reusable, as well as keeping our templates clean:
 
 - Qute provides https://quarkus.io/guides/qute-reference#built-in-template-extension[built-in template extensions,window=_blank]
 - Roq has several built-in template extensions (link:{roqjavadocurl}RoqTemplateExtension.html[javadoc,window=_blank]):
@@ -563,144 +830,6 @@ and then you can use that extension in your template:
 -----
 
 For more details, see the https://quarkus.io/guides/qute#template-extension-methods[Quarkus] and https://quarkus.io/guides/qute-reference#virtual_methods[Qute] documentation.
-
-== Collections
-
-Collections are a great way to group related content such as blog posts, recipes, member of a team or talks at a conference.
-Once created you can easily iterate and link to them.
-
-By default, Roq is configured with a `posts` collection using the `content/posts` directory. Let's create our first post:
-
-[source,markdown]
-.content/posts/2024-10-14-roq-solid.md
-----
----
-
-title: Roq bad puns
-description: Roq is very good for bad puns 🤭
-layout: post <1>
-tags: <2>
-  - funny
-  - ai
-img: 2024/10/roq-solid.jpg
-
----
-
-# {page.title} <3>
-
-Here is a list of puns suggested by Chat GPT:
-1.	Roq and Rule – A play on “rock and roll,” implying dominance or success.
-2.	Between a Roq and a Hard Place – Classic pun meaning stuck in a difficult situation.
-3.	Roq Solid – Something that is extremely reliable or stable.
-4.	You Roq! – A compliment, suggesting someone is awesome or does something well.
-5.	Roq Bottom – Referring to the lowest possible point, often used metaphorically.
-6.	Roq the Boat – To cause trouble or disturb the status quo.
-7.	Roq Star – A person who excels or stands out in their field.
-8.	Let’s Roq – Slang for getting started or doing something exciting.
-9.	Roq On! – An enthusiastic way to say “keep going” or “stay awesome.”
-10.	Roqy Road – Could be literal (the type of road) or metaphorical for a difficult journey.
-11.	Roq of Ages – A historical reference, often implying something long-standing and unchanging.
-12.	Roq the Cradle – Can be literal or a pun about nurturing or starting something new.
-13.	Roqy Relationship – A tumultuous or unstable relationship.
-14.	Heavy as a Roq – Something burdensome or difficult to manage.
-15.	Stone Cold Roq – Referring to something very cool or emotionless.
-
-----
-<1> This time we use the `post` layout (resolves local first, then theme fallback).
-<2> You can define tags (see xref:plugins.adoc#plugin-tagging[Plugins] to create pages for tags).
-<3> You have shortcut on the `page` to access `title` and `description`.
-
-Ok, to dive a bit deeper, we could create a json listing all posts with some info:
-
-[source,html]
-.content/posts.json
-----
-[
-{#for post in site.collections.posts} // <1>
-  {
-    "title": "{post.title}",
-    "url": "{post.url.absolute}", // <2>
-    "image": "{post.image.absolute}", // <3>
-    "date": "{post.date}", // <4>
-    "read-time": "{post.readTime}" // <5>
-  }{#if !post_isLast},{/if}
-{/for}
-]
-----
-<1> You can use `site.collections.[collection id]` to access the full list of documents (it is also possible to  xref:advanced.adoc#pagination[paginate]).
-<2> `post.image` is smart and is already resolved to the image url (as a RoqUrl), `absolute` to get the absolute url.
-<3> `post.url` contains the post url (as a RoqUrl), you could also use `absolute` to get the absolute url.
-<4> `post.date` returns a `ZonedDateTime` and can be formatted the way you want.
-<5> `post.readTime` is a Qute template extension which compute the read time based on the post content.
-
-=== Draft and Future
-
-To create a draft page or document, you can use the frontmatter field `draft: true`. Drafts are hidden by default unless you set `%dev.site.draft=true` in your Quarkus configuration (the `%dev` makes it effective only in dev mode).
-
-You can also place draft documents (for collections) in a `drafts/` (for example `posts/drafts/`) directory.
-Documents in that directory are treated as drafts only when their frontmatter does not define `draft`.
-If frontmatter explicitly sets `draft`, that value takes precedence.
-
-TIP: You may also start quarkus with the option: `quarkus dev -Dsite.draft`.
-
-By default, documents with a date in the future (FrontMatter data or file name) will not be visible unless you have `%dev.site.future=true` in your Quarkus configuration (the `%dev`makes it only available in dev-mode). 
-
-TIP: You may also start quarkus with the option: `quarkus dev -Dsite.future`.
-
-It is possible to configure a collection to always show future documents:
-[source,properties]
-----
-site.collections.events.future=true // <1> 
-----
-<1> Always show future documents for the "events" collection.
-
-=== How to create custom collections?
-
-You can easily create your own collection, such as documentation, recipes, team members, or conference talks. To do this, simply create a new folder under the `content` directory. For example, if you're adding `docs`, it would look like this:
-
-[source]
-----
-content/
-├── docs
-│   ├── 01-chap
-│   │   ├── image1.png
-│   │   └── index.adoc
-│   ├── 02-chap
-│   │   ├── image2.png
-│   │   ├── index.adoc
-└── posts
-    └── 2025-01-02-my-first-blog
-        └── index.md
-----
-
-In this example, we have two collections: `posts` and `docs`. Finally, you need to define the new collection in the `config/application.properties` (or `src/main/resources/application.properties`) file using the following properties:
-
-[source]
-----
-site.collections.docs=true // <1>
-site.collections.docs.layout="post" //<2>
-site.collections.docs.future=true // <3>
-
-site.collections.posts=true
-site.collections.posts.layout="post"
-----
-
-<1> We are adding the new collection `docs`;
-<2> Here, we are declaring the `docs` layout;
-<3> Finally, since the new collection is not a time-based collection, we need to set `future` as true to show all files.
-
-NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
-
-Now, we can access all the new collection `docs` data as follows:
-
-[source]
-----
-{#for doc in site.collections.docs}
-- [{doc.title}]({doc.url})
-{/for}
-----
-
-Since the new collection is also a normal page, we can use all variables described in the link:#variables[variable section].
 
 [#site-static]
 == Site static files
@@ -803,8 +932,8 @@ my-site/
         └── football.jpg
 ```
 
-<1> Non-directory pages → `page.image()` == `site.image()`.  
-<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.  
+<1> Non-directory pages → `page.image()` == `site.image()`.
+<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.
 <3> Site images → accessible everywhere via `site.image(name)`.
 
 ==== Usage example
@@ -862,15 +991,17 @@ Here are two options to consume scripts and styles:
 
 NOTE: The Quarkus Web Bundler is included by default in Roq.
 
-To use bundling scripts (js, ts) and styles (css, scss), locate them in `src/main/resources/web/app/`.
+To use bundling, add your scripts (js, ts) and styles (css, scss) in the `web/` directory at the project root:
 
 [source]
 ----
 my-site/
-├── src/main/resources/web/app/
-│                           ├── scripts.js
-│                           └── styles.scss
+├── web/
+│   ├── app.js
+│   └── app.scss
 ----
+
+NOTE: `src/main/resources/web/app/` also works if you prefer the standard Java resources layout.
 
 
 To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:

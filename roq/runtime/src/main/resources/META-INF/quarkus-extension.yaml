@@ -12,17 +12,10 @@ metadata:
     - site
     - generator
     - web
-  guide: https://iamroq.com/docs/
+  guide: https://iamroq.dev/docs/
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"
   config:
     - "site"
   status: "preview"
-  codestart:
-    name: "roq"
-    languages:
-    - "java"
-    - "kotlin"
-    - "scala"
-    artifact: "io.quarkiverse.roq:quarkus-roq:codestarts:jar:${project.version}"

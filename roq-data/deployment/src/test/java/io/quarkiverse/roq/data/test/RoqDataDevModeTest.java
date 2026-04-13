@@ -16,22 +16,29 @@ import io.vertx.core.json.JsonObject;
 
 public class RoqDataDevModeTest {
 
+    private static final int DEV_MODE_PORT = 9381;
+
     // Start hot reload (DevMode) test with your extension loaded
     @RegisterExtension
     static final QuarkusDevModeTest devModeTest = new QuarkusDevModeTest()
             .withApplicationRoot((jar) -> jar
                     .addClass(Hello.class)
-                    .addAsResource("foo.json", "data/foo.json"));
+                    .addAsResource("foo.json", "data/foo.json")
+                    .addAsResource(
+                            new org.jboss.shrinkwrap.api.asset.StringAsset("quarkus.http.port=" + DEV_MODE_PORT),
+                            "application.properties"));
 
     @Test
     public void changeData() {
         RestAssured.given()
+                .port(DEV_MODE_PORT)
                 .get("/hello")
                 .then()
                 .statusCode(200)
                 .body(Matchers.equalTo("Super Heroes from Json"));
         devModeTest.modifyResourceFile("data/foo.json", (content) -> content.replace("Super", "Mega"));
         RestAssured.given()
+                .port(DEV_MODE_PORT)
                 .get("/hello")
                 .then()
                 .statusCode(200)

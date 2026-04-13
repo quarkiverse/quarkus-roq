@@ -13,7 +13,7 @@ Creating a `sitemap.xml` for your site has never been easier! With the Sitemap p
 To get started, install the plugin by running the following command:
 
 ```shell
-quarkus ext add quarkus-roq-plugin-sitemap
+roq add plugin:sitemap
 ```
 
 ## Setting Up the Sitemap

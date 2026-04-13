@@ -294,7 +294,7 @@ Environment variable: `+++SITE_THEME+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|
+|`+++roq-base+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-draft]] [.property-path]##link:#quarkus-roq-frontmatter_site-draft[`+++site.draft+++`]##
 ifdef::add-copy-button-to-config-props[]

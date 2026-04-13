@@ -43,7 +43,7 @@ The editor is natively integrated into Roq `2.1.0.BETA2`. Until the final releas
 Start Dev-Mode
 
 ```
-quarkus dev
+roq
 ```
 
-🚀 Hit `c` (like CMS) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
+🚀 Hit `b` (like CMS) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)

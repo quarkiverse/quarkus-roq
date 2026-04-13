@@ -1,0 +1,7 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+{#if page.data.content-toc??}
+<aside class="content-toc" data-title="{page.data.content-toc-title ?: 'Contents'}" data-levels="{page.data.content-toc-levels ?: 2}">
+  <div class="toc-menu"></div>
+</aside>
+{/if}

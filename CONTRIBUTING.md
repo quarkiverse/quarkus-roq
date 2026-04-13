@@ -63,10 +63,10 @@ And, to execute the following maven command:
 mvn quarkus:dev
 ```
 
-If you are using Quarkus CLI, you can use:
+If you have the Roq CLI installed, you can use:
 
 ```shell
-quarkus dev
+roq
 ```
 
 Now, you can access: http://localhost:8080 and be happy!
