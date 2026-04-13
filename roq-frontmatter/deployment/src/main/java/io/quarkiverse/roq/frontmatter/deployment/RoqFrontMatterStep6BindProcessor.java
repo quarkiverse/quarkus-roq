@@ -27,6 +27,7 @@ import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
@@ -250,7 +251,11 @@ public class RoqFrontMatterStep6BindProcessor {
                             + "\nIn development, the first occurrence will be kept, but this will cause an exception in normal mode.");
                     continue;
                 } else {
-                    throw new RoqPathConflictException(message);
+                    throw new RoqPathConflictException(
+                            RoqException.builder("Static file path conflict")
+                                    .detail("Multiple source files target the same endpoint '%s': '%s' and '%s'."
+                                            .formatted(endpoint, prev, staticFile.filePath()))
+                                    .hint("Rename or move one of the conflicting files so they produce different output paths."));
                 }
             }
 

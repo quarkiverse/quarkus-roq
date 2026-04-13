@@ -17,6 +17,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPluginException;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.plugin.sitemap.runtime.RoqPluginSitemapTemplateExtension;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -71,7 +72,10 @@ public class RoqPluginSitemapProcessor {
                         LOGGER.warnf(e, "Error while reading git last commit date for file: %s", source.path());
                     } else {
                         throw new RoqPluginException(
-                                "Error while reading git last commit date for file: %s".formatted(source.path()), e);
+                                RoqException.builder("Sitemap plugin error")
+                                        .sourceFilePath(source.path().toString())
+                                        .detail("Error while reading git last commit date")
+                                        .cause(e));
                     }
                 }
             }

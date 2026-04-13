@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqPluginException extends RuntimeException {
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 
-    public RoqPluginException(String message) {
-        super(message);
+public class RoqPluginException extends RoqException {
+
+    public RoqPluginException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqPluginException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

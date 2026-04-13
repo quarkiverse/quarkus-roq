@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
@@ -54,8 +55,10 @@ public class TemplateLink {
                 Map.entry(":collection", () -> {
                     if (data.collection() == null) {
                         throw new RoqTemplateLinkException(
-                                "Page '%s' uses ':collection' placeholder in the link, it should not be used outside of a collection."
-                                        .formatted(data.pageSource().path()));
+                                RoqException.builder("Invalid link placeholder")
+                                        .source(data.pageSource().template())
+                                        .detail("The ':collection' placeholder is used in the link template, but this page does not belong to a collection.")
+                                        .hint("Remove ':collection' from the link template, or move this page into a collection."));
                     }
                     return data.collection();
                 }),
@@ -129,8 +132,14 @@ public class TemplateLink {
             if (link.contains(entry.getKey())) {
                 String replacement = entry.getValue().get();
                 if (replacement == null) {
-                    throw new RoqTemplateLinkException("Link placeholder value for '%s' not found for 'link: %s' in page '%s'."
-                            .formatted(entry.getKey(), template, data.pageSource().file().relativePath()));
+                    throw new RoqTemplateLinkException(
+                            RoqException.builder("Link placeholder not resolved")
+                                    .source(data.pageSource().template())
+                                    .detail("Placeholder '%s' in link template '%s' resolved to null.".formatted(
+                                            entry.getKey(), template))
+                                    .hint("Provide a value for '%s' in the page front matter or remove it from the link template."
+                                            .formatted(
+                                                    entry.getKey())));
                 }
                 link = link.replace(entry.getKey(), replacement);
             }
@@ -142,10 +151,12 @@ public class TemplateLink {
             if (matcher.find()) {
                 String invalidPlaceholder = matcher.group();
                 throw new RoqTemplateLinkException(
-                        "Invalid placeholder '%s' found in link template '%s' for page '%s'. Valid placeholders are: %s"
-                                .formatted(invalidPlaceholder, template != null ? template : defaultTemplate,
-                                        data.pageSource().file().relativePath(),
-                                        String.join(", ", mapping.keySet())));
+                        RoqException.builder("Invalid link placeholder")
+                                .source(data.pageSource().template())
+                                .detail("Unknown placeholder '%s' in link template '%s'.".formatted(
+                                        invalidPlaceholder, template != null ? template : defaultTemplate))
+                                .hint("Valid placeholders: %s".formatted(
+                                        String.join(", ", mapping.keySet()))));
             }
         }
 

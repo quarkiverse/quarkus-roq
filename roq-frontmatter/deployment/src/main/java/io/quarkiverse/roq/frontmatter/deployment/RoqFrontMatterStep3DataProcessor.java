@@ -40,10 +40,12 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStatic
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
@@ -89,18 +91,18 @@ public class RoqFrontMatterStep3DataProcessor {
         // Process layouts: merge front matter from parent layouts (child values override parents)
         for (RoqFrontMatterRawLayoutBuildItem item : rawLayouts) {
             JsonObject data = mergeParents(config, item.layout(), item.data(),
-                    item.templateSource().file().absolutePath(), layoutsById);
+                    item.templateSource(), layoutsById);
             layoutTemplateProducer.produce(new RoqFrontMatterLayoutTemplateBuildItem(item, data));
         }
 
         // Process pages: merge parent data, then filter by date/draft rules
         for (RoqFrontMatterRawPageBuildItem item : rawPages) {
             JsonObject data = mergeParents(config, item.layout(), item.data(),
-                    item.templateSource().file().absolutePath(), layoutsById);
+                    item.templateSource(), layoutsById);
 
             // Parse date from front matter "date" key, or from filename pattern (e.g. 2024-03-10-my-post)
             ZonedDateTime date = parsePublishDate(item.templateSource().path(), data, config.dateFormat(),
-                    config.timeZoneOrDefault());
+                    config.timeZoneOrDefault(), item.templateSource());
 
             // Collection documents (posts, etc.) always need a date since templates use {post.date.format(...)}.
             // Normal pages don't need one — null is fine.
@@ -199,7 +201,7 @@ public class RoqFrontMatterStep3DataProcessor {
     // Walk the layout chain (page -> layout -> parent layout -> ...) and merge front matter.
     // Uses a stack so parent values are applied first, then child values override them.
     public static JsonObject mergeParents(RoqSiteConfig config, String layout, JsonObject data,
-            String sourceAbsPath, Map<String, RoqFrontMatterRawLayoutBuildItem> byId) {
+            TemplateSource source, Map<String, RoqFrontMatterRawLayoutBuildItem> byId) {
         Stack<JsonObject> fms = new Stack<>();
         Set<String> visited = new HashSet<>();
         String parent = layout;
@@ -208,14 +210,15 @@ public class RoqFrontMatterStep3DataProcessor {
             if (!visited.add(parent)) {
                 throw new RuntimeException(
                         "Circular layout reference detected for file '%s': layout '%s' forms a cycle."
-                                .formatted(sourceAbsPath, parent));
+                                .formatted(source.file().relativePath(), parent));
             }
             if (!byId.containsKey(parent)) {
                 final String layoutKey = getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
-                        "Layout '%s' not found for file '%s'. Available layouts are: %s."
-                                .formatted(layoutKey, sourceAbsPath,
-                                        getAvailableLayouts(config, byId)));
+                        RoqException.builder("Layout not found")
+                                .source(source)
+                                .detail("Layout '%s' could not be resolved.".formatted(layoutKey))
+                                .hint("Available layouts: %s".formatted(getAvailableLayouts(config, byId))));
             }
             final RoqFrontMatterRawLayoutBuildItem parentItem = byId.get(parent);
             parent = parentItem.layout();
@@ -245,7 +248,7 @@ public class RoqFrontMatterStep3DataProcessor {
     }
 
     static ZonedDateTime parsePublishDate(String path, JsonObject frontMatter, String dateFormat,
-            ZoneId zoneId) {
+            ZoneId zoneId, TemplateSource source) {
         String dateString;
         final boolean fromFileName;
         if (frontMatter.containsKey(DATE) && frontMatter.getValue(DATE) != null) {
@@ -271,13 +274,18 @@ public class RoqFrontMatterStep3DataProcessor {
         } catch (DateTimeParseException e) {
             if (fromFileName) {
                 throw new RoqSiteScanningException(
-                        "Error while reading date '%s' in file name: '%s'\nreason: %s".formatted(dateString, path,
-                                e.getLocalizedMessage()));
+                        RoqException.builder("Invalid date in file name")
+                                .source(source)
+                                .detail("Could not parse date '%s' from the file name.".formatted(dateString))
+                                .hint("Rename the file so the date matches the configured format: '%s'.".formatted(dateFormat))
+                                .cause(e));
             } else {
                 throw new RoqFrontMatterReadingException(
-                        "Error while reading FrontMatter 'date' ('%s') in file: '%s'\nreason: %s".formatted(dateString,
-                                path,
-                                e.getLocalizedMessage()));
+                        RoqException.builder("Invalid date format")
+                                .source(source)
+                                .detail("Could not parse front matter 'date' value '%s'.".formatted(dateString))
+                                .hint("Use a date string matching the configured format: '%s'.".formatted(dateFormat))
+                                .cause(e));
             }
         }
 

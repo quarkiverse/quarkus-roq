@@ -5,6 +5,7 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.IMG;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PICTURE;
 import static io.quarkiverse.roq.frontmatter.runtime.model.PageFiles.slugifyFile;
 
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -14,20 +15,24 @@ public final class Pages {
     private Pages() {
     }
 
-    public static RoqUrl resolveFile(Page page, Object name, String missingResourceMessage,
-            String notFoundMessage) {
+    public static RoqUrl resolveFile(Page page, Object name, String fileContext) {
         if (name == null) {
             return null;
         }
         if (page.source().hasNoFiles()) {
-            throw new RoqStaticFileException(missingResourceMessage.formatted(name));
+            throw new RoqStaticFileException(RoqException.builder("File not found")
+                    .source(page.source().template())
+                    .detail("'%s' not found in %s (directory is empty).".formatted(name, fileContext))
+                    .hint("Add the file to the page directory or check the file name."));
         }
         final String f = normaliseName(name, page.source().files().slugified());
         if (page.source().fileExists(f)) {
             return page.url().resolve(f);
         } else {
-            throw new RoqStaticFileException(notFoundMessage.formatted(name,
-                    String.join(", ", page.source().files().names())));
+            throw new RoqStaticFileException(RoqException.builder("File not found")
+                    .source(page.source().template())
+                    .detail("'%s' not found in %s.".formatted(name, fileContext))
+                    .hint("Available files: %s".formatted(String.join(", ", page.source().files().names()))));
         }
     }
 
@@ -42,8 +47,7 @@ public final class Pages {
     }
 
     public static RoqUrl resolvePublicFile(Page page, Object name) {
-        return resolveFile(page, name, "File '%s' not found in public dir (public dir is empty).",
-                "File '%s' not found in public dir (found: %s).");
+        return resolveFile(page, name, "the public directory");
     }
 
     public static String getImgFromData(JsonObject data) {
