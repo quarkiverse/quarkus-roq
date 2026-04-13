@@ -3,7 +3,7 @@
   "aliases": {
     "roq": {
       "description": "Roq CLI - static site generator",
-      "script-ref": "ga:io.quarkiverse.roq:quarkus-roq-cli:999-SNAPSHOT@fatjar"
+      "script-ref": "ga:io.quarkiverse.roq:quarkus-roq-cli:2.1.0.CR1@fatjar"
     }
   },
   "templates": {}
