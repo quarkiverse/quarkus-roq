@@ -5,6 +5,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConst
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -23,6 +24,7 @@ import io.quarkiverse.web.bundler.spi.items.WebBundlerWatchedDirBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 
 public class RoqFrontMatterStep0SetupProcessor {
 
@@ -75,16 +77,26 @@ public class RoqFrontMatterStep0SetupProcessor {
 
     @BuildStep(onlyIf = IsDevelopment.class)
     void watch(RoqSiteConfig config, RoqProjectBuildItem roqProject,
-            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch) {
-        // In dev mode, tell WebBundler to watch Roq directories so changes trigger a rebuild
-        if (roqProject.local() == null) {
-            return;
+            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> hotWatch) {
+        List<String> dirs = List.of(config.contentDir(), config.staticDir(), config.publicDir(), TEMPLATES_DIR);
+        if (roqProject.local() != null) {
+            Path roqDir = roqProject.local().roqDir();
+            for (String dirName : dirs) {
+                Path dir = roqDir.resolve(dirName);
+                webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(dir));
+                RoqProjectBuildItem.watchDirRecursively(dir, hotWatch);
+            }
         }
-        Path roqDir = roqProject.local().roqDir();
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqDir.resolve(config.contentDir())));
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqDir.resolve(config.staticDir())));
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqDir.resolve(config.publicDir())));
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(roqDir.resolve(TEMPLATES_DIR)));
+        for (String dirName : dirs) {
+            if (TEMPLATES_DIR.equals(dirName) && roqProject.roqResourceDir() == null) {
+                continue;
+            }
+            String prefix = addTrailingSlash(roqProject.resolveRoqResourceSubDir(dirName));
+            hotWatch.produce(HotDeploymentWatchedFileBuildItem.builder()
+                    .setLocationPredicate(p -> p.startsWith(prefix))
+                    .build());
+        }
     }
 
     private static Predicate<String> isPageEscaped(RoqSiteConfig config) {

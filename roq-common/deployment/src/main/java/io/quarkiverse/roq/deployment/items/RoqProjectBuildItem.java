@@ -1,12 +1,16 @@
 package io.quarkiverse.roq.deployment.items;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import io.quarkiverse.tools.projectscanner.ScanLocalDirBuildItem;
 import io.quarkiverse.tools.projectscanner.util.ProjectUtils;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 
 public final class RoqProjectBuildItem extends SimpleBuildItem {
     private final RoqLocalDir local;
@@ -56,6 +60,23 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
             return subDir;
         }
         return StringPaths.join(roqResourceDir, subDir);
+    }
+
+    /**
+     * Walk a local directory recursively and register every subdirectory as a
+     * {@link HotDeploymentWatchedFileBuildItem}. This lets Quarkus detect directory
+     * mtime changes (from new/deleted files) during doScan(forceRestart=false).
+     */
+    public static void watchDirRecursively(Path dir, BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
+        if (dir == null || !Files.isDirectory(dir)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(dir)) {
+            walk.filter(Files::isDirectory).forEach(d -> watch.produce(HotDeploymentWatchedFileBuildItem.builder()
+                    .setLocation(d.toAbsolutePath().toString()).build()));
+        } catch (IOException e) {
+            // directory not accessible, skip
+        }
     }
 
     /**

@@ -41,7 +41,6 @@ import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
-import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
@@ -106,8 +105,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             QuteConfig quteConfig,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
-            BuildProducer<RoqFrontMatterScannedContentBuildItem> scannedContentProducer,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
+            BuildProducer<RoqFrontMatterScannedContentBuildItem> scannedContentProducer) throws IOException {
         if (!roqProject.isActive()) {
             return;
         }
@@ -156,7 +154,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                 if (isIdx) {
                     if (isSiteIdx) {
                         attachments = new ArrayList<>();
-                        scanSiteIndexAttachments(scanner, roqProject, config, watch, attachments);
+                        scanSiteIndexAttachments(scanner, roqProject, config, attachments);
                     } else {
                         attachments = pageAttachments.computeIfAbsent(parent, k -> new ArrayList<>());
                     }
@@ -172,7 +170,6 @@ public class RoqFrontMatterStep1ScanProcessor {
                         name = PageFiles.slugifyFile(name);
                     }
                     pageAttachments.get(ownerDir).add(new RoqFrontMatterAttachment(name, f.file()));
-                    produceWatch(f.liveReloadWatchPath(), watch);
                 }
             }
         }
@@ -180,7 +177,6 @@ public class RoqFrontMatterStep1ScanProcessor {
         // Second pass: collect metadata (front matter, markup) and produce scanned build items
         for (ContentEntry entry : entries) {
             FrontMatterTemplateMetadata metadata = collectMetadata(entry.file(), false, markupList, headerParserList);
-            produceWatch(entry.file().liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq content scan producing scanned template '%s'", metadata.templateId());
             scannedContentProducer.produce(new RoqFrontMatterScannedContentBuildItem(
@@ -197,8 +193,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             RoqSiteConfig config,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
             List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
-            BuildProducer<RoqFrontMatterScannedLayoutBuildItem> scannedLayoutProducer,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
+            BuildProducer<RoqFrontMatterScannedLayoutBuildItem> scannedLayoutProducer) throws IOException {
         if (!roqProject.isActive()) {
             return;
         }
@@ -233,7 +228,6 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
                     headerParserList);
-            produceWatch(file.liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -266,7 +260,6 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
             FrontMatterTemplateMetadata metadata = collectMetadata(file, true, markupList,
                     headerParserList);
-            produceWatch(file.liveReloadWatchPath(), watch);
 
             LOGGER.debugf("Roq theme-layout scan producing scanned layout '%s'", metadata.templateId());
             scannedLayoutProducer
@@ -287,8 +280,7 @@ public class RoqFrontMatterStep1ScanProcessor {
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
-            BuildProducer<TemplateRootBuildItem> templateRootProducer,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch) throws IOException {
+            BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
         if (!roqProject.isActive()) {
             return;
         }
@@ -334,11 +326,6 @@ public class RoqFrontMatterStep1ScanProcessor {
                     .extensionInfo(RoqFrontMatterStep6BindProcessor.FEATURE)
                     .build());
 
-            String watchPath = file.liveReloadWatchPath();
-            if (watchPath != null) {
-                watch.produce(HotDeploymentWatchedFileBuildItem.builder()
-                        .setLocation(watchPath).build());
-            }
         }
     }
 }

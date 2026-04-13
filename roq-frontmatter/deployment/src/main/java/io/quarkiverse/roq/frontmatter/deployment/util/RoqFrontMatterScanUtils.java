@@ -34,8 +34,6 @@ import io.quarkiverse.tools.projectscanner.ProjectFile;
 import io.quarkiverse.tools.projectscanner.ProjectScannerBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanQueryBuilder;
 import io.quarkiverse.tools.stringpaths.StringPaths;
-import io.quarkus.deployment.annotations.BuildProducer;
-import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
 import io.vertx.core.http.impl.MimeMapping;
 
@@ -142,12 +140,6 @@ public final class RoqFrontMatterScanUtils {
         return sourcePath.replaceAll("\\s+", "-");
     }
 
-    public static void produceWatch(String watchPath, BuildProducer<HotDeploymentWatchedFileBuildItem> watch) {
-        if (watchPath != null) {
-            watch.produce(HotDeploymentWatchedFileBuildItem.builder().setLocation(watchPath).build());
-        }
-    }
-
     // ── Scanner query helpers ───────────────────────────────────────────
 
     /**
@@ -178,7 +170,6 @@ public final class RoqFrontMatterScanUtils {
             ProjectScannerBuildItem scanner,
             RoqProjectBuildItem roqProject,
             RoqSiteConfig config,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watch,
             List<RoqFrontMatterAttachment> attachments) throws IOException {
 
         final List<String> ignoredPatterns = buildIgnoredPatterns(config);
@@ -190,7 +181,6 @@ public final class RoqFrontMatterScanUtils {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
             attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
-            produceWatch(f.liveReloadWatchPath(), watch);
         }
 
         // Public dir files (served at root path)
@@ -200,7 +190,6 @@ public final class RoqFrontMatterScanUtils {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
             attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
-            produceWatch(f.liveReloadWatchPath(), watch);
         }
     }
 

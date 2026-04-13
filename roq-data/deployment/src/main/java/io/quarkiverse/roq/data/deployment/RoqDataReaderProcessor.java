@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.data.deployment;
 
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
@@ -58,13 +59,11 @@ public class RoqDataReaderProcessor {
             ProjectScannerBuildItem scanner,
             RoqDataConfig config,
             RoqJacksonBuildItem jackson,
-            BuildProducer<RoqDataBuildItem> dataProducer,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer) {
+            BuildProducer<RoqDataBuildItem> dataProducer) {
         if (roqProject.isActive()) {
             DataConverterFinder converter = new DataConverterFinder(jackson.getJsonMapper(), jackson.getYamlMapper());
             try {
-                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, scanner, converter, watchedFilesProducer,
-                        config);
+                Collection<RoqDataBuildItem> items = scanDataFiles(roqProject, scanner, converter, config);
 
                 for (RoqDataBuildItem item : items) {
                     dataProducer.produce(item);
@@ -211,18 +210,22 @@ public class RoqDataReaderProcessor {
 
     @BuildStep(onlyIf = IsDevelopment.class)
     void watch(RoqDataConfig config, RoqProjectBuildItem roqProject,
-            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch) {
+            BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch,
+            BuildProducer<HotDeploymentWatchedFileBuildItem> hotWatch) {
         final Path localDataDir = roqProject.fromLocalRoqDir(config.dir());
-        if (localDataDir == null) {
-            return;
+        if (localDataDir != null) {
+            webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(localDataDir));
+            RoqProjectBuildItem.watchDirRecursively(localDataDir, hotWatch);
         }
-        webBundlerWatch.produce(new WebBundlerWatchedDirBuildItem(localDataDir));
+        String prefix = addTrailingSlash(roqProject.resolveRoqResourceSubDir(config.dir()));
+        hotWatch.produce(HotDeploymentWatchedFileBuildItem.builder()
+                .setLocationPredicate(p -> p.startsWith(prefix))
+                .build());
     }
 
     public Collection<RoqDataBuildItem> scanDataFiles(RoqProjectBuildItem roqProject,
             ProjectScannerBuildItem scanner,
             DataConverterFinder converter,
-            BuildProducer<HotDeploymentWatchedFileBuildItem> watchedFilesProducer,
             RoqDataConfig config)
             throws IOException {
 
@@ -245,10 +248,6 @@ public class RoqDataReaderProcessor {
         final List<ProjectFile> files = ScanQueryBuilder.mergeByScopedPath(localFiles, resourceFiles);
         for (ProjectFile file : files) {
             var name = removeExtension(toUnixPath(file.scopedPath()));
-            String watchPath = file.liveReloadWatchPath();
-            if (watchPath != null) {
-                watchedFilesProducer.produce(new HotDeploymentWatchedFileBuildItem(watchPath, true));
-            }
             DataConverter dataConverter = converter.fromFileName(file.scopedPath());
             if (dataConverter != null) {
                 items.add(new RoqDataBuildItem(name, file.file(), file.content(), dataConverter));
