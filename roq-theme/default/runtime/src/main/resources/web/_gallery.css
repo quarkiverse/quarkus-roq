@@ -1,0 +1,124 @@
+/* Gallery Component
+ *
+ * A responsive image grid with fullscreen lightbox.
+ *
+ * USAGE:
+ *   <div class="roq-gallery">
+ *     <img src="..." alt="...">
+ *     <img src="..." alt="...">
+ *   </div>
+ *
+ *   Or with captions:
+ *   <div class="roq-gallery">
+ *     <figure><img src="..." alt="..."><figcaption>Caption</figcaption></figure>
+ *     <figure><img src="..." alt="..."><figcaption>Caption</figcaption></figure>
+ *   </div>
+ */
+
+@layer components {
+
+    /* === Grid === */
+    .roq-gallery {
+        @apply grid gap-3 my-6;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    @media (max-width: 640px) {
+        .roq-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        }
+    }
+
+    .roq-gallery img {
+        @apply w-full h-48 object-cover rounded-lg cursor-pointer;
+        @apply border border-neutral-200 dark:border-neutral-700;
+        @apply transition-all duration-200;
+    }
+
+    .roq-gallery img:hover {
+        @apply border-accent-300 dark:border-accent-600;
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-accent-500) 12%, transparent);
+    }
+
+    .roq-gallery figure {
+        @apply m-0;
+    }
+
+    .roq-gallery figcaption {
+        @apply flex flex-col gap-0.5 mt-1.5 text-center;
+    }
+
+    .roq-gallery figcaption strong {
+        @apply text-sm font-semibold text-neutral-700 dark:text-neutral-300;
+    }
+
+    .roq-gallery figcaption span {
+        @apply text-xs text-neutral-500 dark:text-neutral-400;
+    }
+
+    /* === Lightbox overlay === */
+    .roq-lightbox {
+        @apply fixed inset-0 z-50 flex items-center justify-center;
+        @apply opacity-0 invisible;
+        @apply transition-opacity duration-300;
+        background: rgba(0, 0, 0, 0.9);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+
+    .roq-lightbox.open {
+        @apply opacity-100 visible;
+    }
+
+    .roq-lightbox img {
+        @apply max-w-[90vw] max-h-[85vh] object-contain rounded-lg;
+        @apply select-none;
+    }
+
+    .roq-lightbox-caption {
+        @apply absolute bottom-6 left-1/2 -translate-x-1/2;
+        @apply text-white text-sm bg-black/60 px-4 py-2 rounded-lg;
+        @apply max-w-[80vw] text-center;
+    }
+
+    /* Navigation buttons */
+    .roq-lightbox-prev,
+    .roq-lightbox-next {
+        @apply absolute top-1/2 -translate-y-1/2;
+        @apply w-11 h-11 flex items-center justify-center;
+        @apply text-white/70 hover:text-white text-2xl;
+        @apply bg-black/30 hover:bg-black/50 rounded-full;
+        @apply transition-colors duration-200 cursor-pointer;
+        @apply border-none outline-none;
+    }
+
+    .roq-lightbox-prev { @apply left-4; }
+    .roq-lightbox-next { @apply right-4; }
+
+    .roq-lightbox-close {
+        @apply absolute top-4 right-4;
+        @apply w-10 h-10 flex items-center justify-center;
+        @apply text-white/70 hover:text-white text-xl;
+        @apply bg-black/30 hover:bg-black/50 rounded-full;
+        @apply transition-colors duration-200 cursor-pointer;
+        @apply border-none outline-none;
+    }
+
+    /* Counter (e.g. "2 / 5") */
+    .roq-lightbox-counter {
+        @apply absolute top-4 left-4;
+        @apply text-white/60 text-sm;
+    }
+
+    /* Touch-friendly targets on mobile */
+    @media (max-width: 640px) {
+        .roq-lightbox-prev,
+        .roq-lightbox-next {
+            @apply w-10 h-10 text-xl;
+        }
+
+        .roq-lightbox-prev { @apply left-2; }
+        .roq-lightbox-next { @apply right-2; }
+    }
+
+}

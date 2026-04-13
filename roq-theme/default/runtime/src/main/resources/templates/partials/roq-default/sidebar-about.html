@@ -1,0 +1,10 @@
+<!-- Theme configuration: https://iamroq.dev/theme/default/#site-data -->
+<section class="about">
+  {#if site.data.logo?? || site.image}
+  <div class="site-logo">
+    <a href="{site.url}"><img src="{#if site.data.logo??}{site.image(site.data.logo)}{#else}{site.image}{/if}" alt="{site.data.name}"></a>
+  </div>
+  {/if}
+  <div class="site-name">{site.data.name}</div>
+  {#insert description}<p>{site.description}</p>{/}
+</section>

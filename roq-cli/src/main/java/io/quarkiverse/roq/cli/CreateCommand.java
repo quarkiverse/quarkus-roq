@@ -37,6 +37,9 @@ public class CreateCommand implements Callable<Integer> {
     @Option(names = { "--no-code" }, description = "Don't generate example code")
     private boolean noCode;
 
+    // TODO re-add --no-config option when https://github.com/quarkiverse/quarkus-web-bundler/issues/426 is fixed
+    private boolean noConfig = false;
+
     @Option(names = { "--gradle" }, description = "Use Gradle instead of Maven")
     private boolean gradle;
 
@@ -60,7 +63,7 @@ public class CreateCommand implements Callable<Integer> {
                 buildTool = BuildTool.GRADLE;
             }
 
-            output.info("Creating Roq site: " + name);
+            output.info("\uD83D\uDDFF Creating Roq site: " + name + "...");
 
             boolean success = new RoqProjectCreator(projectDir, name)
                     .groupId(groupId)
@@ -68,17 +71,20 @@ public class CreateCommand implements Callable<Integer> {
                     .roqVersion(roqVersion)
                     .buildTool(buildTool)
                     .noCode(noCode)
+                    .noConfig(noConfig)
                     .extensions(extra)
                     .create();
 
             if (success) {
-                output.info("\nRoq site created in ./" + name);
-                output.info("Next steps:");
-                output.info("  cd " + name);
-                output.info("  roq start");
+                output.info("");
+                output.info("\u2728 Roq site created in ./" + name);
+                output.info("");
+                output.info("  \u276F cd " + name);
+                output.info("  \u276F roq start");
+                output.info("");
                 return CommandLine.ExitCode.OK;
             } else {
-                output.error("Failed to create project");
+                output.error("\u274C Failed to create project");
                 return CommandLine.ExitCode.SOFTWARE;
             }
         } catch (Exception e) {

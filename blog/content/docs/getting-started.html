@@ -1,0 +1,28 @@
+---
+title: Getting started
+description: Roq allows to easily create a static website or blog using Quarkus super-powers.
+layout: page
+page-content-toc: false
+aliases:
+  - /docs
+---
+
+<p>Install the Roq CLI with <a href="https://www.jbang.dev/download" target="_blank" rel="noopener noreferrer"><strong>JBang</strong></a> and create your first site in seconds.</p>
+
+<h2 id="generate">Get up and running with Roq</h2>
+
+<p class="mt-10"><strong>1. Install the Roq CLI</strong> via JBang (installs JBang if needed):</p>
+{#roq/terminal tabs=cdi:roq-cli.get('install-jbang').tabs clipboard=true delay='0.3' /}
+
+<p class="mt-10"><strong>2. Create your site</strong> (you can change the name):</p>
+{#roq/terminal commands=cdi:roq-cli.get('create').commands title='Create' clipboard=true delay='1.8' /}
+
+<p class="mt-6">This creates a site with the <a href="/theme/default-theme/">default theme</a> (blog layout, dark mode, sidebar, SEO). To start from scratch with a minimal HTML structure and full control over the design, use the <a href="/theme/base-theme/">base theme</a> instead: <code>roq create my-site -x theme:base</code>. Browse <a href="/marketplace/#themes">all available themes</a>.</p>
+
+<p class="mt-10"><strong>3. Start dev mode:</strong></p>
+{#roq/terminal commands=cdi:roq-cli.get('start').commands title='Dev' clipboard=true delay='3.0' /}
+
+<div class="not-prose flex justify-center gap-4 mt-15 mb-12">
+  <a href="http://localhost:8080" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Open localhost</a>
+  <a href="{site.url('/docs/basics')}" class="btn btn-primary">Roq the basics &rarr;</a>
+</div>

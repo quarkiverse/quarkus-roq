@@ -50,6 +50,11 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-devtools-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -69,7 +74,7 @@
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../runtime/src/main/codestarts/quarkus/roq-codestart/base</directory>
+                                    <directory>${project.basedir}/../runtime/src/main/codestarts/quarkus/roq-theme-resume-codestart/base</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>

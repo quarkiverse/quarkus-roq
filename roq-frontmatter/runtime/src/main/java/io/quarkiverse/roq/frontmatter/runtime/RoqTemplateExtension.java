@@ -214,6 +214,22 @@ public class RoqTemplateExtension {
     }
 
     /**
+     * Returns the first N documents from the list as featured items.
+     * Example: "{posts.featured(2)}".
+     */
+    public static List<DocumentPage> featured(List<DocumentPage> list, int count) {
+        return list.subList(0, Math.min(count, list.size()));
+    }
+
+    /**
+     * Returns all documents after the first N.
+     * Example: "{posts.rest(2)}".
+     */
+    public static List<DocumentPage> rest(List<DocumentPage> list, int count) {
+        return count >= list.size() ? List.of() : list.subList(count, list.size());
+    }
+
+    /**
      * Returns a new list with the elements of the given list in random order.
      */
     public static <T> List<T> randomise(List<T> l) {

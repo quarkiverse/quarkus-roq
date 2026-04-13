@@ -1,0 +1,106 @@
+/* Global Base Styles */
+
+@layer base {
+    html {
+        @apply leading-normal;
+    }
+
+    body {
+        @apply m-0 text-neutral-600 bg-bg-light;
+        @apply antialiased;
+        @apply dark:bg-neutral-900 dark:text-neutral-300;
+        @apply font-body;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-heading;
+    }
+
+    h1 {
+        @apply font-normal;
+    }
+
+    img {
+        @apply max-w-full align-middle inline-block;
+    }
+
+    img + em {
+        @apply text-center block mt-2.5 not-italic font-bold text-sm;
+    }
+
+    hr {
+        @apply border-0 border-t border-neutral-300 my-8;
+        @apply dark:border-neutral-700;
+    }
+
+    pre {
+        @apply px-2 py-2 overflow-x-auto overflow-hidden;
+        @apply max-w-full;
+        @apply whitespace-pre;
+    }
+
+    pre code {
+
+        @apply border-0 pr-0 pl-0 overflow-x-auto;
+        @apply rounded-md;
+        @apply block whitespace-pre;
+    }
+
+    /* Selection colors */
+    ::selection {
+        @apply bg-accent-800 text-white;
+    }
+
+}
+
+/* Utility Components */
+@layer components {
+    .wrapper {
+        @apply max-w-[1250px] relative;
+        @apply 2xl:max-w-[1500px];
+    }
+
+    .wrap-content {
+        @apply p-2.5;
+        @apply md:p-10;
+    }
+
+    /* Main Content */
+    .main-content {
+        @apply px-2;
+        @apply md:ml-64 md:pr-5;
+    }
+
+    /* Page Content */
+    .page-content {
+        @apply flex-grow min-w-0 min-h-screen;
+        @apply p-4 md:p-10;
+        @apply bg-white;
+        @apply dark:bg-neutral-900;
+        @apply overflow-x-clip;
+    }
+
+    .page-content.page-alt {
+        @apply bg-bg-light;
+        @apply dark:bg-neutral-900;
+    }
+
+    .page-content.page-wide {
+        @apply p-1 md:p-10;
+    }
+
+    .page-content.page-wide .content-main {
+        @apply max-w-none;
+    }
+
+    /* Video Wrapper */
+    .video-wrapper {
+        @apply relative pb-[56.25%] pt-6 h-0;
+    }
+
+    .video-wrapper iframe {
+        @apply absolute top-0 left-0 w-full h-full;
+    }
+
+
+}

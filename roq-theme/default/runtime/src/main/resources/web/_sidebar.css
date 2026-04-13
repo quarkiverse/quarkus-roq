@@ -1,0 +1,188 @@
+/* Sidebar Components */
+
+@layer components {
+    /* === Sidebar === */
+    .sidebar.main {
+        @apply relative w-full flex flex-col justify-between;
+        @apply p-2.5 overflow-y-visible mb-4;
+        @apply md:fixed md:top-0 md:left-0 md:w-60 md:h-screen md:p-5 md:overflow-y-auto;
+        @apply md:overscroll-contain;
+        @apply text-sidebar border-r border-sidebar-border;
+        background: var(--sidebar-bg);
+    }
+
+    .sidebar.main section {
+        @apply mb-6 text-center;
+        @apply md:mb-8;
+    }
+
+    /* === About Section === */
+    .about .site-logo {
+        @apply mx-auto mb-2.5 bg-transparent;
+        @apply transition-all duration-300;
+    }
+
+    .about .site-logo img {
+        @apply w-full h-auto;
+        @apply transition-transform duration-300 ease-out;
+    }
+
+    .about .site-logo img:hover {
+        @apply scale-95;
+    }
+
+    .about .site-name {
+        @apply relative mx-0 mt-0 mb-2.5 pb-4;
+        @apply font-bold text-2xl tracking-wider;
+        @apply font-heading text-sidebar-heading;
+    }
+
+    .about .site-name::after {
+        @apply content-[''] absolute left-1/2 -translate-x-1/2 bottom-0;
+        @apply block w-2 h-2 rounded-full;
+        background: var(--dot-gradient);
+    }
+
+    .about p {
+        @apply text-sm m-0 mb-2.5 leading-relaxed text-sidebar-muted;
+    }
+
+    /* === Section Title with Subtle Separators === */
+    .section-title {
+        @apply relative font-normal;
+        @apply m-0 mb-1.5 uppercase text-center;
+        @apply flex items-center gap-2;
+        @apply text-xs tracking-widest text-sidebar-muted;
+    }
+
+    .section-title::before,
+    .section-title::after {
+        @apply content-[''] flex-1 h-px;
+    }
+
+    .section-title::before {
+        background: linear-gradient(to right, transparent, var(--color-sidebar-muted));
+    }
+
+    .section-title::after {
+        background: linear-gradient(to right, var(--color-sidebar-muted), transparent);
+    }
+
+    /* === Menu === */
+    .menu-title {
+        @apply text-sidebar-muted;
+    }
+
+    .menu ul {
+        @apply m-0 p-0 list-none text-left;
+    }
+
+    .menu ul li {
+        @apply block ml-4;
+    }
+
+    .menu ul li i {
+        @apply mr-4 w-5 inline-flex justify-center;
+    }
+
+    .menu ul li a {
+        @apply block p-1.5 text-base text-sidebar;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:translate-x-1 hover:text-accent-400;
+    }
+
+    .menu ul li a i {
+        @apply inline-block transition-transform duration-300;
+        @apply text-pop-500;
+    }
+
+    .menu ul li a:hover i {
+        @apply scale-110;
+    }
+
+    /* === Contact === */
+    .contact-title {
+        @apply text-sidebar-muted;
+    }
+
+    .contact ul {
+        @apply m-0 p-0 list-none text-center;
+    }
+
+    .contact ul li {
+        @apply inline-block ml-2.5;
+    }
+
+    .contact ul li:first-child {
+        @apply ml-0;
+    }
+
+    .contact ul li a {
+        @apply block p-1.5 text-base text-sidebar-muted;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:scale-125 hover:text-accent-400;
+    }
+
+    /* === Footer === */
+    footer .copyright {
+        @apply text-xs text-center m-0 text-sidebar-muted;
+    }
+
+    /* === Search Trigger === */
+    .sidebar-search-trigger {
+        @apply flex items-center gap-2;
+        @apply w-[calc(100%-0.5rem)] mx-auto mt-12 mb-5;
+        @apply py-1.5 px-2;
+        @apply bg-transparent rounded-[0.35rem] cursor-pointer no-underline;
+        @apply transition-colors duration-200 ease-out;
+        @apply border border-sidebar-subtle;
+    }
+
+    .sidebar-search-trigger:hover {
+        @apply bg-sidebar-subtle border-sidebar-muted;
+    }
+
+    .sidebar-search-trigger i.fa-magnifying-glass {
+        @apply text-pop-500 text-xs shrink-0;
+    }
+
+    .sidebar-search-trigger .search-label {
+        @apply text-sm flex-1 text-left text-sidebar;
+    }
+
+    .sidebar-search-trigger kbd {
+        @apply bg-transparent text-[0.6rem] leading-tight shrink-0;
+        @apply font-heading text-sidebar-muted;
+        @apply rounded-sm py-px px-1.5;
+        @apply border border-sidebar-subtle;
+    }
+
+    /* === Dark Mode Toggle === */
+    .dark-mode-toggle {
+        @apply fixed top-5 right-5 z-50;
+        @apply w-12 h-12 rounded-full;
+        @apply flex items-center justify-center;
+        @apply bg-gradient-to-br from-white to-neutral-100;
+        @apply text-neutral-700 text-lg;
+        @apply border-2 border-neutral-200;
+        @apply shadow-lg;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:from-pop-600 hover:to-pop-950 hover:text-white hover:border-pop-600;
+        @apply hover:scale-110 hover:shadow-xl;
+        @apply active:scale-95;
+        @apply dark:from-neutral-800 dark:to-neutral-900;
+        @apply dark:text-pop-400 dark:border-neutral-700;
+        @apply dark:shadow-neutral-900/50;
+        @apply dark:hover:from-pop-600 dark:hover:to-pop-700 dark:hover:border-pop-500;
+        @apply dark:hover:text-white;
+        @apply cursor-pointer;
+    }
+
+    .dark-mode-toggle i {
+        @apply transition-transform duration-300 ease-out;
+    }
+
+    .dark-mode-toggle:hover i {
+        @apply rotate-12;
+    }
+}

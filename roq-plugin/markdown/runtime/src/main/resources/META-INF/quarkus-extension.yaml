@@ -15,7 +15,7 @@ metadata:
     - ssg
     - markdown
     - plugin
-  guide: https://iamroq.com/docs/plugins/#plugin-markdown
+  guide: https://iamroq.dev/plugin/markdown/
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"

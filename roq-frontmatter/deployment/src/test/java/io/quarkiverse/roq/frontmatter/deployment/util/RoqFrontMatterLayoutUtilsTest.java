@@ -376,31 +376,18 @@ public class RoqFrontMatterLayoutUtilsTest {
         @Test
         @DisplayName("Null layout produces identity filter")
         void nullLayout() {
-            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter(null, true);
+            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter(null);
             assertEquals("content", filter.apply("content"));
         }
 
         @Test
-        @DisplayName("Page with layout wraps with Qute include and fragment")
-        void pageWrapsContentWithFragment() {
-            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter("layouts/default", true);
+        @DisplayName("Non-null layout wraps with Qute include")
+        void wrapsContent() {
+            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter("layouts/default");
             String result = filter.apply("body");
             assertTrue(result.contains("{#include"));
             assertTrue(result.contains("{/include}"));
             assertTrue(result.contains("layouts/default"));
-            assertTrue(result.contains("{#fragment RoqPageContent}"));
-            assertTrue(result.contains("{/fragment}"));
-        }
-
-        @Test
-        @DisplayName("Layout-to-layout wraps with Qute include without fragment")
-        void layoutWrapsContentWithoutFragment() {
-            WrapperFilter filter = RoqFrontMatterLayoutUtils.getIncludeFilter("layouts/default", false);
-            String result = filter.apply("body");
-            assertTrue(result.contains("{#include"));
-            assertTrue(result.contains("{/include}"));
-            assertTrue(result.contains("layouts/default"));
-            assertFalse(result.contains("{#fragment"));
         }
     }
 }

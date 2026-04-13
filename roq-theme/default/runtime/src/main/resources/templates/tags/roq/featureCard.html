@@ -1,0 +1,10 @@
+<div class="card {#if highlighted??}card-highlighted {/}roq-feature">
+  <div class="roq-feature-icon"><i class="fa-solid {icon}"></i></div>
+  <h3>{title}</h3>
+  {#if nested-content??}
+  <p>{nested-content}</p>
+  {/if}
+  {#if link??}
+  <a href="{link}" class="btn btn-link">{link-text ?: 'Learn more'} <i class="fa-solid fa-arrow-right"></i></a>
+  {/if}
+</div>

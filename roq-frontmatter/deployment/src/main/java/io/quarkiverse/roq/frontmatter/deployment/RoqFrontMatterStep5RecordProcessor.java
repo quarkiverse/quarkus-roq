@@ -176,11 +176,14 @@ class RoqFrontMatterStep5RecordProcessor {
         }
         // Create Site bean
         if (indexPageItem == null) {
+            if (normalPageItems.isEmpty() && collectionItems.isEmpty()) {
+                // No pages at all (e.g. plugin tests with only layouts on the classpath)
+                return null;
+            }
             throw new RoqSiteIndexNotFoundException(
                     RoqException.builder("Site index not found")
                             .detail("No site index page (index.html, index.md, etc.) was found.")
                             .hint("Create an index file in your content or templates directory."));
-
         }
         final Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
                 Collectors.toMap(RoqFrontMatterRecordedCollectionBuildItem::collection,

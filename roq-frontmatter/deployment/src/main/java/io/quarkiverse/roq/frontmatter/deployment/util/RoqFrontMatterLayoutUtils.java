@@ -2,7 +2,6 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR;
 
 import java.util.Optional;
@@ -22,9 +21,9 @@ public final class RoqFrontMatterLayoutUtils {
      * Resolve the default layout for a page.
      * Returns null for layouts or when content is a full HTML document.
      */
-    public static String resolveDefaultLayout(boolean isHtmlPartial, ConfiguredCollection collection,
+    public static String resolveDefaultLayout(boolean isPartialHtmlDocument, ConfiguredCollection collection,
             RoqSiteConfig config) {
-        if (!isHtmlPartial) {
+        if (!isPartialHtmlDocument) {
             return null;
         }
         return collection != null ? collection.layout() : config.pageLayout().orElse(null);
@@ -66,20 +65,11 @@ public final class RoqFrontMatterLayoutUtils {
 
     // ── Include filter ──────────────────────────────────────────────────
 
-    public static WrapperFilter getIncludeFilter(String layout, boolean isPage) {
+    public static WrapperFilter getIncludeFilter(String layout) {
         if (layout == null) {
             return WrapperFilter.EMPTY;
         }
-        String prefix;
-        String suffix;
-        if (isPage) {
-            prefix = "{#include %s%s}\n{#fragment %s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout,
-                    ROQ_PAGE_CONTENT_FRAGMENT);
-            suffix = "\n{/fragment}\n{/include}";
-        } else {
-            prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
-            suffix = "\n{/include}";
-        }
-        return new WrapperFilter(prefix, suffix);
+        String prefix = "{#include %s%s}\n".formatted(ROQ_GENERATED_QUTE_PREFIX, layout);
+        return new WrapperFilter(prefix, "\n{/include}");
     }
 }

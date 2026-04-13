@@ -92,7 +92,7 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
                 return findOrFail(THEME_LAYOUTS_DIR + sourceTheme.get() + "/" + value, layoutValue);
             }
             // 5. theme-layout: no "/" + from content/user -> theme-layouts/{active}/foo
-            if (activeTheme.isEmpty()) {
+            if (activeTheme.isEmpty() || activeTheme.get().isBlank()) {
                 throw new RoqThemeConfigurationException(
                         RoqException.builder("No theme configured")
                                 .detail("'theme-layout: %s' requires a theme, but no theme dependency was detected."

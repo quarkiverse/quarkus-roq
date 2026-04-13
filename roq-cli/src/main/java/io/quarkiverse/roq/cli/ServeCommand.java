@@ -24,7 +24,8 @@ public class ServeCommand implements Callable<Integer> {
     @Parameters(index = "0", defaultValue = "target/roq/", description = "Directory to serve")
     private String directory;
 
-    @Option(names = { "-p", "--port" }, defaultValue = "8181", description = "Port to listen on")
+    @Option(names = { "-p",
+            "--port" }, defaultValue = "8181", fallbackValue = "0", arity = "0..1", description = "Port to listen on (random if not specified)")
     private int port;
 
     @Option(names = { "--cache" }, negatable = true, defaultValue = "false", description = "Enable/disable caching")
@@ -60,7 +61,7 @@ public class ServeCommand implements Callable<Integer> {
         vertx.createHttpServer()
                 .requestHandler(router)
                 .listen(port)
-                .onSuccess(s -> output.info("Server started on http://localhost:" + port))
+                .onSuccess(s -> output.info("Server started on http://localhost:" + s.actualPort()))
                 .onFailure(e -> {
                     output.error("Failed to start server: " + e.getMessage());
                     exitCode[0] = CommandLine.ExitCode.SOFTWARE;

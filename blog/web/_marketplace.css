@@ -1,0 +1,392 @@
+/* Marketplace Layout */
+
+/* === Listing: Header + Filters === */
+.marketplace-header {
+    @apply text-center px-4 pt-10 pb-6 mb-6;
+    @apply flex flex-col items-center gap-4;
+    @apply relative;
+}
+
+.marketplace-header::after {
+    @apply content-[''] absolute bottom-0 left-1/2 -translate-x-1/2;
+    @apply h-px w-full max-w-3xl;
+    background: linear-gradient(to right, transparent, var(--color-accent-300), var(--color-pop-300), transparent);
+}
+
+:is(.dark, .dark *) .marketplace-header::after {
+    background: linear-gradient(to right, transparent, var(--color-accent-700), var(--color-pop-700), transparent);
+}
+
+.marketplace-title {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold;
+    @apply bg-clip-text text-transparent;
+    @apply mb-0 leading-tight tracking-tight;
+    background-image: linear-gradient(to right, var(--color-accent-600), var(--color-pop-500), var(--color-accent-600));
+}
+
+:is(.dark, .dark *) .marketplace-title {
+    background-image: linear-gradient(to right, var(--color-accent-400), var(--color-pop-400), var(--color-accent-400));
+}
+
+.marketplace-subtitle {
+    @apply text-neutral-500 dark:text-neutral-400 text-lg mb-2;
+}
+
+/* Search */
+.marketplace-search {
+    @apply relative max-w-md mx-auto w-full;
+}
+
+.marketplace-search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2;
+    @apply text-neutral-400 dark:text-neutral-500 text-sm;
+}
+
+.marketplace-search-input {
+    @apply w-full pl-10 pr-4 py-2.5 rounded-lg;
+    @apply bg-white dark:bg-neutral-800;
+    @apply border border-neutral-200 dark:border-neutral-700;
+    @apply text-neutral-800 dark:text-neutral-200;
+    @apply placeholder:text-neutral-400 dark:placeholder:text-neutral-500;
+    @apply outline-none transition-colors duration-200;
+}
+
+.marketplace-search-input:focus {
+    @apply border-accent-400 dark:border-accent-500;
+}
+
+/* Type chips */
+.marketplace-chips {
+    @apply flex flex-wrap justify-center gap-2;
+}
+
+.marketplace-chip {
+    @apply inline-flex items-center gap-1.5;
+    @apply px-4 py-1.5 rounded-full;
+    @apply text-sm font-medium cursor-pointer;
+    @apply bg-white dark:bg-neutral-800;
+    @apply border border-neutral-200 dark:border-neutral-700;
+    @apply text-neutral-600 dark:text-neutral-300;
+    @apply transition-colors duration-200;
+}
+
+.marketplace-chip:hover {
+    @apply border-neutral-400 text-neutral-800;
+    @apply dark:border-neutral-500 dark:text-neutral-100;
+}
+
+.marketplace-chip.active {
+    @apply text-white bg-neutral-800 border-neutral-800;
+    @apply dark:bg-neutral-200 dark:text-neutral-900 dark:border-neutral-200;
+}
+
+.marketplace-chip[data-filter-type="plugin"].active {
+    @apply text-white bg-accent-600 border-accent-600;
+}
+
+.marketplace-chip[data-filter-type="theme"].active {
+    @apply text-white;
+    background: var(--color-pop-500);
+    border-color: var(--color-pop-500);
+}
+
+.marketplace-chip[data-filter-type="web"].active {
+    @apply text-white bg-emerald-600 border-emerald-600;
+}
+
+/* Tag chips */
+.marketplace-tags {
+    @apply flex flex-wrap justify-center gap-1.5;
+}
+
+.marketplace-tag-chip {
+    @apply px-3 py-1 rounded-full;
+    @apply text-xs font-medium cursor-pointer;
+    @apply bg-neutral-100 dark:bg-neutral-800;
+    @apply text-neutral-500 dark:text-neutral-400;
+    @apply border border-transparent;
+    @apply transition-colors duration-200;
+}
+
+.marketplace-tag-chip:hover {
+    @apply text-accent-600 dark:text-accent-400;
+    @apply border-accent-300 dark:border-accent-600;
+}
+
+.marketplace-tag-chip.active {
+    @apply bg-accent-50 dark:bg-accent-950;
+    @apply text-accent-700 dark:text-accent-400;
+    @apply border-accent-300 dark:border-accent-600;
+}
+
+/* === Listing: Card Grid === */
+.marketplace-grid {
+    @apply grid gap-5 px-2;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+.marketplace-card {
+    @apply no-underline flex flex-col cursor-pointer p-0 overflow-hidden;
+}
+
+.marketplace-card.hidden {
+    @apply hidden;
+}
+
+/* Featured cards (with screenshot): span 2 columns */
+.marketplace-card-featured {
+    @apply sm:col-span-2 sm:min-h-56;
+}
+
+.marketplace-card-featured .marketplace-card-topbar {
+    @apply sm:pl-[50%];
+}
+
+/* Lower section: stacks vertically by default, side by side for featured */
+.marketplace-card-lower {
+    @apply flex flex-col flex-1;
+}
+
+.marketplace-card-featured .marketplace-card-lower {
+    @apply sm:flex-row;
+}
+
+.marketplace-card-featured .marketplace-card-screenshot {
+    @apply relative z-10;
+    margin-top: -4.75rem;
+    margin-bottom: -4.25rem;
+}
+
+.marketplace-card-featured .marketplace-card-body {
+    @apply pt-2;
+}
+
+.marketplace-card-screenshot {
+    @apply sm:w-1/2 shrink-0 p-3 pb-0 sm:pb-3;
+}
+
+.marketplace-card-screenshot img {
+    @apply w-full aspect-video object-cover object-top rounded-lg;
+    @apply border border-neutral-200 dark:border-neutral-700;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+:is(.dark, .dark *) .marketplace-card-screenshot img {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.marketplace-card-body {
+    @apply flex flex-col flex-1 p-5;
+}
+
+/* Top bar with icon, badge, and tags */
+.marketplace-card-topbar {
+    @apply flex items-center gap-2.5 px-5 py-3;
+    @apply border-b border-neutral-200 dark:border-neutral-700;
+    @apply bg-neutral-100 dark:bg-neutral-700;
+}
+
+.marketplace-card-icon-wrap {
+    @apply w-7 h-7 rounded-full flex items-center justify-center;
+    @apply bg-accent-100 text-accent-600 text-xs;
+    @apply dark:bg-accent-900 dark:text-accent-400;
+}
+
+.marketplace-card[data-type="theme"] .marketplace-card-icon-wrap {
+    background: var(--color-pop-100);
+    color: var(--color-pop-600);
+}
+
+:is(.dark, .dark *) .marketplace-card[data-type="theme"] .marketplace-card-icon-wrap {
+    background: var(--color-pop-900);
+    color: var(--color-pop-400);
+}
+
+.marketplace-card[data-type="web"] .marketplace-card-icon-wrap {
+    @apply bg-emerald-100 text-emerald-600;
+    @apply dark:bg-emerald-900 dark:text-emerald-400;
+}
+
+/* Card title */
+.marketplace-card-title {
+    @apply text-base font-semibold mb-1;
+    @apply text-neutral-800 dark:text-neutral-100;
+}
+
+.marketplace-card-desc {
+    @apply text-sm text-neutral-500 dark:text-neutral-400 flex-1;
+}
+
+/* Badges (shared between listing and detail) */
+.marketplace-type-badge {
+    @apply inline-block px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-semibold uppercase tracking-wide;
+}
+
+.marketplace-type-plugin {
+    @apply bg-accent-50 text-accent-700;
+    @apply dark:bg-accent-950 dark:text-accent-400;
+}
+
+.marketplace-type-theme {
+    background: var(--color-pop-50);
+    color: var(--color-pop-700);
+}
+
+:is(.dark, .dark *) .marketplace-type-theme {
+    background: var(--color-pop-900);
+    color: var(--color-pop-400);
+}
+
+.marketplace-type-web {
+    @apply bg-emerald-50 text-emerald-700;
+    @apply dark:bg-emerald-950 dark:text-emerald-400;
+}
+
+.marketplace-tag {
+    @apply inline-block px-2 py-0.5 rounded-full text-xs;
+    @apply text-neutral-400 dark:text-neutral-500;
+}
+
+/* === Listing: Empty state === */
+.marketplace-empty {
+    @apply flex flex-col items-center justify-center py-16 px-4;
+    @apply text-neutral-500 dark:text-neutral-400;
+}
+
+.marketplace-empty i {
+    @apply text-5xl mb-4 opacity-40;
+}
+
+.marketplace-empty p {
+    @apply text-lg font-medium;
+}
+
+/* === Detail: Back link === */
+.marketplace-back {
+    @apply text-sm font-medium no-underline;
+    @apply text-neutral-400 dark:text-neutral-500;
+    @apply transition-colors duration-200;
+}
+
+.marketplace-back:hover {
+    @apply text-neutral-700 dark:text-neutral-300;
+}
+
+.marketplace-back i {
+    @apply mr-1;
+}
+
+/* === Detail: Page header === */
+.marketplace-detail-header {
+    @apply flex items-center justify-center gap-3;
+    @apply py-2.5 px-7 rounded-full;
+    @apply bg-neutral-100 dark:bg-neutral-800;
+    @apply border border-neutral-300 dark:border-neutral-600;
+    @apply shadow-sm;
+}
+
+.page-header:has(.marketplace-detail-header) .page-title {
+    @apply mb-3;
+}
+
+.page-header:has(.marketplace-detail-header) .page-header-intro {
+    @apply text-neutral-600 dark:text-neutral-400;
+}
+
+/* Detail icon */
+.marketplace-detail-icon {
+    @apply w-7 h-7 flex items-center justify-center text-sm rounded-full;
+}
+
+/* Detail badge (no background in header context) */
+.marketplace-detail-header .marketplace-type-badge {
+    @apply bg-transparent font-bold;
+}
+
+/* Detail source link */
+.marketplace-detail-header .btn-link {
+    @apply mt-0 text-base font-semibold;
+    @apply text-neutral-800 dark:text-neutral-200;
+}
+
+.marketplace-detail-header .btn-link:hover {
+    @apply text-neutral-950 dark:text-white;
+}
+
+/* Theme detail: orange accents */
+.marketplace-detail-header:has(.marketplace-type-theme) .marketplace-detail-icon {
+    background: var(--color-pop-200);
+    color: var(--color-pop-700);
+}
+
+:is(.dark, .dark *) .marketplace-detail-header:has(.marketplace-type-theme) .marketplace-detail-icon {
+    background: var(--color-pop-800);
+    color: var(--color-pop-300);
+}
+
+.marketplace-detail-header:has(.marketplace-type-theme) .marketplace-type-badge {
+    color: var(--color-pop-800);
+}
+
+:is(.dark, .dark *) .marketplace-detail-header:has(.marketplace-type-theme) .marketplace-type-badge {
+    color: var(--color-pop-300);
+}
+
+/* Plugin detail: cyan accents */
+.marketplace-detail-header:has(.marketplace-type-plugin) .marketplace-detail-icon {
+    @apply bg-accent-200 text-accent-700;
+}
+
+:is(.dark, .dark *) .marketplace-detail-header:has(.marketplace-type-plugin) .marketplace-detail-icon {
+    @apply bg-accent-800 text-accent-300;
+}
+
+.marketplace-detail-header:has(.marketplace-type-plugin) .marketplace-type-badge {
+    @apply text-accent-800 dark:text-accent-300;
+}
+
+/* Web detail: emerald accents */
+.marketplace-detail-header:has(.marketplace-type-web) .marketplace-detail-icon {
+    @apply bg-emerald-200 text-emerald-700;
+}
+
+:is(.dark, .dark *) .marketplace-detail-header:has(.marketplace-type-web) .marketplace-detail-icon {
+    @apply bg-emerald-800 text-emerald-300;
+}
+
+.marketplace-detail-header:has(.marketplace-type-web) .marketplace-type-badge {
+    @apply text-emerald-800 dark:text-emerald-300;
+}
+
+/* === Detail: Sections === */
+.marketplace-section {
+    @apply mb-6;
+}
+
+.marketplace-section-title,
+.marketplace-section h2 {
+    @apply text-xl font-semibold mb-4 mt-8;
+}
+
+.marketplace-section-title:first-child,
+.marketplace-section:first-child h2 {
+    @apply mt-0;
+}
+
+.marketplace-section .roq-terminal {
+    @apply max-w-lg;
+}
+
+.marketplace-detail-links {
+    @apply flex flex-wrap gap-3 mt-8 px-4 pb-6;
+}
+
+/* === Detail: Gallery override === */
+.page-content:has(.marketplace-section) .roq-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.page-content:has(.marketplace-section) .roq-gallery img {
+    @apply h-auto object-contain;
+}

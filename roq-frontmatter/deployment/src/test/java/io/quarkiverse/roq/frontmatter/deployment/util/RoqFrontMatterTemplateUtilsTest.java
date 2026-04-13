@@ -44,36 +44,70 @@ public class RoqFrontMatterTemplateUtilsTest {
         assertFalse(id.endsWith(".html"), "Theme layout ID should not contain file extension");
     }
 
-    // ── isHtmlPartial ────────────────────────────────────────────────────
+    // ── isPartialHtmlDocument ───────────────────────────────────────────
 
     @Test
     @DisplayName("HTML fragment without document markers is detected as partial")
     void htmlPartialDetected() {
-        assertTrue(RoqFrontMatterTemplateUtils.isHtmlPartial("<div>hello</div>", true));
+        assertTrue(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<div>hello</div>", true));
     }
 
     @Test
     @DisplayName("Full HTML document with DOCTYPE is not a partial")
     void fullHtmlDoctypeNotPartial() {
-        assertFalse(RoqFrontMatterTemplateUtils.isHtmlPartial("<!DOCTYPE html><html><body></body></html>", true));
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<!DOCTYPE html><html><body></body></html>", true));
     }
 
     @Test
     @DisplayName("Full HTML document with <html> tag is not a partial")
     void fullHtmlTagNotPartial() {
-        assertFalse(RoqFrontMatterTemplateUtils.isHtmlPartial("<html><body></body></html>", true));
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<html><body></body></html>", true));
     }
 
     @Test
     @DisplayName("Detection is case insensitive for document markers")
     void htmlPartialCaseInsensitive() {
-        assertFalse(RoqFrontMatterTemplateUtils.isHtmlPartial("<HTML><BODY></BODY></HTML>", true));
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<HTML><BODY></BODY></HTML>", true));
     }
 
     @Test
     @DisplayName("Non-HTML content is never considered a partial")
     void nonHtmlNotPartial() {
-        assertFalse(RoqFrontMatterTemplateUtils.isHtmlPartial("<div>hello</div>", false));
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<div>hello</div>", false));
+    }
+
+    @Test
+    @DisplayName("Complete HTML with leading whitespace is not a partial")
+    void completeHtmlWithLeadingWhitespace() {
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("   \n\t<!DOCTYPE html><html>", true));
+    }
+
+    @Test
+    @DisplayName("Complete HTML with leading comment is not a partial")
+    void completeHtmlWithLeadingComment() {
+        assertFalse(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("<!-- Comment -->\n<!DOCTYPE html><html>", true));
+    }
+
+    @Test
+    @DisplayName("HTML in code example is still detected as partial")
+    void htmlInCodeExampleIsPartial() {
+        String content = """
+                = AsciiDoc Document
+
+                Example:
+                [source,html]
+                ----
+                <!DOCTYPE html>
+                <html><body>Example</body></html>
+                ----
+                """;
+        assertTrue(RoqFrontMatterTemplateUtils.isPartialHtmlDocument(content, true));
+    }
+
+    @Test
+    @DisplayName("Empty content is detected as partial")
+    void emptyContentIsPartial() {
+        assertTrue(RoqFrontMatterTemplateUtils.isPartialHtmlDocument("", true));
     }
 
     // ── hasFrontMatter ──────────────────────────────────────────────────

@@ -1,0 +1,53 @@
+/* Theme customization: https://iamroq.dev/theme/default/#css-customization */
+/* Replace these values with any Tailwind color (e.g. var(--color-sky-500)) or custom hex */
+@theme {
+    /* Indigo accent */
+    --color-accent-50: var(--color-indigo-50);
+    --color-accent-100: var(--color-indigo-100);
+    --color-accent-200: var(--color-indigo-200);
+    --color-accent-300: var(--color-indigo-300);
+    --color-accent-400: var(--color-indigo-400);
+    --color-accent-500: var(--color-indigo-500);
+    --color-accent-600: var(--color-indigo-600);
+    --color-accent-700: var(--color-indigo-700);
+    --color-accent-800: var(--color-indigo-800);
+    --color-accent-900: var(--color-indigo-900);
+    --color-accent-950: var(--color-indigo-950);
+
+    /* Rose pop */
+    --color-pop-50: var(--color-rose-50);
+    --color-pop-100: var(--color-rose-100);
+    --color-pop-200: var(--color-rose-200);
+    --color-pop-300: var(--color-rose-300);
+    --color-pop-400: var(--color-rose-400);
+    --color-pop-500: var(--color-rose-500);
+    --color-pop-600: var(--color-rose-600);
+    --color-pop-700: var(--color-rose-700);
+    --color-pop-800: var(--color-rose-800);
+    --color-pop-900: var(--color-rose-900);
+    --color-pop-950: var(--color-rose-950);
+}
+
+/* Light sidebar in light mode, dark sidebar in dark mode */
+@theme {
+    --color-sidebar: var(--color-indigo-800);
+    --color-sidebar-heading: var(--color-indigo-950);
+    --color-sidebar-muted: var(--color-indigo-500);
+    --color-sidebar-subtle: rgba(0, 0, 0, 0.08);
+    --color-sidebar-border: var(--color-indigo-200);
+    --sidebar-bg: linear-gradient(180deg, var(--color-indigo-50) 0%, var(--color-indigo-100) 100%);
+}
+
+.dark {
+    --color-sidebar: var(--color-indigo-200);
+    --color-sidebar-heading: white;
+    --color-sidebar-muted: var(--color-indigo-400);
+    --color-sidebar-subtle: rgba(255, 255, 255, 0.06);
+    --color-sidebar-border: var(--color-indigo-800);
+    --sidebar-bg: linear-gradient(180deg, var(--color-indigo-950) 0%, var(--color-indigo-900) 100%);
+}
+
+/* Mascot logo sizing */
+.roq-hero-logo {
+    @apply w-[180px];
+}

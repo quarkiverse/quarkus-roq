@@ -1,0 +1,122 @@
+/* Post Cards and Home Page */
+
+@layer components {
+
+    /* === Posts Container === */
+    .posts-list {
+        @apply flex flex-col gap-4;
+    }
+
+    /* === Post Card === */
+    .post {
+        /* Mobile: vertical stacking, full width */
+        @apply w-full mx-0 flex flex-col items-stretch min-h-44;
+        @apply overflow-hidden;
+
+        /* Tablet+: horizontal layout */
+        @apply md:flex-row;
+    }
+
+    .post-thumbnail {
+        /* Mobile: full width */
+        @apply w-full min-h-44 bg-cover bg-center;
+        @apply transition-transform duration-500 ease-out;
+
+        /* Tablet+: 30% width */
+        @apply md:w-[30%];
+    }
+
+    .post:hover .post-thumbnail {
+        @apply scale-105;
+    }
+
+    .post-content {
+        /* Mobile: full width */
+        @apply p-4 w-full;
+
+        /* Tablet+: 70% width, extra left padding */
+        @apply md:w-[70%] md:pl-6;
+    }
+
+    .post-content p {
+        @apply mb-2;
+    }
+
+    .post-title {
+        /* Mobile: smaller text */
+        @apply m-0 mb-4 text-xl font-normal;
+
+        /* Tablet+: larger text */
+        @apply md:text-3xl;
+    }
+
+    .post-title a {
+        @apply no-underline text-accent-900;
+        @apply transition-colors duration-200;
+        @apply hover:text-accent-700;
+        @apply dark:text-accent-400 dark:hover:text-accent-300;
+    }
+
+    .post-date,
+    .post-words {
+        @apply text-xs text-neutral-500 dark:text-neutral-400;
+    }
+
+    /* === Pagination === */
+    .pagination {
+        @apply my-12 flex justify-center items-center;
+    }
+
+    .pagination ul {
+        @apply flex items-center gap-3;
+        @apply list-none m-0 p-0;
+    }
+
+    .pagination p {
+        @apply m-0;
+    }
+
+    .pagination .page-number {
+        @apply px-6 py-2 text-sm font-semibold;
+        @apply text-neutral-600 dark:text-neutral-400;
+        @apply flex items-center gap-2;
+    }
+
+    a.older-posts,
+    a.newer-posts {
+        @apply inline-flex items-center gap-2 px-5 py-3;
+        @apply text-sm font-semibold text-neutral-700 no-underline;
+        @apply bg-white border-2 border-neutral-200 rounded-xl;
+        @apply transition-all duration-300 ease-out;
+        @apply hover:bg-pop-600 hover:text-white hover:border-pop-600;
+        @apply hover:shadow-lg;
+        @apply dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700;
+        @apply dark:hover:bg-pop-600 dark:hover:border-pop-600;
+    }
+
+    a.newer-posts {
+        @apply flex-row-reverse;
+    }
+
+    a.older-posts:hover {
+        @apply translate-x-1;
+    }
+
+    a.newer-posts:hover {
+        @apply -translate-x-1;
+    }
+
+    a.older-posts i,
+    a.newer-posts i {
+        @apply transition-transform duration-300;
+        @apply text-base;
+    }
+
+    a.older-posts:hover i {
+        @apply translate-x-1;
+    }
+
+    a.newer-posts:hover i {
+        @apply -translate-x-1;
+    }
+}

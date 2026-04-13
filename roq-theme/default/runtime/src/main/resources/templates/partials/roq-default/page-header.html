@@ -1,0 +1,4 @@
+
+{#if page.data('show-header', true)}
+{#roq/pageHeader title=page.title date=(page.data('show-header-date', true) ? page.date : null) intro=(page.data('show-header-intro', true) ? page.description : null) /}
+{/if}

@@ -1,7 +1,7 @@
 ---
 name: quarkus-roq
 description: "A static site generator (SSG) built on Quarkus. Create websites and blogs from Markdown/AsciiDoc/HTML content with FrontMatter headers, Qute templates, and data files."
-guide: https://iamroq.com/docs/
+guide: https://iamroq.dev/docs/
 ---
 
 # Quarkus Roq
@@ -346,12 +346,12 @@ For RSS feed, create `content/rss.xml`:
 
 Build and export as a static site:
 ```bash
-quarkus build -Dquarkus.roq.generator.batch
+roq generate
 ```
 
 Output goes to `target/roq/`. Preview with:
 ```bash
-quarkus run
+roq serve
 ```
 
 **Key configuration** (`application.properties`):

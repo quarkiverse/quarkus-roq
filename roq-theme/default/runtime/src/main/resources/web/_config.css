@@ -1,0 +1,107 @@
+/* Theme configuration */
+@theme {
+    /* Font families */
+    --font-body: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'Fira Code', ui-monospace, monospace;
+    --default-font-family: var(--font-body);
+
+    /* Change slate to any other color (blue, indigo, sky, purple, red, etc.) to change the theme */
+    --color-accent-50: var(--color-slate-50);
+    --color-accent-100: var(--color-slate-100);
+    --color-accent-200: var(--color-slate-200);
+    --color-accent-300: var(--color-slate-300);
+    --color-accent-400: var(--color-slate-400);
+    --color-accent-500: var(--color-slate-500);
+    --color-accent-600: var(--color-slate-600);
+    --color-accent-700: var(--color-slate-700);
+    --color-accent-800: var(--color-slate-800);
+    --color-accent-900: var(--color-slate-900);
+    --color-accent-950: var(--color-slate-950);
+
+    /* Pop color - the "energy" color for buttons, links, gradients, shimmer */
+    /* Change sky to any other color (orange, indigo, emerald, rose, etc.) */
+    --color-pop-50: var(--color-sky-50);
+    --color-pop-100: var(--color-sky-100);
+    --color-pop-200: var(--color-sky-200);
+    --color-pop-300: var(--color-sky-300);
+    --color-pop-400: var(--color-sky-400);
+    --color-pop-500: var(--color-sky-500);
+    --color-pop-600: var(--color-sky-600);
+    --color-pop-700: var(--color-sky-700);
+    --color-pop-800: var(--color-sky-800);
+    --color-pop-900: var(--color-sky-900);
+    --color-pop-950: var(--color-sky-950);
+
+    /* Neutral colors - change gray to slate, zinc, or stone for different feels */
+    --color-neutral-50: var(--color-gray-50);
+    --color-neutral-100: var(--color-gray-100);
+    --color-neutral-200: var(--color-gray-200);
+    --color-neutral-300: var(--color-gray-300);
+    --color-neutral-400: var(--color-gray-400);
+    --color-neutral-500: var(--color-gray-500);
+    --color-neutral-600: var(--color-gray-600);
+    --color-neutral-700: var(--color-gray-700);
+    --color-neutral-800: var(--color-gray-800);
+    --color-neutral-900: var(--color-gray-900);
+    --color-neutral-950: var(--color-gray-950);
+
+    /* Semantic color aliases */
+    --color-accent: var(--color-accent-900);
+    --color-accent-dark: var(--color-accent-950);
+    --color-bg-light: var(--color-neutral-100);
+
+    /* Decorative gradients */
+    --separator-gradient: linear-gradient(to right, transparent, var(--color-accent-300), transparent);
+    --dot-gradient: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+
+    /* Sidebar colors */
+    --color-sidebar: var(--color-neutral-300);
+    --color-sidebar-heading: white;
+    --color-sidebar-muted: var(--color-neutral-500);
+    --color-sidebar-subtle: rgba(255, 255, 255, 0.06);
+    --color-sidebar-border: var(--color-neutral-700);
+
+    /* Sidebar background (gradient, not a color utility) */
+    --sidebar-bg: linear-gradient(180deg, var(--color-neutral-800) 0%, var(--color-neutral-900) 100%);
+}
+
+
+/* Dark mode configuration - class-based */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+    --sidebar-bg: linear-gradient(180deg, var(--color-neutral-950) 0%, var(--color-neutral-900) 100%);
+}
+
+/* Search overlay styling - using theme colors */
+:root {
+    --search-bg-color: rgba(0, 0, 0, 0.85);
+    --search-input-bg: rgb(255 255 255);
+    --search-input-color: var(--color-accent-900);
+    --search-highlight-color: var(--color-accent-600);
+    --search-result-bg: rgb(255 255 255);
+    --search-hover-bg: var(--color-accent-50);
+    --search-result-text: var(--color-neutral-700);
+    --search-result-title: var(--color-accent-900);
+    --search-placeholder-color: var(--color-neutral-500);
+    --search-border-color: var(--color-accent-200);
+    --search-close-color: var(--color-accent-900);
+    --search-border-radius: 0.5rem;
+    --search-trigger-border-radius: 0.5rem;
+    --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%2352525b"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
+}
+
+.dark {
+    --search-bg-color: rgba(0, 0, 0, 0.92);
+    --search-input-bg: var(--color-neutral-800);
+    --search-input-color: var(--color-neutral-100);
+    --search-highlight-color: var(--color-accent-400);
+    --search-result-bg: var(--color-neutral-800);
+    --search-hover-bg: var(--color-neutral-700);
+    --search-result-text: var(--color-neutral-300);
+    --search-result-title: var(--color-accent-400);
+    --search-placeholder-color: var(--color-neutral-500);
+    --search-border-color: var(--color-accent-700);
+    --search-close-color: var(--color-accent-400);
+    --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%23a1a1aa"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
+}

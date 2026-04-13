@@ -70,8 +70,7 @@ public abstract class AbstractRoqTest {
                 .body(containsString("<h1 class=\"page-title\">K8S Post</h1>"))
                 .body(containsString("<code class=\"language-yaml\">---"))
                 .body(containsString("This is an attached file: /hello.txt"))
-                .body(containsString("Legacy: /static/assets/images/legacy.png"))
-                .body(containsString("ROQ overridden"));
+                .body(containsString("Legacy: /static/assets/images/legacy.png"));
     }
 
     @Test
@@ -89,38 +88,16 @@ public abstract class AbstractRoqTest {
     }
 
     @Test
-    public void testCodestartPost() {
-        RestAssured.when().get("/posts/the-first-roq").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("The First Roq! - Hello, world! I'm Roq"))
-                .body(containsString("You can access page data like this"));
-    }
-
-    @Test
-    public void testCodestartAbout() {
-        RestAssured.when().get("/about").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("About - Hello, world! I'm Roq"))
-                .body(containsString(
-                        "Roq is a powerful static site generator that combines the best features of tools like Jekyll and Hugo"))
-                .body(containsString("Roqqy Balboa"));
-    }
-
-    @Test
     public void testPublicFiles() {
         RestAssured.when().get("/hello.txt").then().statusCode(200).log().ifValidationFails()
                 .body(equalTo("Hello {world}"));
     }
 
     @Test
-    public void testCodestart404() {
-        RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("Oops! Roq is saying 404 - Hello, world! I'm Roq"));
-    }
-
-    @Test
-    public void testCodestartIndex() {
+    public void testIndex() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
-                .body(containsString("Ready to Roq my world!"));
+                .body(containsString("Roq integration tests index page"));
     }
 
     public static class RoqAndRollProfile implements QuarkusTestProfile {

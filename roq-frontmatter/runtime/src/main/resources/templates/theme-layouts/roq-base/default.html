@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {#insert head-meta}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {#seo page site/}
+  {#favicon site/}
+  {#bundle /}
+  {/insert}
+  {#insert head /}
+</head>
+<body {#if page.data.body-class??}class="{page.data.body-class}"{/}>
+  {#insert /}
+</body>
+</html>

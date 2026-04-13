@@ -44,11 +44,11 @@ public class AsciidoctorJConverter {
 
     public Options createOptions(Map<String, String> asciidocAttributes, RoqTemplateAttributes templateAttributes) {
         final AttributesBuilder attributes = Attributes.builder()
-                .showTitle(true)
-                .attribute("sitegen", "roq")
-                .attribute("relfileprefix", "../")
-                .attribute("relfilesuffix", "/")
-                .attribute("noheader", true);
+                .attribute("showtitle@", "")
+                .attribute("sitegen@", "roq")
+                .attribute("relfileprefix@", "../")
+                .attribute("relfilesuffix@", "/")
+                .attribute("noheader@", "");
         if (templateAttributes.pageUrl() != null) {
             attributes.attribute("page-url", templateAttributes.pageUrl());
         }
