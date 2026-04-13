@@ -11,13 +11,12 @@ This command:
 [source,shell]
 ----
 roq generate
-roq serve
 ----
 
-🚀 The site will be generated in `target/roq`.
+🚀 The site will be generated in `target/roq`, use `roq serve` to serve it.
 
 
-Here is a one-liner using Maven:
+Without the Roq CLI using Maven:
 
 [source,shell]
 ----
