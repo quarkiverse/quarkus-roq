@@ -13,44 +13,44 @@ public class RoqErrorsTest extends AbstractRoqTest {
     @Test
     public void testErrorFilePage() {
         RestAssured.when().get("/posts/error-file").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: Only page directories with an index can have attached files. Then add 'not-found.pdf' to the page directory to fix this error."));
+                "Cannot attach file &#39;not-found.pdf&#39; to this page."));
     }
 
     @Test
     public void testErrorImagePage() {
         RestAssured.when().get("/posts/error-image").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: File 'images/not-found.png' not found in public dir"));
+                "&#39;images/not-found.png&#39; not found in the public directory"));
     }
 
     @Test
     public void testErrorImagePageDir() {
         RestAssured.when().get("/posts/error-image-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "File 'images/not-found.png' not found in public dir"));
+                "&#39;images/not-found.png&#39; not found in the public directory"));
     }
 
     @Test
     public void testErrorFilePageDir() {
         RestAssured.when().get("/posts/error-file-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "Page 'posts/error-file-dir/index.md': can't find 'not-found.pdf' in  'posts/error-file-dir' which has no attached static file."));
+                "&#39;not-found.pdf&#39; not found in"));
     }
 
     @Test
     public void testErrorFilePageDirNotFound() {
         RestAssured.when().get("/posts/error-image-not-found").then().statusCode(500).log().ifValidationFails()
                 .body(containsString(
-                        " Page 'posts/error-image-not-found/index.md': file 'not-found.png' not found in 'posts/error-image-not-found' directory (found: hello.png)."));
+                        "&#39;not-found.png&#39; not found in"));
     }
 
     @Test
     public void testErrorImageSite() {
         RestAssured.when().get("/error-image-site").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "RoqStaticFileException: File 'images/not-found.png' not found in public dir"));
+                "&#39;images/not-found.png&#39; not found in the public directory"));
     }
 
     @Test
     public void testErrorStaticFileSite() {
         RestAssured.when().get("/error-static-file").then().statusCode(500).log().ifValidationFails()
-                .body(containsString("RoqStaticFileException: File 'not-found.pdf' not found in public dir"));
+                .body(containsString("&#39;not-found.pdf&#39; not found in the public directory"));
     }
 
 }
