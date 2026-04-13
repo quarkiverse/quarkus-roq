@@ -15,6 +15,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkus.builder.item.SimpleBuildItem;
 
@@ -93,8 +94,10 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
             // 5. theme-layout: no "/" + from content/user -> theme-layouts/{active}/foo
             if (activeTheme.isEmpty()) {
                 throw new RoqThemeConfigurationException(
-                        "No theme detected! Using 'theme-layout: %s' requires a theme dependency."
-                                .formatted(layoutValue));
+                        RoqException.builder("No theme configured")
+                                .detail("'theme-layout: %s' requires a theme, but no theme dependency was detected."
+                                        .formatted(layoutValue))
+                                .hint("Add a Roq theme dependency to your project, or use 'layout:' instead of 'theme-layout:'."));
             }
             return findOrFail(THEME_LAYOUTS_DIR + activeTheme.get() + "/" + value, layoutValue);
         }
@@ -130,7 +133,7 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
         if (layoutsById.containsKey(id)) {
             return id;
         }
-        throw new RoqLayoutNotFoundException(buildError(errorName, List.of(id)));
+        throw new RoqLayoutNotFoundException(buildErrorBuilder(errorName, List.of(id)));
     }
 
     private String firstMatchOrFail(String layoutValue, List<String> candidates) {
@@ -139,7 +142,7 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
                 return candidate;
             }
         }
-        throw new RoqLayoutNotFoundException(buildError(layoutValue, candidates));
+        throw new RoqLayoutNotFoundException(buildErrorBuilder(layoutValue, candidates));
     }
 
     private static String stripThemeDirPrefix(String value) {
@@ -148,13 +151,13 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
         return slash >= 0 ? afterDir.substring(slash + 1) : afterDir;
     }
 
-    private String buildError(String originalName, List<String> candidates) {
+    private RoqException.Builder buildErrorBuilder(String originalName, List<String> candidates) {
         String available = layoutsById.keySet().stream()
                 .limit(20)
                 .collect(Collectors.joining(", ", "[", layoutsById.size() > 20 ? ", ...]" : "]"));
-        return "Layout '%s' could not be resolved. Tried:\n%s\nAvailable layouts: %s".formatted(
-                originalName,
-                String.join("\n", candidates.stream().map(s -> "  - " + s).toList()),
-                available);
+        String tried = String.join("\n", candidates.stream().map(s -> "  - " + s).toList());
+        return RoqException.builder("Layout not found")
+                .detail("Layout '%s' could not be resolved. Tried:\n%s".formatted(originalName, tried))
+                .hint("Available layouts: %s".formatted(available));
     }
 }

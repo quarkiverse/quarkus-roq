@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqSiteIndexNotFoundException extends RuntimeException {
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 
-    public RoqSiteIndexNotFoundException(String message) {
-        super(message);
+public class RoqSiteIndexNotFoundException extends RoqException {
+
+    public RoqSiteIndexNotFoundException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqSiteIndexNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

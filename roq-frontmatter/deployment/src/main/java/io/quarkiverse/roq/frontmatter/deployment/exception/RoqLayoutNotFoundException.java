@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqLayoutNotFoundException extends RuntimeException {
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 
-    public RoqLayoutNotFoundException(String message) {
-        super(message);
+public class RoqLayoutNotFoundException extends RoqException {
+
+    public RoqLayoutNotFoundException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqLayoutNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

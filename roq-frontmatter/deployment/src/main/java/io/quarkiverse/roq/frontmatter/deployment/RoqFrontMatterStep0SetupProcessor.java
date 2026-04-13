@@ -20,6 +20,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataMo
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.web.bundler.spi.items.WebBundlerWatchedDirBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -70,7 +71,11 @@ public class RoqFrontMatterStep0SetupProcessor {
                 return readFM(jackson.getYamlMapper(), c.content());
             } catch (JsonProcessingException | IllegalArgumentException e) {
                 throw new RoqFrontMatterReadingException(
-                        "Error reading YAML FrontMatter block (enclosed by '---') in file: %s".formatted(c.templatePath()));
+                        RoqException.builder("Front matter reading error")
+                                .sourceFilePath(c.templatePath())
+                                .detail("Failed to parse the YAML front matter block (enclosed by '---').")
+                                .hint("Check that the YAML syntax between the --- delimiters is valid.")
+                                .cause(e));
             }
         }, RoqFrontMatterTemplateUtils::stripFrontMatter, FRONTMATTER_HEADER_PARSER_PRIORITY);
     }

@@ -27,6 +27,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterReco
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -132,6 +133,7 @@ class RoqFrontMatterStep5RecordProcessor {
         if (rootUrlItem == null) {
             return;
         }
+        List<RoqFrontMatterPublishNormalPageBuildItem> siteIndexPages = new ArrayList<>();
         for (RoqFrontMatterPublishNormalPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
                     page.source(), page.data(), page.paginator());
@@ -139,8 +141,20 @@ class RoqFrontMatterStep5RecordProcessor {
             normalPagesProducer
                     .produce(new RoqFrontMatterRecordedNormalPageBuildItem(page.source().id(), page.url(), recordedPage));
             if (page.source().isSiteIndex()) {
-                indexPageProducer.produce(new RoqFrontMatterRecordedSiteIndexBuildItem(recordedPage));
+                siteIndexPages.add(page);
+                if (siteIndexPages.size() == 1) {
+                    indexPageProducer.produce(new RoqFrontMatterRecordedSiteIndexBuildItem(recordedPage));
+                }
             }
+        }
+        if (siteIndexPages.size() > 1) {
+            String paths = siteIndexPages.stream()
+                    .map(p -> "'" + p.source().path() + "'")
+                    .collect(Collectors.joining(", "));
+            throw new RoqSiteIndexNotFoundException(
+                    RoqException.builder("Multiple site index pages found")
+                            .detail("Found %d index pages: %s".formatted(siteIndexPages.size(), paths))
+                            .hint("Remove the extra index files so only a single site index remains."));
         }
     }
 
@@ -163,7 +177,9 @@ class RoqFrontMatterStep5RecordProcessor {
         // Create Site bean
         if (indexPageItem == null) {
             throw new RoqSiteIndexNotFoundException(
-                    "Site index page (index.html, index.md, etc.) not found. A site index is required by Roq. Please create one to continue.");
+                    RoqException.builder("Site index not found")
+                            .detail("No site index page (index.html, index.md, etc.) was found.")
+                            .hint("Create an index file in your content or templates directory."));
 
         }
         final Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionsMap = collectionItems.stream().collect(
@@ -201,9 +217,10 @@ class RoqFrontMatterStep5RecordProcessor {
                     continue;
                 } else {
                     throw new RoqPathConflictException(
-                            "Conflict detected: Duplicate path (%s) found in %s and %s".formatted(i.url().resourcePath(),
-                                    prev.id(),
-                                    i.id()));
+                            RoqException.builder("Path conflict")
+                                    .detail("Duplicate path '%s' produced by both '%s' and '%s'.".formatted(
+                                            i.url().resourcePath(), prev.id(), i.id()))
+                                    .hint("Ensure each page resolves to a unique URL path, or use 'link:' in front matter to customize the output path."));
                 }
             }
             allPagesByPath.put(i.url().resourcePath(), i.page());
