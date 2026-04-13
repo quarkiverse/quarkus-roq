@@ -1,4 +1,4 @@
 release:
-  current-version: 2.1.0.BETA2
+  current-version: 2.1.0.CR1
   next-version: "999-SNAPSHOT"
 
