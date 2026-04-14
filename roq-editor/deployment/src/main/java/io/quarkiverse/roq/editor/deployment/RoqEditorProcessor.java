@@ -58,7 +58,7 @@ class RoqEditorProcessor {
                 : c.getOptionalValue("quarkus.http.port", String.class).orElse("8080");
 
         String protocol = isInsecureDisabled ? "https" : "http";
-        context.reset(new ConsoleCommand('c', "Open the Roq Editor in a browser", null,
+        context.reset(new ConsoleCommand('a', "Open the Roq Editor in a browser (Admin)", null,
                 () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/quarkus-roq-editor/roq-editor", host, port)));
     }
 
