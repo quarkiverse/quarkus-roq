@@ -3,7 +3,7 @@
   "aliases": {
     "roq": {
       "description": "Roq CLI - static site generator",
-      "script-ref": "https://repo1.maven.org/maven2/io/quarkiverse/roq/quarkus-roq-cli/2.1.0.CR1/quarkus-roq-cli-2.1.0.CR1-runner.jar"
+      "script-ref": "https://repo1.maven.org/maven2/io/quarkiverse/roq/quarkus-roq-cli/2.1.0/quarkus-roq-cli-2.1.0-runner.jar"
     }
   },
   "templates": {}
