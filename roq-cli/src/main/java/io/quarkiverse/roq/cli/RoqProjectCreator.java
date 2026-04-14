@@ -96,7 +96,8 @@ public class RoqProjectCreator {
         }
 
         // Add default theme when no theme extension is specified
-        if (allExtensions.stream().noneMatch(e -> e.contains("roq-theme-"))) {
+        if ((extensions == null || extensions.stream().noneMatch(e -> e.trim().startsWith("theme:")))
+                && allExtensions.stream().noneMatch(e -> e.contains("roq-theme-"))) {
             allExtensions.add(withVersion(ROQ_PREFIX + "theme-default"));
         }
 

@@ -7,14 +7,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import jakarta.inject.Inject;
+
 import io.quarkus.cli.common.OutputOptionMixin;
 import io.quarkus.cli.common.OutputProvider;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
+@QuarkusMain
 @Command(name = "roq", mixinStandardHelpOptions = true, subcommands = { StartCommand.class, ServeCommand.class,
         CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class })
-public class RoqMain implements Callable<Integer>, OutputProvider {
+public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputProvider {
+
+    @Inject
+    CommandLine.IFactory factory;
 
     @CommandLine.Mixin(name = "output")
     OutputOptionMixin output;
@@ -27,10 +36,14 @@ public class RoqMain implements Callable<Integer>, OutputProvider {
         return output;
     }
 
-    public static void main(String[] args) {
-        System.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
-        int exitCode = new CommandLine(new RoqMain()).execute(args);
-        System.exit(exitCode);
+    public static void main(String... args) {
+        Quarkus.run(RoqMain.class, args);
+    }
+
+    @Override
+    public int run(String... args) throws Exception {
+        CommandLine cmd = factory == null ? new CommandLine(this) : new CommandLine(this, factory);
+        return cmd.execute(args);
     }
 
     @Override
@@ -39,7 +52,8 @@ public class RoqMain implements Callable<Integer>, OutputProvider {
             List<String> args = new ArrayList<>();
             args.add("start");
             args.addAll(unmatched);
-            return new CommandLine(this).execute(args.toArray(new String[0]));
+            CommandLine cmd = factory == null ? new CommandLine(this) : new CommandLine(this, factory);
+            return cmd.execute(args.toArray(new String[0]));
         }
         new CommandLine(this).usage(System.out);
         return CommandLine.ExitCode.OK;
