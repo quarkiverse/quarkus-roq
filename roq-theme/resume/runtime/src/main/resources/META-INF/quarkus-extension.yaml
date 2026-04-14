@@ -9,7 +9,7 @@ metadata:
     - tailwind
     - css
     - roq
-  guide: https://iamroq.dev/theme/resume/
+  guide: https://iamroq.dev/theme/resume-theme/
   icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
   categories:
     - "web"
