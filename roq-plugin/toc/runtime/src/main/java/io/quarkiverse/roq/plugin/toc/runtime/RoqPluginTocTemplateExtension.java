@@ -59,9 +59,8 @@ public class RoqPluginTocTemplateExtension {
 
     /**
      * Returns a pre-rendered HTML navigation block for the table of contents.
-     * The {@code <nav>} receives an {@code aria-label} sourced from the {@code content-toc-title}
-     * frontmatter key (defaults to {@code "Table of contents"}). Each {@code
-     * <li>} carries a
+     * The nav element receives an {@code aria-label} sourced from the {@code content-toc-title}
+     * frontmatter key (defaults to {@code "Table of contents"}). Each list item carries a
      * {@code data-level} attribute with 0-indexed depth (h1 → 0, h2 → 1, …), matching the
      * convention used by the default theme's {@code toc.js}.
      * <p>
