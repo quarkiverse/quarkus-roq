@@ -1,7 +1,11 @@
 package io.quarkiverse.roq.plugin.toc.runtime;
 
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.applyMaxLevel;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.buildHierarchy;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.extractHeadings;
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.extractTocFromHtml;
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.isContentTocEnabled;
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.renderTocHtml;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -11,6 +15,7 @@ import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.HeadingInfo;
+import io.vertx.core.json.JsonObject;
 
 public class RoqPluginTocTemplateExtensionTest {
 
@@ -244,32 +249,24 @@ public class RoqPluginTocTemplateExtensionTest {
 
     @Test
     void shouldRenderTocHtml() {
-        List<HeadingInfo> headings = List.of(
+        List<TocEntry> entries = buildHierarchy(List.of(
                 new HeadingInfo("intro", "Introduction", 2),
-                new HeadingInfo("details", "Details", 3));
+                new HeadingInfo("details", "Details", 3)));
 
-        List<TocEntry> entries = buildHierarchy(headings);
-        StringBuilder sb = new StringBuilder();
-        sb.append("<nav class=\"roq-toc\">\n");
-        renderEntriesViaReflection(sb, entries);
-        sb.append("</nav>\n");
+        String html = renderTocHtml(entries, "Contents");
 
-        String html = sb.toString();
         assertThat(html).contains("<a href=\"#intro\">Introduction</a>");
         assertThat(html).contains("<a href=\"#details\">Details</a>");
-        assertThat(html).contains("<nav class=\"roq-toc\">");
+        assertThat(html).contains("<nav class=\"roq-toc\" aria-label=\"Contents\">");
     }
 
     @Test
     void shouldEscapeSpecialCharactersInTocHtml() {
-        List<HeadingInfo> headings = List.of(
-                new HeadingInfo("q&a", "Q&A: <Questions> \"Answered\"", 2));
+        List<TocEntry> entries = buildHierarchy(List.of(
+                new HeadingInfo("q&a", "Q&A: <Questions> \"Answered\"", 2)));
 
-        List<TocEntry> entries = buildHierarchy(headings);
-        StringBuilder sb = new StringBuilder();
-        renderEntriesViaReflection(sb, entries);
+        String html = renderTocHtml(entries, "Contents");
 
-        String html = sb.toString();
         assertThat(html).contains("&amp;A:");
         assertThat(html).contains("&lt;Questions&gt;");
         assertThat(html).contains("&quot;Answered&quot;");
@@ -277,17 +274,119 @@ public class RoqPluginTocTemplateExtensionTest {
         assertThat(html).doesNotContain("<Questions>");
     }
 
-    /**
-     * Helper to call the private renderEntries method for testing.
-     */
-    private void renderEntriesViaReflection(StringBuilder sb, List<TocEntry> entries) {
-        try {
-            var method = RoqPluginTocTemplateExtension.class.getDeclaredMethod("renderEntries",
-                    StringBuilder.class, List.class);
-            method.setAccessible(true);
-            method.invoke(null, sb, entries);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    // --- New tests: data-level attribute ---
+
+    @Test
+    void shouldEmitZeroIndexedDataLevelOnListItems() {
+        // h1 → data-level="0", h2 → "1", h3 → "2" — matches toc.js convention
+        List<TocEntry> entries = buildHierarchy(List.of(
+                new HeadingInfo("root", "Root", 1),
+                new HeadingInfo("child", "Child", 2),
+                new HeadingInfo("grandchild", "Grandchild", 3)));
+
+        String html = renderTocHtml(entries, "Contents");
+
+        assertThat(html).contains("<li data-level=\"0\">");
+        assertThat(html).contains("<li data-level=\"1\">");
+        assertThat(html).contains("<li data-level=\"2\">");
+    }
+
+    // --- New tests: aria-label ---
+
+    @Test
+    void shouldUseProvidedLabelAsAriaLabel() {
+        List<TocEntry> entries = buildHierarchy(List.of(new HeadingInfo("h", "H", 2)));
+
+        String html = renderTocHtml(entries, "On this page");
+
+        assertThat(html).contains("<nav class=\"roq-toc\" aria-label=\"On this page\">");
+    }
+
+    @Test
+    void shouldEscapeAriaLabelValue() {
+        List<TocEntry> entries = buildHierarchy(List.of(new HeadingInfo("h", "H", 2)));
+
+        String html = renderTocHtml(entries, "A & B <C> \"D\"");
+
+        assertThat(html).contains("aria-label=\"A &amp; B &lt;C&gt; &quot;D&quot;\"");
+    }
+
+    // --- New tests: content-toc gate ---
+
+    @Test
+    void shouldTreatMissingContentTocAsEnabled() {
+        assertThat(isContentTocEnabled(null)).isTrue();
+        assertThat(isContentTocEnabled(new JsonObject())).isTrue();
+    }
+
+    @Test
+    void shouldTreatContentTocFalseAsDisabled() {
+        JsonObject data = new JsonObject().put("content-toc", false);
+        assertThat(isContentTocEnabled(data)).isFalse();
+    }
+
+    @Test
+    void shouldTreatContentTocTrueAsEnabled() {
+        JsonObject data = new JsonObject().put("content-toc", true);
+        assertThat(isContentTocEnabled(data)).isTrue();
+    }
+
+    // --- New tests: content-toc-levels filter ---
+
+    @Test
+    void shouldReturnOriginalTreeWhenMaxLevelIsSixOrMore() {
+        List<TocEntry> entries = buildHierarchy(List.of(
+                new HeadingInfo("h2", "H2", 2),
+                new HeadingInfo("h3", "H3", 3)));
+
+        assertThat(applyMaxLevel(entries, 6)).isSameAs(entries);
+    }
+
+    @Test
+    void shouldCapHeadingsByMaxLevel() {
+        List<TocEntry> entries = buildHierarchy(List.of(
+                new HeadingInfo("h1", "H1", 1),
+                new HeadingInfo("h2", "H2", 2),
+                new HeadingInfo("h3", "H3", 3),
+                new HeadingInfo("h4", "H4", 4)));
+
+        List<TocEntry> filtered = applyMaxLevel(entries, 2);
+
+        // Only h1 and h2 should remain; h3 and h4 pruned
+        assertThat(filtered).hasSize(1);
+        TocEntry root = filtered.get(0);
+        assertThat(root.id()).isEqualTo("h1");
+        assertThat(root.children()).hasSize(1);
+        assertThat(root.children().get(0).id()).isEqualTo("h2");
+        assertThat(root.children().get(0).children()).isEmpty();
+    }
+
+    @Test
+    void shouldNotMutateOriginalEntriesWhenFiltering() {
+        List<TocEntry> entries = buildHierarchy(List.of(
+                new HeadingInfo("h2", "H2", 2),
+                new HeadingInfo("h3", "H3", 3)));
+
+        applyMaxLevel(entries, 2);
+
+        // The original h2 entry should still have its h3 child
+        assertThat(entries.get(0).children()).hasSize(1);
+    }
+
+    // --- New tests: extractTocFromHtml end-to-end ---
+
+    @Test
+    void shouldExtractTocFromMarkdownHtml() {
+        String html = """
+                <h2 id="intro">Introduction</h2>
+                <h3 id="details">Details</h3>
+                """;
+
+        List<TocEntry> entries = extractTocFromHtml(html);
+
+        assertThat(entries).hasSize(1);
+        assertThat(entries.get(0).id()).isEqualTo("intro");
+        assertThat(entries.get(0).children()).hasSize(1);
+        assertThat(entries.get(0).children().get(0).id()).isEqualTo("details");
     }
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,6 +19,7 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.qute.RawString;
 import io.quarkus.qute.TemplateExtension;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Qute template extension that provides table of contents generation for pages.
@@ -26,22 +29,42 @@ import io.quarkus.qute.TemplateExtension;
 @Unremovable
 public class RoqPluginTocTemplateExtension {
 
+    static final Map<String, CachedToc> CACHE = new ConcurrentHashMap<>();
+
+    record CachedToc(int contentHash, List<TocEntry> entries) {
+    }
+
     /**
      * Returns a structured list of TOC entries extracted from the page's rendered HTML content.
+     * Honors the {@code content-toc} (opt-out, default {@code true}) and {@code content-toc-levels}
+     * (max heading tag level 1–6, default 6) frontmatter keys.
+     * <p>
      * Usage in Qute templates: {@code {page.toc}}
+     * <p>
+     * The returned list and its entries should be treated as immutable by callers — they may be
+     * shared across renders via an internal content-hash-keyed cache.
      */
     public static List<TocEntry> toc(Page page) {
+        if (!isContentTocEnabled(page.data())) {
+            return List.of();
+        }
         String html = resolvePageContent(page);
         if (html == null || html.isBlank()) {
             return List.of();
         }
-        Document doc = Jsoup.parse(html);
-        List<HeadingInfo> headings = extractHeadings(doc);
-        return buildHierarchy(headings);
+        List<TocEntry> fullEntries = extractTocFromHtmlCached(page, html);
+        int maxLevel = page.data().getInteger("content-toc-levels", 6);
+        return applyMaxLevel(fullEntries, maxLevel);
     }
 
     /**
      * Returns a pre-rendered HTML navigation block for the table of contents.
+     * The {@code <nav>} receives an {@code aria-label} sourced from the {@code content-toc-title}
+     * frontmatter key (defaults to {@code "Table of contents"}). Each {@code
+     * <li>} carries a
+     * {@code data-level} attribute with 0-indexed depth (h1 → 0, h2 → 1, …), matching the
+     * convention used by the default theme's {@code toc.js}.
+     * <p>
      * Usage in Qute templates: {@code {page.tocHtml}}
      */
     public static RawString tocHtml(Page page) {
@@ -49,16 +72,68 @@ public class RoqPluginTocTemplateExtension {
         if (entries.isEmpty()) {
             return new RawString("");
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("<nav class=\"roq-toc\">\n");
-        renderEntries(sb, entries);
-        sb.append("</nav>\n");
-        return new RawString(sb.toString());
+        String label = page.data().getString("content-toc-title", "Table of contents");
+        return new RawString(renderTocHtml(entries, label));
     }
 
     private static String resolvePageContent(Page page) {
         Site site = Arc.container().instance(Site.class).get();
         return site.pageContent(page);
+    }
+
+    static List<TocEntry> extractTocFromHtmlCached(Page page, String html) {
+        String key = page.url() != null ? page.url().toString() : null;
+        int hash = html.hashCode();
+        if (key != null) {
+            CachedToc cached = CACHE.get(key);
+            if (cached != null && cached.contentHash() == hash) {
+                return cached.entries();
+            }
+        }
+        List<TocEntry> entries = extractTocFromHtml(html);
+        if (key != null) {
+            CACHE.put(key, new CachedToc(hash, entries));
+        }
+        return entries;
+    }
+
+    static List<TocEntry> extractTocFromHtml(String html) {
+        Document doc = Jsoup.parse(html);
+        List<HeadingInfo> headings = extractHeadings(doc);
+        return buildHierarchy(headings);
+    }
+
+    static boolean isContentTocEnabled(JsonObject data) {
+        return data == null || data.getBoolean("content-toc", true);
+    }
+
+    /**
+     * Returns a filtered copy of the entry tree including only entries whose heading level
+     * is {@code <= maxLevel}. The original tree is not modified.
+     */
+    static List<TocEntry> applyMaxLevel(List<TocEntry> entries, int maxLevel) {
+        if (maxLevel >= 6) {
+            return entries;
+        }
+        int cap = Math.max(1, Math.min(6, maxLevel));
+        List<TocEntry> filtered = new ArrayList<>();
+        for (TocEntry entry : entries) {
+            if (entry.level() > cap) {
+                continue;
+            }
+            TocEntry copy = new TocEntry(entry.id(), entry.title(), entry.level());
+            copy.children().addAll(applyMaxLevel(entry.children(), cap));
+            filtered.add(copy);
+        }
+        return filtered;
+    }
+
+    static String renderTocHtml(List<TocEntry> entries, String label) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<nav class=\"roq-toc\" aria-label=\"").append(escapeAttr(label)).append("\">\n");
+        renderEntries(sb, entries);
+        sb.append("</nav>\n");
+        return sb.toString();
     }
 
     static List<HeadingInfo> extractHeadings(Document doc) {
@@ -123,7 +198,8 @@ public class RoqPluginTocTemplateExtension {
     private static void renderEntries(StringBuilder sb, List<TocEntry> entries) {
         sb.append("<ul>\n");
         for (TocEntry entry : entries) {
-            sb.append("<li><a href=\"#").append(escapeAttr(entry.id())).append("\">")
+            sb.append("<li data-level=\"").append(entry.level() - 1).append("\">")
+                    .append("<a href=\"#").append(escapeAttr(entry.id())).append("\">")
                     .append(escapeHtml(entry.title())).append("</a>");
             if (!entry.children().isEmpty()) {
                 sb.append('\n');
