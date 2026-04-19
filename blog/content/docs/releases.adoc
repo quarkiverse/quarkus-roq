@@ -83,6 +83,11 @@ Give it a try, it is enabled on this site. If you want this for your site:
 | Applies to | Before | After | Action
 
 | All users
+| `io.quarkiverse.roq.util.PathUtils`
+| `io.quarkiverse.tools.stringpaths.StringPaths`
+| ⚠ Update import and adapt usage
+
+| All users
 | `layout: :theme/foo`
 | `layout: foo` or `theme-layout: foo`
 | ⚠ Update layout references in front matter
