@@ -13,7 +13,7 @@
     <description>Command line interface for Roq static site generator</description>
 
     <properties>
-        <vertx.version>5.0.10</vertx.version>
+        <vertx.version>5.0.11</vertx.version>
     </properties>
 
     <dependencyManagement>
