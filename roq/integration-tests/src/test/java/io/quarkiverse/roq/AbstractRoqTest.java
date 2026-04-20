@@ -93,6 +93,7 @@ public abstract class AbstractRoqTest {
                 .body(equalTo("Hello {world}"));
     }
 
+    @Test
     public void testCodestartIndex() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
                 .body("html.head.title", equalTo("Hello, world! I'm Roq"))
