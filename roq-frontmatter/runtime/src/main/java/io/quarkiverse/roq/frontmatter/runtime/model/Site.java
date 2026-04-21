@@ -206,10 +206,12 @@ public final class Site {
      *
      * @param sourcePath the page source path (e.g. pages/first-page.html) or the generated source path for generated pages (e.g
      *        /index_p2.html).
-     * @return the page or null
+     * @return a PageResult that can be used to safely access the page with orEmpty()
      */
-    public Page page(String sourcePath) {
-        return pagesById.get().containsKey(sourcePath) ? pagesById.get().get(sourcePath) : documentsById.get().get(sourcePath);
+    public PageResult page(String sourcePath) {
+        Page result = pagesById.get().containsKey(sourcePath) ? pagesById.get().get(sourcePath)
+                : documentsById.get().get(sourcePath);
+        return PageResult.of(result);
     }
 
     /**

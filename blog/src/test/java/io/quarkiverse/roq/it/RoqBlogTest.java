@@ -17,13 +17,10 @@ public class RoqBlogTest {
 
     @Test
     public void testIndex() {
-        RestAssured.when().get("/").then().statusCode(200)
-                .log()
-                .everything()
-                .body(containsString("Static</span> Sites"))
-                .body(containsString("Imagined for AI"))
-                .body(containsString("&copy; ROQ"))
-                .body(containsString("<a href=\"https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq\""));
+        RestAssured.when().get("/").then().statusCode(200).log().everything()
+                .body(containsString("Static</span> Sites")).body(containsString("Imagined for AI"))
+                .body(containsString("&copy; ROQ")).body(containsString(
+                        "<a href=\"https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq\""));
     }
 
     @Test
@@ -33,8 +30,10 @@ public class RoqBlogTest {
 
     @Test
     public void testSpecialNameFile() {
-        RestAssured.when().get("/posts/roq-n-roll-your-tests/c'est de la poussière d'étoile.jpg").then().statusCode(200);
-        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.png").then().statusCode(200);
+        RestAssured.when().get("/posts/roq-n-roll-your-tests/c'est de la poussière d'étoile.jpg").then()
+                .statusCode(200);
+        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.png").then()
+                .statusCode(200);
     }
 
     @Test
@@ -47,9 +46,10 @@ public class RoqBlogTest {
 
     @Test
     public void testPostsAsciidoc() {
-        ValidatableResponse body = RestAssured.when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
-                        "Writing content is AsciiDoc format is an absolut no brainer"))
-                .body(containsString("<code class=\"language-shell hljs\" data-lang=\"shell\">roq add plugin:asciidoc</code>"))
+        ValidatableResponse body = RestAssured.when().get("/posts/write-your-blog-posts-in-asciidoc").then()
+                .statusCode(200).body(containsString("Writing content is AsciiDoc format is an absolut no brainer"))
+                .body(containsString(
+                        "<code class=\"language-shell hljs\" data-lang=\"shell\">roq add plugin:asciidoc</code>"))
                 .body(containsString("&copy; ROQ"));
         System.out.println(body.extract().body().asString());
     }
@@ -57,8 +57,7 @@ public class RoqBlogTest {
     @Test
     public void testPage() {
         RestAssured.when().get("/events").then().statusCode(200)
-                .body(containsString("<h2 class=\"event-title\">Roq 2.0</h2>"))
-                .body(containsString("&copy; ROQ"));
+                .body(containsString("<h2 class=\"event-title\">Roq 2.0</h2>")).body(containsString("&copy; ROQ"));
     }
 
     @Test
@@ -69,41 +68,29 @@ public class RoqBlogTest {
 
     @Test
     public void testRss() {
-        RestAssured.when().get("/rss.xml").then().statusCode(200)
-                .body(startsWith("<rss xmlns:dc="))
+        RestAssured.when().get("/rss.xml").then().statusCode(200).body(startsWith("<rss xmlns:dc="))
                 .body(endsWith("</rss>\n"));
     }
 
     @Test
     public void testLlmsTxt() {
-        RestAssured.when().get("/llms.txt").then().statusCode(200)
-                .contentType(containsString("text/plain"))
-                .body(startsWith("# "))
-                .body(containsString("## Posts"))
-                .body(containsString("## Pages"))
-                .body(containsString("[Welcome to Roq!]"))
-                .body(not(containsString("<")));
+        RestAssured.when().get("/llms.txt").then().statusCode(200).contentType(containsString("text/plain"))
+                .body(startsWith("# ")).body(containsString("## Posts")).body(containsString("## Pages"))
+                .body(containsString("[Welcome to Roq!]")).body(not(containsString("<")));
     }
 
     @Test
     public void testLlmsFullTxt() {
-        RestAssured.when().get("/llms-full.txt").then().statusCode(200)
-                .contentType(containsString("text/plain"))
-                .body(startsWith("# "))
-                .body(containsString("## Posts"))
-                .body(containsString("### [Welcome to Roq!]"))
-                .body(not(containsString("<div")))
-                .body(not(containsString("<p>")));
+        RestAssured.when().get("/llms-full.txt").then().statusCode(200).contentType(containsString("text/plain"))
+                .body(startsWith("# ")).body(containsString("## Posts")).body(containsString("### [Welcome to Roq!]"))
+                .body(not(containsString("<div"))).body(not(containsString("<p>")));
     }
 
     @Test
     public void testSitemap() {
-        RestAssured.when().get("/sitemap.xml").then().statusCode(200)
-                .body(containsString("<urlset"))
-                .body(containsString("<loc>/</loc>"))
-                .body(containsString("<loc>/posts/tag/plugin/</loc>"))
-                .body(not(containsString("<loc>/404.html</loc>")))
-                .body(containsString("</urlset>"));
+        RestAssured.when().get("/sitemap.xml").then().statusCode(200).body(containsString("<urlset"))
+                .body(containsString("<loc>/</loc>")).body(containsString("<loc>/posts/tag/plugin/</loc>"))
+                .body(not(containsString("<loc>/404.html</loc>"))).body(containsString("</urlset>"));
     }
 
     @Test

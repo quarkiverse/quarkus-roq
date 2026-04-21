@@ -16,8 +16,6 @@ import jakarta.enterprise.event.Event;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.devmode.RoqErrorPage;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
@@ -29,7 +27,6 @@ import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.qute.runtime.TemplateProducer;
-import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.LocalesBuildTimeConfig;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -124,66 +121,74 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
         String requestPath = RoutingUtils.resolvePath(rc);
         LOG.debugf("Handle page: %s", requestPath);
 
-        // Extract the real template path, e.g. /item.html -> web/item
-        Page page = extractedPaths.computeIfAbsent(requestPath, this::extractTemplatePath);
-        if (page != null) {
-            final String templateId = page.source().template().generatedQuteTemplateId();
-            Template template = templateProducer.get().getInjectableTemplate(templateId);
-            TemplateInstance instance = template.instance();
-            String contentType = template.getVariant().isPresent() ? template.getVariant().get().getContentType()
-                    : MimeMapping.getMimeTypeForFilename(templateId);
-            Charset charset = template.getVariant().isPresent() ? template.getVariant().get().getCharset()
-                    : StandardCharsets.UTF_8;
-            if (contentType != null) {
-                if (contentType.startsWith("text")) {
-                    rc.response().putHeader(HttpHeaders.CONTENT_TYPE,
-                            contentType + ";charset="
-                                    + charset);
-                } else {
-                    rc.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-                }
-            }
-
-            // Compression support - only compress the response if the content type matches the config value
-            if (contentType != null && compressMediaTypes != null
-                    && compressMediaTypes.contains(contentType)) {
-                String contentEncoding = rc.response().headers().get(HttpHeaders.CONTENT_ENCODING);
-                if (contentEncoding != null && HttpHeaders.IDENTITY.toString().equals(contentEncoding)) {
-                    rc.response().headers().remove(HttpHeaders.CONTENT_ENCODING);
-                }
-            }
-
-            instance.data("page", page);
-            instance.data("site", site.get());
-            instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
-            instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
-            instance.renderAsync().whenComplete((r, t) -> {
-                if (t != null) {
-                    Throwable rootCause = rootCause(t);
-                    LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
-                    if (LaunchMode.current().isDevOrTest() && rootCause instanceof RoqException) {
-                        try {
-                            String html = RoqErrorPage.generatePage(rootCause);
-                            rc.response().setStatusCode(500)
-                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=UTF-8")
-                                    .end(html);
-                        } catch (Exception e) {
-                            rc.fail(rootCause);
-                        }
+        try {
+            // Extract the real template path, e.g. /item.html -> web/item
+            Page page = extractedPaths.computeIfAbsent(requestPath, this::extractTemplatePath);
+            if (page != null) {
+                final String templateId = page.source().template().generatedQuteTemplateId();
+                Template template = templateProducer.get().getInjectableTemplate(templateId);
+                TemplateInstance instance = template.instance();
+                String contentType = template.getVariant().isPresent() ? template.getVariant().get().getContentType()
+                        : MimeMapping.getMimeTypeForFilename(templateId);
+                Charset charset = template.getVariant().isPresent() ? template.getVariant().get().getCharset()
+                        : StandardCharsets.UTF_8;
+                if (contentType != null) {
+                    if (contentType.startsWith("text")) {
+                        rc.response().putHeader(HttpHeaders.CONTENT_TYPE,
+                                contentType + ";charset="
+                                        + charset);
                     } else {
-                        rc.fail(rootCause);
+                        rc.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
                     }
-                } else {
-                    rc.response().setStatusCode(200).end(r);
                 }
-            });
-        } else {
-            LOG.debugf("Template page not found: %s", rc.request().path());
-            rc.next();
+
+                // Compression support - only compress the response if the content type matches the config value
+                if (contentType != null && compressMediaTypes != null
+                        && compressMediaTypes.contains(contentType)) {
+                    String contentEncoding = rc.response().headers().get(HttpHeaders.CONTENT_ENCODING);
+                    if (contentEncoding != null && HttpHeaders.IDENTITY.toString().equals(contentEncoding)) {
+                        rc.response().headers().remove(HttpHeaders.CONTENT_ENCODING);
+                    }
+                }
+
+                instance.data("page", page);
+                instance.data("site", site.get());
+                instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
+                instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
+                instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
+                instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+                instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
+                instance.renderAsync().whenComplete((r, t) -> {
+                    if (t != null) {
+                        handleFailure(rc, page, requestPath, t);
+                    } else {
+                        rc.response().setStatusCode(200).end(r);
+                    }
+                });
+            } else {
+                LOG.debugf("Template page not found: %s", rc.request().path());
+                rc.next();
+            }
+        } catch (Throwable t) {
+            handleFailure(rc, null, requestPath, t);
         }
+    }
+
+    private void handleFailure(RoutingContext rc, Page page, String requestPath, Throwable throwable) {
+        Throwable roqCause = RoqErrorPageRenderer.roqCause(throwable);
+        Throwable rootCause = rootCause(throwable);
+        Throwable reportableCause = roqCause != null ? roqCause : rootCause;
+        String target = page != null ? page.id() : requestPath;
+        LOG.errorf("Error occurred while rendering the template [%s]: %s", target, reportableCause.toString());
+        if (roqCause != null) {
+            if (!rc.response().ended()) {
+                rc.response().setStatusCode(500)
+                        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=UTF-8")
+                        .end(RoqErrorPageRenderer.render(rc.request().path(), page, reportableCause));
+            }
+            return;
+        }
+        rc.fail(rootCause);
     }
 
     private Throwable rootCause(Throwable t) {
