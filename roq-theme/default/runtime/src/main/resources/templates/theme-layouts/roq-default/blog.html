@@ -16,7 +16,7 @@ featured: 2
 <div class="blog-list">
 
   {! Featured posts on first page !}
-  {#if page.paginator.isFirst}
+  {#if page.paginator and page.paginator.isFirst}
   <div class="blog-featured-grid">
     {#for post in posts.featured(page.data.featured)}
     {#roq/postCard post /}
@@ -26,7 +26,7 @@ featured: 2
 
   {! Post grid: skip featured on first page !}
   <div class="blog-grid">
-    {#if page.paginator.isFirst}
+    {#if page.paginator and page.paginator.isFirst}
     {#for post in posts.rest(page.data.featured)}
     {#roq/postCard post /}
     {/for}

@@ -103,6 +103,11 @@ Give it a try, it is enabled on this site. If you want this for your site:
 | ⚠ Wrap with `{#if page.date}...{/if}`
 
 | Theme users
+| `index.html` layout for blog listing
+| New `blog.html` layout (with pagination support); `index.html` now delegates to it
+| ⚠ If using `layout: blog` without pagination (`paginate: false`), add `paginate: posts`; if you have a custom `blog.html` override, use `{#if page.paginator and page.paginator.isFirst}` instead of `{#if page.paginator.isFirst}`
+
+| Theme users
 | SCSS (`app.scss`)
 | CSS with https://tailwindcss.com/[TailwindCSS]
 | ⚠ Migrate custom styles
