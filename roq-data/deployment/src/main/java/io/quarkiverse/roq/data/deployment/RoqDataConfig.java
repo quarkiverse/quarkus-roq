@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.data.deployment;
 
+import java.util.Map;
 import java.util.Objects;
 
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
@@ -7,6 +8,7 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithParentName;
 
 @ConfigMapping(prefix = "quarkus.roq.data")
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
@@ -34,6 +36,12 @@ public interface RoqDataConfig {
      */
     @WithDefault("true")
     boolean logDataBeans();
+
+    /**
+     * Additional named client
+     */
+    @WithParentName
+    Map<String, RoqDataNamedConfig> namedConfigs();
 
     static boolean isEqual(RoqDataConfig q1, RoqDataConfig q2) {
         return Objects.equals(q1.dir(), q2.dir()) && Objects.equals(q1.enforceBean(), q2.enforceBean());

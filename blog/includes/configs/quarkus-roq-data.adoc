@@ -71,5 +71,70 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-named-configs-generate]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-named-configs-generate[`+++quarkus.roq.data."named-configs".generate+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data."named-configs".generate+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If value is `true` (default `false`), then a page will be generated for each item of this collection.
+
+All pages will be generated under `<root>/content/collection_name`
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__GENERATE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__GENERATE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|required icon:exclamation-circle[title=Configuration property is required]
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-named-configs-title-attribute-name]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-named-configs-title-attribute-name[`+++quarkus.roq.data."named-configs".title-attribute-name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data."named-configs".title-attribute-name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The attribute to be used as title
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__TITLE_ATTRIBUTE_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__TITLE_ATTRIBUTE_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|required icon:exclamation-circle[title=Configuration property is required]
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-data_quarkus-roq-data-named-configs-layout]] [.property-path]##link:#quarkus-roq-data_quarkus-roq-data-named-configs-layout[`+++quarkus.roq.data."named-configs".layout+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.data."named-configs".layout+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The layout for this collection
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__LAYOUT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_DATA__NAMED_CONFIGS__LAYOUT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|required icon:exclamation-circle[title=Configuration property is required]
+
 |===
 

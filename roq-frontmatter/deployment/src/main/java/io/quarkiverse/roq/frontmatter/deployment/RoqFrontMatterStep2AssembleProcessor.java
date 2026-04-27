@@ -1,7 +1,12 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.processTemplate;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
+import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +14,12 @@ import java.util.Map;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.data.deployment.RoqDataConfig;
+import io.quarkiverse.roq.data.deployment.RoqDataNamedConfig;
+import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
+import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
+import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
+import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
@@ -16,10 +27,14 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterAvaila
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
+import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterStep2AssembleProcessor {
 
@@ -110,6 +125,79 @@ public class RoqFrontMatterStep2AssembleProcessor {
             rawLayoutProducer.produce(new RoqFrontMatterRawLayoutBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
                     processed.generatedTemplate(), isThemeLayout));
+        }
+    }
+
+    // ── Roq Data processing ───────────────────────────────────────────────
+
+    @BuildStep
+    void processContent(RoqProjectBuildItem roqProject,
+            RoqDataConfig dataConfig,
+            List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
+            List<DataMappingBuildItem> roqDataBeanBuildItems,
+            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
+        //Process roq-data may they have been mapped or not
+        roqDataBeanBuildItems
+                .forEach(item -> generatePages(roqProject, dataConfig, item.getName(), convert(item), rawPageProducer));
+        roqDataJsonBuildItems
+                .forEach(item -> generatePages(roqProject, dataConfig, item.getName(), item.getData(), rawPageProducer));
+
+    }
+
+    private void generatePages(RoqProjectBuildItem roqProject, RoqDataConfig dataConfig, String itemName, Object item,
+            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
+        var collectionConfig = dataConfig.namedConfigs().get(itemName);
+        if (collectionConfig != null && collectionConfig.generate()) {
+            switch (item) {
+                case JsonObject jsonObject ->
+                    generatePages(itemName, collectionConfig, jsonObject, rawPageProducer, roqProject);
+                case JsonArray jsonArray ->
+                    jsonArray.forEach(jsonObject -> generatePages(itemName, collectionConfig, (JsonObject) jsonObject,
+                            rawPageProducer, roqProject));
+                default -> throw new IllegalStateException();
+            }
+
+        }
+    }
+
+    private void generatePages(String collection, RoqDataNamedConfig collectionConfig, JsonObject item,
+            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
+        final String extractedKey = item.getString(collectionConfig.titleAttributeName());
+        if (extractedKey == null) {
+            throw new IllegalStateException("Extracted key for % is null with property key %".formatted(item.toString(),
+                    collectionConfig.titleAttributeName()));
+        }
+        final String id = collection + "/" + slugify(extractedKey, false, false);
+        final String path = id + ".md";
+        final String layoutId = collectionConfig.layout() != null ? LAYOUTS_DIR + collectionConfig.layout() : null;
+        rawPagesProducer.produce(new RoqFrontMatterRawPageBuildItem(
+                TemplateSource.create(
+                        id,
+                        "markdown",
+                        new SourceFile(
+                                toUnixPath(roqProject.local().roqDir().normalize().toAbsolutePath()
+                                        .toString()),
+                                path),
+                        path,
+                        id + ".html",
+                        false,
+                        true,
+                        false,
+                        false),
+                layoutId,
+                item,
+                new ConfiguredCollection(collection, false, false, false, collectionConfig.layout()),
+                getIncludeFilter(layoutId).apply(""),
+                "",
+                List.of()));
+    }
+
+    private Object convert(DataMappingBuildItem dataMappingBuildItem) {
+        try {
+            return dataMappingBuildItem.getConverter().convert(dataMappingBuildItem.getContent());
+        } catch (IOException e) {
+            throw new DataConversionException(
+                    "Unable to convert data file %s as an Object".formatted(dataMappingBuildItem.sourceFile()), e);
         }
     }
 }
