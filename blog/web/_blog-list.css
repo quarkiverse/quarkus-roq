@@ -31,9 +31,9 @@
     overflow: hidden;
 }
 
-/* === Featured Posts (full-width horizontal, hidden under 1024px) === */
+/* === Featured Posts (vertical cards on mobile, horizontal at lg) === */
 .blog-featured-grid {
-    @apply hidden lg:flex flex-col gap-4 mb-8;
+    @apply flex flex-col gap-4 mb-8;
 }
 
 .blog-featured-grid .post {
