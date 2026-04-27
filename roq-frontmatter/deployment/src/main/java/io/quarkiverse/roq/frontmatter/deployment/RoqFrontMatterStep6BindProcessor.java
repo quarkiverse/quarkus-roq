@@ -97,7 +97,7 @@ public class RoqFrontMatterStep6BindProcessor {
             // Produce generated Qute templates
             for (RoqFrontMatterPageTemplateBuildItem item : pageTemplatesItems) {
                 final Path filePath = roqTemplatesOutputDir
-                        .resolve("full")
+                        .resolve("content")
                         .resolve(item.raw().templateSource().generatedQuteId());
                 createTemplateResource(generatedResourceProducer, nativeImageResourceProducer, filePath,
                         item.raw().generatedTemplate(), item.raw().templateSource().generatedQuteTemplateId());
@@ -109,29 +109,9 @@ public class RoqFrontMatterStep6BindProcessor {
                                 .extensionInfo(FEATURE)
                                 .build());
 
-                // Add the template for the content
-                final Path contentFilePath = roqTemplatesOutputDir
-                        .resolve("content")
-                        .resolve(item.raw().templateSource().generatedQuteId());
-                Files.createDirectories(contentFilePath.getParent());
-                Files.writeString(contentFilePath, item.raw().generatedContentTemplate());
-                final String contentResourceName = "templates/" + item.raw().templateSource().generatedQuteContentTemplateId();
-                generatedResourceProducer
-                        .produce(new GeneratedResourceBuildItem(
-                                contentResourceName,
-                                item.raw().generatedContentTemplate().getBytes(StandardCharsets.UTF_8)));
-                nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(contentResourceName));
-                templatePathProducer.produce(TemplatePathBuildItem.builder()
-                        .fullPath(contentFilePath)
-                        .path(item.raw().templateSource().generatedQuteContentTemplateId())
-                        .content(item.raw().generatedContentTemplate())
-                        .extensionInfo(FEATURE)
-                        .build());
                 if (item.raw().collection() != null) {
-                    docTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
                     docTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
                 } else {
-                    pageTemplates.add(item.raw().templateSource().generatedQuteContentTemplateId());
                     pageTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
                 }
 

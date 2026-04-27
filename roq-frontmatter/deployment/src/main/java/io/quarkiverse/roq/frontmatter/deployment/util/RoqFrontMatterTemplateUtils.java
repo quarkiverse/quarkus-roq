@@ -126,7 +126,7 @@ public final class RoqFrontMatterTemplateUtils {
 
     // ── Content transforms ──────────────────────────────────────────────
 
-    public record TransformedContent(String generatedTemplate, String contentWithMarkup) {
+    public record TransformedContent(String generatedTemplate) {
     }
 
     static WrapperFilter getEscapeFilter(boolean escaped) {
@@ -147,12 +147,12 @@ public final class RoqFrontMatterTemplateUtils {
      * Apply escape filter, markup wrapper, and layout include to produce the final generated templates.
      */
     public static TransformedContent applyContentTransforms(String content, boolean escaped,
-            RoqFrontMatterQuteMarkupBuildItem markup, String layoutId) {
+            RoqFrontMatterQuteMarkupBuildItem markup, String layoutId, boolean isPage) {
         WrapperFilter escapeFilter = getEscapeFilter(escaped);
-        WrapperFilter includeFilter = getIncludeFilter(layoutId);
+        WrapperFilter includeFilter = getIncludeFilter(layoutId, isPage);
         String escapedContent = escapeFilter.apply(content);
         String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
         String generatedTemplate = includeFilter.apply(contentWithMarkup);
-        return new TransformedContent(generatedTemplate, contentWithMarkup);
+        return new TransformedContent(generatedTemplate);
     }
 }

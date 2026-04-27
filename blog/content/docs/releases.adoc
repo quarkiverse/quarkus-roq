@@ -127,6 +127,16 @@ Give it a try, it is enabled on this site. If you want this for your site:
 | `deployment.items.scan.*` (same for `data`, `publish`)
 | ⚠ Update imports
 
+| All users
+| Generated templates in `target/roq-templates/full/`
+| Now in `target/roq-templates/content/` (https://github.com/quarkiverse/quarkus-roq/pull/861[#861])
+| ℹ Update scripts or workflows referencing this path
+
+| Plugin authors
+| `TemplateSource.generatedQuteContentTemplateId()`, `RoqFrontMatterRawPageBuildItem.generatedContentTemplate()`
+| Removed, page content now extracted via `{#fragment RoqPageContent}` (https://github.com/quarkiverse/quarkus-roq/pull/861[#861])
+| ⚠ Update plugin code
+
 | Plugin authors
 | `PAGINATE_KEY` in scan package
 | `RoqFrontMatterKeys` (runtime)
