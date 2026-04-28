@@ -61,7 +61,7 @@ Key fields:
 - **title** — Page title (falls back to source path if missing)
 - **description** — Used for SEO meta tags
 - **layout** — Qute layout template to wrap this page. Resolves local first, then theme fallback (e.g. `page`, `post`). Use `theme-layout:` to explicitly target a theme layout
-- **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name (for directory pages)
+- **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name (for directory pages). Do NOT include the `images/` prefix, just use the filename (e.g. `image: photo.jpg`, not `image: images/photo.jpg`)
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
 - **author** — Author identifier
@@ -207,8 +207,8 @@ paginate:
 - `site.url(path)` — resolve path relative to root. Also `site.url(path, path1)`, `site.url(path, path1, path2)`
 - `site.title` — from index page frontmatter `title`
 - `site.description` — from index page frontmatter `description`
-- `site.image` — default site image from frontmatter `image`/`img`/`picture`
-- `site.image(name)` — resolve image from `public/images/`
+- `site.image` — default site image from frontmatter `image`/`img`/`picture`. Already resolves from `public/images/`. Use directly: `{site.image}`, never `{site.image('/images/...')}` or `{site.image('images/...')}`
+- `site.image(name)` — resolve image by filename only (e.g. `site.image('logo.png')`, not `site.image('/images/logo.png')`)
 - `site.imageExists(name)` — check if image exists
 - `site.data` — site-level frontmatter data (`JsonObject`)
 - `site.pages` — all normal pages (no collection documents)
@@ -227,8 +227,8 @@ paginate:
 - `page.url` — page URL (`RoqUrl`)
 - `page.title` — from frontmatter `title`
 - `page.description` — from frontmatter `description`
-- `page.image` — page image (`RoqUrl`)
-- `page.image(name)` — resolve specific image
+- `page.image` — page image (`RoqUrl`). Already resolves from `public/images/` or attached files. Use directly: `{page.image}`, never `{page.image('/images/...')}` or `{page.image('images/...')}`
+- `page.image(name)` — resolve specific image by filename only (e.g. `page.image('photo.jpg')`, not `page.image('/images/photo.jpg')`)
 - `page.imageExists(name)` — check if image exists
 - `page.date` — page date (`ZonedDateTime`, null for normal pages without a date; always set for collection documents)
 - `page.data` — all frontmatter data (`JsonObject`)
@@ -448,14 +448,15 @@ public class MySiteTest {
 
 Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured for HTTP assertions.
 
-### CLI Commands
+### CLI Commands (complete list, there is NO `roq dev` command)
 
-- `roq create my-site` — create a new site (use `-x theme:base` for minimal theme)
-- `roq start` — start dev mode with live-reload
+- `roq create my-site` — create a new site with the default theme. Options: `-x theme:base` for minimal theme, `-x plugin:tagging,plugin:series` to add plugins, `--no-code` to skip example content, `--gradle` for Gradle, `-g io.myorg` to set group ID
+- `roq start` — start dev mode with live-reload on http://localhost:8080. Use `-p 9090` to set a custom port
 - `roq generate` — build static site to `target/roq/`
-- `roq serve` — preview generated site
-- `roq add plugin:tagging` — add a plugin
-- `roq add theme:default` — add a theme
+- `roq serve` — preview generated site (default port 8181, use `-p` to change)
+- `roq add plugin:tagging` — add a plugin or theme
+- `roq update` — update the Roq/Quarkus project to latest versions
+- `roq blog` — list blog posts from a Roq site RSS feed
 
 ### Additional Configuration
 
@@ -480,5 +481,5 @@ For advanced Qute template needs beyond the essentials above (e.g. `@TemplateExt
 - **Wrong directory location** — Roq sites use **project root** for `content/`, `templates/`, `public/`, `data/`. NOT `src/main/resources/`.
 - **Layout resolution** — `layout: page` resolves local first, then theme fallback. Use `theme-layout: page` for explicit theme targeting. The old `:theme/` prefix syntax is deprecated.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
-- **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. The `image` frontmatter field handles all three.
+- **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. The `image` frontmatter field handles all three. Do NOT use the `images/` prefix in frontmatter or template calls (e.g. `image: photo.jpg`, not `image: images/photo.jpg`).
 - **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally. Add pages to `site.escaped-pages` config to skip Qute parsing entirely.
