@@ -131,7 +131,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
     // ── Roq Data processing ───────────────────────────────────────────────
 
     @BuildStep
-    void processContent(RoqProjectBuildItem roqProject,
+    void processDataContent(RoqProjectBuildItem roqProject,
             RoqDataConfig dataConfig,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<DataMappingBuildItem> roqDataBeanBuildItems,
@@ -160,7 +160,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
         }
     }
 
-    private void generatePages(String collection, RoqDataNamedConfig collectionConfig, JsonObject item,
+    private void generateDataPages(String collection, RoqDataNamedConfig collectionConfig, JsonObject item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
         final String extractedKey = item.getString(collectionConfig.titleAttributeName());
         if (extractedKey == null) {
