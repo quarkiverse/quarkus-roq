@@ -135,6 +135,17 @@ site.collections.recipes.hidden=false
 {/if}
 ```
 
+**Collection methods** (`RoqCollection`):
+- `site.collections.list` — list all collections
+- `posts.by(key...)` — retrieve non-null values by frontmatter keys
+- `posts.group(key...)` — group documents by frontmatter field values
+- `posts.featured(n)` — first N documents
+- `posts.rest(n)` — documents after the first N
+- `posts.filter(key, value)` — documents matching a frontmatter key/value
+- `posts.future` / `posts.past` — filter by date
+- `posts.sortBy(key, reverse)` — sort by frontmatter key
+- `posts.sortByDate(reverse)` — sort by date
+
 ### Pagination
 
 Enable pagination in a page's frontmatter:
@@ -195,7 +206,9 @@ paginate:
 - `site.collections` — all collections (e.g. `site.collections.posts`)
 - `site.allPages` — all pages including documents
 - `site.index` — the site index page
-- `site.page(sourcePath)` — find page by source path
+- `site.page(sourcePath)` — find page by source path (returns any page type)
+- `site.normalPage(sourcePath)` — find normal page only
+- `site.document(sourcePath)` — find document page only
 - `site.file(name)` — resolve file from `public/`
 - `site.fileExists(name)` — check if public file exists
 - `site.files` — list of all public static files
@@ -212,6 +225,7 @@ paginate:
 - `page.data` — all frontmatter data (`JsonObject`)
 - `page.data(name)` — get specific frontmatter value
 - `page.rawContent` — raw content without frontmatter or layouts
+- `page.source` — page source info (`PageSource`), e.g. `page.source.isTargetHtml`
 - `page.sourcePath` — source file relative path (e.g. `posts/my-post.md`)
 - `page.sourceFileName` — file name only
 - `page.baseFileName` — file name without extension
@@ -284,6 +298,34 @@ paginate:
 {! Escaping Qute in content !}
 \{not-a-qute-expression}
 ```
+
+### Built-in Tags
+
+```html
+{#seo page site /}
+{#rss site /}
+{#favicon site /}
+{#ga4 /}
+```
+
+### Template Extensions
+
+Date formatting (on `ZonedDateTime`):
+- `{page.date.iso}` — ISO 8601
+- `{page.date.isoDate}` — date only
+- `{page.date.shortDate}` / `{page.date.longDate}` — locale-aware date
+- `{page.date.shortDateTime}` / `{page.date.longDateTime}` — locale-aware date-time
+- `{page.date.rfc822}` — RFC 822 (for RSS)
+
+Content helpers:
+- `{text.slugify}` — URL-friendly slug
+- `{htmlContent.stripHtml}` — remove HTML tags
+- `{text.numberOfWords}` — word count
+- `{text.wordLimit(n)}` — truncate to N words
+- `{page.readTime}` — estimated reading time in minutes
+- `{page.contentAbstract}` / `{page.contentAbstract(n)}` — first N words (default 75)
+- `{list.randomise}` — shuffle a list
+- `{fileName.mimeType}` — MIME type from extension
 
 ### Hybrid Mode
 

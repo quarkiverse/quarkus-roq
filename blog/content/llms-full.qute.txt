@@ -1,1 +1,2 @@
+{#include partials/llms-skills /}
 {#include fm/llms-full.html}

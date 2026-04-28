@@ -106,7 +106,7 @@ layout: default
 
 **Layout chain**: A page with `layout: post` → post layout has `layout: main` → main has `layout: default` → default is the root (no layout field). Each level uses `{#insert /}` where child content goes.
 
-**Theme layout resolution**: `layout: page` resolves local first (`templates/layouts/page.html`), then falls back to the theme layout (`theme-layouts/<theme-name>/page`) when `site.theme` is configured. Use `theme-layout: page` to explicitly target the theme layout. The default theme (`roq-default`) provides: `default`, `main`, `post`, `page`, `index`, `tag`, `404`. Override any theme layout by placing a file at `templates/layouts/<layout>.html` with `theme-layout: <layout>` in frontmatter to inherit from the theme version.
+**Theme layout resolution**: `layout: page` resolves local first (`templates/layouts/page.html`), then falls back to the theme layout (`theme-layouts/<theme-name>/page`) when `site.theme` is configured. Use `theme-layout: page` to explicitly target the theme layout. The base theme (`roq-base`, the default) provides: `default`, `page`, `post`. The full default theme (`roq-default`, installed via `roq create`) provides: `default`, `main`, `post`, `page`, `index`, `blog`, `home`, `tag`, `404`. Override any theme layout by placing a file at `templates/layouts/<layout>.html` with `theme-layout: <layout>` in frontmatter to inherit from the theme version.
 
 **IMPORTANT**: Use `{#insert /}` in layouts to render child content. NEVER use `{page.content}` in layouts — that causes recursive rendering issues.
 
@@ -143,6 +143,17 @@ site.collections.recipes.hidden=false
   <a href="{page.next.url}">Next: {page.next.title}</a>
 {/if}
 ```
+
+**Collection methods** (`RoqCollection`):
+- `site.collections.list` — list all collections
+- `posts.by(key...)` — retrieve non-null values by frontmatter keys
+- `posts.group(key...)` — group documents by frontmatter field values
+- `posts.featured(n)` — first N documents
+- `posts.rest(n)` — documents after the first N
+- `posts.filter(key, value)` — documents matching a frontmatter key/value
+- `posts.future` / `posts.past` — filter by date
+- `posts.sortBy(key, reverse)` — sort by frontmatter key
+- `posts.sortByDate(reverse)` — sort by date
 
 ### Pagination
 
@@ -204,7 +215,9 @@ paginate:
 - `site.collections` — all collections (e.g. `site.collections.posts`)
 - `site.allPages` — all pages including documents
 - `site.index` — the site index page
-- `site.page(sourcePath)` — find page by source path
+- `site.page(sourcePath)` — find page by source path (returns any page type)
+- `site.normalPage(sourcePath)` — find normal page only
+- `site.document(sourcePath)` — find document page only
 - `site.file(name)` — resolve file from `public/`
 - `site.fileExists(name)` — check if public file exists
 - `site.files` — list of all public static files
@@ -229,6 +242,7 @@ paginate:
 - `page.files` — attached files (directory pages only)
 - `page.file(name)` — resolve attached file URL
 - `page.fileExists(name)` — check if attached file exists
+- `page.source` — page source info (`PageSource`), e.g. `page.source.isTargetHtml`
 - `page.site` — reference back to `Site`
 
 **`page` for collection documents** (`DocumentPage` extends `Page`):
@@ -327,13 +341,20 @@ public record Authors(Map<String, Author> authors) {
 }
 ```
 
-### SEO & RSS
+### Built-in Tags
 
 Add to root layout `<head>`:
 ```html
 {#seo page site /}
 {#rss site /}
+{#favicon site /}
+{#ga4 /}
 ```
+
+- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags
+- `{#rss site /}` — adds RSS feed link
+- `{#favicon site /}` — auto-discovers favicon files from `public/` (favicon.svg, .ico, .png, apple-touch-icon.png)
+- `{#ga4 /}` — Google Analytics 4 (configure `analytics.ga4` in site index frontmatter)
 
 For RSS feed, create `content/rss.xml`:
 ```html
@@ -341,6 +362,38 @@ For RSS feed, create `content/rss.xml`:
 ---
 {#include fm/rss.html /}
 ```
+
+### LLMs.txt
+
+Generate `/llms.txt` and `/llms-full.txt` for AI discoverability. Create `content/llms.qute.txt`:
+```
+{#include fm/llms.html}
+```
+And `content/llms-full.qute.txt`:
+```
+{#include fm/llms-full.html}
+```
+Exclude pages with `llmstxt: false` in frontmatter.
+
+### Template Extensions
+
+Date formatting (on `ZonedDateTime`):
+- `{page.date.iso}` — ISO 8601 (`2024-08-29T13:32:20+02:00`)
+- `{page.date.isoDate}` — date only (`2024-08-29`)
+- `{page.date.shortDate}` / `{page.date.longDate}` — locale-aware date
+- `{page.date.shortDateTime}` / `{page.date.longDateTime}` — locale-aware date-time
+- `{page.date.rfc822}` — RFC 822 (for RSS)
+- `{page.date.format('yyyy, MMM dd')}` — custom pattern
+
+Content helpers:
+- `{text.slugify}` — URL-friendly slug
+- `{htmlContent.stripHtml}` — remove HTML tags
+- `{text.numberOfWords}` — word count
+- `{text.wordLimit(n)}` — truncate to N words
+- `{page.readTime}` — estimated reading time in minutes
+- `{page.contentAbstract}` / `{page.contentAbstract(n)}` — first N words (default 75)
+- `{list.randomise}` — shuffle a list
+- `{fileName.mimeType}` — MIME type from extension
 
 ### Static Generation
 
@@ -394,6 +447,27 @@ public class MySiteTest {
 ```
 
 Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured for HTTP assertions.
+
+### CLI Commands
+
+- `roq create my-site` — create a new site (use `-x theme:base` for minimal theme)
+- `roq start` — start dev mode with live-reload
+- `roq generate` — build static site to `target/roq/`
+- `roq serve` — preview generated site
+- `roq add plugin:tagging` — add a plugin
+- `roq add theme:default` — add a theme
+
+### Additional Configuration
+
+```properties
+site.draft=true                    # Show draft pages
+site.future=true                   # Show future-dated documents
+site.defaultLocale=en              # Default language
+site.draftDirectory=drafts         # Folder name for drafts
+site.slugifyFiles=true             # Slugify static file names for SEO
+site.escaped-pages=posts/escaped** # Skip Qute parsing for matched pages
+site.path-prefix=/blog             # Serve Roq pages under a sub-path
+```
 
 ### Qute Reference Guide
 

@@ -1,0 +1,36 @@
+## Using Roq
+
+Roq is a static site generator built on Quarkus. It uses the Qute template engine with FrontMatter headers (YAML between `---` delimiters).
+
+### Quick Start
+
+1. Install via JBang: `curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force roq@quarkiverse/quarkus-roq`
+2. Create a site: `roq create my-site`
+3. Start dev mode: `cd my-site && roq start` (live-reload on http://localhost:8080)
+4. Build static site: `roq generate` (output in `target/roq/`), preview with `roq serve`
+5. Add a plugin or theme: `roq add plugin:tagging`, `roq add theme:default`
+
+To start from a minimal HTML structure instead of the default theme: `roq create my-site -x theme:base`
+
+### Directory Structure
+
+```
+my-site/
+├── content/           # Pages, collections (posts/, etc.), index.html (required)
+├── templates/
+│   ├── layouts/       # Page layouts (page.html, post.html)
+│   └── partials/      # Reusable template fragments
+├── data/              # Structured data files (YAML/JSON), accessible via {cdi:filename.property}
+├── public/            # Static assets served as-is (images, PDFs)
+├── web/               # JS/CSS sources (bundled by Quarkus Web Bundler)
+└── config/
+    └── application.properties  # Site config with site.* prefix
+```
+
+### Detailed References
+
+For complete template variables, Qute syntax, layout patterns, pagination, collections, and common pitfalls, see the skill files:
+
+- [Roq skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md): full SSG reference (directory structure, FrontMatter fields, layouts, collections, pagination, template variables, data files, SEO, static generation, testing)
+- [Roq FrontMatter skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md): template engine details and hybrid/SSR mode
+- [Roq Data skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-data/deployment/src/main/resources/META-INF/quarkus-skill.md): data file mapping with @DataMapping and CDI
