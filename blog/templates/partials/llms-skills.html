@@ -1,4 +1,4 @@
-## Using Roq
+## Using Roq (copy this section to your project's CLAUDE.md / AGENTS.md)
 
 Roq is a static site generator built on Quarkus. It uses the Qute template engine with FrontMatter headers (YAML between `---` delimiters).
 
@@ -23,17 +23,39 @@ my-site/
 ├── templates/
 │   ├── layouts/       # Page layouts (page.html, post.html)
 │   └── partials/      # Reusable template fragments
-├── data/              # Structured data files (YAML/JSON), accessible via \{cdi:filename.property}
+├── data/              # Structured data files (YAML/JSON), accessible via {cdi:filename.property}
 ├── public/            # Static assets served as-is (images, PDFs)
 ├── web/               # JS/CSS sources (bundled by Quarkus Web Bundler)
 └── config/
     └── application.properties  # Site config with site.* prefix
 ```
 
-### Detailed References
+## Installing Roq Skill Files for AI Coding Assistants
 
-For complete template variables, Qute syntax, layout patterns, pagination, collections, and common pitfalls, see the skill files:
+Roq extensions ship detailed reference docs as skill files inside their deployment JARs at `META-INF/quarkus-skill.md`. Follow these steps to install them in your project.
 
-- [Roq skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md): full SSG reference (directory structure, FrontMatter fields, layouts, collections, pagination, template variables, data files, SEO, static generation, testing)
-- [Roq FrontMatter skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md): template engine details and hybrid/SSR mode
-- [Roq Data skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-data/deployment/src/main/resources/META-INF/quarkus-skill.md): data file mapping with @DataMapping and CDI
+### 1. Find your Roq extensions and version
+
+```
+mvn dependency:list -Dincludes=io.quarkiverse.roq -q -DoutputAbsoluteArtifactFilename=true
+```
+
+### 2. Extract the relevant skills
+
+Extract from the matching JAR in your local Maven repository:
+```
+unzip -p ~/.m2/repository/io/quarkiverse/roq/ARTIFACT_ID/VERSION/ARTIFACT_ID-VERSION.jar META-INF/quarkus-skill.md > .claude/skills/SHORT_NAME.md
+```
+
+Install to the appropriate skills directory (`.claude/skills/` for Claude Code), or append to your CLAUDE.md/AGENTS.md.
+
+Install a skill for each `*-deployment` JAR listed in the dependency output.
+
+### 3. Keep skills in sync
+
+After running `roq update`, re-extract the skill files to match the new version. Compare the Roq version in your dependencies with the version of the installed skill to detect staleness.
+
+**Skill files (latest version for reference):**
+- [quarkus-roq-frontmatter-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md): base reference (FrontMatter pages, layouts, collections, pagination, template variables, Qute syntax, built-in tags, data files, template extensions, configuration, common pitfalls)
+- [quarkus-roq-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md): full Roq extras (directory structure, themes, RSS, LLMs.txt, static generation, testing, CLI commands)
+- [quarkus-roq-data-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-data/deployment/src/main/resources/META-INF/quarkus-skill.md): data file mapping with @DataMapping and CDI

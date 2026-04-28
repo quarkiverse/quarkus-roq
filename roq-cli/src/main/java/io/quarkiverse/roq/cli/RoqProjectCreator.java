@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -142,6 +143,9 @@ public class RoqProjectCreator {
         // Remove src/ (not needed for a Roq site)
         deleteDir(projectDir.resolve("src"));
 
+        // Replace the default Quarkus README with a Roq-specific one
+        copyBaseResource("README.md");
+
         // Copy base site files when no theme provided an index and code generation is enabled
         if (!noCode && !Files.exists(projectDir.resolve("content/index.html"))) {
             copyBaseResource("content/index.html");
@@ -160,7 +164,7 @@ public class RoqProjectCreator {
         try (InputStream in = getClass().getClassLoader()
                 .getResourceAsStream("roq-base/" + resourcePath)) {
             if (in != null) {
-                Files.copy(in, target);
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
             }
         }
     }
