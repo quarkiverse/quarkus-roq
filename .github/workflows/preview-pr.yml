@@ -18,7 +18,7 @@ jobs:
       pull-requests: write # Required to update PR status comment
     steps:
       - name: Download docs artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -35,7 +35,7 @@ jobs:
         run: npx surge ./ --domain https://quarkiverse-roq-docs-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
 
       - name: Download blog artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: blog
           github-token: ${{ secrets.GITHUB_TOKEN }}
