@@ -1,6 +1,8 @@
 ---
-title: Simple Site
-layout:  default
+title: Future Test Site
+layout: default
 ---
-
-Welcome !
+<span class="posts-count">{site.allPages}</span>
+{#for post in site.allPages}
+  <p class="post-title">{post.url}</p>
+{/for}

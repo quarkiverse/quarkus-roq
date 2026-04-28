@@ -27,23 +27,30 @@ public class RoqFrontMatterRoqDataGeneratedPagesTest {
             .overrideConfigKey("site.collections.events.layout", "page-event")
             .overrideConfigKey("site.collections.events.title-attribute-name", "id")
             .overrideConfigKey("site.collections.members.title-attribute-name", "alias")
+            .overrideConfigKey("smallrye.config.mapping.validate-unknown", "false")
             .overrideConfigKey("quarkus.roq.resource-dir", "data-generated-page")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("data-generated-page"));
 
     @Test
-    @DisplayName("HTML pages renders with correct title, base href, and content")
-    public void testHtmlPost() {
-        RestAssured.when().get("/bar/events/hello-lads").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("Hello Lads"))
-                .body("html.body.h1", equalTo("First event"))
+    @DisplayName("First item rendered")
+    public void testHtmlPost1() {
+        RestAssured.when().get("/events/hello-lads/").then().statusCode(200).log().everything()
+                .body("html.body.h1", equalTo("Hello lads !"))
+                .body("html.body.h2", equalTo("First event"))
                 .body("html.body.p", equalTo("""
                         Hey we can
                         event have
-                        multiline string !"""));
-        RestAssured.when().get("/bar/events/rock-and-roll").then().statusCode(200).log().ifValidationFails()
-                .body("html.head.title", equalTo("Roq and Roll"))
-                .body("html.body.h1", equalTo("SSG FTW"))
+                        multiline string !
+                        """));
+    }
+
+    @Test
+    @DisplayName("Second item rendered")
+    public void testHtmlPost2() {
+        RestAssured.when().get("events/rock-and-roll/").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.h1", equalTo("Roq and Roll"))
+                .body("html.body.h2", equalTo("SSG FTW"))
                 .body("html.body.p",
                         equalTo("Of course you should do static site generation, but with qute and roq, not JSP's"));
     }
@@ -51,7 +58,7 @@ public class RoqFrontMatterRoqDataGeneratedPagesTest {
     @Test
     @DisplayName("Pages not generated when not explicitely asked")
     public void testDateFileName() {
-        RestAssured.when().get("/bar/members/the-goat").then().statusCode(404).log().ifValidationFails();
+        RestAssured.when().get("/members/the-goat").then().statusCode(404).log().ifValidationFails();
     }
 
 }
