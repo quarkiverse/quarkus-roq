@@ -22,12 +22,11 @@ public class RoqFrontMatterRoqDataGeneratedPagesTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("site.collections.events", "true")
-            .overrideConfigKey("site.collections.members", "true")
-            .overrideConfigKey("site.collections.events.generate", "true")
+            .overrideConfigKey("site.collections.events.generate-from-data", "true")
             .overrideConfigKey("site.collections.events.layout", "page-event")
             .overrideConfigKey("site.collections.events.title-attribute-name", "id")
+            .overrideConfigKey("site.collections.members", "true")
             .overrideConfigKey("site.collections.members.title-attribute-name", "alias")
-            .overrideConfigKey("smallrye.config.mapping.validate-unknown", "false")
             .overrideConfigKey("quarkus.roq.resource-dir", "data-generated-page")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("data-generated-page"));
@@ -48,8 +47,8 @@ public class RoqFrontMatterRoqDataGeneratedPagesTest {
     @Test
     @DisplayName("Second item rendered")
     public void testHtmlPost2() {
-        RestAssured.when().get("events/rock-and-roll/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.h1", equalTo("Roq and Roll"))
+        RestAssured.when().get("/events/roq-and-roll/").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.h1", equalTo("Roq and roll"))
                 .body("html.body.h2", equalTo("SSG FTW"))
                 .body("html.body.p",
                         equalTo("Of course you should do static site generation, but with qute and roq, not JSP's"));

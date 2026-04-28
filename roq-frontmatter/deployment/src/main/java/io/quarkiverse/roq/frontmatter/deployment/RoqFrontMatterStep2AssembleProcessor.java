@@ -191,8 +191,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
                 layoutId,
                 item,
                 configuredCollection,
-                getIncludeFilter(layoutId).apply(""),
-                "",
+                getIncludeFilter(layoutId, true).apply(""),
                 List.of()));
     }
 

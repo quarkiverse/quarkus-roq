@@ -215,31 +215,12 @@ public interface RoqSiteConfig {
                                 e.getValue().hidden(),
                                 e.getValue().future(),
                                 e.getValue().layout().orElse(null),
-                                e.getValue().generate(),
+                                e.getValue().generateFromData(),
                                 e.getValue().titleAttributeName().orElse(null))),
                 DEFAULT_COLLECTIONS.stream()
                         .filter(dc -> !collectionsMap().containsKey(dc.id())))
                 .toList();
     }
-
-    /*
-     * default Map<String, ConfiguredCollection> collections() {
-     * return java.util.stream.Stream.concat(
-     * collectionsMap().entrySet().stream()
-     * .filter(e -> e.getValue().enabled())
-     * .map(e -> new ConfiguredCollection(
-     * e.getKey(),
-     * false,
-     * e.getValue().hidden(),
-     * e.getValue().future(),
-     * e.getValue().layout().orElse(null),
-     * e.getValue().generate(),
-     * e.getValue().titleAttributeName().orElse(null))),
-     * DEFAULT_COLLECTIONS.stream()
-     * .filter(dc -> !collectionsMap().containsKey(dc.id())))
-     * .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity()));
-     * }
-     */
 
     /**
      * <strong>READ CAREFULLY:</strong><br>
@@ -281,7 +262,8 @@ public interface RoqSiteConfig {
          *
          * @asciidoclet
          */
-        boolean generate();
+        @WithDefault("false")
+        boolean generateFromData();
 
         /**
          * The layout to use if not specified in FM data.

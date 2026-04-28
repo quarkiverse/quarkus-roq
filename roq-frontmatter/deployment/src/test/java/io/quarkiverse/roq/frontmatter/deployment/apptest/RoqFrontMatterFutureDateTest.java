@@ -24,7 +24,6 @@ public class RoqFrontMatterFutureDateTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "future-site")
             .overrideConfigKey("site.collections.posts", "true")
-            .overrideConfigKey("smallrye.config.mapping.validate-unknown", "false")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("future-site"));
 

@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.config;
 
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
+
 public record ConfiguredCollection(
         String id,
         boolean derived,
@@ -9,12 +11,10 @@ public record ConfiguredCollection(
         boolean generate,
         String titleAttributeName) {
 
-    /*
-     * public ConfiguredCollection {
-     * if (generate && (titleAttributeName == null || titleAttributeName.isEmpty())) {
-     * throw new RoqFrontMatterConfigException(RoqException.builder("titleAttributeName cannot be null or empty")
-     * .hint("Your configuration is missing a `site.collection.%s.title-attribute-name` property".formatted(id)));
-     * }
-     * }
-     */
+    public ConfiguredCollection {
+        if (generate && (titleAttributeName == null || titleAttributeName.isEmpty())) {
+            throw new RoqFrontMatterConfigException(RoqException.builder("titleAttributeName cannot be null or empty")
+                    .hint("Your configuration is missing a `site.collection.%s.title-attribute-name` property".formatted(id)));
+        }
+    }
 }
