@@ -506,6 +506,50 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-generate]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-generate[`+++site.collections."collections-map".generate+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.collections."collections-map".generate+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If value is `true` (default `false`), then a page will be generated for each item of this collection.
+
+All pages will be generated under `<root>/content/collection_name`
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__GENERATE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__GENERATE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|required icon:exclamation-circle[title=Configuration property is required]
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-title-attribute-name]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-title-attribute-name[`+++site.collections."collections-map".title-attribute-name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.collections."collections-map".title-attribute-name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The attribute to be used as title
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__TITLE_ATTRIBUTE_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__TITLE_ATTRIBUTE_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|required icon:exclamation-circle[title=Configuration property is required]
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`+++site.generated-templates-output-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.generated-templates-output-dir+++[]

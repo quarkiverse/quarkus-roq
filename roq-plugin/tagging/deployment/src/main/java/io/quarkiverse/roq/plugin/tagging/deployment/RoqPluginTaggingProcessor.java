@@ -108,7 +108,10 @@ public class RoqPluginTaggingProcessor {
                         .put(TAG_COLLECTION, tagCollection);
                 final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,
                         collection.hidden(),
-                        collection.future(), collection.layout());
+                        collection.future(),
+                        collection.layout(),
+                        collection.generate(),
+                        collection.titleAttributeName());
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 

@@ -1,0 +1,10 @@
+- id: hello lads !
+  name: First event
+  description: |
+    Hey we can
+    event have
+    multiline string !
+- id: Roq and roll
+  name: SSG FTW
+  description: |
+    Of course you should do static site generation, but with qute and roq, not JSP's

@@ -25,7 +25,7 @@ public interface RoqSiteConfig {
     String IGNORED_FILES = "**/_**,_**";
 
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
-            .of(new ConfiguredCollection("posts", false, false, false, "post"));
+            .of(new ConfiguredCollection("posts", false, false, false, "post", false, null));
 
     /**
      * the base hostname & protocol for your site, e.g. http://example.com
@@ -209,12 +209,37 @@ public interface RoqSiteConfig {
         return java.util.stream.Stream.concat(
                 collectionsMap().entrySet().stream()
                         .filter(e -> e.getValue().enabled())
-                        .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
-                                e.getValue().layout().orElse(null))),
+                        .map(e -> new ConfiguredCollection(
+                                e.getKey(),
+                                false,
+                                e.getValue().hidden(),
+                                e.getValue().future(),
+                                e.getValue().layout().orElse(null),
+                                e.getValue().generate(),
+                                e.getValue().titleAttributeName().orElse(null))),
                 DEFAULT_COLLECTIONS.stream()
                         .filter(dc -> !collectionsMap().containsKey(dc.id())))
                 .toList();
     }
+
+    /*
+     * default Map<String, ConfiguredCollection> collections() {
+     * return java.util.stream.Stream.concat(
+     * collectionsMap().entrySet().stream()
+     * .filter(e -> e.getValue().enabled())
+     * .map(e -> new ConfiguredCollection(
+     * e.getKey(),
+     * false,
+     * e.getValue().hidden(),
+     * e.getValue().future(),
+     * e.getValue().layout().orElse(null),
+     * e.getValue().generate(),
+     * e.getValue().titleAttributeName().orElse(null))),
+     * DEFAULT_COLLECTIONS.stream()
+     * .filter(dc -> !collectionsMap().containsKey(dc.id())))
+     * .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity()));
+     * }
+     */
 
     /**
      * <strong>READ CAREFULLY:</strong><br>
@@ -250,11 +275,27 @@ public interface RoqSiteConfig {
         boolean hidden();
 
         /**
+         * If value is `true` (default `false`), then a page will be generated for each item of this collection.
+         *
+         * All pages will be available under path `<root>/collection_name`
+         *
+         * @asciidoclet
+         */
+        boolean generate();
+
+        /**
          * The layout to use if not specified in FM data.
          * When empty, the document will not use a layout when it doesn't specify it in FM.
          *
          * Resolves local layout first, then theme layout as fallback.
          */
         Optional<String> layout();
+
+        /**
+         * The attribute to be used as title
+         *
+         * @asciidoclet
+         */
+        Optional<String> titleAttributeName();
     }
 }

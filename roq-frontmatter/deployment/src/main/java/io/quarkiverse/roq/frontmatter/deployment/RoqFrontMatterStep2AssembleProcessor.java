@@ -11,15 +11,16 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.data.deployment.RoqDataConfig;
-import io.quarkiverse.roq.data.deployment.RoqDataNamedConfig;
 import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
@@ -29,6 +30,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScanne
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -132,44 +134,46 @@ public class RoqFrontMatterStep2AssembleProcessor {
 
     @BuildStep
     void processDataContent(RoqProjectBuildItem roqProject,
-            RoqDataConfig dataConfig,
+            RoqSiteConfig siteConfig,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<DataMappingBuildItem> roqDataBeanBuildItems,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
         //Process roq-data may they have been mapped or not
         roqDataBeanBuildItems
-                .forEach(item -> generatePages(roqProject, dataConfig, item.getName(), convert(item), rawPageProducer));
+                .forEach(item -> generatePages(roqProject, siteConfig, item.getName(), convert(item), rawPageProducer));
         roqDataJsonBuildItems
-                .forEach(item -> generatePages(roqProject, dataConfig, item.getName(), item.getData(), rawPageProducer));
+                .forEach(item -> generatePages(roqProject, siteConfig, item.getName(), item.getData(), rawPageProducer));
 
     }
 
-    private void generatePages(RoqProjectBuildItem roqProject, RoqDataConfig dataConfig, String itemName, Object item,
+    private void generatePages(RoqProjectBuildItem roqProject, RoqSiteConfig siteConfig, String itemName, Object item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
-        var collectionConfig = dataConfig.namedConfigs().get(itemName);
+        var collectionConfig = siteConfig.collections().stream()
+                .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity())).get(itemName);
         if (collectionConfig != null && collectionConfig.generate()) {
             switch (item) {
                 case JsonObject jsonObject ->
-                    generatePages(itemName, collectionConfig, jsonObject, rawPageProducer, roqProject);
+                    generateDataPages(collectionConfig, jsonObject, rawPageProducer, roqProject);
                 case JsonArray jsonArray ->
-                    jsonArray.forEach(jsonObject -> generatePages(itemName, collectionConfig, (JsonObject) jsonObject,
+                    jsonArray.forEach(jsonObject -> generateDataPages(collectionConfig, (JsonObject) jsonObject,
                             rawPageProducer, roqProject));
                 default -> throw new IllegalStateException();
             }
-
         }
     }
 
-    private void generateDataPages(String collection, RoqDataNamedConfig collectionConfig, JsonObject item,
+    private void generateDataPages(ConfiguredCollection configuredCollection, JsonObject item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
-        final String extractedKey = item.getString(collectionConfig.titleAttributeName());
+        final String extractedKey = item.getString(configuredCollection.titleAttributeName());
         if (extractedKey == null) {
-            throw new IllegalStateException("Extracted key for % is null with property key %".formatted(item.toString(),
-                    collectionConfig.titleAttributeName()));
+            throw new RoqFrontMatterReadingException(RoqException
+                    .builder("Error extracting title value from %s collection values".formatted(configuredCollection.id()))
+                    .hint("Extracted key for %s is null with property key %s".formatted(item.toString(),
+                            configuredCollection.titleAttributeName())));
         }
-        final String id = collection + "/" + slugify(extractedKey, false, false);
+        final String id = configuredCollection.id() + "/" + slugify(extractedKey, false, false);
         final String path = id + ".md";
-        final String layoutId = collectionConfig.layout() != null ? LAYOUTS_DIR + collectionConfig.layout() : null;
+        final String layoutId = configuredCollection.layout() != null ? LAYOUTS_DIR + configuredCollection.layout() : null;
         rawPagesProducer.produce(new RoqFrontMatterRawPageBuildItem(
                 TemplateSource.create(
                         id,
@@ -186,7 +190,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
                         false),
                 layoutId,
                 item,
-                new ConfiguredCollection(collection, false, false, false, collectionConfig.layout()),
+                configuredCollection,
                 getIncludeFilter(layoutId).apply(""),
                 "",
                 List.of()));
