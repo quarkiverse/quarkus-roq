@@ -30,7 +30,7 @@ jobs:
           echo ${{ github.event.number }} > ./docs/target/generated-docs/pr-id.txt
 
       - name: Publishing docs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs
           path: ./docs/target/generated-docs
@@ -46,7 +46,7 @@ jobs:
           maven-executable: 'mvn'
 
       - name: Publishing blog
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blog
           path: ./blog/target/roq
