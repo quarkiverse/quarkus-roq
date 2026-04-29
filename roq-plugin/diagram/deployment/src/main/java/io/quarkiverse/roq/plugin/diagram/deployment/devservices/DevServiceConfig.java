@@ -31,6 +31,6 @@ public interface DevServiceConfig {
      *
      * @asciidoclet
      */
-    @WithDefault("yuzutech/kroki:0.28.0")
+    @WithDefault("yuzutech/kroki:0.30.1")
     String imageName();
 }

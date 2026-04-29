@@ -22,11 +22,10 @@ public class RoqFrontMatterRoqDataGeneratedPagesTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("site.collections.events", "true")
-            .overrideConfigKey("site.collections.events.generate-from-data", "true")
             .overrideConfigKey("site.collections.events.layout", "page-event")
-            .overrideConfigKey("site.collections.events.title-attribute-name", "id")
+            .overrideConfigKey("site.collections.events.from-data.id-key", "id")
             .overrideConfigKey("site.collections.members", "true")
-            .overrideConfigKey("site.collections.members.title-attribute-name", "alias")
+            .overrideConfigKey("site.collections.members.layout", "default")
             .overrideConfigKey("quarkus.roq.resource-dir", "data-generated-page")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("data-generated-page"));

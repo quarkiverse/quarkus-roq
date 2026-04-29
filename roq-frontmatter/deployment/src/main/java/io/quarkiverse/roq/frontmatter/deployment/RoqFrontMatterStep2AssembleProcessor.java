@@ -150,7 +150,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
         var collectionConfig = siteConfig.collections().stream()
                 .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity())).get(itemName);
-        if (collectionConfig != null && collectionConfig.generate()) {
+        if (collectionConfig != null && collectionConfig.fromData().isPresent()) {
             switch (item) {
                 case JsonObject jsonObject ->
                     generateDataPages(collectionConfig, jsonObject, rawPageProducer, roqProject);
@@ -164,12 +164,12 @@ public class RoqFrontMatterStep2AssembleProcessor {
 
     private void generateDataPages(ConfiguredCollection configuredCollection, JsonObject item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
-        final String extractedKey = item.getString(configuredCollection.titleAttributeName());
+        final String extractedKey = item.getString(configuredCollection.idKey());
         if (extractedKey == null) {
             throw new RoqFrontMatterReadingException(RoqException
                     .builder("Error extracting title value from %s collection values".formatted(configuredCollection.id()))
                     .hint("Extracted key for %s is null with property key %s".formatted(item.toString(),
-                            configuredCollection.titleAttributeName())));
+                            configuredCollection.idKey())));
         }
         final String id = configuredCollection.id() + "/" + slugify(extractedKey, false, false);
         final String path = id + ".md";
