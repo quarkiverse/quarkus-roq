@@ -31,4 +31,10 @@ doc:
   - title: "Advanced stuff"
     path: "/docs/advanced/"
     icon: "fa-solid fa-truck-monster"
+  - title: "Migrating"
+    path: "/docs/migrating/"
+    icon: "fa-solid fa-right-to-bracket"
+  - title: "LLMs.txt"
+    path: "/llms.txt"
+    icon: "fa-solid fa-robot"
 
