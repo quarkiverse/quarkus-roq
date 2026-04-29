@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
@@ -108,7 +109,9 @@ public class RoqPluginTaggingProcessor {
                         .put(TAG_COLLECTION, tagCollection);
                 final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,
                         collection.hidden(),
-                        collection.future(), collection.layout());
+                        collection.future(),
+                        collection.layout(),
+                        Optional.empty());
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 

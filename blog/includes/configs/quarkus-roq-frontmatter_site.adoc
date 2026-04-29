@@ -59,7 +59,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Add new ignored files to the default list. The ignored files (relative to the site directory).
+Add new ignored files to the default list.
+
+The ignored files (relative to the site directory).
 
 Only the `content/`, `public/`, and `static/` directories are scanned.
 
@@ -136,7 +138,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
+The layout to use for normal html pages if not specified in FM. When empty, the page will not use a layout when it doesn't specify it in FM.
+
+Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -409,7 +413,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Indicates whether file names in the public directory and files attached to pages should be slugified (converted to a URL-friendly format). When enabled, file names will automatically be transformed into a URL-safe format. Additionally, `page.file` and `site.file` references can use the original file names, as they will also be slugified during the process.
+Indicates whether file names in the public directory and files attached to pages should be slugified (converted to a URL-friendly format).
+
+When enabled, file names will automatically be transformed into a URL-safe format. Additionally, `page.file` and `site.file` references can use the original file names, as they will also be slugified during the process.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -493,7 +499,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM. Resolves local layout first, then theme layout as fallback.
+The layout to use if not specified in FM data. When empty, the document will not use a layout when it doesn't specify it in FM.
+
+Resolves local layout first, then theme layout as fallback.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -505,6 +513,27 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-from-data-id-key]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-from-data-id-key[`+++site.collections."collections-map".from-data.id-key+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.collections."collections-map".from-data.id-key+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The attribute to be used as title
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__FROM_DATA_ID_KEY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__FROM_DATA_ID_KEY+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|required icon:exclamation-circle[title=Configuration property is required]
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`+++site.generated-templates-output-dir+++`]##
 ifdef::add-copy-button-to-config-props[]

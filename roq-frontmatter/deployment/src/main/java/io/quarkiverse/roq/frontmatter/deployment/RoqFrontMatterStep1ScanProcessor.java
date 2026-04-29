@@ -65,6 +65,8 @@ public class RoqFrontMatterStep1ScanProcessor {
         producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.hidden"));
         producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.future"));
         producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.layout"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.generate"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("site.collections.*.title-attribute-name"));
     }
 
     // ── Dir declarations ─────────────────────────────────────────────────

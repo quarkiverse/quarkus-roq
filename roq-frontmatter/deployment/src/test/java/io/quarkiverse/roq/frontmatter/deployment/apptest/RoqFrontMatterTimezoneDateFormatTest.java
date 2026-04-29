@@ -24,7 +24,6 @@ public class RoqFrontMatterTimezoneDateFormatTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "timezone-site")
-            .overrideConfigKey("site.collections.posts", "true")
             .overrideConfigKey("site.date-format", "dd/MM/yyyy HH:mm")
             .overrideConfigKey("site.time-zone", "Europe/Paris")
             .withApplicationRoot((jar) -> jar

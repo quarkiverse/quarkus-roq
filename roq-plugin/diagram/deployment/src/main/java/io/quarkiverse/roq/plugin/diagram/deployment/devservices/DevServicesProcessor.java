@@ -9,7 +9,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 
 import io.quarkiverse.roq.plugin.diagram.deployment.RoqPluginDiagramProcessor;
-import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.DevServicesResultBuildItem;
 import io.quarkus.deployment.builditem.DockerStatusBuildItem;
@@ -32,11 +31,8 @@ public class DevServicesProcessor {
     private static final Logger LOGGER = Logger.getLogger(DevServicesProcessor.class);
     private static final String KROKI_URL_KEY = "quarkus.rest-client.kroki-api.url";
     private static final ContainerLocator krokiContainerLocator = new ContainerLocator(DEV_SERVICE_LABEL, KROKI_PORT);
-    static volatile DevServicesResultBuildItem.RunningDevService devService;
 
-    static volatile boolean first = true;
-
-    @BuildStep(onlyIfNot = IsNormal.class, onlyIf = DevServicesConfig.Enabled.class)
+    @BuildStep(onlyIf = DevServicesConfig.Enabled.class)
     public DevServicesResultBuildItem startEnvProviderDevService(
             DockerStatusBuildItem dockerStatusBuildItem,
             LaunchModeBuildItem launchMode,
@@ -52,19 +48,22 @@ public class DevServicesProcessor {
                 launchMode.getLaunchMode());
 
         return maybeContainerAddress.map(containerAddress -> DevServicesResultBuildItem.discovered()
-                .name(DEV_SERVICE_NAME)
+                .feature(DEV_SERVICE_NAME)
                 .containerId(containerAddress.getId())
                 .config(Map.of(KROKI_URL_KEY,
                         "http://%s:%d".formatted(containerAddress.getHost(), containerAddress.getPort())))
                 .build())
-                .orElseGet(() -> DevServicesResultBuildItem.owned()
-                        .feature(RoqPluginDiagramProcessor.FEATURE)
-                        .serviceName(DEV_SERVICE_NAME)
-                        .serviceConfig(krokiDevserviceConfig)
-                        .startable(() -> startKroki(devServicesConfig, krokiDevserviceConfig))
-                        .postStartHook(DevServicesProcessor::logStarted)
-                        .configProvider(Map.of(KROKI_URL_KEY, KrokiContainer::getConnectionInfo))
-                        .build());
+                .orElseGet(() -> {
+                    startKroki(devServicesConfig, krokiDevserviceConfig).start();
+                    return DevServicesResultBuildItem.owned()
+                            .feature(RoqPluginDiagramProcessor.FEATURE)
+                            .serviceName(DEV_SERVICE_NAME)
+                            .serviceConfig(krokiDevserviceConfig)
+                            .startable(() -> startKroki(devServicesConfig, krokiDevserviceConfig))
+                            .postStartHook(DevServicesProcessor::logStarted)
+                            .configProvider(Map.of(KROKI_URL_KEY, KrokiContainer::getConnectionInfo))
+                            .build();
+                });
     }
 
     private static void logStarted(KrokiContainer container) {
@@ -79,10 +78,8 @@ public class DevServicesProcessor {
             DevServicesConfig devServicesConfig, DevServiceConfig krokiDevserviceConfig) {
 
         KrokiContainer container = new KrokiContainer(DockerImageName.parse(krokiDevserviceConfig.imageName()));
-
         container.withLabel(DEV_SERVICE_LABEL, DEV_SERVICE_LABEL);
         container.addEnv("KROKI_SAFE_MODE", "UNSAFE");
-
         devServicesConfig.timeout().ifPresent(container::withStartupTimeout);
         return container;
     }
@@ -91,13 +88,13 @@ public class DevServicesProcessor {
             DevServiceConfig krokiDevserviceConfig) {
         if (!(devServicesConfig.enabled() && krokiDevserviceConfig.enabled())) {
             // explicitly disabled
-            LOGGER.debug("Not starting dev services for Kroki, as it has been disabled in the config.");
+            LOGGER.infof("Not starting dev services for Kroki, as it has been disabled in the config.");
             return true;
         }
 
         // Check if quarkus.kroki.url is set
         if (ConfigUtils.isPropertyPresent(KROKI_URL_KEY)) {
-            LOGGER.debugf("Not starting dev services for Kroki, the %s is configured.", KROKI_URL_KEY);
+            LOGGER.infof("Not starting dev services for Kroki, the %s is configured.", KROKI_URL_KEY);
             return true;
         }
 

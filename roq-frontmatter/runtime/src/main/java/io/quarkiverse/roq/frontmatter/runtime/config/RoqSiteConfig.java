@@ -25,7 +25,7 @@ public interface RoqSiteConfig {
     String IGNORED_FILES = "**/_**,_**";
 
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
-            .of(new ConfiguredCollection("posts", false, false, false, "post"));
+            .of(new ConfiguredCollection("posts", false, false, false, "post", Optional.empty()));
 
     /**
      * the base hostname & protocol for your site, e.g. http://example.com
@@ -45,7 +45,7 @@ public interface RoqSiteConfig {
 
     /**
      * Add new ignored files to the default list.
-     *
+     * <p>
      * The ignored files (relative to the site directory).
      *
      * <p>
@@ -89,7 +89,7 @@ public interface RoqSiteConfig {
     /**
      * The layout to use for normal html pages if not specified in FM.
      * When empty, the page will not use a layout when it doesn't specify it in FM.
-     *
+     * <p>
      * Resolves local layout first, then theme layout as fallback.
      */
     @WithDefault("page")
@@ -182,7 +182,7 @@ public interface RoqSiteConfig {
     /**
      * Indicates whether file names in the public directory and files attached to pages should be slugified
      * (converted to a URL-friendly format).
-     *
+     * <p>
      * When enabled, file names will automatically be transformed into a URL-safe format.
      * Additionally, `page.file` and `site.file` references can use the original file names,
      * as they will also be slugified during the process.
@@ -209,8 +209,14 @@ public interface RoqSiteConfig {
         return java.util.stream.Stream.concat(
                 collectionsMap().entrySet().stream()
                         .filter(e -> e.getValue().enabled())
-                        .map(e -> new ConfiguredCollection(e.getKey(), false, e.getValue().hidden(), e.getValue().future(),
-                                e.getValue().layout().orElse(null))),
+                        .map(e -> new ConfiguredCollection(
+                                e.getKey(),
+                                false,
+                                e.getValue().hidden(),
+                                e.getValue().future(),
+                                e.getValue().layout().orElse(null),
+                                e.getValue().fromData()
+                                        .map(value -> new ConfiguredCollection.CollectionFromData(value.idKey())))),
                 DEFAULT_COLLECTIONS.stream()
                         .filter(dc -> !collectionsMap().containsKey(dc.id())))
                 .toList();
@@ -252,9 +258,23 @@ public interface RoqSiteConfig {
         /**
          * The layout to use if not specified in FM data.
          * When empty, the document will not use a layout when it doesn't specify it in FM.
-         *
+         * <p>
          * Resolves local layout first, then theme layout as fallback.
          */
         Optional<String> layout();
+
+        /**
+         * If present, documents for this collection will be created for the data (array or dir) with the same name as the
+         * collection (using the collection default layout)
+         */
+        Optional<CollectionFromData> fromData();
+    }
+
+    interface CollectionFromData {
+
+        /**
+         * The attribute to be used as title
+         */
+        String idKey();
     }
 }
