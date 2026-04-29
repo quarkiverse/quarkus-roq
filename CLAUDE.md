@@ -110,6 +110,19 @@ Each plugin follows the runtime/deployment pattern.
 - Build-time: `roq-plugin/[plugin-name]/deployment/src/`
 - Rebuild: `cd roq-plugin/[plugin-name]/runtime && mvn clean install -DskipTests`
 
+## Roq Documentation for LLMs
+
+When you need to understand how Roq works (templates, collections, configuration, etc.), read these files:
+
+**Quarkus skills** (detailed reference, loaded automatically in Quarkus-aware LLM tools):
+- `roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md` (pages, layouts, collections, pagination, Qute syntax, template variables, configuration)
+- `roq/deployment/src/main/resources/META-INF/quarkus-skill.md` (SSG overview, directory structure, themes, RSS, llms.txt generation, CLI)
+- `roq-data/deployment/src/main/resources/META-INF/quarkus-skill.md` (data files, type-safe mapping, CDI access)
+
+**llms.txt templates** (concise summary served at `/llms.txt` and `/llms-full.txt` on the blog site):
+- `blog/templates/partials/llms-skills.html` (shared partial with Roq feature descriptions)
+- `blog/content/llms.qute.txt` and `blog/content/llms-full.qute.txt` (entry points)
+
 ## Testing and Verification
 
 Dev server is already running on port 8080 and watches for changes automatically:

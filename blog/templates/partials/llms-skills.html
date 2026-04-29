@@ -55,6 +55,9 @@ Install a skill for each `*-deployment` JAR listed in the dependency output.
 
 After running `roq update`, re-extract the skill files to match the new version. Compare the Roq version in your dependencies with the version of the installed skill to detect staleness.
 
+**Migrating to Roq:**
+- [Migrating to Roq]({=site.url('/docs/migrating/').absolute}): phased workflow, syntax mappings, configuration reference, and LLM prompts for migrating a Jekyll/Hugo site to Roq
+
 **Skill files (latest version for reference):**
 - [quarkus-roq-frontmatter-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md): base reference (FrontMatter pages, layouts, collections, pagination, template variables, Qute syntax, built-in tags, data files, template extensions, configuration, common pitfalls)
 - [quarkus-roq-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md): full Roq extras (directory structure, themes, RSS, LLMs.txt, static generation, testing, CLI commands)
