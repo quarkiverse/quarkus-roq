@@ -8,10 +8,11 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
@@ -138,31 +139,30 @@ public class RoqFrontMatterStep2AssembleProcessor {
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<DataMappingBuildItem> roqDataBeanBuildItems,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
-        //Process roq-data may they have been mapped or not
-        roqDataBeanBuildItems
-                .forEach(item -> generatePages(roqProject, siteConfig, item.getName(), convert(item), rawPageProducer));
-        roqDataJsonBuildItems
-                .forEach(item -> generatePages(roqProject, siteConfig, item.getName(), item.getData(), rawPageProducer));
+
+        Map<String, Supplier<Object>> dataBeans = new HashMap<>(roqDataBeanBuildItems.stream()
+                .collect(Collectors.toMap(DataMappingBuildItem::getName, item -> () -> this.convert(item))));
+        dataBeans.putAll(roqDataJsonBuildItems.stream()
+                .collect(Collectors.toMap(RoqDataJsonBuildItem::getName, item -> item::getData)));
+
+        siteConfig.collections().forEach(collection -> collection.fromData().ifPresent(
+                ignored -> generateDataPages(roqProject, collection, dataBeans.get(collection.id()).get(), rawPageProducer)));
 
     }
 
-    private void generatePages(RoqProjectBuildItem roqProject, RoqSiteConfig siteConfig, String itemName, Object item,
+    private void generateDataPages(RoqProjectBuildItem roqProject, ConfiguredCollection configuredCollection, Object item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
-        var collectionConfig = siteConfig.collections().stream()
-                .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity())).get(itemName);
-        if (collectionConfig != null && collectionConfig.fromData().isPresent()) {
-            switch (item) {
-                case JsonObject jsonObject ->
-                    generateDataPages(collectionConfig, jsonObject, rawPageProducer, roqProject);
-                case JsonArray jsonArray ->
-                    jsonArray.forEach(jsonObject -> generateDataPages(collectionConfig, (JsonObject) jsonObject,
-                            rawPageProducer, roqProject));
-                default -> throw new IllegalStateException();
-            }
+        switch (item) {
+            case JsonObject jsonObject ->
+                generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+            case JsonArray jsonArray ->
+                jsonArray.forEach(jsonObject -> generateDataPage(configuredCollection, (JsonObject) jsonObject,
+                        rawPageProducer, roqProject));
+            default -> throw new IllegalStateException();
         }
     }
 
-    private void generateDataPages(ConfiguredCollection configuredCollection, JsonObject item,
+    private void generateDataPage(ConfiguredCollection configuredCollection, JsonObject item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
         final String extractedKey = item.getString(configuredCollection.idKey());
         if (extractedKey == null) {
@@ -172,12 +172,12 @@ public class RoqFrontMatterStep2AssembleProcessor {
                             configuredCollection.idKey())));
         }
         final String id = configuredCollection.id() + "/" + slugify(extractedKey, false, false);
-        final String path = id + ".md";
+        final String path = id + ".html";
         final String layoutId = configuredCollection.layout() != null ? LAYOUTS_DIR + configuredCollection.layout() : null;
         rawPagesProducer.produce(new RoqFrontMatterRawPageBuildItem(
                 TemplateSource.create(
                         id,
-                        "markdown",
+                        null,
                         new SourceFile(
                                 toUnixPath(roqProject.local().roqDir().normalize().toAbsolutePath()
                                         .toString()),
