@@ -233,7 +233,10 @@ paginate:
 - `page.date` — page date (`ZonedDateTime`, null for normal pages without a date; always set for collection documents)
 - `page.data` — all frontmatter data (`JsonObject`)
 - `page.data(name)` — get specific frontmatter value
-- `page.rawContent` — raw content without frontmatter or layouts
+- `page.content` — rendered inner content (without layouts), use only outside of layouts to avoid recursion
+- `page.contentAbstract` — first 75 words of rendered content (HTML stripped)
+- `page.contentAbstract(n)` — first N words of rendered content (HTML stripped)
+- `page.rawTemplate` — the raw generated Qute template for this page
 - `page.sourcePath` — source file relative path (e.g. `posts/my-post.md`)
 - `page.sourceFileName` — file name only
 - `page.baseFileName` — file name without extension

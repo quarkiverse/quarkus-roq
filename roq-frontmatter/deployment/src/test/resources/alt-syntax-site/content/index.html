@@ -1,0 +1,11 @@
+---
+title: Alt Syntax Site
+layout: default
+---
+
+<div>
+  {#for post in site.collections.posts}
+    <h1>{=post.title}</h1>
+  {/for}
+</div>
+<span class="site-title">{=site.title}</span>

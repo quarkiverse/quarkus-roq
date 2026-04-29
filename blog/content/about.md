@@ -9,7 +9,7 @@ page-class: page-alt
 
 ## Origins
 
-I wrote a [blog post]({site.url('posts/roq-with-blogs')}) explaining how it all started.
+I wrote a [blog post]({=site.url('posts/roq-with-blogs')}) explaining how it all started.
 
 ## Credits
 

@@ -590,6 +590,10 @@ To enable llms.txt generation, create the following content files:
 
 To exclude a specific page, set `llmstxt: false` in its frontmatter.
 
+==== Loading Roq context in your AI assistant
+
+You can give your AI coding assistant full context about Roq by pointing it to https://iamroq.dev/llms.txt (or `/llms-full.txt` for complete content). This provides the project structure, quick start instructions, template syntax, and links to detailed skill files.
+
 [#variables]
 == Variables
 

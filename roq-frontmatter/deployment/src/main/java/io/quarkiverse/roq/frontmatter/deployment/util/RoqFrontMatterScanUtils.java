@@ -34,6 +34,8 @@ import io.quarkiverse.tools.projectscanner.ProjectFile;
 import io.quarkiverse.tools.projectscanner.ProjectScannerBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanQueryBuilder;
 import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.quarkus.qute.ParserConfig;
+import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
 import io.vertx.core.http.impl.MimeMapping;
 
@@ -220,6 +222,44 @@ public final class RoqFrontMatterScanUtils {
         return null;
     }
 
+    // ── Parser config resolution ──────────────────────────────────────────
+
+    /**
+     * Resolve the {@link ParserConfig} for a scanned file based on its origin.
+     * <p>
+     * For local project files and application resources, the app-level
+     * {@code quarkus.qute.alt-expr-syntax} config is used.
+     * For dependency resources (themes), the pre-scanned {@code .qute} config map is consulted.
+     */
+    public static ParserConfig resolveParserConfig(ProjectFile file, QuteConfig quteConfig,
+            Map<Path, ParserConfig> depParserConfigs) {
+        if (file.origin() != ProjectFile.Origin.DEPENDENCY_RESOURCE) {
+            return quteConfig.altExprSyntax()
+                    ? TemplatePathBuildItem.ALT_PARSER_CONFIG
+                    : ParserConfig.DEFAULT;
+        }
+        Path templateRoot = resolveTemplateRoot(file);
+        return templateRoot != null
+                ? depParserConfigs.getOrDefault(templateRoot, ParserConfig.DEFAULT)
+                : ParserConfig.DEFAULT;
+    }
+
+    /**
+     * Derive the template root directory from a ProjectFile by stripping the scopedPath from the absolute path.
+     */
+    public static Path resolveTemplateRoot(ProjectFile file) {
+        Path filePath = file.file().normalize().toAbsolutePath();
+        int scopedDepth = Path.of(file.scopedPath()).getNameCount();
+        Path root = filePath;
+        for (int i = 0; i < scopedDepth; i++) {
+            root = root.getParent();
+            if (root == null) {
+                return null;
+            }
+        }
+        return root;
+    }
+
     // ── Template metadata ────────────────────────────────────────────────
 
     /**
@@ -229,7 +269,9 @@ public final class RoqFrontMatterScanUtils {
     public static FrontMatterTemplateMetadata collectMetadata(
             ProjectFile file, boolean isLayout,
             List<RoqFrontMatterQuteMarkupBuildItem> markupList,
-            List<RoqFrontMatterHeaderParserBuildItem> headerParserList) {
+            List<RoqFrontMatterHeaderParserBuildItem> headerParserList,
+            QuteConfig quteConfig,
+            Map<Path, ParserConfig> depParserConfigs) {
 
         String referencePath = normalizeReferencePath(file.scopedPath());
         String relativePath = toUnixPath(file.indexPath());
@@ -252,8 +294,10 @@ public final class RoqFrontMatterScanUtils {
         boolean isHtml = isTemplateTargetHtml(referencePath);
         boolean isPartial = isPartialHtmlDocument(parsed.content(), isHtml);
 
+        ParserConfig parserConfig = resolveParserConfig(file, quteConfig, depParserConfigs);
+
         return new FrontMatterTemplateMetadata(file.file(), referencePath, sourceFile, markup, parsed,
-                templateId, outputPath, isHtml, isPartial);
+                templateId, outputPath, isHtml, isPartial, parserConfig);
     }
 
 }

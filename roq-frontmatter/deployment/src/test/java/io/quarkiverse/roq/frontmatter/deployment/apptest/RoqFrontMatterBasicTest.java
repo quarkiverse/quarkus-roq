@@ -117,4 +117,11 @@ public class RoqFrontMatterBasicTest {
                 .body("html.body.article.span.find { it.@class == 'has-date' }.text()", equalTo("no"));
     }
 
+    @Test
+    @DisplayName("{=expr} is literal text when alt-expr-syntax is disabled")
+    public void testAltSyntaxNotActive() {
+        RestAssured.when().get("/page/some-page").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'literal' }.text()", equalTo("{=not-alt-syntax}"));
+    }
+
 }

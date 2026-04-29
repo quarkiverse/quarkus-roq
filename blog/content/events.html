@@ -8,15 +8,15 @@ page-class: page-alt
 {#for event in cdi:events.list}
 <article class="event">
   <div class="post-date">
-    <span>{event.parsedDate.format('dd')}</span>
-    <span>{event.parsedDate.format('MMM yyyy')}</span>
+    <span>{=event.parsedDate.format('dd')}</span>
+    <span>{=event.parsedDate.format('MMM yyyy')}</span>
   </div>
 
   <div class="card event-content">
-    <h2 class="event-title">{event.title}</h2>
-    <p>{event.description}</p>
+    <h2 class="event-title">{=event.title}</h2>
+    <p>{=event.description}</p>
     {#if event.link}
-    <a href="{site.url.resolve(event.link)}">Learn more</a>
+    <a href="{=site.url.resolve(event.link)}">Learn more</a>
     {/if}
   </div>
 </article>

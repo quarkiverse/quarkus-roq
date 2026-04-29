@@ -44,7 +44,7 @@ public class Page {
     private final JsonObject data;
     private final PageSource source;
     private final SoftLazyValue<String> contentLazy = new SoftLazyValue<>(this::resolveContentLazy);
-    private final SoftLazyValue<String> rawContentLazy = new SoftLazyValue<>(this::resolveRawContentLazy);
+    private final SoftLazyValue<String> rawTemplateLazy = new SoftLazyValue<>(this::resolveRawTemplateLazy);
     private final ThreadLocal<Boolean> resolvingContent = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     protected Page(RoqUrl url, PageSource source, JsonObject data) {
@@ -93,11 +93,18 @@ public class Page {
     }
 
     /**
-     * The content of the file or template, without any frontmatter header or layouts.
-     * If applicable, this includes the markup block (e.g. {@code <md>...</md>}).
+     * The raw generated Qute template for this page, including layout include directives and fragment wrappers.
      */
+    public String rawTemplate() {
+        return rawTemplateLazy.get();
+    }
+
+    /**
+     * @deprecated Use {@link #rawTemplate()} instead.
+     */
+    @Deprecated(forRemoval = true)
     public String rawContent() {
-        return rawContentLazy.get();
+        return rawTemplate();
     }
 
     private String resolveContentLazy() {
@@ -120,7 +127,7 @@ public class Page {
         return "";
     }
 
-    private String resolveRawContentLazy() {
+    private String resolveRawTemplateLazy() {
         final String templateResource = "/templates/" + source().template().generatedQuteTemplateId();
         try (InputStream resource = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(templateResource)) {
