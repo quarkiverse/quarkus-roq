@@ -6,11 +6,13 @@ guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-frontmatter.html
 
 # Quarkus Roq FrontMatter
 
-Roq FrontMatter processes Markdown, AsciiDoc, and HTML pages with YAML frontmatter headers into web pages using Qute templates. It can be used standalone with a running Quarkus app (hybrid mode, SSR) or as part of the full Roq static site generator.
+Roq FrontMatter is the template engine behind Roq. It processes Markdown, AsciiDoc, and HTML pages with YAML frontmatter headers into web pages using Qute templates. It can be used standalone with a running Quarkus app (hybrid mode, SSR) or as part of the full Roq SSG.
+
+**If your project uses the full `quarkus-roq` extension**, also see the [quarkus-roq skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md) for additional features: directory structure differences, static generation, CLI commands, themes, LLMs.txt, and testing.
 
 ### Directory Structure
 
-When used standalone (without the full `quarkus-roq` extension), directories are under `src/main/resources/`:
+When used standalone (without the full `quarkus-roq` extension), directories are under `src/main/resources/`. With the full Roq SSG, they are at the **project root** instead (see the quarkus-roq skill).
 
 ```
 src/main/resources/
@@ -20,9 +22,9 @@ src/main/resources/
     posts/                  # Collection directory
       2024-08-29-my-post.md # Date-based document
   data/                     # JSON/YAML data files
+    authors.yaml
   templates/                # Qute layout templates
     layouts/                # Layout files
-      default.html
       main.html
     partials/               # Reusable template fragments
       header.html
@@ -38,7 +40,7 @@ Pages in `content/` use YAML frontmatter between `---` delimiters. Supported for
 ---
 title: "My Page Title"
 description: "Page description for SEO"
-layout: main
+layout: page
 image: photo.jpg
 date: 2024-08-29 13:32:20 +0200
 tags: [blogging, quarkus]
@@ -48,6 +50,7 @@ paginate:
   collection: posts
   size: 10
   link: posts/page-:page
+redirect_from: [old-url, another-old-url]
 ---
 Page content here (Markdown, HTML, or AsciiDoc)
 ```
@@ -55,13 +58,14 @@ Page content here (Markdown, HTML, or AsciiDoc)
 Key fields:
 - **title** — Page title (falls back to source path if missing)
 - **description** — Used for SEO meta tags
-- **layout** — Qute layout template to wrap this page. References layouts in `templates/layouts/` (e.g. `main`, `default`)
-- **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name
+- **layout** — Qute layout template to wrap this page. Resolves local first, then theme fallback (e.g. `page`, `post`). Use `theme-layout:` to explicitly target a theme layout
+- **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name (for directory pages). Do NOT include the `images/` prefix, just use the filename (e.g. `image: photo.jpg`, not `image: images/photo.jpg`)
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
 - **author** — Author identifier
 - **draft** — `true` to mark as draft (hidden unless `site.draft=true`)
 - **paginate** — Enable pagination. Shorthand: `paginate: posts`. Full config: `collection`, `size`, `link`
+- **redirect_from** / **aliases** — Old URLs that redirect to this page (requires aliases plugin)
 
 ### Layouts
 
@@ -89,6 +93,7 @@ layout: default
 <head>
   <title>{page.title}</title>
   {#seo page site /}
+  {#rss site /}{! adds the RSS <link> tag !}
   {#insert head /}
 </head>
 <body>
@@ -103,7 +108,7 @@ layout: default
 
 ### Collections
 
-Collections group related documents (e.g. blog posts). The default collection is `posts`.
+Collections group related documents (e.g. blog posts). The default collection is `posts` with layout `post`.
 
 **Configuration** (`application.properties`):
 ```properties
@@ -116,7 +121,7 @@ site.collections.recipes.layout=page
 site.collections.recipes.hidden=false
 ```
 
-**File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome.md`). The date is extracted from the filename.
+**File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
 
 **Iterating**:
 ```html
@@ -198,8 +203,8 @@ paginate:
 - `site.url(path)` — resolve path relative to root. Also `site.url(path, path1)`, `site.url(path, path1, path2)`
 - `site.title` — from index page frontmatter `title`
 - `site.description` — from index page frontmatter `description`
-- `site.image` — default site image from frontmatter `image`/`img`/`picture`
-- `site.image(name)` — resolve image from `public/images/`
+- `site.image` — default site image from frontmatter `image`/`img`/`picture`. Already resolves from `public/images/`. Use directly: `{site.image}`, never `{site.image('/images/...')}` or `{site.image('images/...')}`
+- `site.image(name)` — resolve image by filename only (e.g. `site.image('logo.png')`, not `site.image('/images/logo.png')`)
 - `site.imageExists(name)` — check if image exists
 - `site.data` — site-level frontmatter data (`JsonObject`)
 - `site.pages` — all normal pages (no collection documents)
@@ -218,8 +223,8 @@ paginate:
 - `page.url` — page URL (`RoqUrl`)
 - `page.title` — from frontmatter `title`
 - `page.description` — from frontmatter `description`
-- `page.image` — page image (`RoqUrl`)
-- `page.image(name)` — resolve specific image
+- `page.image` — page image (`RoqUrl`). Already resolves from `public/images/` or attached files. Use directly: `{page.image}`, never `{page.image('/images/...')}` or `{page.image('images/...')}`
+- `page.image(name)` — resolve specific image by filename only (e.g. `page.image('photo.jpg')`, not `page.image('/images/photo.jpg')`)
 - `page.imageExists(name)` — check if image exists
 - `page.date` — page date (`ZonedDateTime`, null for normal pages without a date; always set for collection documents)
 - `page.data` — all frontmatter data (`JsonObject`)
@@ -228,7 +233,6 @@ paginate:
 - `page.contentAbstract` — first 75 words of rendered content (HTML stripped)
 - `page.contentAbstract(n)` — first N words of rendered content (HTML stripped)
 - `page.rawTemplate` — the raw generated Qute template for this page
-- `page.source` — page source info (`PageSource`), e.g. `page.source.isTargetHtml`
 - `page.sourcePath` — source file relative path (e.g. `posts/my-post.md`)
 - `page.sourceFileName` — file name only
 - `page.baseFileName` — file name without extension
@@ -237,6 +241,7 @@ paginate:
 - `page.files` — attached files (directory pages only)
 - `page.file(name)` — resolve attached file URL
 - `page.fileExists(name)` — check if attached file exists
+- `page.source` — page source info (`PageSource`), e.g. `page.source.isTargetHtml`
 - `page.site` — reference back to `Site`
 
 **`page` for collection documents** (`DocumentPage` extends `Page`):
@@ -293,17 +298,67 @@ paginate:
   {author.name}
 {/let}
 
+{! Slugify !}
+{#let tagSlug=tag.slugify}
+  <a href="{site.url('/posts/tag', tagSlug)}">{tagSlug}</a>
+{/let}
+
 {! Type declarations (in layouts) !}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
 
-{! Escaping Qute in content !}
+{! Escaping Qute in content (standard syntax only) !}
 \{not-a-qute-expression}
+```
+
+### Alternative Expression Syntax
+
+Qute supports an alternative expression syntax where output expressions use `{=expr}` instead of `{expr}`. This makes templates safer when content contains curly braces (e.g. code samples, JSON), since only `{=...}` and `{#...}` are interpreted as Qute expressions. Everything else is plain text.
+
+Enable it in `application.properties`:
+```properties
+quarkus.qute.alt-expr-syntax=true
+```
+
+With alt syntax enabled:
+- Expressions: `{=page.title}`, `{=site.url}`, `{=post.description}`
+- Sections (unchanged): `{#for ...}`, `{#if ...}`, `{#include ...}`, `{@type ...}`
+- Plain text: `{anything}` is NOT interpreted (no escaping needed)
+
+This will become the default syntax for Roq in a future version.
+
+### Data Files
+
+Place JSON or YAML files in the `data/` directory. Each file becomes a CDI bean accessible in templates.
+
+**Example** (`data/authors.yaml`):
+```yaml
+ia3andy:
+  name: Andy
+  url: https://github.com/ia3andy
+```
+
+**Template access**:
+```html
+{cdi:authors.ia3andy.name}
+
+{#let author=cdi:authors.get(page.data.author)}
+  <span>{author.name}</span>
+{/let}
+```
+
+**Type-safe mapping** (Java):
+```java
+@DataMapping("authors")
+public record Authors(Map<String, Author> authors) {
+    public record Author(String name, String url) {}
+}
 ```
 
 ### Built-in Tags
 
+Add to root layout `<head>`:
 ```html
 {#seo page site /}
 {#rss site /}
@@ -311,14 +366,20 @@ paginate:
 {#ga4 /}
 ```
 
+- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags
+- `{#rss site /}` — adds the RSS `<link>` tag to the HTML head (does not generate the feed itself)
+- `{#favicon site /}` — auto-discovers favicon files from `public/` (favicon.svg, .ico, .png, apple-touch-icon.png)
+- `{#ga4 /}` — Google Analytics 4 (configure `analytics.ga4` in site index frontmatter)
+
 ### Template Extensions
 
 Date formatting (on `ZonedDateTime`):
-- `{page.date.iso}` — ISO 8601
-- `{page.date.isoDate}` — date only
+- `{page.date.iso}` — ISO 8601 (`2024-08-29T13:32:20+02:00`)
+- `{page.date.isoDate}` — date only (`2024-08-29`)
 - `{page.date.shortDate}` / `{page.date.longDate}` — locale-aware date
 - `{page.date.shortDateTime}` / `{page.date.longDateTime}` — locale-aware date-time
 - `{page.date.rfc822}` — RFC 822 (for RSS)
+- `{page.date.format('yyyy, MMM dd')}` — custom pattern
 
 Content helpers:
 - `{text.slugify}` — URL-friendly slug
@@ -330,31 +391,33 @@ Content helpers:
 - `{list.randomise}` — shuffle a list
 - `{fileName.mimeType}` — MIME type from extension
 
-### Hybrid Mode
+### Configuration
 
-Roq FrontMatter works alongside a running Quarkus app — pages are server-rendered by the Quarkus HTTP server. There is no static site generation (that requires the `quarkus-roq-generator` extension).
-
-**Key points**:
-- Pages are served dynamically by Quarkus, enabling SSR alongside REST endpoints, WebSockets, etc.
-- Combine with `quarkus-web-bundler` for JS/TS/CSS bundling using `{#bundle /}` in layouts
-- Use `site.path-prefix` to serve Roq pages under a sub-path when coexisting with other Quarkus routes
-
-**Configuration** (`application.properties`):
 ```properties
 site.url=http://localhost:8080
-site.path-prefix=/blog
+site.draft=true                    # Show draft pages
+site.future=true                   # Show future-dated documents
+site.defaultLocale=en              # Default language
+site.draftDirectory=drafts         # Folder name for drafts
+site.slugifyFiles=true             # Slugify static file names for SEO
+site.escaped-pages=posts/escaped** # Skip Qute parsing for matched pages
+site.path-prefix=/blog             # Serve Roq pages under a sub-path
 ```
+
+### Hybrid Mode
+
+In standalone mode, Roq FrontMatter works alongside a running Quarkus app. Pages are server-rendered by the Quarkus HTTP server. Use `quarkus dev` to start dev mode. Combine with REST endpoints, WebSockets, and other Quarkus features. Use `site.path-prefix` to serve pages under a sub-path.
 
 ### Qute Reference Guide
 
-For advanced Qute template needs beyond the essentials above (e.g. `@TemplateExtension` to add custom methods to objects, type-safe templates, template globals, or complex expressions), consult the full Qute reference guide: https://quarkus.io/guides/qute-reference
+For advanced Qute template needs (e.g. `@TemplateExtension` to add custom methods to objects, type-safe templates, template globals, or complex expressions), consult the full [Qute reference guide](https://quarkus.io/guides/qute-reference).
 
 ### Common Pitfalls
 
 - **Layout inheritance** — ALWAYS use the frontmatter `layout:` field for layout inheritance (e.g. `layout: main`). NEVER use Qute's `{#include}` or `{#layout}` directives for this purpose — they won't work with Roq's layout chain.
 - **`{page.content}` in layouts** — NEVER use `{page.content}` in layouts. Use `{#insert /}` to render child content. `{page.content}` causes recursive rendering.
-- **Wrong directory location** — Standalone Roq FrontMatter uses `src/main/resources/` for `content/`, `templates/`, `public/`, `data/`. NOT project root (project root is only for the full `quarkus-roq` extension).
-- **Layout resolution** — `layout: page` resolves local first (`templates/layouts/page.html`), then theme fallback. Use `theme-layout: page` to explicitly target the theme layout. The old `:theme/` prefix syntax is deprecated.
+- **Wrong directory location** — Standalone Roq FrontMatter uses `src/main/resources/` for `content/`, `templates/`, `public/`, `data/`. The full `quarkus-roq` extension uses project root instead.
+- **Layout resolution** — `layout: page` resolves local first, then theme fallback (themes require full `quarkus-roq`). Use `theme-layout: page` to explicitly target the theme layout.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
-- **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages.
-- **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally.
+- **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. Do NOT use the `images/` prefix in frontmatter or template calls (e.g. `image: photo.jpg`, not `image: images/photo.jpg`).
+- **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally. Add pages to `site.escaped-pages` config to skip Qute parsing entirely.
