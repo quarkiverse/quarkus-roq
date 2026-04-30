@@ -1,10 +1,10 @@
 package io.quarkiverse.roq.data.deployment.exception;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import io.quarkiverse.roq.exception.RoqException;
 
-public class DataScanningException extends UncheckedIOException {
-    public DataScanningException(String message, IOException cause) {
-        super(message, cause);
+public class DataScanningException extends RoqException {
+
+    public DataScanningException(RoqException.Builder builder) {
+        super(builder);
     }
 }

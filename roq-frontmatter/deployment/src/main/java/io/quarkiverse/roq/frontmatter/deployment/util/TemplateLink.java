@@ -19,8 +19,9 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.quarkiverse.roq.exception.RoqException;
+import io.quarkiverse.roq.exception.RoqSourceInfo;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
@@ -56,7 +57,8 @@ public class TemplateLink {
                     if (data.collection() == null) {
                         throw new RoqTemplateLinkException(
                                 RoqException.builder("Invalid link placeholder")
-                                        .source(data.pageSource().template())
+                                        .sourceInfo(new RoqSourceInfo(data.pageSource().template().file().relativePath(),
+                                                data.pageSource().template().file().absolutePath()))
                                         .detail("The ':collection' placeholder is used in the link template, but this page does not belong to a collection.")
                                         .hint("Remove ':collection' from the link template, or move this page into a collection."));
                     }
@@ -134,7 +136,8 @@ public class TemplateLink {
                 if (replacement == null) {
                     throw new RoqTemplateLinkException(
                             RoqException.builder("Link placeholder not resolved")
-                                    .source(data.pageSource().template())
+                                    .sourceInfo(new RoqSourceInfo(data.pageSource().template().file().relativePath(),
+                                            data.pageSource().template().file().absolutePath()))
                                     .detail("Placeholder '%s' in link template '%s' resolved to null.".formatted(
                                             entry.getKey(), template))
                                     .hint("Provide a value for '%s' in the page front matter or remove it from the link template."
@@ -152,7 +155,8 @@ public class TemplateLink {
                 String invalidPlaceholder = matcher.group();
                 throw new RoqTemplateLinkException(
                         RoqException.builder("Invalid link placeholder")
-                                .source(data.pageSource().template())
+                                .sourceInfo(new RoqSourceInfo(data.pageSource().template().file().relativePath(),
+                                        data.pageSource().template().file().absolutePath()))
                                 .detail("Unknown placeholder '%s' in link template '%s'.".formatted(
                                         invalidPlaceholder, template != null ? template : defaultTemplate))
                                 .hint("Valid placeholders: %s".formatted(

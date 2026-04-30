@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.data.deployment.exception;
 
-public class DataConflictException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public DataConflictException(String message) {
-        super(message);
+public class DataConflictException extends RoqException {
+
+    public DataConflictException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public DataConflictException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

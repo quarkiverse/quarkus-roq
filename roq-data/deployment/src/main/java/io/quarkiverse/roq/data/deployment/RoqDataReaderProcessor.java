@@ -34,6 +34,7 @@ import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.tools.projectscanner.ProjectFile;
 import io.quarkiverse.tools.projectscanner.ProjectScannerBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanDeclarationBuildItem;
@@ -70,7 +71,10 @@ public class RoqDataReaderProcessor {
                 }
 
             } catch (IOException e) {
-                throw new DataScanningException("Unable to scan data files", e);
+                throw new DataScanningException(
+                        RoqException.builder("Unable to scan data files")
+                                .hint("Check that the data/ directory exists and its files are valid YAML or JSON")
+                                .cause(e));
             }
         }
 
@@ -114,7 +118,10 @@ public class RoqDataReaderProcessor {
 
             if (isRequired && !dataJsonMap.containsKey(key)) {
                 throw new DataMappingRequiredFileException(
-                        "The @DataMapping#value(%s) is required, but there is no corresponding data file".formatted(key));
+                        RoqException.builder("Required data file not found")
+                                .detail("@DataMapping(\"%s\") is marked as required, but no corresponding data file exists"
+                                        .formatted(key))
+                                .hint("Add a data file named '%s.yml' (or .json) in the data/ directory".formatted(key)));
             }
         });
 
@@ -122,8 +129,10 @@ public class RoqDataReaderProcessor {
             List<String> dataMappingErrors = collectDataMappingErrors(annotationMap.keySet(), dataJsonMap.keySet());
             if (!dataMappingErrors.isEmpty()) {
                 throw new DataMappingMismatchException(
-                        "Some data mappings and data files do not match: %n%s. Data mapping enforcement may be disabled in Roq."
-                                .formatted(String.join(System.lineSeparator(), dataMappingErrors)));
+                        RoqException.builder("Data mapping mismatch")
+                                .detail("Some data mappings and data files do not match:\n%s"
+                                        .formatted(String.join(System.lineSeparator(), dataMappingErrors)))
+                                .hint("Data mapping enforcement may be disabled in Roq configuration"));
             }
         }
 
@@ -177,7 +186,12 @@ public class RoqDataReaderProcessor {
                             converted));
                 } catch (IOException e) {
                     throw new DataConversionException(
-                            "Unable to convert data file %s as an Object".formatted(roqDataBuildItem.sourceFile()), e);
+                            RoqException.builder("Unable to convert data file")
+                                    .detail("Could not convert file %s as an Object"
+                                            .formatted(roqDataBuildItem.sourceFile()))
+                                    .sourceFilePath(roqDataBuildItem.sourceFile().toString())
+                                    .hint("Verify the file contains valid YAML or JSON")
+                                    .cause(e));
                 }
             }
         }

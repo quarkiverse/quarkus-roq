@@ -1,10 +1,10 @@
 package io.quarkiverse.roq.data.deployment.exception;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import io.quarkiverse.roq.exception.RoqException;
 
-public class DataReadingException extends UncheckedIOException {
-    public DataReadingException(String message, IOException cause) {
-        super(message, cause);
+public class DataReadingException extends RoqException {
+
+    public DataReadingException(RoqException.Builder builder) {
+        super(builder);
     }
 }
