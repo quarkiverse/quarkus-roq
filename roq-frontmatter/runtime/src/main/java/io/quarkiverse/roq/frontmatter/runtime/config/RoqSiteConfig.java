@@ -273,7 +273,7 @@ public interface RoqSiteConfig {
     interface CollectionFromData {
 
         /**
-         * The attribute to be used as title
+         * The data attribute to use as the page identifier (slug).
          */
         String idKey();
     }

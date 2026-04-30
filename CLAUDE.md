@@ -123,11 +123,16 @@ When you need to understand how Roq works (templates, collections, configuration
 - `blog/templates/partials/llms-skills.html` (shared partial with Roq feature descriptions)
 - `blog/content/llms.qute.txt` and `blog/content/llms-full.qute.txt` (entry points)
 
-## Testing and Verification
+## Starting the Blog Dev Server
 
-Dev server is already running on port 8080 and watches for changes automatically:
+Pick a random port (not 8080) for each session to avoid conflicts:
+```bash
+cd blog && roq start -p <port>
+```
+
+The dev server watches for changes automatically:
 - **Changes in blog/ dir**: Auto-detected, no restart needed
-- **Changes in roq modules** (roq-theme/, plugins/, etc.): Rebuild the specific module using mvncist, then tell me so I can restart the dev server
+- **Changes in roq modules** (roq-theme/, plugins/, etc.): Rebuild the specific module, then press `s` in the dev terminal to force a restart
 
 To rebuild a module after template or Java changes:
 ```bash

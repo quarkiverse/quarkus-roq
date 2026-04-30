@@ -21,6 +21,7 @@ import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
@@ -31,7 +32,6 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScanne
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -147,8 +147,16 @@ public class RoqFrontMatterStep2AssembleProcessor {
         dataBeans.putAll(roqDataJsonBuildItems.stream()
                 .collect(Collectors.toMap(RoqDataJsonBuildItem::getName, item -> item::getData)));
 
-        siteConfig.collections().forEach(collection -> collection.fromData().ifPresent(
-                ignored -> generateDataPages(roqProject, collection, dataBeans.get(collection.id()).get(), rawPageProducer)));
+        siteConfig.collections().forEach(collection -> collection.fromData().ifPresent(ignored -> {
+            Supplier<Object> dataSupplier = dataBeans.get(collection.id());
+            if (dataSupplier == null) {
+                throw new RoqFrontMatterReadingException(
+                        RoqException.builder("No data source found for collection '%s'".formatted(collection.id()))
+                                .hint("Ensure a data file named '%s.yml' (or .json) exists in the data/ directory"
+                                        .formatted(collection.id())));
+            }
+            generateDataPages(roqProject, collection, dataSupplier.get(), rawPageProducer);
+        }));
 
     }
 
@@ -157,10 +165,23 @@ public class RoqFrontMatterStep2AssembleProcessor {
         switch (item) {
             case JsonObject jsonObject ->
                 generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
-            case JsonArray jsonArray ->
-                jsonArray.forEach(jsonObject -> generateDataPage(configuredCollection, (JsonObject) jsonObject,
-                        rawPageProducer, roqProject));
-            default -> throw new IllegalStateException();
+            case JsonArray jsonArray -> jsonArray.forEach(element -> {
+                if (element instanceof JsonObject jsonObject) {
+                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+                } else {
+                    throw new RoqFrontMatterReadingException(
+                            RoqException.builder("Invalid data element in collection '%s'"
+                                    .formatted(configuredCollection.id()))
+                                    .detail("Expected a JSON object but got: %s".formatted(
+                                            element == null ? "null" : element.getClass().getSimpleName()))
+                                    .hint("Each element in the data array must be a JSON object with an '%s' key"
+                                            .formatted(configuredCollection.idKey())));
+                }
+            });
+            default -> throw new RoqFrontMatterReadingException(
+                    RoqException.builder("Unsupported data type for collection '%s'".formatted(configuredCollection.id()))
+                            .detail("Expected a JSON object or array but got: %s".formatted(item.getClass().getSimpleName()))
+                            .hint("The data file should contain either a single JSON object or an array of objects"));
         }
     }
 
@@ -202,7 +223,12 @@ public class RoqFrontMatterStep2AssembleProcessor {
             return dataMappingBuildItem.getConverter().convert(dataMappingBuildItem.getContent());
         } catch (IOException e) {
             throw new DataConversionException(
-                    "Unable to convert data file %s as an Object".formatted(dataMappingBuildItem.sourceFile()), e);
+                    RoqException.builder("Unable to convert data file")
+                            .detail("Could not convert file %s as an Object"
+                                    .formatted(dataMappingBuildItem.sourceFile()))
+                            .sourceFilePath(dataMappingBuildItem.sourceFile().toString())
+                            .hint("Verify the file contains valid YAML or JSON")
+                            .cause(e));
         }
     }
 }

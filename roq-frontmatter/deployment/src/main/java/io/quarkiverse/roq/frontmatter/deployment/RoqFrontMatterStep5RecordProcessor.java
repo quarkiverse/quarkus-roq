@@ -11,6 +11,7 @@ import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
@@ -27,7 +28,6 @@ import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterReco
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;

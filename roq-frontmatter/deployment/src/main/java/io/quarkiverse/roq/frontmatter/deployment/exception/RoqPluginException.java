@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
+import io.quarkiverse.roq.exception.RoqException;
 
 public class RoqPluginException extends RoqException {
 

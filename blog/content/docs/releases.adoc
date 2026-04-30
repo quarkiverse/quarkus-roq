@@ -23,6 +23,7 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 - 🔧 Internal refactoring: the frontmatter pipeline is now split into clear numbered steps (Step0-Step6) for better maintainability
 - 🔧 Migrated to `ProjectScanner` API and `StringPaths` library for file scanning
 - ⚠️ `page.date` now returns `null` for normal pages without a date. Collection documents (posts) still default to the current date.
+- 🔧 *Common RoqException*: all Roq exceptions (`roq-frontmatter`, `roq-data`) now extend a common `io.quarkiverse.roq.exception.RoqException` in `roq-common`, providing structured error pages with title, detail, hint, and source info across all modules
 
 → Guide for migrating <<to-2-1>>
 
@@ -141,6 +142,21 @@ Give it a try, it is enabled on this site. If you want this for your site:
 | `PAGINATE_KEY` in scan package
 | `RoqFrontMatterKeys` (runtime)
 | ⚠ Update imports
+
+| Plugin authors
+| `io.quarkiverse.roq.frontmatter.runtime.exception.RoqException`
+| `io.quarkiverse.roq.exception.RoqException` (in `roq-common`)
+| ⚠ Update imports
+
+| Plugin authors
+| `RoqException.Builder.source(TemplateSource)`
+| `RoqException.Builder.sourceInfo(new RoqSourceInfo(...))`
+| ⚠ Update builder calls
+
+| Plugin authors
+| `roq-data` exceptions extend `RuntimeException` / `UncheckedIOException`
+| All extend `RoqException` with builder pattern
+| ⚠ Update exception construction
 
 | Theme users
 | Custom SCSS/CSS overrides

@@ -14,10 +14,10 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPluginException;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.plugin.sitemap.runtime.RoqPluginSitemapTemplateExtension;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildStep;

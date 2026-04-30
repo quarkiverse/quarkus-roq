@@ -10,9 +10,12 @@ import io.quarkus.dev.spi.HotReplacementSetup;
  */
 public class RoqErrorPageSetup implements HotReplacementSetup {
 
+    // ErrorPageGenerators uses exact class name matching (no hierarchy walk),
+    // so every concrete RoqException subclass must be listed here.
     private static final String[] ROQ_EXCEPTION_CLASSES = {
-            "io.quarkiverse.roq.frontmatter.runtime.exception.RoqException",
+            "io.quarkiverse.roq.exception.RoqException",
             "io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException",
+            "io.quarkiverse.roq.frontmatter.runtime.config.RoqFrontMatterConfigException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException",
@@ -21,6 +24,14 @@ public class RoqErrorPageSetup implements HotReplacementSetup {
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqPluginException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException",
+
+            "io.quarkiverse.roq.data.deployment.exception.DataConversionException",
+            "io.quarkiverse.roq.data.deployment.exception.DataListBindingException",
+            "io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException",
+            "io.quarkiverse.roq.data.deployment.exception.DataMappingRequiredFileException",
+            "io.quarkiverse.roq.data.deployment.exception.DataReadingException",
+            "io.quarkiverse.roq.data.deployment.exception.DataScanningException",
+            "io.quarkiverse.roq.deployment.exception.RoqJacksonConfigException",
     };
 
     @Override

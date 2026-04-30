@@ -2,7 +2,7 @@ package io.quarkiverse.roq.frontmatter.runtime.config;
 
 import java.util.Optional;
 
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
+import io.quarkiverse.roq.exception.RoqException;
 
 public record ConfiguredCollection(
         String id,

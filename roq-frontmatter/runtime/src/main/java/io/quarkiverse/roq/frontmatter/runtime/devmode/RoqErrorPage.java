@@ -18,7 +18,7 @@ public class RoqErrorPage {
 
     private static final Logger LOG = Logger.getLogger(RoqErrorPage.class);
 
-    private static final String ROQ_EXCEPTION_CLASS = "io.quarkiverse.roq.frontmatter.runtime.exception.RoqException";
+    private static final String ROQ_EXCEPTION_CLASS = "io.quarkiverse.roq.exception.RoqException";
 
     private RoqErrorPage() {
     }

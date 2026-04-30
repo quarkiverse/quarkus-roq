@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
@@ -40,7 +41,6 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStatic
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
@@ -217,7 +217,7 @@ public class RoqFrontMatterStep3DataProcessor {
                 final String layoutKey = getLayoutKey(config.theme(), parent);
                 throw new RoqLayoutNotFoundException(
                         RoqException.builder("Layout not found")
-                                .source(source)
+                                .sourceInfo(source.file().toSourceInfo())
                                 .detail("Layout '%s' could not be resolved.".formatted(layoutKey))
                                 .hint("Available layouts: %s".formatted(getAvailableLayouts(config, byId))));
             }
@@ -276,14 +276,14 @@ public class RoqFrontMatterStep3DataProcessor {
             if (fromFileName) {
                 throw new RoqSiteScanningException(
                         RoqException.builder("Invalid date in file name")
-                                .source(source)
+                                .sourceInfo(source.file().toSourceInfo())
                                 .detail("Could not parse date '%s' from the file name.".formatted(dateString))
                                 .hint("Rename the file so the date matches the configured format: '%s'.".formatted(dateFormat))
                                 .cause(e));
             } else {
                 throw new RoqFrontMatterReadingException(
                         RoqException.builder("Invalid date format")
-                                .source(source)
+                                .sourceInfo(source.file().toSourceInfo())
                                 .detail("Could not parse front matter 'date' value '%s'.".formatted(dateString))
                                 .hint("Use a date string matching the configured format: '%s'.".formatted(dateFormat))
                                 .cause(e));

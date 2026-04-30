@@ -1,6 +1,4 @@
-package io.quarkiverse.roq.frontmatter.runtime.exception;
-
-import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
+package io.quarkiverse.roq.exception;
 
 /**
  * Base exception for Roq errors carrying structured information
@@ -9,12 +7,9 @@ import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 public class RoqException extends RuntimeException {
 
     private final String title;
-    private final String sourceFilePath;
-    private final TemplateSource source;
+    private final RoqSourceInfo sourceInfo;
     private final String detail;
     private final String hint;
-    private final Integer line;
-    private final Integer column;
     private final Throwable originalCause;
 
     protected RoqException(Builder builder) {
@@ -24,12 +19,9 @@ public class RoqException extends RuntimeException {
         // never called. We store it separately for display in the error page.
         super(builder.buildMessage());
         this.title = builder.title;
-        this.sourceFilePath = builder.sourceFilePath;
-        this.source = builder.source;
+        this.sourceInfo = builder.buildSourceInfo();
         this.detail = builder.detail;
         this.hint = builder.hint;
-        this.line = builder.line;
-        this.column = builder.column;
         this.originalCause = builder.cause;
     }
 
@@ -37,15 +29,8 @@ public class RoqException extends RuntimeException {
         return title;
     }
 
-    public String sourceFilePath() {
-        return sourceFilePath;
-    }
-
-    /**
-     * The template source associated with this error, if available.
-     */
-    public TemplateSource source() {
-        return source;
+    public RoqSourceInfo sourceInfo() {
+        return sourceInfo;
     }
 
     public String detail() {
@@ -57,11 +42,11 @@ public class RoqException extends RuntimeException {
     }
 
     public Integer line() {
-        return line;
+        return sourceInfo != null ? sourceInfo.line() : null;
     }
 
     public Integer column() {
-        return column;
+        return sourceInfo != null ? sourceInfo.column() : null;
     }
 
     /**
@@ -72,27 +57,12 @@ public class RoqException extends RuntimeException {
         return originalCause;
     }
 
-    /**
-     * Returns the best available relative path for display.
-     * Prefers {@code source.file().relativePath()} when a source is set,
-     * falls back to {@code sourceFilePath}.
-     */
     public String displayPath() {
-        if (source != null && source.file() != null) {
-            return source.file().relativePath();
-        }
-        return sourceFilePath;
+        return sourceInfo != null ? sourceInfo.relativePath() : null;
     }
 
-    /**
-     * Returns the full absolute path when available (for tooltips).
-     * Returns null if no absolute path can be determined.
-     */
     public String absolutePath() {
-        if (source != null && source.file() != null) {
-            return source.file().absolutePath();
-        }
-        return null;
+        return sourceInfo != null ? sourceInfo.absolutePath() : null;
     }
 
     public static Builder builder(String title) {
@@ -102,7 +72,7 @@ public class RoqException extends RuntimeException {
     public static class Builder {
         private final String title;
         private String sourceFilePath;
-        private TemplateSource source;
+        private String absoluteSourceFilePath;
         private String detail;
         private String hint;
         private Integer line;
@@ -118,12 +88,16 @@ public class RoqException extends RuntimeException {
             return this;
         }
 
-        /**
-         * Set the template source for this error. When set, the source's
-         * file paths are used for display (relative) and tooltip (absolute).
-         */
-        public Builder source(TemplateSource source) {
-            this.source = source;
+        public Builder absoluteSourceFilePath(String absoluteSourceFilePath) {
+            this.absoluteSourceFilePath = absoluteSourceFilePath;
+            return this;
+        }
+
+        public Builder sourceInfo(RoqSourceInfo sourceInfo) {
+            this.sourceFilePath = sourceInfo.relativePath();
+            this.absoluteSourceFilePath = sourceInfo.absolutePath();
+            this.line = sourceInfo.line();
+            this.column = sourceInfo.column();
             return this;
         }
 
@@ -152,10 +126,17 @@ public class RoqException extends RuntimeException {
             return this;
         }
 
+        private RoqSourceInfo buildSourceInfo() {
+            if (sourceFilePath == null && absoluteSourceFilePath == null && line == null && column == null) {
+                return null;
+            }
+            return new RoqSourceInfo(sourceFilePath, absoluteSourceFilePath, line, column);
+        }
+
         private String buildMessage() {
             StringBuilder sb = new StringBuilder();
             sb.append(title);
-            String path = source != null && source.file() != null ? source.file().relativePath() : sourceFilePath;
+            String path = sourceFilePath;
             if (path != null) {
                 sb.append(" [").append(path);
                 if (line != null) {
@@ -174,6 +155,5 @@ public class RoqException extends RuntimeException {
             }
             return sb.toString();
         }
-
     }
 }

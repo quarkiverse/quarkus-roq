@@ -1,14 +1,10 @@
-
 package io.quarkiverse.roq.data.deployment.exception;
 
-public class DataMappingMismatchException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public DataMappingMismatchException(String message) {
-        super(message);
+public class DataMappingMismatchException extends RoqException {
+
+    public DataMappingMismatchException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public DataMappingMismatchException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

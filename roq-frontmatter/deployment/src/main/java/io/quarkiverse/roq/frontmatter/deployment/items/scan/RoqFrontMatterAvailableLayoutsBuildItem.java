@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
-import io.quarkiverse.roq.frontmatter.runtime.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkus.builder.item.SimpleBuildItem;
 

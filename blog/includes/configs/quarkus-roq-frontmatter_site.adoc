@@ -522,7 +522,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The attribute to be used as title
+The data attribute to use as the page identifier (slug).
 
 
 ifdef::add-copy-button-to-env-var[]
