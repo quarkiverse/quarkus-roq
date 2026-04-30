@@ -6,7 +6,7 @@ Roq is a static site generator built on Quarkus. It uses the Qute template engin
 
 1. Install via JBang: `curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force roq@quarkiverse/quarkus-roq`
 2. Create a site: `roq create my-site` (adds the default theme with example content)
-3. Start dev mode: `cd my-site && roq start` (live-reload on http://localhost:8080, use `-p 9090` for a custom port)
+3. Start dev mode: `cd my-site && roq start` (live-reload on http://localhost:8080, most changes are picked up automatically, use `-p 9090` for a custom port, press `s` to force a soft restart if needed)
 4. Build static site: `roq generate` (output in `target/roq/`), preview with `roq serve`
 5. Add a plugin or theme: `roq add plugin:tagging`, `roq add theme:default`
 6. Update to latest versions: `roq update`
@@ -14,6 +14,35 @@ Roq is a static site generator built on Quarkus. It uses the Qute template engin
 For a minimal HTML structure without the default theme: `roq create my-site -x theme:base`. Use `--no-code` to skip example content, `--gradle` for Gradle.
 
 Available commands: `roq create`, `roq start`, `roq generate`, `roq serve`, `roq add`, `roq update`, `roq blog`. There is NO `roq dev` command, use `roq start` for dev mode.
+
+### AI Agent Integration (Quarkus Agent MCP)
+
+AI coding agents (Claude Code, VS Code Copilot, Cursor, etc.) can manage Roq dev servers using [Quarkus Agent MCP](https://github.com/quarkusio/quarkus-agent-mcp). It handles lifecycle (start, stop, soft restart via `s`), log capture, and proxies to Dev MCP tools in the running app.
+
+**Install via JBang:**
+```
+jbang app install --fresh --force quarkus-agent-mcp@quarkusio
+```
+
+**Configure in Claude Code:**
+```
+claude mcp add quarkus-agent -- jbang quarkus-agent-mcp@quarkusio
+```
+
+**Configure in VS Code / Cursor (`.vscode/mcp.json`):**
+```json
+{
+  "servers": {
+    "quarkus-agent": {
+      "type": "stdio",
+      "command": "jbang",
+      "args": ["quarkus-agent-mcp@quarkusio"]
+    }
+  }
+}
+```
+
+Once configured, the agent uses `quarkus_start` to launch the Roq dev server, `quarkus_restart` for soft restart, `quarkus_logs` to read output, and `quarkus_searchTools` / `quarkus_callTool` to interact with the running app.
 
 ### Directory Structure
 
