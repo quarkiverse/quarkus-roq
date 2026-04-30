@@ -13,7 +13,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.deployment.config.RoqJacksonConfig;
+import io.quarkiverse.roq.deployment.exception.RoqJacksonConfigException;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkus.arc.impl.Reflections;
 import io.quarkus.deployment.annotations.BuildStep;
 
@@ -57,37 +59,40 @@ public class RoqJacksonProcessor {
             // let's first try and see if the value is a constant defined in PropertyNamingStrategies
             field = Reflections.findField(PropertyNamingStrategies.class, propertyNamingStrategy);
         } catch (Exception e) {
-            // the provided value does not correspond to any of the defined constants, so let's see if it's actually a class name
             try {
                 var clazz = Thread.currentThread().getContextClassLoader().loadClass(propertyNamingStrategy);
                 if (PropertyNamingStrategy.class.isAssignableFrom(clazz)) {
                     return Optional.of((PropertyNamingStrategy) clazz.getConstructor().newInstance());
                 }
-                throw new RuntimeException(invalidPropertyNameStrategyValueMessage(propertyNamingStrategy));
+                throw invalidPropertyNamingStrategyException(propertyNamingStrategy, null);
             } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
                     | InvocationTargetException ex) {
-                throw new RuntimeException(invalidPropertyNameStrategyValueMessage(propertyNamingStrategy));
+                throw invalidPropertyNamingStrategyException(propertyNamingStrategy, ex);
             }
         }
 
         try {
-            // we have a matching field, so let's see if the type is correct
             final Object value = field.get(null);
             Class<?> clazz = value.getClass();
             if (PropertyNamingStrategy.class.isAssignableFrom(clazz)) {
                 return Optional.of((PropertyNamingStrategy) value);
             }
-            throw new RuntimeException(invalidPropertyNameStrategyValueMessage(propertyNamingStrategy));
+            throw invalidPropertyNamingStrategyException(propertyNamingStrategy, null);
         } catch (IllegalAccessException e) {
-            // shouldn't ever happen
-            throw new RuntimeException(invalidPropertyNameStrategyValueMessage(propertyNamingStrategy));
+            throw invalidPropertyNamingStrategyException(propertyNamingStrategy, e);
         }
     }
 
-    private static String invalidPropertyNameStrategyValueMessage(String propertyNamingStrategy) {
-        return "Unable to determine the property naming strategy for value '" + propertyNamingStrategy
-                + "'. Make sure that the value is either a fully qualified class name of a subclass of '"
-                + PropertyNamingStrategy.class.getName()
-                + "' or one of the constants defined in '" + PropertyNamingStrategies.class.getName() + "'.";
+    private static RoqJacksonConfigException invalidPropertyNamingStrategyException(String propertyNamingStrategy,
+            Throwable cause) {
+        RoqException.Builder builder = RoqException.builder("Invalid Jackson property naming strategy")
+                .detail("Unable to determine the property naming strategy for value '%s'".formatted(propertyNamingStrategy))
+                .hint("Use a fully qualified class name extending %s or a constant from %s"
+                        .formatted(PropertyNamingStrategy.class.getSimpleName(),
+                                PropertyNamingStrategies.class.getSimpleName()));
+        if (cause != null) {
+            builder.cause(cause);
+        }
+        return new RoqJacksonConfigException(builder);
     }
 }

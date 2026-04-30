@@ -15,7 +15,9 @@ public class DataMappingRequiredDataFileTest {
                     .addClass(DataMappingRequiredDataFileTest.Person.class))
             .assertException(throwable -> {
                 Assertions.assertThat(throwable)
-                        .hasMessage("The @DataMapping#value(foo) is required, but there is no corresponding data file");
+                        .isInstanceOf(io.quarkiverse.roq.data.deployment.exception.DataMappingRequiredFileException.class)
+                        .hasMessageContaining("Required data file not found")
+                        .hasMessageContaining("@DataMapping(\"foo\") is marked as required");
             });
 
     @DataMapping(value = "foo", required = true)

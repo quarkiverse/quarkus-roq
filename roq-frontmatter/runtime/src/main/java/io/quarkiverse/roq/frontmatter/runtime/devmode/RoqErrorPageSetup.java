@@ -29,6 +29,7 @@ public class RoqErrorPageSetup implements HotReplacementSetup {
             "io.quarkiverse.roq.data.deployment.exception.DataMappingRequiredFileException",
             "io.quarkiverse.roq.data.deployment.exception.DataReadingException",
             "io.quarkiverse.roq.data.deployment.exception.DataScanningException",
+            "io.quarkiverse.roq.deployment.exception.RoqJacksonConfigException",
     };
 
     @Override
