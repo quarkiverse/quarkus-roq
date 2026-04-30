@@ -51,6 +51,8 @@ Create `content/rss.xml`:
 
 Add `{#rss site /}` to your root layout `<head>` to include the RSS feed link.
 
+Use `contentLimit` to control `<content:encoded>`: omit for description only (default), `contentLimit=0` for full rendered content, `contentLimit=N` for a word-limited content abstract (e.g. `{#include fm/rss.html contentLimit=150 /}`).
+
 ### LLMs.txt
 
 Generate `/llms.txt` and `/llms-full.txt` for AI discoverability. Create `content/llms.qute.txt`:

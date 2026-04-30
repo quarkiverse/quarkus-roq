@@ -561,10 +561,20 @@ Then create a `content/rss.xml` file with:
 
 [source,html]
 ----
-{#include fm/rss.html}
+{#include fm/rss.html /}
 ----
 
 Roq will generate a valid RSS feed from your blog posts FrontMatter data.
+
+By default, `<content:encoded>` contains the post description. Use the `contentLimit` parameter to include richer content:
+
+[source,html]
+----
+\{#include fm/rss.html contentLimit=0 /}  <1>
+\{#include fm/rss.html contentLimit=150 /}  <2>
+----
+<1> Full rendered content
+<2> Content abstract limited to 150 words
 
 [[llmstxt]]
 === LLMs.txt
