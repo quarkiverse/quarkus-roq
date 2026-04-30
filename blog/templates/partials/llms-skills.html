@@ -37,7 +37,7 @@ Roq extensions ship detailed reference docs as skill files inside their deployme
 ### 1. Find your Roq extensions and version
 
 ```
-mvn dependency:list -Dincludes=io.quarkiverse.roq -q -DoutputAbsoluteArtifactFilename=true
+mvn dependency:list -DincludeGroupIds=io.quarkiverse.roq -DoutputAbsoluteArtifactFilename=true
 ```
 
 ### 2. Extract the relevant skills
