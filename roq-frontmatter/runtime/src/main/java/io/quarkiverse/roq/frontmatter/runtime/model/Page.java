@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -23,12 +22,14 @@ import jakarta.enterprise.inject.Vetoed;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.exception.RoqException;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateData;
+import io.quarkus.qute.TemplateInstance;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -115,11 +116,10 @@ public class Page {
             if (template == null) {
                 return "";
             }
-            // Use the fragment for pages with a layout, or the full template otherwise
             final Template contentTemplate = template.getFragment(ROQ_PAGE_CONTENT_FRAGMENT);
-            return (contentTemplate != null ? contentTemplate : template).render(Map.of(
-                    "page", this,
-                    "site", site()));
+            final TemplateInstance instance = (contentTemplate != null ? contentTemplate : template).instance();
+            RoqTemplateAttributes.setPageData(instance, this, site());
+            return instance.render();
 
         } catch (Exception e) {
             LOG.warnf(e, "Failed to render page content for page: '%s'", sourcePath());

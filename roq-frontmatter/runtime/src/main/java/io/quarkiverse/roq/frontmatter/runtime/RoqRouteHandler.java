@@ -153,12 +153,7 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 }
             }
 
-            instance.data("page", page);
-            instance.data("site", site.get());
-            instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+            RoqTemplateAttributes.setPageData(instance, page, site.get());
             instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
             instance.renderAsync().whenComplete((r, t) -> {
                 if (t != null) {
