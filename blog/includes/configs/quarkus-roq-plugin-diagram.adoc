@@ -52,7 +52,7 @@ Environment variable: `+++QUARKUS_IMAGE_NAME+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++yuzutech/kroki:0.28.0+++`
+|`+++yuzutech/kroki:0.30.1+++`
 
 |===
 
