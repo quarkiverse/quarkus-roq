@@ -121,9 +121,13 @@ Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured fo
 ### CLI Commands (complete list, there is NO `roq dev` command)
 
 - `roq create my-site` — create a new site with the default theme. Options: `-x theme:base` for minimal theme, `-x plugin:tagging,plugin:series` to add plugins, `--no-code` to skip example content, `--gradle` for Gradle, `-g io.myorg` to set group ID
-- `roq start` — start dev mode with live-reload on http://localhost:8080. Use `-p 9090` to set a custom port
+- `roq start` — start dev mode with live-reload on http://localhost:8080. Most changes are automatically picked up by hot reload. Use `-p 9090` to set a custom port. Press `s` to force a soft restart if hot reload doesn't detect a change
 - `roq generate` — build static site to `target/roq/`
 - `roq serve` — preview generated site (default port 8181, use `-p` to change)
 - `roq add plugin:tagging` — add a plugin or theme
 - `roq update` — update the Roq/Quarkus project to latest versions
 - `roq blog` — list blog posts from a Roq site RSS feed
+
+### AI Agent Integration
+
+AI coding agents should use [Quarkus Agent MCP](https://github.com/quarkusio/quarkus-agent-mcp) to manage Roq dev servers. Install: `jbang app install --fresh --force quarkus-agent-mcp@quarkusio`. Configure as an MCP server in your AI tool (e.g. `claude mcp add quarkus-agent -- jbang quarkus-agent-mcp@quarkusio`). The agent uses `quarkus_start` to launch the dev server, `quarkus_restart` for soft restart, `quarkus_logs` to read output, and `quarkus_searchTools` / `quarkus_callTool` to interact with the running app. The `roq start` CLI command is for interactive user sessions.

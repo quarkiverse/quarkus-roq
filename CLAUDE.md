@@ -125,14 +125,33 @@ When you need to understand how Roq works (templates, collections, configuration
 
 ## Starting the Blog Dev Server
 
+### For AI agents (via Quarkus Agent MCP)
+
+If the `quarkus-agent` MCP server is configured, use it to manage the dev server:
+- `quarkus_start` with projectDir pointing to the blog directory
+- `quarkus_restart` to trigger a soft restart (sends `s` to the process)
+- `quarkus_logs` to read dev server output
+- `quarkus_status` to check if the server is running
+- `quarkus_stop` to stop the server
+
+Install: `jbang app install --fresh --force quarkus-agent-mcp@quarkusio`
+Configure: `claude mcp add quarkus-agent -- jbang quarkus-agent-mcp@quarkusio`
+
+### For users (via Roq CLI)
+
 Pick a random port (not 8080) for each session to avoid conflicts:
 ```bash
 cd blog && roq start -p <port>
 ```
 
-The dev server watches for changes automatically:
+Press `s` in the dev terminal to force a soft restart. If changes are still not picked up, kill the dev server and restart it.
+
+### Dev server behavior
+
+Most changes are automatically picked up by Quarkus hot reload, no restart needed. A soft restart is only necessary when hot reload doesn't detect a change:
 - **Changes in blog/ dir**: Auto-detected, no restart needed
-- **Changes in roq modules** (roq-theme/, plugins/, etc.): Rebuild the specific module, then press `s` in the dev terminal to force a restart
+- **Changes in roq modules** (roq-theme/, plugins/, etc.): Rebuild the specific module, then trigger a soft restart (`s` in the terminal, or `quarkus_restart` via MCP) only if the change is not picked up
+- **If the restart doesn't pick up the change**: Stop and restart the dev server
 
 To rebuild a module after template or Java changes:
 ```bash
