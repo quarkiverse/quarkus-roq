@@ -124,4 +124,34 @@ public class RoqFrontMatterBasicTest {
                 .body("html.body.article.span.find { it.@class == 'literal' }.text()", equalTo("{=not-alt-syntax}"));
     }
 
+    @Test
+    @DisplayName("RSS default mode uses description in content:encoded")
+    public void testRssDefault() {
+        String body = RestAssured.when().get("/rss.xml").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        assertTrue(body.contains("<title><![CDATA[New Post]]></title>"), "Should contain post title");
+        assertTrue(body.contains("A short description of the new post"), "Should contain post description");
+        assertTrue(body.contains("Keep reading"), "Should contain keep reading link");
+    }
+
+    @Test
+    @DisplayName("RSS full mode includes rendered page content")
+    public void testRssFull() {
+        String body = RestAssured.when().get("/rss-full.xml").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        assertTrue(body.contains("New post with html"), "Should contain full rendered content");
+        assertTrue(body.contains("This is a new post."), "Should contain post paragraph");
+        assertTrue(body.contains("Keep reading"), "Should contain keep reading link");
+    }
+
+    @Test
+    @DisplayName("RSS limit mode includes word-limited content abstract")
+    public void testRssLimit() {
+        String body = RestAssured.when().get("/rss-limit.xml").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        assertTrue(body.contains("content:encoded"), "Should contain content:encoded element");
+        assertTrue(body.contains("..."), "Should contain truncation marker from word limit");
+        assertTrue(body.contains("Keep reading"), "Should contain keep reading link");
+    }
+
 }

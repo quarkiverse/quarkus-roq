@@ -119,8 +119,8 @@ public class RoqFrontMatterSourceFileTest {
     @DisplayName("Site page count")
     public void testSitePageCount() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.span.find { it.@class == 'page-count' }.text()",
-                        greaterThanOrEqualTo("2"));
+                .body("html.body.span.find { it.@class == 'page-count' }.text().toInteger()",
+                        greaterThanOrEqualTo(2));
     }
 
     @Test
@@ -135,7 +135,7 @@ public class RoqFrontMatterSourceFileTest {
     @DisplayName("All pages count includes documents")
     public void testAllPagesCount() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.span.find { it.@class == 'all-pages-count' }.text()",
-                        greaterThanOrEqualTo("5"));
+                .body("html.body.span.find { it.@class == 'all-pages-count' }.text().toInteger()",
+                        greaterThanOrEqualTo(5));
     }
 }

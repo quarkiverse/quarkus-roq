@@ -33,4 +33,11 @@ public class RoqAsciidocTest {
         RestAssured.when().get("/guides/include-error/").then().statusCode(500).log().ifValidationFails();
     }
 
+    @Test
+    public void testPageContentWithIncludes() {
+        final String body = RestAssured.when().get("/content-test").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        assertThat(body).contains("content-result");
+        assertThat(body).contains("Roughly 15 minutes");
+    }
 }

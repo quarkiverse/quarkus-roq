@@ -20,6 +20,7 @@ import jakarta.enterprise.inject.Vetoed;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.arc.impl.LazyValue;
@@ -134,7 +135,26 @@ public final class Site {
         if (fileExists(StringPaths.join("static/assets/images", path))) {
             return file(StringPaths.join("static/assets/images", path));
         }
-        return file(StringPaths.join(imagesDir, path));
+        String resolvedPath = StringPaths.join(imagesDir, path);
+        if (page.source().fileExists(resolvedPath)) {
+            return page.url().resolve(resolvedPath);
+        }
+        List<String> imageFiles = page.source().files().names().stream()
+                .filter(f -> f.startsWith(imagesDir))
+                .map(f -> f.substring(imagesDir.length()))
+                .toList();
+        RoqException.Builder error = RoqException.builder("Image not found")
+                .detail("'%s' not found in the '%s' directory (resolved to '%s').".formatted(name, imagesDir, resolvedPath));
+        if (page.source().template() != null) {
+            error.sourceInfo(page.source().template().file().toSourceInfo());
+        }
+        if (imageFiles.isEmpty()) {
+            error.hint("The '%s' directory is empty. Add the image to your public/%s directory.".formatted(imagesDir,
+                    imagesDir));
+        } else {
+            error.hint("Available images: %s".formatted(String.join(", ", imageFiles)));
+        }
+        throw new RoqStaticFileException(error);
     }
 
     /**

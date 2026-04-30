@@ -18,14 +18,17 @@ public class RoqErrorsTest extends AbstractRoqTest {
 
     @Test
     public void testErrorImagePage() {
-        RestAssured.when().get("/posts/error-image").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "&#39;images/not-found.png&#39; not found in the public directory"));
+        RestAssured.when().get("/posts/error-image").then().statusCode(500).log().ifValidationFails()
+                .body(containsString("&#39;not-found.png&#39; not found in the &#39;images/&#39; directory"))
+                .body(containsString("Available images:"))
+                .body(containsString("hello.png"));
     }
 
     @Test
     public void testErrorImagePageDir() {
-        RestAssured.when().get("/posts/error-image-dir").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "&#39;images/not-found.png&#39; not found in the public directory"));
+        RestAssured.when().get("/posts/error-image-dir").then().statusCode(500).log().ifValidationFails()
+                .body(containsString("&#39;not-found.png&#39; not found in the &#39;images/&#39; directory"))
+                .body(containsString("Available images:"));
     }
 
     @Test
@@ -43,8 +46,10 @@ public class RoqErrorsTest extends AbstractRoqTest {
 
     @Test
     public void testErrorImageSite() {
-        RestAssured.when().get("/error-image-site").then().statusCode(500).log().ifValidationFails().body(containsString(
-                "&#39;images/not-found.png&#39; not found in the public directory"));
+        RestAssured.when().get("/error-image-site").then().statusCode(500).log().ifValidationFails()
+                .body(containsString("&#39;not-found.png&#39; not found in the &#39;images/&#39; directory"))
+                .body(containsString("Available images:"))
+                .body(containsString("hello.png"));
     }
 
     @Test
