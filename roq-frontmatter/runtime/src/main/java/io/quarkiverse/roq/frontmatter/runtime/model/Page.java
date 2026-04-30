@@ -23,7 +23,6 @@ import jakarta.enterprise.inject.Vetoed;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.exception.RoqException;
-import io.quarkiverse.roq.exception.RoqSourceInfo;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
 import io.quarkus.arc.Arc;
@@ -255,8 +254,7 @@ public class Page {
     public List<String> files() {
         if (source().usePublicFiles()) {
             throw new RoqStaticFileException(RoqException.builder("Cannot list attached files")
-                    .sourceInfo(new RoqSourceInfo(this.source().template().file().relativePath(),
-                            this.source().template().file().absolutePath()))
+                    .sourceInfo(this.source().template().file().toSourceInfo())
                     .detail("This page is not a directory page, so it cannot have attached files.")
                     .hint("Convert the page to a directory with an index file to allow attaching files."));
         }
@@ -271,8 +269,7 @@ public class Page {
     public boolean fileExists(Object name) {
         if (source().usePublicFiles()) {
             throw new RoqStaticFileException(RoqException.builder("Cannot find attached file")
-                    .sourceInfo(new RoqSourceInfo(this.source().template().file().relativePath(),
-                            this.source().template().file().absolutePath()))
+                    .sourceInfo(this.source().template().file().toSourceInfo())
                     .detail("Cannot check for file '%s' because this page is not a directory page.".formatted(name))
                     .hint("Convert the page to a directory with an index file to allow attaching files."));
         }
@@ -290,8 +287,7 @@ public class Page {
     public RoqUrl file(Object name) {
         if (!source().isIndex()) {
             throw new RoqStaticFileException(RoqException.builder("Not a directory page")
-                    .sourceInfo(new RoqSourceInfo(this.source().template().file().relativePath(),
-                            this.source().template().file().absolutePath()))
+                    .sourceInfo(this.source().template().file().toSourceInfo())
                     .detail("Cannot attach file '%s' to this page.".formatted(name))
                     .hint("Only directory pages with an index can have attached files. Move the page into a directory with an index file."));
         }

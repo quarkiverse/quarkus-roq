@@ -6,7 +6,6 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PICTURE;
 import static io.quarkiverse.roq.frontmatter.runtime.model.PageFiles.slugifyFile;
 
 import io.quarkiverse.roq.exception.RoqException;
-import io.quarkiverse.roq.exception.RoqSourceInfo;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
@@ -22,8 +21,7 @@ public final class Pages {
         }
         if (page.source().hasNoFiles()) {
             throw new RoqStaticFileException(RoqException.builder("File not found")
-                    .sourceInfo(new RoqSourceInfo(page.source().template().file().relativePath(),
-                            page.source().template().file().absolutePath()))
+                    .sourceInfo(page.source().template().file().toSourceInfo())
                     .detail("'%s' not found in %s (directory is empty).".formatted(name, fileContext))
                     .hint("Add the file to the page directory or check the file name."));
         }
@@ -32,8 +30,7 @@ public final class Pages {
             return page.url().resolve(f);
         } else {
             throw new RoqStaticFileException(RoqException.builder("File not found")
-                    .sourceInfo(new RoqSourceInfo(page.source().template().file().relativePath(),
-                            page.source().template().file().absolutePath()))
+                    .sourceInfo(page.source().template().file().toSourceInfo())
                     .detail("'%s' not found in %s.".formatted(name, fileContext))
                     .hint("Available files: %s".formatted(String.join(", ", page.source().files().names()))));
         }

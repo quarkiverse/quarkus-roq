@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import jakarta.enterprise.inject.Vetoed;
 
+import io.quarkiverse.roq.exception.RoqSourceInfo;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateData;
 
@@ -18,6 +19,10 @@ public record SourceFile(String siteDirPath, String relativePath) {
 
     public String absolutePath() {
         return StringPaths.join(siteDirPath, relativePath);
+    }
+
+    public RoqSourceInfo toSourceInfo() {
+        return new RoqSourceInfo(relativePath(), absolutePath());
     }
 
 }

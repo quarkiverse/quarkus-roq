@@ -88,8 +88,8 @@ public class RoqJacksonProcessor {
         RoqException.Builder builder = RoqException.builder("Invalid Jackson property naming strategy")
                 .detail("Unable to determine the property naming strategy for value '%s'".formatted(propertyNamingStrategy))
                 .hint("Use a fully qualified class name extending %s or a constant from %s"
-                        .formatted(PropertyNamingStrategy.class.getSimpleName(),
-                                PropertyNamingStrategies.class.getSimpleName()));
+                        .formatted(PropertyNamingStrategy.class.getName(),
+                                PropertyNamingStrategies.class.getName()));
         if (cause != null) {
             builder.cause(cause);
         }

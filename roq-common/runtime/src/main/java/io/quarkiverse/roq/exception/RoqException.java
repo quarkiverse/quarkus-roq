@@ -79,7 +79,7 @@ public class RoqException extends RuntimeException {
         private Integer column;
         private Throwable cause;
 
-        protected Builder(String title) {
+        private Builder(String title) {
             this.title = title;
         }
 
@@ -126,14 +126,14 @@ public class RoqException extends RuntimeException {
             return this;
         }
 
-        RoqSourceInfo buildSourceInfo() {
+        private RoqSourceInfo buildSourceInfo() {
             if (sourceFilePath == null && absoluteSourceFilePath == null && line == null && column == null) {
                 return null;
             }
             return new RoqSourceInfo(sourceFilePath, absoluteSourceFilePath, line, column);
         }
 
-        String buildMessage() {
+        private String buildMessage() {
             StringBuilder sb = new StringBuilder();
             sb.append(title);
             String path = sourceFilePath;
