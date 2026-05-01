@@ -1,7 +1,7 @@
 {
   "aliases": {
     "roq": {
-      "script-ref": "https://repo1.maven.org/maven2/io/quarkiverse/roq/quarkus-roq-cli/2.1.0/quarkus-roq-cli-2.1.0-runner.jar",
+      "script-ref": "https://repo1.maven.org/maven2/io/quarkiverse/roq/quarkus-roq-cli/2.1.1/quarkus-roq-cli-2.1.1-runner.jar",
       "description": "Roq CLI - static site generator",
       "runtime-options": [
         "--add-opens",
