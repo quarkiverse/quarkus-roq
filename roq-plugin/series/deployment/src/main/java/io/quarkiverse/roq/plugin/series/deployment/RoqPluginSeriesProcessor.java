@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.plugin.series.deployment;
 
-import static io.quarkiverse.roq.plugin.series.runtime.Series.FM_SERIE;
+import static io.quarkiverse.roq.plugin.series.runtime.RoqSeriesKeys.SERIES;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.ArrayList;
@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.plugin.series.runtime.Series;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesMessage;
 import io.quarkiverse.roq.plugin.series.runtime.SeriesRecorder;
@@ -56,9 +56,9 @@ public class RoqPluginSeriesProcessor {
             List<RoqFrontMatterDocumentBuildItem> documents) {
         // Currently, we don't enforce series to be on the same collection, should we?
         Map<String, List<String>> series = documents.stream()
-                .filter(item -> item.data().containsKey(FM_SERIE))
+                .filter(item -> item.data().containsKey(SERIES))
                 .collect(Collectors.toMap(
-                        item -> item.data().getString(FM_SERIE),
+                        item -> item.data().getString(SERIES),
                         item -> new ArrayList<>(List.of(item.template().source().id())),
                         (a, b) -> {
                             a.addAll(b);

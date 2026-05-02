@@ -1,0 +1,22 @@
+---
+layout: default
+link: /the-posts/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="post">
+  {#insert before-content /}
+  {#insert /}
+  <span>{page.date}</span>
+  <span class="date-iso">{page.date.iso}</span>
+  <span class="date-iso-date">{page.date.isoDate}</span>
+  <span class="date-short-date">{page.date.shortDate}</span>
+  <span class="date-long-date">{page.date.longDate}</span>
+  <span class="date-short-time">{page.date.shortTime}</span>
+  <span class="date-long-time">{page.date.longTime}</span>
+  <span class="date-short">{page.date.short}</span>
+  <span class="date-long">{page.date.long}</span>
+  <span class="date-rfc822">{page.date.rfc822}</span>
+  <span class="source-path">{page.sourcePath}</span>
+  <span class="source-file-absolute">{page.source.file.absolutePath}</span>
+  <span class="collection-id">{page.collectionId}</span>
+</article>

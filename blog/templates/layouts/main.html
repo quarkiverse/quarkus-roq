@@ -1,0 +1,22 @@
+---
+theme-layout: main
+---
+
+{#head}<!-- Link to llms.txt so AI tools can discover it when fetching any page --><link rel="help" type="text/plain" href="/llms.txt">{/head}
+
+{#search-overlay /}
+{#insert /}
+
+{#menu}
+
+{#search-button-input /}
+{#include partials/roq-default/sidebar-menu menu=cdi:menu.nav /}
+{#include partials/roq-default/sidebar-menu menu=cdi:menu.doc menuTitle="Doc" /}
+{/}
+
+{#footer}
+<footer>
+  {#include partials/roq-default/sidebar-contact /}
+  {#include partials/roq-default/sidebar-copyright /}
+</footer>
+{/}

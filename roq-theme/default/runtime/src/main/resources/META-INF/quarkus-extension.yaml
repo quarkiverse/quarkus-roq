@@ -1,0 +1,19 @@
+name: Roq Default Theme
+description: The default theme for Roq, a static site generator powered by Quarkus.
+metadata:
+  keywords:
+    - roq
+    - theme
+    - website
+    - static
+  guide: https://iamroq.dev/theme/default-theme/
+  categories:
+    - "web"
+  status: "preview"
+  codestart:
+    name: "roq-theme-default"
+    languages:
+    - "java"
+    - "kotlin"
+    - "scala"
+    artifact: "io.quarkiverse.roq:quarkus-roq-theme-default:codestarts:jar:${project.version}"

@@ -44,36 +44,37 @@ mvn clean install
 
 ## Running Blog
 
-There are two ways for running the blog post locally:
+There are two ways for running the blog locally:
 
 - **With live reload:** Great when you are writing your blog.
-- **Serving your static site:** When you want to see how your blog looks, before the deployment.
+- **Serving your static site:** When you want to see how your blog looks before deployment.
 
 ### Running with live reload
 
-Go to `blog` directory:
+Using the [Roq CLI](https://iamroq.dev/docs/):
 
 ```shell
-cd blog
+cd blog && roq start
 ```
 
-And, to execute the following maven command:
+Or using Maven directly:
 
 ```shell
-mvn quarkus:dev
-```
-
-If you are using Quarkus CLI, you can use:
-
-```shell
-quarkus dev
+cd blog && mvn quarkus:dev
 ```
 
 Now, you can access: http://localhost:8080 and be happy!
 
+Press `s` in the dev terminal to force a soft restart (useful after rebuilding a module). If changes are still not picked up, kill the server and restart it.
+
 ### Serving your static site
 
-See our documentation to see [how to generate your static files](https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-generator.html#_generating_your_static_site).
+```shell
+cd blog && roq generate
+roq serve
+```
+
+See the [Roq documentation](https://iamroq.dev/docs/) for more details.
 
 ## For the maintainers
 

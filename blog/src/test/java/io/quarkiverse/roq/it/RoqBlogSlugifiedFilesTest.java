@@ -16,17 +16,15 @@ import static org.hamcrest.Matchers.*;
 @RoqAndRoll
 @TestProfile(RoqBlogSlugifiedFilesTest.SlugifyFilesConfig.class)
 public class RoqBlogSlugifiedFilesTest {
-    public static final String TITLE = "Hello, world! I’m Roq";
-    public static final String DESCRIPTION = "A static site generator (SSG) that makes it fun and easy to build websites and blogs.";
 
     @Test
     public void testIndex() {
         RestAssured.when().get("/").then().statusCode(200)
                 .log()
-                .everything().body(containsString(
-                        DESCRIPTION))
-                .body(containsString(TITLE)).body(containsString("minute(s) read"))
-                .body(containsString("Page 1 of")).body(containsString("&copy; ROQ"));
+                .everything()
+                .body(containsString("Static</span> Sites"))
+                .body(containsString("Imagined for AI"))
+                .body(containsString("&copy; ROQ"));
     }
 
     @Test
@@ -42,8 +40,7 @@ public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testPosts() {
-        RestAssured.when().get("/posts/welcome-to-roq").then().statusCode(200).body(containsString(
-                        DESCRIPTION))
+        RestAssured.when().get("/posts/welcome-to-roq").then().statusCode(200)
                 .body(containsString("<p>Hello folks,</p>"))
                 .body(containsString("<h1 class=\"page-title\">Welcome to Roq!</h1>"))
                 .body(containsString("&copy; ROQ"));
@@ -53,16 +50,15 @@ public class RoqBlogSlugifiedFilesTest {
     public void testPostsAsciidoc() {
         ValidatableResponse body = RestAssured.when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
                         "Writing content is AsciiDoc format is an absolut no brainer"))
-                .body(containsString("<pre class=\"highlightjs highlight\"><code class=\"language-shell hljs\" data-lang=\"shell\">quarkus extension add io.quarkiverse.roq:quarkus-roq-plugin-asciidoc</code></pre>"))
+                .body(containsString("<code class=\"language-shell hljs\" data-lang=\"shell\">roq add plugin:asciidoc</code>"))
                 .body(containsString("&copy; ROQ"));
         System.out.println(body.extract().body().asString());
     }
 
     @Test
     public void testPage() {
-        RestAssured.when().get("/events").then().statusCode(200).body(containsString(
-                        DESCRIPTION))
-                .body(containsString("<h2 class=\"event-title\">Roq 1.0 Beta</h2>"))
+        RestAssured.when().get("/events").then().statusCode(200)
+                .body(containsString("<h2 class=\"event-title\">Roq 2.0</h2>"))
                 .body(containsString("&copy; ROQ"));
     }
 
@@ -84,7 +80,6 @@ public class RoqBlogSlugifiedFilesTest {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200)
                 .body(containsString("<urlset"))
                 .body(containsString("<loc>/</loc>"))
-                .body(containsString("<loc>/posts/page2/</loc>"))
                 .body(containsString("<loc>/posts/tag/plugin/</loc>"))
                 .body(not(containsString("<loc>/404.html</loc>")))
                 .body(containsString("</urlset>"));

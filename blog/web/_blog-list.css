@@ -1,0 +1,62 @@
+/* Blog List Page - Featured + Grid Layout */
+/* Restyles the existing .post card via container context */
+
+/* === Blog List Wrapper === */
+.blog-list {
+    @apply max-w-5xl mx-auto px-1 py-4 md:px-4 md:py-6;
+}
+
+/* === Shared: vertical card layout in both grids === */
+.blog-featured-grid .post,
+.blog-grid .post {
+    @apply flex-col items-stretch;
+}
+
+.blog-featured-grid .post-thumbnail,
+.blog-grid .post-thumbnail {
+    @apply w-full h-40;
+}
+
+.blog-featured-grid .post-content,
+.blog-grid .post-content {
+    @apply w-full flex-1 flex flex-col;
+}
+
+.blog-featured-grid .post-content p,
+.blog-grid .post-content p {
+    @apply flex-1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* === Featured Posts (vertical cards on mobile, horizontal at lg) === */
+.blog-featured-grid {
+    @apply flex flex-col gap-4 mb-8;
+}
+
+.blog-featured-grid .post {
+    @apply lg:flex-row;
+}
+
+.blog-featured-grid .post-thumbnail {
+    @apply h-48 lg:h-auto lg:w-[40%];
+}
+
+.blog-featured-grid .post-content {
+    @apply lg:w-[60%];
+}
+
+.blog-featured-grid .post-title {
+    @apply lg:text-2xl;
+}
+
+.blog-featured-grid .post-content p {
+    -webkit-line-clamp: 3;
+}
+
+/* === Regular Posts Grid (single column, 2 cols at lg) === */
+.blog-grid {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
+}

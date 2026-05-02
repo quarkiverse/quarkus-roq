@@ -18,7 +18,7 @@ jobs:
       pull-requests: write # Required to update PR status comment
     steps:
       - name: Download docs artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,10 +32,16 @@ jobs:
 
       - name: Publishing docs to Surge.sh
         id: deploy
-        run: npx surge ./ --domain https://quarkiverse-roq-docs-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: |
+          for i in 1 2 3; do
+            npx surge ./ --domain https://quarkiverse-roq-docs-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} && exit 0
+            echo "Attempt $i failed, retrying in 15s..."
+            sleep 15
+          done
+          exit 1
 
       - name: Download blog artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: blog
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,7 +49,13 @@ jobs:
 
       - name: Publishing blog to Surge.sh
         id: deploy-blog
-        run: npx surge ./ --domain https://quarkiverse-roq-blog-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+        run: |
+          for i in 1 2 3; do
+            npx surge ./ --domain https://quarkiverse-roq-blog-${{ steps.pr.outputs.id }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} && exit 0
+            echo "Attempt $i failed, retrying in 15s..."
+            sleep 15
+          done
+          exit 1
 
       - name: Update PR status comment on success
         uses: quarkusio/action-helpers@main

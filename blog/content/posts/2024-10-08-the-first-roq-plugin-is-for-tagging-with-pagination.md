@@ -1,10 +1,10 @@
 ---
-layout: :theme/post
+layout: post
 title: The first Roq plugin is for tagging (with pagination)
 image: tagging.png
 description: We introduced the first Roq plugin, it is for collection tagging & with pagination support!
 author: ia3andy
-tags: plugin, frontmatter, guide, cool-stuff
+tags: plugin, guide, cool-stuff
 series: roq-plugins
 ---
 
@@ -22,4 +22,4 @@ To use it:
 
 and adding a new `layouts/tag.html` page or any layout with `tagging: [name of collection]` as FM data.
 
-For more info [check out the doc](https://iamroq.com/docs/plugins/#plugin-tagging).
+For more info [check out the doc](/plugin/tagging/).

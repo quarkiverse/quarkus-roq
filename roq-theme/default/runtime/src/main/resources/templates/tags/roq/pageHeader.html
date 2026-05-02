@@ -1,0 +1,16 @@
+<section class="page-header">
+  <h1 class="page-title">{title}</h1>
+  {#if date??}
+  <div class="page-header-date"><span>{date.format('yyyy, MMM dd')}</span></div>
+  {/if}
+  {#if intro??}
+  <p class="page-header-intro">
+    {intro}
+  </p>
+  {/if}
+  {#if nested-content??}
+  <div class="page-header-intro">
+    {nested-content}
+  </div>
+  {/if}
+</section>

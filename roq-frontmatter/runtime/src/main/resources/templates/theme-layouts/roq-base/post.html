@@ -1,0 +1,16 @@
+---
+layout: default
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+<main>
+  <article>
+    <h1 class="page-title">{page.title}</h1>
+    {#if page.date}
+    <time>{page.date.longDate}</time>
+    {/if}
+    <div>
+      {#insert /}
+    </div>
+  </article>
+</main>

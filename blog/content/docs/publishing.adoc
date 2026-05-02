@@ -10,14 +10,13 @@ include::../../includes/edit-contrib.adoc[]
 This command:
 [source,shell]
 ----
-quarkus build -Dquarkus.roq.generator.batch
-quarkus run
+roq generate
 ----
 
-🚀 The site will be generated in `target/roq`.
+🚀 The site will be generated in `target/roq`, use `roq serve` to serve it.
 
 
-Here is a one-liner using Maven:
+Without the Roq CLI using Maven:
 
 [source,shell]
 ----

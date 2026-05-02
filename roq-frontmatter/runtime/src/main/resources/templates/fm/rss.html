@@ -1,7 +1,8 @@
 {@java.lang.String collectionName}
+{@java.lang.Integer contentLimit}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
-{#let name=(collectionName ?: 'posts')}
+{#let name=(collectionName ?: 'posts') cl=contentLimit.or(-1)}
 <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
     <title><![CDATA[ {site.title} ]]></title>
@@ -10,18 +11,25 @@
     <atom:link href="{site.url('rss.xml').absolute}" rel="self" type="application/rss+xml"/>
     <generator>Quarkus Roq</generator>
     {#if site.collections.get(name)}
-    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.format('EEE, dd MMM yyyy HH:mm:ss Z')}{/if}</lastBuildDate>
+    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.rfc822}{/if}</lastBuildDate>
     {#for post in site.collections.get(name)}
       <item>
         <title><![CDATA[{post.title}]]></title>
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{post.url.absolute}</guid>
-        <pubDate>{post.date.format('EEE, dd MMM yyyy HH:mm:ss Z')}</pubDate>
+        <pubDate>{post.date.rfc822}</pubDate>
         <description><![CDATA[{post.description}]]></description>
+        {#if cl >= 0}
+        {#if cl == 0}
+        <content:encoded><![CDATA[{post.content}<div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        {#else}
+        <content:encoded><![CDATA[<p>{post.contentAbstract(contentLimit)}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        {/if}
+        {#else}
         <content:encoded><![CDATA[<p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        {/if}
       </item>
     {/for}
     {/if}
   </channel>
 </rss>
-

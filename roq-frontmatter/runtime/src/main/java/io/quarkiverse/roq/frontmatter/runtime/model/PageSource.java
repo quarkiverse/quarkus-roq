@@ -86,6 +86,9 @@ public record PageSource(
         return files().contains(name);
     }
 
+    /**
+     * The publication date parsed from {@link #dateString()}, or null if no date is available.
+     */
     public ZonedDateTime date() {
         return dateString != null ? ZonedDateTime.parse(dateString) : null;
     }

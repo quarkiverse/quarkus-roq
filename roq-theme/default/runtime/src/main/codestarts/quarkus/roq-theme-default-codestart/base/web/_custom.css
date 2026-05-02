@@ -1,0 +1,20 @@
+/* Theme customization: https://iamroq.dev/theme/default/#css-customization */
+/* Replace these values with any Tailwind color (e.g. var(--color-sky-500)) or custom hex */
+@theme inline {
+    --color-accent-50: #fdf5ef;
+    --color-accent-100: #f9e6d4;
+    --color-accent-200: #f0cab0;
+    --color-accent-300: #e0a880;
+    --color-accent-400: #c98a5c;
+    --color-accent-500: #b37345;
+    --color-accent-600: #9a5f38;
+    --color-accent-700: #7d4c2e;
+    --color-accent-800: #633c25;
+    --color-accent-900: #4a2d1c;
+    --color-accent-950: #2d1a10;
+}
+
+/* Mascot logo sizing */
+.roq-hero-logo {
+    @apply w-[180px];
+}

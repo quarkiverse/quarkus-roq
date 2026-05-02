@@ -4,6 +4,13 @@ include::../../includes/attributes.adoc[]
 
 include::../../includes/edit-contrib.adoc[]
 
+[#built-in-features]
+== Built-in features
+
+Roq and its themes include several built-in features for SEO, feeds, and discoverability. The link:/theme/base-theme/[base theme] provides the essential tags (SEO, favicon, Web Bundler), while the link:/theme/default-theme/[default theme] builds on top of it with a full layout, dark mode, sidebar, and more. If you are using either theme, most of these features are already enabled. Configure them through your site index frontmatter or by adding content files.
+
+For details on each feature, see the xref:basics.adoc#base-theme[Base Theme], xref:basics.adoc#favicon[Favicon], xref:basics.adoc#seo[SEO], xref:basics.adoc#analytics[Analytics], xref:basics.adoc#rss[RSS], and xref:basics.adoc#llmstxt[LLMs.txt] sections in the basics guide.
+
 [#pagination]
 == Pagination
 
@@ -70,58 +77,10 @@ paginate:
 
 With these steps, you can create a flexible pagination system to improve your site’s navigation.
 
-== SEO
-
-Incorporating search engine optimization (SEO) is as simple as inserting this tag into your `<head>` section:
-
-[source,html]
-----
-<head>
-{#seo page site /}
-</head>
-----
-
-It will automatically use the FrontMatter data to fill the tags.
-
-[source,html]
-----
-<title>My Blog Post</title>
-<meta name="author" content="ia3andy" />
-<meta name="generator" content="Quarkus Roq v1.0.0" />
-<meta property="article:author" content="ia3andy" />
-<meta property="article:published_time" content="2024-09-23T12:00Z[Etc/UTC]" />
-<meta property="og:image" content="https://images.unsplash.com/photo.webp" />
-<meta property="og:locale" content="en-US" />
-<meta property="og:type" content="article" />
-----
-
-== RSS
-
-Incorporating and RSS feed of your posts is as simple as inserting this tag into your `<head>` section:
-
-[source,html]
-----
-<head>
-{#rss site /}
-</head>
-----
-
-It will automatically use the FrontMatter data generate an RSS feed link.
-
-[source,html]
-----
-<link rel="alternate" type="application/rss+xml" title="Your Blog" href="/rss.xml"/>
-----
-
-It will automatically utilize the Frontmatter data from all your blog posts to generate a valid Atom RSS feed link at `rss.xml`. Ensure you create an `rss.xml` file at the root of your site and include this single line of code:
-
-[source,html]
-----
-{#include fm/rss.html}
-----
-
 [#themes]
 == Themes
+
+Browse all available themes in the link:/marketplace/#themes[Plugins & Themes] directory.
 
 [#overriding-theme]
 === Overriding theme
@@ -132,9 +91,9 @@ In Roq, you can override theme partials or layouts.
 
 For example, adding your own `templates/partials/roq-default/pagination.html`
 
-will override the https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/default/src/main/resources/templates/partials/roq-default/pagination.html[one from the default Roq theme]
+will override the https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/default/runtime/src/main/resources/templates/partials/roq-default/pagination.html[one from the default Roq theme]
 
-*To override a theme layout*, it is a tad more complex. You need to insert an extra layout layer.
+*To override a theme layout*, you need to insert an extra layout layer.
 This allows you to override only specific sections of the theme layout, without duplicating the entire layout structure.
 
 TIP: Roq layouts leverage https://quarkus.io/guides/qute-reference#include_helper[Qute include] under the hood.
@@ -143,11 +102,11 @@ It is possible to define `insert` sections that provide overridable default cont
 ==== Example
 Let’s override the `roq-default` theme’s main layout so that our customizations apply everywhere it is used.
 
-.templates/layouts/roq-default/main.html
+.templates/layouts/main.html
 [source,html]
 ----
 ---
-layout: theme-layouts/roq-default/main // <1>
+theme-layout: main // <1>
 ---
 
 {#insert /} // <2>
@@ -162,11 +121,11 @@ And here the footer
 </footer>
 {/}
 ----
-<1> *Inherits from the theme layout:* This layout uses the original theme layout (`roq-default/main`) as a base.
+<1> *Inherits from the theme layout:* `theme-layout: main` explicitly targets the theme's `main` layout as a base.
 <2> *Inheritance mechanism:* `{#insert /}` ensures that this layout will inherit sections defined in the theme layout.
 <3> *Override specific sections:* You can override individual sections such as `description` and `footer` without affecting other parts of the layout.
 
-Now, everywhere `layouts: :theme/main` (even in the theme), your override will be used.
+Now, everywhere `layout: main` is used (even in the theme), your override will be used.
 
 ==== How it Works Internally
 
@@ -184,7 +143,7 @@ Roq uses your override as the site layout, while still keeping the theme’s ori
 * **If you don’t provide an override:**
 Roq copies the theme layout as the site layout, so it can be used directly.
 
-This mechanism ensures you only need to override the parts you want to customize—everything else automatically falls back to the theme.
+This mechanism ensures you only need to override the parts you want to customize, everything else automatically falls back to the theme.
 
 === Developing a theme
 
@@ -218,9 +177,9 @@ To develop a theme, create a Maven module which will contain the theme layouts, 
         ├── roq.scss
 ----
 <1> You can add partials for your theme, they need to be located in a directory with the theme name `templates/partials/{theme-name}/`.
-<2> Layouts needs to be declared in `theme-layouts/` using a directory with the theme name`templates/theme-layouts/{theme-name}/`.
+<2> Layouts need to be declared in `theme-layouts/` using a directory with the theme name `templates/theme-layouts/{theme-name}/`.
 
-Same as for a site, script and styles can either be added to `src/main/resoucres/META-INF/resources` or bundled using Maven esbuild plugin:
+Same as for a site, scripts and styles can either be added to `src/main/resources/META-INF/resources` or bundled using Maven esbuild plugin:
 
 .pom.xml
 [source,xml]
@@ -397,6 +356,21 @@ TIP: By default, url will be rendered as the path from the site root. You can al
 
 Sometimes, you want to create a link for a page without holding the variable, in this case, you can use `site.url(relativePath)` which will be automatically resolved from the site root path.
 
+== Alternative expression syntax
+
+Qute supports an alternative expression syntax where output expressions use `{=expr}` instead of `{expr}`. This makes templates safer when content contains curly braces (e.g. code samples, JSON) since only `{=...}` and `{#...}` are interpreted as Qute expressions, everything else is plain text.
+
+NOTE: This will become the default syntax for Roq in a future version.
+
+To enable it, add to your configuration:
+
+[source,properties]
+----
+quarkus.qute.alt-expr-syntax=true
+----
+
+With this enabled, templates use `{=page.title}` for expressions and `{#for ...}` / `{#include ...}` for sections (sections are unaffected). Regular `{foo}` is treated as plain text.
+
 == Escaping pages content
 
 There are cases where you might not want your page content to be parsed by Qute, to avoid conflicts with the content. You have different options:
@@ -425,7 +399,7 @@ When the entire Roq site is under a root path such as `mysite.io/foo/`, configur
 quarkus.http.root-path=/foo
 ----
 
-Environment variable: `SITE_ROOT_PATH`
+Environment variable: `QUARKUS_HTTP_ROOT_PATH`
 
 TIP: For GitHub Pages, this is already detected and handled by the Roq GitHub Action, no need to do anything.
 
@@ -435,7 +409,7 @@ To debug errors, you may print debug information in the logs:
 
 [source,shell]
 ----
-quarkus dev -Dquarkus.log.category.\"io.quarkiverse.roq.frontmatter\".level=DEBUG
+roq -Dquarkus.log.category.\"io.quarkiverse.roq.frontmatter\".level=DEBUG
 ----
 
 == Testing
@@ -444,6 +418,7 @@ All templates will be validated at generation. Sometimes, for example on Pull-Re
 
 First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
 
+|}
 .pom.xml
 [source,xml]
 ----
@@ -454,6 +429,7 @@ First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
         <scope>test</scope>
     </dependency>
 ----
+{|
 
 === Test Site Generation
 
@@ -498,7 +474,7 @@ public class RoqSiteTest {
 
 The RestAssured port will automatically use the Roq static test server, running on port 8082 by default.
 
-TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=8082)`.
+TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=9090)`.
 
 === Using standard Quarkus test
 
@@ -545,6 +521,8 @@ The releases and migration info can be found xref:releases.adoc[here].
 == Site Configuration
 
 Site configuration is done in `config/application.properties` (or `src/main/resources/application.properties`):
+
+NOTE: In a multi-module Maven project, use `src/main/resources/application.properties` instead. The `config/application.properties` location is resolved relative to the JVM working directory, which may not match the module directory when building from the reactor root.
 
 
 include::../../includes/configs/quarkus-roq-frontmatter_site.adoc[]

@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
-import static io.quarkiverse.roq.util.PathUtils.addTrailingSlashIfNoExt;
-import static io.quarkiverse.roq.util.PathUtils.removeLeadingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +15,9 @@ import jakarta.enterprise.event.Event;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.devmode.RoqErrorPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.utils.Sites;
@@ -27,6 +29,7 @@ import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.qute.runtime.TemplateProducer;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.LocalesBuildTimeConfig;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -150,18 +153,24 @@ public class RoqRouteHandler implements Handler<RoutingContext> {
                 }
             }
 
-            instance.data("page", page);
-            instance.data("site", site.get());
-            instance.setAttribute(RoqTemplateAttributes.SITE_URL, site.get().url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.SITE_PATH, site.get().url().relative());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_URL, page.url().absolute());
-            instance.setAttribute(RoqTemplateAttributes.PAGE_PATH, page.url().relative());
+            RoqTemplateAttributes.setPageData(instance, page, site.get());
             instance.setAttribute(TemplateInstance.LOCALE, getLocale(page, rc));
             instance.renderAsync().whenComplete((r, t) -> {
                 if (t != null) {
                     Throwable rootCause = rootCause(t);
                     LOG.errorf("Error occurred while rendering the template [%s]: %s", page.id(), rootCause.toString());
-                    rc.fail(rootCause);
+                    if (LaunchMode.current().isDevOrTest() && rootCause instanceof RoqException) {
+                        try {
+                            String html = RoqErrorPage.generatePage(rootCause);
+                            rc.response().setStatusCode(500)
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html;charset=UTF-8")
+                                    .end(html);
+                        } catch (Exception e) {
+                            rc.fail(rootCause);
+                        }
+                    } else {
+                        rc.fail(rootCause);
+                    }
                 } else {
                     rc.response().setStatusCode(200).end(r);
                 }

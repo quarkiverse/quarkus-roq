@@ -1,0 +1,44 @@
+- title: Experience
+  items:
+    - header: "1842 - 1843"
+      title: "Mathematician and Writer"
+      content: |
+        Translated and annotated Luigi Menabrea's paper on Charles
+        Babbage's Analytical Engine. Added extensive original notes,
+        including the first published algorithm designed for a machine.
+
+        **Key contributions:**
+        - Recognized the machine's potential beyond pure calculation
+        - Described how the engine could handle letters and symbols
+        - Published what is now considered the first computer program
+
+- title: Education
+  items:
+    - header: "1830 - 1835"
+      title: "Private Tutoring"
+      content: |
+        Studied mathematics and science under Augustus De Morgan
+        and Mary Somerville, two of the leading scientific minds
+        of the era.
+
+    - header: "1833"
+      title: "Meeting Charles Babbage"
+      content: |
+        Introduced to Charles Babbage at a party, where she first
+        encountered the Difference Engine. This meeting sparked a
+        lifelong collaboration on computational machinery.
+
+- title: Skills
+  items:
+    - header: "Mathematics"
+      title: "Analytical and Computational"
+      content: |
+        Advanced mathematical analysis, number theory, and logic.
+        Pioneering work in algorithmic thinking and computational
+        theory.
+
+    - header: "Languages"
+      title: "Communication"
+      content: |
+        Fluent in English and French. Skilled technical writer,
+        known for clarity and precision in scientific communication.

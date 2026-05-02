@@ -1,0 +1,49 @@
+<div class="roq-terminal {#if delay??}roq-terminal-animated{#else}roq-terminal-static{/if}"{#if delay??} style="--term-delay: {delay}"{/if}>
+  <div class="roq-terminal-bar">
+    <span class="roq-terminal-dot red"></span>
+    <span class="roq-terminal-dot yellow"></span>
+    <span class="roq-terminal-dot green"></span>
+    {#if tabs??}
+    <span class="roq-terminal-tabs">
+      {#for tab in tabs}
+      <button class="roq-terminal-tab{#if tab_count == 1} active{/if}" data-tab="{tab_index}">{tab.title}</button>
+      {/for}
+    </span>
+    {#else}
+    <span class="roq-terminal-title">{title ?: 'Terminal'}</span>
+    {/if}
+    {#if clipboard??}<button class="roq-copy-btn" title="Copy commands"><i class="fa-regular fa-copy"></i></button>{/if}
+  </div>
+  {#if tabs??}
+  {#for tab in tabs}
+  <div class="roq-terminal-body roq-terminal-pane{#if tab_count == 1} active{/if}" data-tab="{tab_index}">
+    {#for line in tab.commands}
+    {#if line.blank??}
+    <span class="line" style="--line-index: {line_index}">&nbsp;</span>
+    {#else if line.prompt??}
+    <span class="line" style="--line-index: {line_index}"><span class="prompt">{line.prompt}</span> <span class="cmd">{line.cmd}</span> {line.args??}</span>
+    {#else if line.output??}
+    <span class="line" style="--line-index: {line_index}"><span class="output">{line.output}</span></span>
+    {#else if line.success??}
+    <span class="line" style="--line-index: {line_index}"><span class="success">{line.success}</span>{#if line.cursor??}<span class="cursor"></span>{/if}</span>
+    {/if}
+    {/for}
+  </div>
+  {/for}
+  {#else}
+  <div class="roq-terminal-body">
+    {#for line in commands}
+    {#if line.blank??}
+    <span class="line" style="--line-index: {line_index}">&nbsp;</span>
+    {#else if line.prompt??}
+    <span class="line" style="--line-index: {line_index}"><span class="prompt">{line.prompt}</span> <span class="cmd">{line.cmd}</span> {line.args??}</span>
+    {#else if line.output??}
+    <span class="line" style="--line-index: {line_index}"><span class="output">{line.output}</span></span>
+    {#else if line.success??}
+    <span class="line" style="--line-index: {line_index}"><span class="success">{line.success}</span>{#if line.cursor??}<span class="cursor"></span>{/if}</span>
+    {/if}
+    {/for}
+  </div>
+  {/if}
+  {#insert /}
+</div>

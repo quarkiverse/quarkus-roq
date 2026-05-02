@@ -8,22 +8,22 @@ author: ia3andy
 
 Hello folks,
 
-First let me thanks the Roq [contributors]({site.url('about')}), they have been awesome and this has been so fun to create Roq!
+First let me thanks the Roq [contributors]({=site.url('about')}), they have been awesome and this has been so fun to create Roq!
 
 **If you want to get started quickly:**
 
 [Click here](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=Click%20here%20to,roq%0Aquarkus%20dev) to generate your Roq Starter App.
 
-or use the [Quarkus CLI](https://docs.quarkiverse.io/quarkus-roq/dev/index.html#:~:text=or%20use%20the-,Quarkus%20CLI,-%3A):
+or use the [Roq CLI](https://docs.quarkiverse.io/quarkus-roq/dev/index.html):
 ```shell
-quarkus create app blog-with-roq -x=io.quarkiverse.roq:quarkus-roq
+roq create
 ```
 
 Then
 
 ```shell
 cd blog-with-roq
-quarkus dev
+roq
 ```
 
 **If you have a bit of time, with this release, I think it's time for me to give you the full story 📖:**
@@ -57,7 +57,7 @@ At this point, I thought back on what my wife had said... maybe it was time to r
 
 🗓️ **May 7, 2024:**
 
-![Discussion with Max]({page.image('generator-runtime-discussion.png')})
+![Discussion with Max]({=page.image('generator-runtime-discussion.png')})
 
 My idea was to generate static pages at runtime… because then all of Quarkus could become static without any changes 😍.
 

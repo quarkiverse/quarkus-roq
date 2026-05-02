@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.data.deployment.exception;
 
-public class DataListBindingException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public DataListBindingException(String message) {
-        super(message);
+public class DataListBindingException extends RoqException {
+
+    public DataListBindingException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public DataListBindingException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

@@ -7,8 +7,10 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorImageResource;
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorJsonRPCService;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
@@ -56,7 +58,7 @@ class RoqEditorProcessor {
                 : c.getOptionalValue("quarkus.http.port", String.class).orElse("8080");
 
         String protocol = isInsecureDisabled ? "https" : "http";
-        context.reset(new ConsoleCommand('c', "Open the Roq Editor in a browser", null,
+        context.reset(new ConsoleCommand('a', "Open the Roq Editor in a browser (Admin)", null,
                 () -> IdeHelper.openBrowser(rp, np, protocol, "/q/dev-ui/quarkus-roq-editor/roq-editor", host, port)));
     }
 
@@ -80,5 +82,10 @@ class RoqEditorProcessor {
     @BuildStep
     JsonRPCProvidersBuildItem createJsonRPCServiceForCache() {
         return new JsonRPCProvidersBuildItem(RoqEditorJsonRPCService.class);
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    AdditionalBeanBuildItem registerImageResource() {
+        return AdditionalBeanBuildItem.unremovableOf(RoqEditorImageResource.class);
     }
 }

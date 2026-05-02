@@ -1,9 +1,12 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
-import static io.quarkiverse.roq.util.PathUtils.toUnixPath;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,21 +14,22 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.enterprise.inject.Vetoed;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.exception.RoqException;
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.utils.SoftLazyValue;
 import io.quarkus.arc.Arc;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateData;
+import io.quarkus.qute.TemplateInstance;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -37,15 +41,12 @@ public class Page {
 
     private static final Logger LOG = Logger.getLogger(Page.class);
 
-    public static final String FM_TITLE = "title";
-    public static final String FM_DESCRIPTION = "description";
-
     private final RoqUrl url;
     private final JsonObject data;
     private final PageSource source;
     private final SoftLazyValue<String> contentLazy = new SoftLazyValue<>(this::resolveContentLazy);
-    private final SoftLazyValue<String> rawContentLazy = new SoftLazyValue<>(this::resolveRawContentLazy);
-    private AtomicBoolean resolvingContent = new AtomicBoolean(false);
+    private final SoftLazyValue<String> rawTemplateLazy = new SoftLazyValue<>(this::resolveRawTemplateLazy);
+    private final ThreadLocal<Boolean> resolvingContent = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     protected Page(RoqUrl url, PageSource source, JsonObject data) {
         this.url = url;
@@ -79,11 +80,12 @@ public class Page {
      * Renders the inner content (without the layouts) of the given {@link Page} using the Qute template engine.
      */
     public String content() {
-        if (resolvingContent.getAndSet(true)) {
+        if (resolvingContent.get()) {
             LOG.warnf("Recursive call to {page.content} detected in page: '%s'",
                     sourcePath());
-            return ""; // or throw new IllegalStateException(...)
+            return "";
         }
+        resolvingContent.set(true);
         try {
             return contentLazy.get();
         } finally {
@@ -92,24 +94,32 @@ public class Page {
     }
 
     /**
-     * The content of the file or template, without any frontmatter header or layouts.
-     * If applicable, this includes the markup block (e.g. {@code <md>...</md>}).
+     * The raw generated Qute template for this page, including layout include directives and fragment wrappers.
      */
+    public String rawTemplate() {
+        return rawTemplateLazy.get();
+    }
+
+    /**
+     * @deprecated Use {@link #rawTemplate()} instead.
+     */
+    @Deprecated(forRemoval = true)
     public String rawContent() {
-        return rawContentLazy.get();
+        return rawTemplate();
     }
 
     private String resolveContentLazy() {
         try {
             final Engine engine = Arc.container().instance(Engine.class).get();
-            final String id = source().template().generatedQuteContentTemplateId();
+            final String id = source().template().generatedQuteTemplateId();
             final Template template = engine.getTemplate(id);
             if (template == null) {
                 return "";
             }
-            return template.render(Map.of(
-                    "page", this,
-                    "site", site()));
+            final Template contentTemplate = template.getFragment(ROQ_PAGE_CONTENT_FRAGMENT);
+            final TemplateInstance instance = (contentTemplate != null ? contentTemplate : template).instance();
+            RoqTemplateAttributes.setPageData(instance, this, site());
+            return instance.render();
 
         } catch (Exception e) {
             LOG.warnf(e, "Failed to render page content for page: '%s'", sourcePath());
@@ -117,8 +127,8 @@ public class Page {
         return "";
     }
 
-    private String resolveRawContentLazy() {
-        final String templateResource = "/templates/" + source().template().generatedQuteContentTemplateId();
+    private String resolveRawTemplateLazy() {
+        final String templateResource = "/templates/" + source().template().generatedQuteTemplateId();
         try (InputStream resource = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(templateResource)) {
             if (resource != null) {
@@ -163,14 +173,14 @@ public class Page {
      * The page title (`title` from FM data)
      */
     public String title() {
-        return data().getString(FM_TITLE, sourcePath());
+        return data().getString(TITLE, sourcePath());
     }
 
     /**
      * The page description (`description` from FM data)
      */
     public String description() {
-        return data().getString(FM_DESCRIPTION);
+        return data().getString(DESCRIPTION);
     }
 
     /**
@@ -243,9 +253,10 @@ public class Page {
      */
     public List<String> files() {
         if (source().usePublicFiles()) {
-            throw new RoqStaticFileException(
-                    "Can't list attached files. Convert page '%s' to a directory (with an index) to allow attaching files."
-                            .formatted(this.sourcePath()));
+            throw new RoqStaticFileException(RoqException.builder("Cannot list attached files")
+                    .sourceInfo(this.source().template().file().toSourceInfo())
+                    .detail("This page is not a directory page, so it cannot have attached files.")
+                    .hint("Convert the page to a directory with an index file to allow attaching files."));
         }
         return source().files().names();
     }
@@ -257,9 +268,10 @@ public class Page {
      */
     public boolean fileExists(Object name) {
         if (source().usePublicFiles()) {
-            throw new RoqStaticFileException(
-                    "Can't find file '%s' attached to the page. Convert page '%s' to a directory (with an index) to allow attaching files."
-                            .formatted(name, this.sourcePath()));
+            throw new RoqStaticFileException(RoqException.builder("Cannot find attached file")
+                    .sourceInfo(this.source().template().file().toSourceInfo())
+                    .detail("Cannot check for file '%s' because this page is not a directory page.".formatted(name))
+                    .hint("Convert the page to a directory with an index file to allow attaching files."));
         }
         var f = normaliseName(name, source().files().slugified());
         return source().fileExists(f);
@@ -274,15 +286,14 @@ public class Page {
      */
     public RoqUrl file(Object name) {
         if (!source().isIndex()) {
-            throw new RoqStaticFileException(
-                    "Only page directories with an index can have attached files. Then add '%s' to the page directory to fix this error."
-                            .formatted(name, this.sourcePath()));
+            throw new RoqStaticFileException(RoqException.builder("Not a directory page")
+                    .sourceInfo(this.source().template().file().toSourceInfo())
+                    .detail("Cannot attach file '%s' to this page.".formatted(name))
+                    .hint("Only directory pages with an index can have attached files. Move the page into a directory with an index file."));
         }
         final Path path = Path.of(this.sourcePath());
         final String dir = path.getParent() == null ? "/" : toUnixPath(path.getParent().toString());
-        return resolveFile(this, name,
-                "Page '" + this.sourcePath() + "': can't find '%s' in  '" + dir + "' which has no attached static file.",
-                "Page '" + this.sourcePath() + "': file '%s' not found in '" + dir + "' directory (found: %s).");
+        return resolveFile(this, name, "the '%s' directory".formatted(dir));
     }
 
     /**
@@ -310,6 +321,17 @@ public class Page {
             return data().getValue(name);
         }
         return null;
+    }
+
+    /**
+     * Like {@link #data(String)} but specifying a default value to return if there is no entry.
+     *
+     * @param name the data key name
+     * @param defaultValue the default value to use if the entry is not present
+     * @return the value or {@code defaultValue} if no entry present
+     */
+    public Object data(String name, Object defaultValue) {
+        return data().getValue(name, defaultValue);
     }
 
     @Override

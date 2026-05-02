@@ -1,0 +1,12 @@
+name: roq-theme-resume-codestart
+ref: roq-theme-resume
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq Resume Theme
+  description: This codestart provides a starter Roq resume site with the resume theme.
+  related-guide-section: https://iamroq.dev/theme/resume-theme/
+language:
+  base:
+    dependencies:
+      - "io.quarkiverse.roq:quarkus-roq:${project.version}"

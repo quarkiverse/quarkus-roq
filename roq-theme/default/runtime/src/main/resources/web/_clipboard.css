@@ -1,0 +1,16 @@
+/* Copy button */
+
+@layer components {
+
+    .roq-copy-btn {
+        @apply ml-auto p-1 rounded;
+        @apply bg-transparent border-0 cursor-pointer;
+        @apply text-neutral-500 text-xs;
+        @apply transition-colors duration-200;
+    }
+
+    .roq-copy-btn:hover {
+        @apply text-neutral-200;
+    }
+
+}

@@ -1,0 +1,93 @@
+## Using Roq (copy this section to your project's CLAUDE.md / AGENTS.md)
+
+Roq is a static site generator built on Quarkus. It uses the Qute template engine with FrontMatter headers (YAML between `---` delimiters).
+
+### Quick Start
+
+1. Install via JBang: `curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force roq@quarkiverse/quarkus-roq`
+2. Create a site: `roq create my-site` (adds the default theme with example content)
+3. Start dev mode: `cd my-site && roq start` (live-reload on http://localhost:8080, most changes are picked up automatically, use `-p 9090` for a custom port, press `s` to force a soft restart if needed)
+4. Build static site: `roq generate` (output in `target/roq/`), preview with `roq serve`
+5. Add a plugin or theme: `roq add plugin:tagging`, `roq add theme:default`
+6. Update to latest versions: `roq update`
+
+For a minimal HTML structure without the default theme: `roq create my-site -x theme:base`. Use `--no-code` to skip example content, `--gradle` for Gradle.
+
+Available commands: `roq create`, `roq start`, `roq generate`, `roq serve`, `roq add`, `roq update`, `roq blog`. There is NO `roq dev` command, use `roq start` for dev mode.
+
+### AI Agent Integration (Quarkus Agent MCP)
+
+AI coding agents (Claude Code, VS Code Copilot, Cursor, etc.) can manage Roq dev servers using [Quarkus Agent MCP](https://github.com/quarkusio/quarkus-agent-mcp). It handles lifecycle (start, stop, soft restart via `s`), log capture, and proxies to Dev MCP tools in the running app.
+
+**Install via JBang:**
+```
+jbang app install --fresh --force quarkus-agent-mcp@quarkusio
+```
+
+**Configure in Claude Code:**
+```
+claude mcp add quarkus-agent -- jbang quarkus-agent-mcp@quarkusio
+```
+
+**Configure in VS Code / Cursor (`.vscode/mcp.json`):**
+```json
+{
+  "servers": {
+    "quarkus-agent": {
+      "type": "stdio",
+      "command": "jbang",
+      "args": ["quarkus-agent-mcp@quarkusio"]
+    }
+  }
+}
+```
+
+Once configured, the agent uses `quarkus_start` to launch the Roq dev server, `quarkus_restart` for soft restart, `quarkus_logs` to read output, and `quarkus_searchTools` / `quarkus_callTool` to interact with the running app.
+
+### Directory Structure
+
+```
+my-site/
+├── content/           # Pages, collections (posts/, etc.), index.html (required)
+├── templates/
+│   ├── layouts/       # Page layouts (page.html, post.html)
+│   └── partials/      # Reusable template fragments
+├── data/              # Structured data files (YAML/JSON), accessible via {cdi:filename.property}
+├── public/            # Static assets served as-is (images, PDFs)
+├── web/               # JS/CSS sources (bundled by Quarkus Web Bundler)
+└── config/
+    └── application.properties  # Site config with site.* prefix
+```
+
+## Installing Roq Skill Files for AI Coding Assistants
+
+Roq extensions ship detailed reference docs as skill files inside their deployment JARs at `META-INF/quarkus-skill.md`. Follow these steps to install them in your project.
+
+### 1. Find your Roq extensions and version
+
+```
+mvn dependency:list -DincludeGroupIds=io.quarkiverse.roq -DoutputAbsoluteArtifactFilename=true
+```
+
+### 2. Extract the relevant skills
+
+Extract from the matching JAR in your local Maven repository:
+```
+unzip -p ~/.m2/repository/io/quarkiverse/roq/ARTIFACT_ID/VERSION/ARTIFACT_ID-VERSION.jar META-INF/quarkus-skill.md > .claude/skills/SHORT_NAME.md
+```
+
+Install to the appropriate skills directory (`.claude/skills/` for Claude Code), or append to your CLAUDE.md/AGENTS.md.
+
+Install a skill for each `*-deployment` JAR listed in the dependency output.
+
+### 3. Keep skills in sync
+
+After running `roq update`, re-extract the skill files to match the new version. Compare the Roq version in your dependencies with the version of the installed skill to detect staleness.
+
+**Migrating to Roq:**
+- [Migrating to Roq]({=site.url('/docs/migrating/').absolute}): phased workflow, syntax mappings, configuration reference, and LLM prompts for migrating a Jekyll/Hugo site to Roq
+
+**Skill files (latest version for reference):**
+- [quarkus-roq-frontmatter-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md): base reference (FrontMatter pages, layouts, collections, pagination, template variables, Qute syntax, built-in tags, data files, template extensions, configuration, common pitfalls)
+- [quarkus-roq-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq/deployment/src/main/resources/META-INF/quarkus-skill.md): full Roq extras (directory structure, themes, RSS, LLMs.txt, static generation, testing, CLI commands)
+- [quarkus-roq-data-deployment](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-data/deployment/src/main/resources/META-INF/quarkus-skill.md): data file mapping with @DataMapping and CDI

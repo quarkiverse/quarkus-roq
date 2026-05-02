@@ -186,6 +186,60 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "pdudits",
+      "name": "Patrik Duditš",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1588543?v=4",
+      "profile": "https://github.com/pdudits",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "rolfedh",
+      "name": "Rolfe Dlugy-Hegwer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/350907?v=4",
+      "profile": "https://github.com/rolfedh",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "matheusandre1",
+      "name": "Matheus André",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92062874?v=4",
+      "profile": "https://github.com/matheusandre1",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "sunix",
+      "name": "Sun S. D. Tan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/650571?v=4",
+      "profile": "https://blog.sunix.org",
+      "contributions": [
+        "tutorial"
+      ]
+    },
+    {
+      "login": "omatheusmesmo",
+      "name": "Matheus Oliveira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99829531?v=4",
+      "profile": "http://blog.omatheusmesmo.dev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "DimitriHautot",
+      "name": "Dimitri Hautot",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3765206?v=4",
+      "profile": "https://about.me/DimitriHautot",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -9,11 +9,29 @@ We aim to keep the API stable, but since Roq is still young, breaking changes ma
 
 {description}
 
+== Roq 2.1
+
+- ✏️ *Built-in Block Editor*: a powerful block editor right in your browser during dev mode, with live preview, front matter editing, and image management. No IDE needed to write your next post!
+- 🎨 *Simplified layout resolution*: `layout: page` now resolves local layouts first, then falls back to the theme. No more `:theme/` prefix needed
+- 🎨 *Default theme rewritten with TailwindCSS* instead of SCSS for better maintainability and modern styling
+- 🌙 *Built-in dark mode* with automatic system preference detection
+- 🎨 *Color palette system*: three customizable palettes (`accent`, `pop`, `neutral`) via CSS variables
+- 🖼️ *Favicon auto-discovery*: automatically detects `favicon.svg`, `favicon.ico`, `favicon.png`, `apple-touch-icon.png` in `public/`
+- 🛒 *Marketplace*: new collection type for discovering plugins, themes, and web extensions
+- 🤖 *llms.txt*: automatic generation of `llms.txt` for AI-friendly site indexing
+- 🖥️ *CLI*: new `roq add` command for adding plugins, themes, and web extensions
+- 🔧 Internal refactoring: the frontmatter pipeline is now split into clear numbered steps (Step0-Step6) for better maintainability
+- 🔧 Migrated to `ProjectScanner` API and `StringPaths` library for file scanning
+- ⚠️ `page.date` now returns `null` for normal pages without a date. Collection documents (posts) still default to the current date.
+- 🔧 *Common RoqException*: all Roq exceptions (`roq-frontmatter`, `roq-data`) now extend a common `io.quarkiverse.roq.exception.RoqException` in `roq-common`, providing structured error pages with title, detail, hint, and source info across all modules
+
+→ Guide for migrating <<to-2-1>>
+
 == Roq 2.0
 
 - 🕵️ Added lightning filesystem watcher for live reload
 - 📂 Allow `web` directory at the root of the Roq site
-- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...) 
+- 🧩 Simplified default app structure: supports `web/app.js` and `web/app.scss` (or `web/app/app.js` like before ...)
 - ⚡️ https://docs.quarkiverse.io/quarkus-web-bundler/dev/integrations.html#tailwindcss[TailwindCSS] support without any config
 - 💫 Directory support for data and allow iterating on nested data files using the directory name
 
@@ -40,7 +58,7 @@ The Asciidoc support was already available, but with this new release, we made i
 * Harmonization between Ruby and Java implementation
 * Dynamic TOC support
 
-👉 link:{site-path}docs/plugins/#plugin-asciidoc[The Roq Asciidoc plugin doc]
+👉 link:{site-path}plugin/asciidoc/[The Roq Asciidoc plugin doc]
 
 A few weeks ago, we added link:{site-path}posts/your-users-deserve-searching-capabilities/[support for search] as a plugin to Roq. I wasn't fully happy with the style and the fact that it was targetting the full page instead of the nearest fragment for the actual keyword.
 
@@ -48,7 +66,7 @@ I spend a bit of time on this and came up with a new way of indexing the content
 
 Give it a try, it is enabled on this site. If you want this for your site:
 
-👉 link:{site-path}docs/plugins/#plugin-asciidoc[The Roq Search plugin doc]
+👉 link:{site-path}plugin/lunr-search/[The Roq Search plugin doc]
 
 
 → Guide for migrating <<to-1-7>>
@@ -56,39 +74,170 @@ Give it a try, it is enabled on this site. If you want this for your site:
 
 == Migration guide
 
-1. xref:advanced.adoc#updating-roq[Make sur you update using Quarkus CLI]
+1. xref:advanced.adoc#updating-roq[Make sure you update using Quarkus CLI]
 2. Make sure you implemented xref:advanced.adoc#test-site-generation[generation tests]
+
+=== to 2.1
+
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
+
+| All users
+| `io.quarkiverse.roq.util.PathUtils`
+| `io.quarkiverse.tools.stringpaths.StringPaths`
+| ⚠ Update import and adapt usage
+
+| All users
+| `layout: :theme/foo`
+| `layout: foo` or `theme-layout: foo`
+| ⚠ Update layout references in front matter
+
+| All users
+| Layouts in `templates/layouts/{theme-name}/`
+| `templates/layouts/`
+| ⚠ Move custom layouts
+
+| All users
+| `page.date` returns current date for all pages
+| Returns `null` for non-collection pages
+| ⚠ Wrap with `{#if page.date}...{/if}`
+
+| Theme users
+| `index.html` layout for blog listing
+| New `blog.html` layout (with pagination support); `index.html` now delegates to it
+| ⚠ If using `layout: blog` without pagination (`paginate: false`), add `paginate: posts`; if you have a custom `blog.html` override, use `{#if page.paginator and page.paginator.isFirst}` instead of `{#if page.paginator.isFirst}`
+
+| Theme users
+| SCSS (`app.scss`)
+| CSS with https://tailwindcss.com/[TailwindCSS]
+| ⚠ Migrate custom styles
+
+| Theme users
+| `{#author-card ...}` (kebab-case)
+| `{#roq/authorCard ...}` (namespaced camelCase)
+| ⚠ Update tag references
+
+| Plugin authors
+| `RoqFrontMatterScanProcessor`
+| Step-based build items
+| ⚠ Update plugin code
+
+| Plugin authors
+| `deployment.scan.\*`
+| `deployment.items.scan.*` (same for `data`, `publish`)
+| ⚠ Update imports
+
+| All users
+| Generated templates in `target/roq-templates/full/`
+| Now in `target/roq-templates/content/` (https://github.com/quarkiverse/quarkus-roq/pull/861[#861])
+| ℹ Update scripts or workflows referencing this path
+
+| Plugin authors
+| `TemplateSource.generatedQuteContentTemplateId()`, `RoqFrontMatterRawPageBuildItem.generatedContentTemplate()`
+| Removed, page content now extracted via `{#fragment RoqPageContent}` (https://github.com/quarkiverse/quarkus-roq/pull/861[#861])
+| ⚠ Update plugin code
+
+| Plugin authors
+| `PAGINATE_KEY` in scan package
+| `RoqFrontMatterKeys` (runtime)
+| ⚠ Update imports
+
+| Plugin authors
+| `io.quarkiverse.roq.frontmatter.runtime.exception.RoqException`
+| `io.quarkiverse.roq.exception.RoqException` (in `roq-common`)
+| ⚠ Update imports
+
+| Plugin authors
+| `RoqException.Builder.source(TemplateSource)`
+| `RoqException.Builder.sourceInfo(new RoqSourceInfo(...))`
+| ⚠ Update builder calls
+
+| Plugin authors
+| `roq-data` exceptions extend `RuntimeException` / `UncheckedIOException`
+| All extend `RoqException` with builder pattern
+| ⚠ Update exception construction
+
+| Theme users
+| Custom SCSS/CSS overrides
+| Theme CSS completely rewritten
+| ⚠ Review your overrides — some may be unnecessary now, others may need updating
+
+| Theme users
+| Custom color variables
+| Three customizable color palettes: `accent`, `pop`, `neutral`
+| ℹ See link:{site-path}theme/default-theme/#color-palettes[Color Palettes]
+
+| Theme users
+| Custom CSS classes for prose
+| `not-prose` class to exclude from prose styling
+| ℹ Good to know
+
+| Theme users
+| No dark mode
+| Built-in with `dark:` variants
+| ℹ Good to know
+
+|===
 
 === to 2.0
 
-If you are using nested data, they are now mapped using `/`. E.g: `dir/bar.yml` is mapped to `dir/bar` instead of `dir_bar`.
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-Please report any other issue while migrating.
+| All users
+| Nested data mapped with `_` (e.g. `dir_bar`)
+| Mapped with `/` (e.g. `dir/bar`)
+| ⚠ Update data references
+|===
 
 === to 1.8
 
-*Make sure build and generation tests are passing:*
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-* `page.info()` has been rewritten and split into `page.source()` and `page.source().template()`.
-* Roq BuildItems has been modified to be easier to understand, all plugins have been updated accordingly. Unless you have your own custom plugins, this shouldn't affect you.
+| All users
+| `page.info()`
+| `page.source()` and `page.source().template()`
+| ⚠ Update page info calls
+
+| Plugin authors
+| Previous BuildItems API
+| Restructured BuildItems
+| ⚠ Update plugin code
+|===
 
 === to 1.7
 
-**Asciidoc support has been improved, if you use it, **you may need to check a few things when updating:
+[cols="1,2,2,2",options="header"]
+|===
+| Applies to | Before | After | Action
 
-* Asciidoc files (.adoc and .asciidoc) will be escaped by default meaning no Qute parsing. Instead, it is possible to use asciidoc includes and vars instead (can be configured through `quarkus.asciidoc.qute=false`).
-* Config renamed `quarkus.asciidoctorj` -> `quarkus.asciidoc` (this is to be able to switch from one to the other asciidoc plugin)
-* `quarkus.asciidoc.qute` (instead of `quarkus.asciidoc.escape` in 1.7.0.CR1)
-* `:qute:` or `:qute: true` to enable Qute parsing per page
-* Remove config `quarkus.asciidoctorj.templates-dir` (toc can be handled by script).
+| AsciiDoc users
+| Qute parsing enabled by default
+| Disabled by default
+| ⚠ Use `:qute:` per page or `quarkus.asciidoc.qute=false`
 
-*Search plugin* has also been improved:
+| AsciiDoc users
+| `quarkus.asciidoctorj`
+| `quarkus.asciidoc`
+| ⚠ Rename config
 
-* Make sure your style is still valid with the new search result dom.
+| AsciiDoc users
+| `quarkus.asciidoctorj.templates-dir`
+| Removed (TOC handled by script)
+| ⚠ Remove config
 
-*Ignored files:*
+| Search users
+| Previous search result DOM
+| Updated DOM structure
+| ⚠ Verify custom search styles
 
-* `site.ignored-files` now *extends* `site.default-ignored-files` instead of replacing it.
-The default ignore list was updated to allow files starting with `.` (except `DS_Store` and `Thumbs.db`).
-Check your config to ensure it still works as expected.
+| All users
+| `site.ignored-files` replaces defaults
+| Now extends `site.default-ignored-files`
+| ⚠ Check ignore config
+|===
 

@@ -1,0 +1,31 @@
+/* Responsive Overrides */
+
+@layer components {
+    .contact-title,
+    .copyright {
+        @apply max-md:hidden;
+    }
+
+    .about {
+        @apply max-md:text-center max-md:mx-auto max-md:mt-2.5;
+    }
+
+    .about .site-logo img {
+        @apply max-md:w-25 max-md:h-25 max-md:rounded-full max-md:mb-2.5;
+    }
+
+    aside.sidebar.main footer {
+        @apply max-md:mb-2.5;
+    }
+
+    pre {
+        @apply max-md:p-0;
+    }
+
+    /* Hide about description on short screens */
+    @media (height <= 1025px) {
+        aside.sidebar.main .about p {
+            @apply hidden;
+        }
+    }
+}

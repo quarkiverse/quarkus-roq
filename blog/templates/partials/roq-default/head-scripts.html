@@ -1,0 +1,13 @@
+{@java.lang.String tag}
+
+{#search-script /}
+
+{#bundle /}
+
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}
+
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<meta name="google-site-verification" content="eWUka2MaSmxhAJUzPFCBHINzwHEHAkPFLgKcBCMqs_4" />

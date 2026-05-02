@@ -1,7 +1,10 @@
 package io.quarkiverse.roq.data.deployment.exception;
 
-public class DataMappingRequiredFileException extends RuntimeException {
-    public DataMappingRequiredFileException(String message) {
-        super(message);
+import io.quarkiverse.roq.exception.RoqException;
+
+public class DataMappingRequiredFileException extends RoqException {
+
+    public DataMappingRequiredFileException(RoqException.Builder builder) {
+        super(builder);
     }
 }

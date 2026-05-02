@@ -1,0 +1,172 @@
+package io.quarkiverse.roq.frontmatter.deployment.util;
+
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FILE_NAME_DATE_PATTERN;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.SLUG;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension.slugify;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
+
+import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import io.quarkiverse.roq.exception.RoqException;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
+import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.vertx.core.json.JsonObject;
+
+public class TemplateLink {
+    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:path:ext";
+    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug/";
+    public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page/";
+    private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
+    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
+    private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(":[a-zA-Z][a-zA-Z0-9-]*");
+
+    public interface LinkData {
+        PageSource pageSource();
+
+        String collection();
+
+        JsonObject data();
+    }
+
+    public record PageLinkData(PageSource pageSource, String collection,
+            JsonObject data) implements LinkData {
+    }
+
+    public record PaginateLinkData(PageSource pageSource, String collection, String page,
+            JsonObject data) implements LinkData {
+    }
+
+    private static Map<String, Supplier<String>> withBasePlaceHolders(LinkData data, Map<String, Supplier<String>> other) {
+        Map<String, Supplier<String>> result = new HashMap<>(Map.ofEntries(
+                Map.entry(":collection", () -> {
+                    if (data.collection() == null) {
+                        throw new RoqTemplateLinkException(
+                                RoqException.builder("Invalid link placeholder")
+                                        .sourceInfo(data.pageSource().template().file().toSourceInfo())
+                                        .detail("The ':collection' placeholder is used in the link template, but this page does not belong to a collection.")
+                                        .hint("Remove ':collection' from the link template, or move this page into a collection."));
+                    }
+                    return data.collection();
+                }),
+                Map.entry(":year",
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(YEAR_FORMAT)),
+                Map.entry(":month",
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
+                Map.entry(":day",
+                        () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
+                Map.entry(":raw-path", () -> removeExtension(data.pageSource().path())),
+                Map.entry(":path",
+                        () -> StringPaths.slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
+                Map.entry(":ext",
+                        () -> data.pageSource().isTargetHtml() ? ""
+                                : "." + data.pageSource().extension()),
+                Map.entry(":ext!",
+                        () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
+                Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
+                Map.entry(":Slug", () -> resolveSlug(data)),
+                Map.entry(":name", () -> StringPaths.slugify(resolveName(data), true, false)
+                        .toLowerCase()),
+                Map.entry(":Name", () -> StringPaths.slugify(resolveName(data), true, false)))); // Case-preserving slug
+        if (other != null) {
+            result.putAll(other);
+        }
+        return result;
+    }
+
+    private static String resolveName(LinkData data) {
+        final String name;
+        if (data.pageSource().isIndex()) {
+            final Path parent = Path.of(data.pageSource().path()).getParent();
+            name = parent != null ? parent.getFileName().toString() : "not-available";
+        } else {
+            name = data.pageSource().baseFileName();
+        }
+
+        return removeDate(name);
+    }
+
+    public static String resolveSlug(LinkData data) {
+        String title = data.data().getString(SLUG,
+                data.data().getString(TITLE));
+        if (title == null || title.isBlank()) {
+            title = resolveName(data);
+        }
+        return slugify(title);
+    }
+
+    public static String pageLink(String basePath, String template, PageLinkData data) {
+        return linkInternal(basePath, template,
+                data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE, data,
+                withBasePlaceHolders(data, null));
+    }
+
+    public static String paginateLink(String basePath, String template, PaginateLinkData data) {
+        return linkInternal(basePath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, data, withBasePlaceHolders(data, Map.of(
+                ":page", () -> Objects.requireNonNull(data.page(), "page index is required to build the link"))));
+    }
+
+    public static String link(String basePath, String template, String defaultTemplate, LinkData data,
+            Map<String, Supplier<String>> placeHolders) {
+        return linkInternal(basePath, template, defaultTemplate, data, withBasePlaceHolders(data, placeHolders));
+    }
+
+    private static String linkInternal(String basePath, String template, String defaultTemplate,
+            LinkData data, Map<String, Supplier<String>> mapping) {
+        String link = template != null ? template : defaultTemplate;
+        // Replace each placeholder in the template if it exists
+        for (Map.Entry<String, Supplier<String>> entry : mapping.entrySet()) {
+            if (link.contains(entry.getKey())) {
+                String replacement = entry.getValue().get();
+                if (replacement == null) {
+                    throw new RoqTemplateLinkException(
+                            RoqException.builder("Link placeholder not resolved")
+                                    .sourceInfo(data.pageSource().template().file().toSourceInfo())
+                                    .detail("Placeholder '%s' in link template '%s' resolved to null.".formatted(
+                                            entry.getKey(), template))
+                                    .hint("Provide a value for '%s' in the page front matter or remove it from the link template."
+                                            .formatted(
+                                                    entry.getKey())));
+                }
+                link = link.replace(entry.getKey(), replacement);
+            }
+        }
+
+        // Validate that no invalid placeholders remain in the link
+        if (link.contains(":")) {
+            Matcher matcher = PLACEHOLDER_PATTERN.matcher(link);
+            if (matcher.find()) {
+                String invalidPlaceholder = matcher.group();
+                throw new RoqTemplateLinkException(
+                        RoqException.builder("Invalid link placeholder")
+                                .sourceInfo(data.pageSource().template().file().toSourceInfo())
+                                .detail("Unknown placeholder '%s' in link template '%s'.".formatted(
+                                        invalidPlaceholder, template != null ? template : defaultTemplate))
+                                .hint("Valid placeholders: %s".formatted(
+                                        String.join(", ", mapping.keySet()))));
+            }
+        }
+
+        if (link.endsWith("index") || link.endsWith("index.html")) {
+            link = link.replaceAll("index(\\.html)?", "");
+        }
+        return addTrailingSlashIfNoExt(removeLeadingSlash(StringPaths.join(basePath, link)));
+    }
+
+    private static String removeDate(String path) {
+        return FILE_NAME_DATE_PATTERN.matcher(path).replaceAll("");
+    }
+}

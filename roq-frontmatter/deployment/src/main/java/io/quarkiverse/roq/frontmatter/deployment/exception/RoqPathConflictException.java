@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqPathConflictException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public RoqPathConflictException(String message) {
-        super(message);
+public class RoqPathConflictException extends RoqException {
+
+    public RoqPathConflictException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqPathConflictException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

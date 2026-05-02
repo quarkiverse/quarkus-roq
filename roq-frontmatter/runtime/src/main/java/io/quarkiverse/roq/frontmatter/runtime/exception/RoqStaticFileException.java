@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.runtime.exception;
 
-public class RoqStaticFileException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public RoqStaticFileException(String message) {
-        super(message);
+public class RoqStaticFileException extends RoqException {
+
+    public RoqStaticFileException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqStaticFileException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

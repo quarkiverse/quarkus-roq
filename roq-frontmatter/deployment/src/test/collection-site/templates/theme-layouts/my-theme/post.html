@@ -1,0 +1,11 @@
+---
+layout: default
+link: /:year/:month/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="themed-post">
+  {#insert /}
+  <span class="is-override">false</span>
+  <span class="page-url">{page.url.path}</span>
+  <span class="collection-id">{page.collectionId}</span>
+</article>

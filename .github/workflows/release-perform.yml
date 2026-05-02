@@ -25,4 +25,5 @@ jobs:
     uses: quarkiverse/.github/.github/workflows/perform-release.yml@main
     secrets: inherit
     with:
+      java_version: 21
       version: ${{github.event.inputs.tag || github.ref_name}}

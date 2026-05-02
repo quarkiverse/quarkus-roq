@@ -1,12 +1,12 @@
 <section class="about">
-  {#if site.image}
-  <div class="cover-author-image">
-    <a href="{site.url}"><img src="{site.image}" alt="{site.data.name}"></a>
+  {#if site.data.logo?? || site.image}
+  <div class="site-logo">
+    <a href="{=site.url}"><img src="{#if site.data.logo??}{=site.image(site.data.logo)}{#else}{=site.image}{/if}" alt="{=site.data.name}"></a>
   </div>
   {/if}
-  <div class="author-name">{site.data.name}</div>
+  <div class="site-name">{=site.data.name}</div>
+  <p class="roq-tagline">Java Static Site Generator</p>
   <div class="roq-version">
-    <a href="https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq-project-parent" rel="nofollow"><img src="https://img.shields.io/maven-central/v/io.quarkiverse.roq/quarkus-roq?logo=apache-maven&style=flat-square" alt="Version"  style="max-width: 100%;"></a>
+    <a href="https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq" target="_blank" rel="nofollow noopener noreferrer">{=cdi:project-info.release.current-version}</a>
   </div>
-  {#insert description}<p>{site.description}</p>{/}
 </section>

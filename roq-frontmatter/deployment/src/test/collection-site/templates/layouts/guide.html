@@ -1,0 +1,10 @@
+---
+layout: default
+link: /guides/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="guide">
+  {#insert /}
+  <span class="collection-id">{page.collectionId}</span>
+  <span class="collection-size">{page.collection.size}</span>
+</article>

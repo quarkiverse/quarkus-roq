@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes[`quarkus.asciidoc.attributes."attributes"`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes[`+++quarkus.asciidoc.attributes."attributes"+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.asciidoc.attributes."attributes"+++[]
 endif::add-copy-button-to-config-props[]

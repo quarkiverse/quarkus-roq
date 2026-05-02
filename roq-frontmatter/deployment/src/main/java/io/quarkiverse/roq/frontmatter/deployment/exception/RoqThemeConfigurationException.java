@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqThemeConfigurationException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public RoqThemeConfigurationException(String message) {
-        super(message);
+public class RoqThemeConfigurationException extends RoqException {
+
+    public RoqThemeConfigurationException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqThemeConfigurationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

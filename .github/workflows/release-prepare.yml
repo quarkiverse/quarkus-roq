@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/project.yml'
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -16,3 +19,5 @@ jobs:
     if: ${{ github.event.pull_request.merged == true}}
     uses: quarkiverse/.github/.github/workflows/prepare-release.yml@main
     secrets: inherit
+    with:
+      java_version: 21

@@ -1,0 +1,16 @@
+<section class="roq-hero">
+  <div class="roq-hero-main">
+    {#if logo??}
+    <img src="{logo}" alt="" class="roq-hero-logo">
+    {/if}
+    <h1>{#insert title /}</h1>
+    <p class="roq-hero-tagline">{#insert tagline /}</p>
+    <div class="roq-hero-sep"></div>
+    <p class="roq-hero-subtitle">{#insert subtitle /}</p>
+    {#if nested-content??}
+    <div class="roq-hero-actions">
+      {nested-content}
+    </div>
+    {/if}
+  </div>
+</section>

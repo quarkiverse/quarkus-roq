@@ -1,13 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqFrontMatterReadingException extends RuntimeException {
+import io.quarkiverse.roq.exception.RoqException;
 
-    public RoqFrontMatterReadingException(String message) {
-        super(message);
+public class RoqFrontMatterReadingException extends RoqException {
+
+    public RoqFrontMatterReadingException(RoqException.Builder builder) {
+        super(builder);
     }
-
-    public RoqFrontMatterReadingException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

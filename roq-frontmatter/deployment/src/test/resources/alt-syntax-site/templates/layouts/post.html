@@ -1,0 +1,10 @@
+---
+layout: default
+link: /the-posts/:slug
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+<article class="post">
+  {#insert /}
+  <span class="post-date">{=page.date}</span>
+  <span class="collection-id">{=page.collectionId}</span>
+</article>

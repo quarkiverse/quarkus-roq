@@ -4,7 +4,7 @@ ia3andy
 :image: https://images.unsplash.com/photo-1658220068838-90ac25ac8166?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 :page-tags: blogging, cool-stuff
 
-Two prominent websites have recently completed their migration to Roq: https://wildfly.org/[`wildfly.org`, window=_blank] and https://wildfly.org/[`jbang.dev`, window=_blank]. These migrations mark a significant milestone in the adoption of Roq as a modern static site generator.
+Two prominent websites have recently completed their migration to Roq: https://wildfly.org/[`wildfly.org`, window=_blank] and https://jbang.dev/[`jbang.dev`, window=_blank]. These migrations mark a significant milestone in the adoption of Roq as a modern static site generator.
 
 [.flex-block]
 == WildFly.org on the roq
@@ -42,7 +42,7 @@ Roq now offers robust support for AsciiDoc content. This includes:
 
 These features make Roq an excellent choice for documentation-heavy sites and technical blogs.
 
-link:{site-path}docs/plugins/#plugin-asciidoc[Read more about Roq with Asciidoc...]
+link:{site-path}plugin/asciidoc/[Read more about Roq with Asciidoc...]
 
 == More Sites Coming Soon!
 

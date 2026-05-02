@@ -1,6 +1,5 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_CONTENT_QUTE_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_PAGE_QUTE_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
 
@@ -8,7 +7,7 @@ import java.util.function.Function;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateData;
 
 /**
@@ -71,26 +70,22 @@ public record TemplateSource(
         return isLayout() ? ROQ_GENERATED_QUTE_PREFIX + generatedQuteId : ROQ_GENERATED_PAGE_QUTE_PREFIX + generatedQuteId;
     }
 
-    public String generatedQuteContentTemplateId() {
-        return ROQ_GENERATED_CONTENT_QUTE_PREFIX + generatedQuteId;
-    }
-
     /**
      * The file name (e.g my-favorite-beer.md)
      */
     public String fileName() {
-        return PathUtils.fileName(path());
+        return StringPaths.fileName(path());
     }
 
     /**
      * The file name without the extension (e.g my-favorite-beer)
      */
     public String baseFileName() {
-        return PathUtils.removeExtension(fileName());
+        return StringPaths.removeExtension(fileName());
     }
 
     public String extension() {
-        return PathUtils.getExtension(fileName());
+        return StringPaths.fileExtension(fileName());
     }
 
 }

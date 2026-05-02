@@ -9,6 +9,7 @@ import io.quarkiverse.roq.data.deployment.exception.DataListBindingException;
 import io.quarkiverse.roq.data.deployment.exception.DataReadingException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 
@@ -33,9 +34,13 @@ public class RoqDataConverterProcessor {
                     constructor = parentClass.getConstructor(List.class);
                 } catch (NoSuchMethodException e) {
                     throw new DataListBindingException(
-                            "@DataMapping for list in %s should declare a constructor with a List<%s> as unique parameter"
-                                    .formatted(parentClass.getName(), mapping.getClassName()),
-                            e);
+                            RoqException.builder("@DataMapping list binding error")
+                                    .detail("Class %s should declare a constructor with a List<%s> as unique parameter"
+                                            .formatted(parentClass.getName(), mapping.getClassName()))
+                                    .sourceFilePath(mapping.sourceFile().toString())
+                                    .hint("Add a public constructor like: public %s(List<%s> items)"
+                                            .formatted(parentClass.getSimpleName(), mapping.getClassName()))
+                                    .cause(e));
                 }
 
                 try {
@@ -45,8 +50,13 @@ public class RoqDataConverterProcessor {
                     final Object data = constructor.newInstance(list);
                     beans.produce(new RoqDataBeanBuildItem(mapping.getName(), parentClass, data, mapping.isRecord()));
                 } catch (IOException e) {
-                    throw new DataReadingException("Unable to read data in file %s as a List<%s>"
-                            .formatted(mapping.sourceFile(), mapping.getClassName()), e);
+                    throw new DataReadingException(
+                            RoqException.builder("Unable to read data file")
+                                    .detail("Could not read file %s as a List<%s>"
+                                            .formatted(mapping.sourceFile(), mapping.getClassName()))
+                                    .sourceFilePath(mapping.sourceFile().toString())
+                                    .hint("Check that the data file format matches the expected list structure")
+                                    .cause(e));
                 } catch (ClassNotFoundException | InvocationTargetException | InstantiationException
                         | IllegalAccessException e) {
                     throw new RuntimeException(e);
@@ -64,8 +74,12 @@ public class RoqDataConverterProcessor {
                     beans.produce(new RoqDataBeanBuildItem(mapping.getName(), beanClass, data, mapping.isRecord()));
                 } catch (IOException e) {
                     throw new DataReadingException(
-                            "Unable to convert data in file %s as a %s".formatted(mapping.sourceFile(), mapping.getClassName()),
-                            e);
+                            RoqException.builder("Unable to convert data file")
+                                    .detail("Could not convert file %s as a %s"
+                                            .formatted(mapping.sourceFile(), mapping.getClassName()))
+                                    .sourceFilePath(mapping.sourceFile().toString())
+                                    .hint("Verify the data file structure matches the @DataMapping class fields")
+                                    .cause(e));
                 }
             }
         }

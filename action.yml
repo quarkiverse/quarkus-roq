@@ -59,7 +59,7 @@ runs:
     # Step 1: Set up Java
     - name: Set up Java
       if: ${{ inputs.setup-java == 'true' }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
@@ -100,7 +100,9 @@ runs:
         SITE_DIR=${{ inputs.site-directory }}
         SITE_DIR=${SITE_DIR%/}/
         echo "SITE_DIR=$SITE_DIR" >> $GITHUB_ENV
-        echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        if [ -n "$SITE_URL" ]; then
+          echo "SITE_URL=$SITE_URL" >> $GITHUB_ENV
+        fi
         echo "SITE_PATH=$SITE_PATH" >> $GITHUB_ENV
         echo "Using SITE_DIR=$SITE_DIR, SITE_URL=$SITE_URL, SITE_PATH=$SITE_PATH"
 
@@ -111,19 +113,23 @@ runs:
         cd ${{ env.SITE_DIR }}
         MAVEN_CMD="${{ inputs.maven-executable }} -B package quarkus:run \
           ${{ inputs.maven-build-args }} \
-          -Dquarkus.http.root-path=${{ env.SITE_PATH }} \
-          -Dsite.url=${{ env.SITE_URL }}"
-    
+          -Dquarkus.http.root-path=${{ env.SITE_PATH }}"
+
+        # Only override site.url if explicitly provided or resolved from GitHub Pages
+        if [ -n "${{ env.SITE_URL }}" ]; then
+          MAVEN_CMD="$MAVEN_CMD -Dsite.url=${{ env.SITE_URL }}"
+        fi
+
         # Add site.future if it's set
         if [ -n "${{ inputs.site-future }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.future=${{ inputs.site-future }}"
         fi
-    
+
         # Add site.draft if it's set
         if [ -n "${{ inputs.site-draft }}" ]; then
           MAVEN_CMD="$MAVEN_CMD -Dsite.draft=${{ inputs.site-draft }}"
         fi
-    
+
         # Run Maven build with the generated arguments
         $MAVEN_CMD
       env:
@@ -132,11 +138,11 @@ runs:
     # Step 5: Setup GitHub Pages
     - name: Setup Pages
       if: ${{ inputs.github-pages == 'true' }}
-      uses: actions/configure-pages@v5
+      uses: actions/configure-pages@v6
 
     # Step 6: Upload Artifact to GitHub Pages
     - name: Upload Artifact
       if: ${{ inputs.github-pages == 'true' }}
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}

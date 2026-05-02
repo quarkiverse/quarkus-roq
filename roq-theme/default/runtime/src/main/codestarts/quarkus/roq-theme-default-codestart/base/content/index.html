@@ -1,0 +1,40 @@
+---
+title: Hello, world! I'm Roq
+description: Java Static Site Generator
+name: I am Roq
+simple-name: Roq
+image: logo.svg
+social-twitter: quarkusio
+social-facebook:
+social-github: quarkiverse/quarkus-roq
+social-linkedin: quarkusio
+layout: home
+---
+
+{#roq/hero logo="/images/mascot.svg"}
+  {#title}Ready to <span class="shimmer">Roq</span> my world!{/title}
+  {#tagline}Your site, powered by Quarkus{/tagline}
+  {#subtitle}Writing with Roq is delightful, it is all free and Open Source. Build amazing static sites with the power of Java and Quarkus.{/subtitle}
+  <a href="https://iamroq.dev/docs/basics/" class="btn btn-primary">Let's Roq the basics <i class="fa-solid fa-arrow-right"></i></a>
+  <a href="/blog" class="btn btn-secondary"><i class="fa-solid fa-newspaper"></i> My Blog</a>
+{/}
+
+<div class="roq-features">
+  {#roq/featureCard icon="fa-bolt" title="Java & Quarkus"}
+    Built with Java and Quarkus under the hood, but you don't need to know them. Just enjoy blazing fast dev mode with live-reload.
+  {/}
+  {#roq/featureCard icon="fa-puzzle-piece" title="Plugin System"}
+    Markdown, AsciiDoc, tagging, search, diagrams, series, sitemap and more. All as Quarkus extensions.
+  {/}
+  {#roq/featureCard icon="fa-palette" title="Themes & Templates"}
+    Qute templates with simple and readable syntax. Themes are just Quarkus extensions.
+  {/}
+  {#roq/featureCard icon="fa-arrow-up-right-from-square" title="Easy to Deploy"}
+    Generate static files and deploy anywhere: GitHub Pages, Netlify, or any static server.
+  {/}
+</div>
+
+<section class="roq-section">
+  <h2>Next steps</h2>
+  <p>Edit the content in the <code>content/</code> directory, customize the look in <code>web/</code>, and make it yours.</p>
+</section>

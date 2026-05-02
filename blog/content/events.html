@@ -1,20 +1,23 @@
 ---
-title: Events
-description: Events related to Roq
-layout: :theme/page
+title: Roq Events
+description: The Roq community is warmly encouraged to share, discuss, and contribute to the project. Whether you're building something cool, writing a blog post, or giving a talk, we'd love to hear about it!
+layout: page
+page-class: page-alt
 ---
-
-<h1>Roq Events</h1>
-
-<p>The Roq community is warmly encouraged to share, discuss, and contribute to the project. Whether you’re building something cool, writing a blog post, or giving a talk, we’d love to hear about it!</p>
 
 {#for event in cdi:events.list}
 <article class="event">
-  <div class="event-content">
-    <span class="post-date"><i class="fa fa-calendar"></i>{event.parsedDate.format('yyyy, MMM dd')}</span>
-    <h2 class="event-title">{event.title}</h2>
-    <p>{event.description}</p>
-    {#if event.link}<a href="{site.url.resolve(event.link)}">More info...</a>{/if}
+  <div class="post-date">
+    <span>{=event.parsedDate.format('dd')}</span>
+    <span>{=event.parsedDate.format('MMM yyyy')}</span>
+  </div>
+
+  <div class="card event-content">
+    <h2 class="event-title">{=event.title}</h2>
+    <p>{=event.description}</p>
+    {#if event.link}
+    <a href="{=site.url.resolve(event.link)}">Learn more</a>
+    {/if}
   </div>
 </article>
 {/for}

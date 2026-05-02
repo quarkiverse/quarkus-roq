@@ -1,7 +1,10 @@
 package io.quarkiverse.roq.plugin.tagging.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.LINK_KEY;
-import static io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataProcessor.PAGINATE_KEY;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAG;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAGGING;
+import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAG_COLLECTION;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,16 +12,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterRootUrlBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.TemplateLink;
-import io.quarkiverse.roq.frontmatter.deployment.TemplateLink.PageLinkData;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDocumentBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterLayoutTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterPaginatePageBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.publish.RoqFrontMatterPublishNormalPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPaginatePageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
+import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
@@ -66,10 +70,8 @@ public class RoqPluginTaggingProcessor {
             BuildProducer<RoqFrontMatterPaginatePageBuildItem> paginatedPagesProducer,
             BuildProducer<RoqFrontMatterPublishNormalPageBuildItem> pagesProducer) {
 
-        // Let's find non page templates with the tagging data
         final List<RoqFrontMatterLayoutTemplateBuildItem> taggingTemplates = templates.stream()
-                // We filter out theme layouts
-                .filter(i -> i.raw().isLayout() && i.data().containsKey("tagging"))
+                .filter(i -> i.data().containsKey(TAGGING))
                 .toList();
 
         if (taggingTemplates.isEmpty() || documents.isEmpty()) {
@@ -103,11 +105,13 @@ public class RoqPluginTaggingProcessor {
                 final JsonObject data = new JsonObject()
                         .mergeIn(item.data())
                         .put("title", "#" + e.getKey())
-                        .put("tag", e.getKey())
-                        .put("tagCollection", tagCollection);
+                        .put(TAG, e.getKey())
+                        .put(TAG_COLLECTION, tagCollection);
                 final ConfiguredCollection configuredCollection = new ConfiguredCollection(tagCollection, true,
                         collection.hidden(),
-                        collection.future(), collection.layout());
+                        collection.future(),
+                        collection.layout(),
+                        Optional.empty());
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));
 
@@ -122,7 +126,7 @@ public class RoqPluginTaggingProcessor {
                 final RoqUrl url = rootUrl.rootUrl().resolve(link);
 
                 // Dealing with pagination is as simple as those two lines:
-                if (data.containsKey(PAGINATE_KEY)) {
+                if (data.containsKey(PAGINATE)) {
                     paginatedPagesProducer
                             .produce(new RoqFrontMatterPaginatePageBuildItem(url, pageSource, data, configuredCollection));
                 } else {
@@ -133,13 +137,13 @@ public class RoqPluginTaggingProcessor {
     }
 
     private static Tagging readTagging(String name, JsonObject data) {
-        final Object value = data.getValue("tagging");
+        final Object value = data.getValue(TAGGING);
         if (value instanceof JsonObject paginate) {
             final String collection = paginate.getString("collection");
             if (collection == null) {
                 throw new ConfigurationException("Invalid tagging configuration in " + name);
             }
-            return new Tagging(collection, paginate.getString(LINK_KEY, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE));
+            return new Tagging(collection, paginate.getString(LINK, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE));
         }
         if (value instanceof String collection) {
             return new Tagging(collection, DEFAULT_TAGGING_COLLECTION_LINK_TEMPLATE);

@@ -10,7 +10,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -24,8 +26,9 @@ import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
-import io.quarkiverse.roq.util.PathUtils;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.smallrye.common.annotation.Blocking;
 
 @ApplicationScoped
@@ -47,7 +50,7 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public List<PageSource> getPosts() {
         return site.collections().get("posts").stream()
-                .sorted(Comparator.comparing(Page::date).reversed())
+                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
                         p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
                 .toList();
@@ -251,6 +254,48 @@ public class RoqEditorJsonRPCService {
         return config.dateFormat();
     }
 
+    private static final List<String> IMAGE_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg");
+
+    /**
+     * Lists images from either the page directory or the public images directory.
+     *
+     * @param pagePath the source path of the page (used when location is "page")
+     * @param location either "page" for page-level images or "public" for site-wide images
+     * @return ListImagesResult containing the list of images or an error message
+     */
+    @Blocking
+    public ListImagesResult listImages(String pagePath, String location) {
+        try {
+            List<String> images;
+            Function<String, RoqUrl> lookup;
+            if ("page".equals(location)) {
+                var page = resolvePage(pagePath);
+                images = page.files();
+                lookup = (image) -> page.image(image);
+            } else if ("public".equals(location)) {
+                images = site.files();
+                lookup = (image) -> site.file(image);
+            } else {
+                return new ListImagesResult(List.of(), "Invalid location: " + location + ". Use 'page' or 'public'.");
+            }
+
+            var result = images.stream().filter(this::isImageFile).sorted().map(p -> {
+                var image = lookup.apply(p);
+                return new ImageInfo(p, image.relative());
+            }).toList();
+
+            return new ListImagesResult(result, null);
+        } catch (Exception e) {
+            LOG.errorf(e, "Error listing images for location: %s, pagePath: %s", location, pagePath);
+            return new ListImagesResult(List.of(), e.getMessage());
+        }
+    }
+
+    private boolean isImageFile(String path) {
+        String lowerPath = path.toLowerCase(Locale.ROOT);
+        return IMAGE_EXTENSIONS.stream().anyMatch(lowerPath::endsWith);
+    }
+
     private void deleteDirectory(Path directory) throws IOException {
         try (Stream<Path> stream = Files.walk(directory)) {
             stream.sorted(Comparator.reverseOrder()) // Delete files before directories
@@ -297,18 +342,6 @@ public class RoqEditorJsonRPCService {
         throw new RuntimeException("Path not found for page (retry in a few seconds): " + path);
     }
 
-    private DocumentPage resolveDoc(String path) throws Exception {
-        if (path == null || path.isEmpty()) {
-            throw new Exception("Path parameter is required");
-        }
-
-        var page = site.document(path);
-        if (page != null) {
-            return page;
-        }
-        throw new RuntimeException("Path not found for page (retry in a few seconds): " + path);
-    }
-
     private static String markup(Page page) {
         return page.source().markup() != null ? page.source().markup() : page.source().extension();
     }
@@ -327,7 +360,7 @@ public class RoqEditorJsonRPCService {
         if (title == null || title.isBlank()) {
             return "";
         }
-        return PathUtils.slugify(title.toLowerCase().trim(), false, false);
+        return StringPaths.slugify(title.toLowerCase().trim(), false, false);
     }
 
     private String getCurrentSuggestedPath(Page page) {
@@ -343,7 +376,7 @@ public class RoqEditorJsonRPCService {
         boolean isDirPage = page.source().isIndex();
         Path currentFilePath = getPageAbsolutePath(page);
         String currentName = isDirPage ? currentFilePath.getParent().getFileName().toString()
-                : PathUtils.removeExtension(currentFilePath.getFileName().toString());
+                : StringPaths.removeExtension(currentFilePath.getFileName().toString());
         Matcher matcher = POST_NAME_PATTERN.matcher(currentName);
         if (!matcher.matches()) {
             return null;
@@ -383,6 +416,15 @@ public class RoqEditorJsonRPCService {
     }
 
     public record CreatePageResult(PageSource page, String content, String errorMessage) {
+        public boolean isError() {
+            return errorMessage != null && !errorMessage.isEmpty();
+        }
+    }
+
+    public record ImageInfo(String name, String path) {
+    }
+
+    public record ListImagesResult(List<ImageInfo> images, String errorMessage) {
         public boolean isError() {
             return errorMessage != null && !errorMessage.isEmpty();
         }

@@ -1,0 +1,16 @@
+commands:
+  - prompt: "$"
+    cmd: "roq"
+    args: "create my-site"
+  - output: "Creating Roq site: my-site"
+  - success: "✓ Roq site created in ./my-site"
+  - blank: true
+  - prompt: "$"
+    cmd: "cd"
+    args: "my-site"
+  - prompt: "$"
+    cmd: "roq"
+    args: "start"
+  - output: "Listening on http://localhost:8080"
+  - success: "✓ Live-reload enabled"
+    cursor: true

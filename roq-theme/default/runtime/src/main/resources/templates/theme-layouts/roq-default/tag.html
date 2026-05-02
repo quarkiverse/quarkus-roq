@@ -1,0 +1,21 @@
+---
+layout: page
+paginate: true
+tagging: posts
+bodyClass: tag-page
+page-class: page-alt page-wide
+---
+
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+{#page-header}
+{#roq/pageHeader title=page.data.tag /}
+{/page-header}
+
+<div class="posts-list">
+{#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
+{#roq/postCard post /}
+{/for}
+</div>
+
+{#include partials/roq-default/pagination.html/}

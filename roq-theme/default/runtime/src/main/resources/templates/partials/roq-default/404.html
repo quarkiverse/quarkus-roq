@@ -1,0 +1,10 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+<div class="notfound">
+    <div class="notfound-code shimmer">404</div>
+    {#if page.image}
+    <img class="notfound-mascot" src="{page.image}" alt="{page.title}">
+    {/}
+    <h1 class="notfound-title">{roq_theme:notfound_title}</h1>
+    <p class="notfound-text">{roq_theme:notfound_text} <a href="{site.url}" class="btn btn-primary"><i class="fa-solid fa-house"></i> {roq_theme:notfound_link}</a></p>
+</div>

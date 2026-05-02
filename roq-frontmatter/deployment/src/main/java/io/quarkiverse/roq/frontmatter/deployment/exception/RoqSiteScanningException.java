@@ -1,11 +1,10 @@
 package io.quarkiverse.roq.frontmatter.deployment.exception;
 
-public class RoqSiteScanningException extends RuntimeException {
-    public RoqSiteScanningException(String message, Throwable cause) {
-        super(message, cause);
-    }
+import io.quarkiverse.roq.exception.RoqException;
 
-    public RoqSiteScanningException(String message) {
-        super(message);
+public class RoqSiteScanningException extends RoqException {
+
+    public RoqSiteScanningException(RoqException.Builder builder) {
+        super(builder);
     }
 }

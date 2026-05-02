@@ -1,6 +1,6 @@
 package io.quarkiverse.roq.plugin.sitemap.deployment;
 
-import static io.quarkiverse.roq.plugin.sitemap.runtime.RoqPluginSitemapTemplateExtension.LAST_MODIFIED_AT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAST_MODIFIED_AT;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -14,9 +14,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.frontmatter.deployment.data.RoqFrontMatterDataModificationBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPluginException;
-import io.quarkiverse.roq.frontmatter.deployment.scan.RoqFrontMatterScanProcessor;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.plugin.sitemap.runtime.RoqPluginSitemapTemplateExtension;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -26,7 +26,7 @@ import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.runtime.LaunchMode;
 
 public class RoqPluginSitemapProcessor {
-    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqFrontMatterScanProcessor.class);
+    private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqPluginSitemapProcessor.class);
     private static final String FEATURE = "roq-plugin-sitemap";
 
     @BuildStep
@@ -72,7 +72,10 @@ public class RoqPluginSitemapProcessor {
                         LOGGER.warnf(e, "Error while reading git last commit date for file: %s", source.path());
                     } else {
                         throw new RoqPluginException(
-                                "Error while reading git last commit date for file: %s".formatted(source.path()), e);
+                                RoqException.builder("Sitemap plugin error")
+                                        .sourceFilePath(source.path().toString())
+                                        .detail("Error while reading git last commit date")
+                                        .cause(e));
                     }
                 }
             }
