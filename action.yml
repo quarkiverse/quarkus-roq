@@ -1,5 +1,5 @@
 name: "Generate Roq Site"
-description: "Sets up JDK, builds the Roq site, and uploads the artifact — to be used by a separate deploy step (e.g. actions/deploy-pages)."
+description: "Sets up JDK, builds the Roq site, and uploads the artifact. To be used by a separate deploy step (e.g. actions/deploy-pages)."
 branding:
   icon: 'music'
   color: 'orange'
