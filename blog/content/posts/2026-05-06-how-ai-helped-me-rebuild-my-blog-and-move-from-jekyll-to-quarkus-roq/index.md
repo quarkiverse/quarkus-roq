@@ -1,6 +1,6 @@
 ---
 title: "How AI Helped Me Rebuild My Blog and Move from Jekyll to Quarkus Roq"
-date: 2026-02-14 16:22:00 +0100
+date: 2026-05-06 10:00:00 +0200
 description: A comprehensive journey of rebuilding a personal blog with the help of AI, moving from Jekyll to Quarkus Roq, exploring GitHub Issues Driven Development, and discovering how modern AI tools can transform the way we build and maintain websites.
 image: hero-gimp-extracted.png
 tags: blogging, ai, jekyll, quarkus-roq, github-copilot, design, migration
@@ -323,7 +323,7 @@ Sure, GitHub Copilot runs tests (and you can trust them… to a point), but when
 With Quarkus Roq in a local development environment, I would normally just run:
 
 ```sh
-./mvnw quarkus:dev
+roq
 ```
 
 But here, I'm only using the GitHub UI and reviewing a PR.
@@ -410,9 +410,9 @@ Once I started testing things more carefully, a few problems surfaced. So I did 
 
 - <a href="https://github.com/sunix/blog.sunix.org/issues/63">https://github.com/sunix/blog.sunix.org/issues/63</a>  
     Qute was interpreting `$\{current.class.fqn\}` inside code blocks as a template expression, causing rendering failures with errors like:
-    _Key 'current' not found_.
+    _Key 'current' not found_. (Note: Roq 2.1 now supports an [alternative expression syntax]({=site.page('docs/advanced.adoc').url}#alternative-expression-syntax) using `{#` and `{=` prefixes, which avoids this issue entirely.)
 - <a href="https://github.com/sunix/blog.sunix.org/issues/65">https://github.com/sunix/blog.sunix.org/issues/65</a>  
-    The GitHub workflow was uploading the GitHub Pages artifact twice. The `quarkiverse/quarkus-roq@v1` action already uploads it, and the workflow tried to upload it again, causing a conflict.
+    The GitHub workflow was uploading the GitHub Pages artifact twice. The `quarkiverse/quarkus-roq@v1.1` action already uploads it, and the workflow tried to upload it again, causing a conflict.
 
 Each issue described one concrete problem. Each one was assigned to **@copilot**. And step by step, Copilot fixed them.
 
@@ -538,6 +538,8 @@ This was one of those moments where Roq really shined for me:
 
 Problem solved. Hooray 🚀
 
+> **Update:** Since Roq 2.1, content abstracts are now built in. You can use `{=post.contentAbstract}` in your templates to get a word-limited preview of any post, no custom extension needed.
+
 ## Tailwind in Production
 
 Once the site was running on Roq, I opened the browser console.
@@ -593,7 +595,7 @@ I had already solved this problem for the Paris 11 Tennis Club website.
 At first, I implemented a manual Maven exec command:  
 👉 <a href="https://github.com/tc11-fr/tc11.fr/pull/111">https://github.com/tc11-fr/tc11.fr/pull/111</a>
 
-Later, I discovered that **Quarkus Roq supports Web Bundler + Tailwind**, so I switched to the proper integration:  
+Later, I discovered that **Quarkus Roq supports Web Bundler + Tailwind** (and since Roq 2.1, Tailwind works with zero configuration via the default theme), so I switched to the proper integration:  
 👉 <a href="https://github.com/tc11-fr/tc11.fr/pull/120">https://github.com/tc11-fr/tc11.fr/pull/120</a>
 
 So applying the same approach to my blog looked straightforward.
@@ -642,11 +644,13 @@ The final fix was mainly:
 
 - Upgrading Quarkus
 - Upgrading the Tailwind Web Bundler extension
-- Aligning everything with Tailwind CSS v4 
+- Aligning everything with Tailwind CSS v4
+
+> **Tip:** Since Roq 2.1, you can simply run `roq update` to keep all your dependencies in sync and avoid this kind of version mismatch.
 
 After that, dark mode worked perfectly again, and Tailwind is now compiled at build time into a properly optimized CSS file.
 
-One thing I still need to fully understand is how this behaves in dev mode. I assume it falls back to dynamic generation during development, but I haven't explored that in depth yet.
+Tailwind is compiled at build time in both dev and production modes, so what you see in dev mode is the same optimized output you get in production.
 
 ![dark-mode-fixed.png](dark-mode-fixed.png)
 *After upgrading the dependencies, dark mode finally behaves as expected, proper background, proper contrast, fully readable content.*
@@ -691,7 +695,7 @@ It solved the problem, but not in the right way.
 ### The Proper Way: Plugin Aliases
 
 While researching, I discovered the **Roq plugin-aliases** feature:  
-👉 [https://iamroq.com/docs/plugins/#plugin-aliases](https://iamroq.com/docs/plugins/#plugin-aliases)
+👉 [https://iamroq.dev/docs/plugins/#plugin-aliases](https://iamroq.dev/docs/plugins/#plugin-aliases)
 
 That looked much cleaner.
 
