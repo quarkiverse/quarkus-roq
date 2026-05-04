@@ -1,7 +1,7 @@
 
 <div align="center">
   
-<img src="https://github.com/quarkiverse/quarkus-roq/assets/2223984/0eb6642e-8dd3-4def-abb7-f63062ae755b" width="400" >
+<img src="https://raw.githubusercontent.com/quarkiverse/quarkus-roq/refs/heads/main/logo/roq-peeking.svg" width="400" >
 
 
 
