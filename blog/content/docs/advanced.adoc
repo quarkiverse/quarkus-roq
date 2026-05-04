@@ -502,16 +502,10 @@ In this case the RestAssured port will automatically use the Quarkus dynamic tes
 
 == Updating Roq
 
-Make sure your https://quarkus.io/guides/cli-tooling[Quarkus cli] is up-to-date:
+Run the update command from your project directory:
 [source,shell]
 ----
-$ curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force quarkus@quarkusio
-----
-
-Then run the update command:
-[source,shell]
-----
-$ quarkus update
+$ roq update
 ----
 
 This will update the Quarkus version and extensions (including Roq) and make sure they are compatible together.
