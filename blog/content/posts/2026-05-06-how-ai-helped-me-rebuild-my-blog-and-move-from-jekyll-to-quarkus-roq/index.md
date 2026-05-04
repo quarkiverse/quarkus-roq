@@ -410,7 +410,7 @@ Once I started testing things more carefully, a few problems surfaced. So I did 
 
 - <a href="https://github.com/sunix/blog.sunix.org/issues/63">https://github.com/sunix/blog.sunix.org/issues/63</a>  
     Qute was interpreting `$\{current.class.fqn\}` inside code blocks as a template expression, causing rendering failures with errors like:
-    _Key 'current' not found_. (Note: Roq 2.1 now supports an [alternative expression syntax]({=site.page('docs/advanced.adoc').url}#alternative-expression-syntax) using `{#` and `{=` prefixes, which avoids this issue entirely.)
+    _Key 'current' not found_. (Note: Roq 2.1 now supports an [alternative expression syntax]({=site.page('docs/advanced.adoc').url}#alternative-expression-syntax) using `\{#` and `\{=` prefixes, which avoids this issue entirely.)
 - <a href="https://github.com/sunix/blog.sunix.org/issues/65">https://github.com/sunix/blog.sunix.org/issues/65</a>  
     The GitHub workflow was uploading the GitHub Pages artifact twice. The `quarkiverse/quarkus-roq@v1.1` action already uploads it, and the workflow tried to upload it again, causing a conflict.
 
@@ -538,7 +538,7 @@ This was one of those moments where Roq really shined for me:
 
 Problem solved. Hooray 🚀
 
-> **Update:** Since Roq 2.1, content abstracts are now built in. You can use `{=post.contentAbstract}` in your templates to get a word-limited preview of any post, no custom extension needed.
+> **Update:** Since Roq 2.1, content abstracts are now built in. You can use `\{=post.contentAbstract}` in your templates to get a word-limited preview of any post, no custom extension needed.
 
 ## Tailwind in Production
 
