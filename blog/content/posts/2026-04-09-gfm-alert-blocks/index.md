@@ -3,7 +3,8 @@ title: "GFM Alert Blocks: Styled Callouts in Your Markdown"
 image: https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800
 tags: markdown, features, gfm
 description: Roq supports GitHub Flavored Markdown alert blocks with icons and themed colors. Learn how to use NOTE, TIP, IMPORTANT, WARNING, and CAUTION blocks, and how to add custom alert types.
-date: 2026-04-09 00:00:00 +0100
+date: 2026-05-04 11:00:00 +0200
+series: roq-2.1
 ---
 
 Roq now supports **GitHub Flavored Markdown (GFM) alert blocks** (also known as admonition blocks) — the styled callouts you see on GitHub READMEs and issues, complete with icons and color themes:
