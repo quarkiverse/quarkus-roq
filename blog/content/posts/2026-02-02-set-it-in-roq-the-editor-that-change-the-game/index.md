@@ -33,17 +33,19 @@ This makes Roq feel less like a static site generator and more like a **develope
 - **Code editor with syntax highlighting**: For HTML and AsciiDoc content.
 - **Media embedding**: Images, links, and more.
 
-## How to Try It (BETA)
+## How to Try It
 
-*We’ve tested the editor in many different scenarios to ensure it’s safe to use. That said, it’s still in **Beta**, and it will need a few more weeks before it’s fully ready. In the meantime, make sure you always review the diffs before merging any content.*
+The editor is natively integrated into Roq `2.1`.
 
-The editor is natively integrated into Roq `2.1.0.BETA2`. Until the final release is available, you’ll need to set this version manually in your `pom.xml`.
+```
+roq create my-blog
+```
 
 
-Start Dev-Mode
+Start it
 
 ```
 roq
 ```
 
-🚀 Hit `b` (like CMS) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
+🚀 Hit `a` (like Admin) to Open [The Roq Editor.](http://localhost:8080/q/dev-ui/quarkus-roq-editor/roq-editor)
