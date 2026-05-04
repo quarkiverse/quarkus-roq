@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Generate Roq Site
-        uses: quarkiverse/quarkus-roq@v1
+        uses: quarkiverse/quarkus-roq@v1.1
         with:
           github-pages: false
       - name: Publishing blog
