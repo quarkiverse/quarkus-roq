@@ -3,6 +3,7 @@
     "roq": {
       "script-ref": "https://repo1.maven.org/maven2/io/quarkiverse/roq/quarkus-roq-cli/2.1.1/quarkus-roq-cli-2.1.1-runner.jar",
       "description": "Roq CLI - static site generator",
+      "java": "21+",
       "runtime-options": [
         "--add-opens",
         "java.base/java.lang=ALL-UNNAMED"
