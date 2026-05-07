@@ -53,3 +53,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+      - name: Notify IndexNow
+        if: success()
+        run: |
+          curl -s -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d '{"host":"iamroq.dev","key":"700D2C03-9B39-4AFC-BC2F-ED4ACDE45AF5","keyLocation":"https://iamroq.dev/700D2C03-9B39-4AFC-BC2F-ED4ACDE45AF5.txt","urlList":["https://iamroq.dev/sitemap.xml"]}'
