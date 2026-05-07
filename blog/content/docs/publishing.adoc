@@ -50,9 +50,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate Roq Site
-        uses: quarkiverse/quarkus-roq@v1
+        uses: quarkiverse/quarkus-roq@v1.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}   # Used to automatically get the GitHub Pages url
   deploy:
@@ -67,7 +67,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 ----
 
 Then to enable GitHub Pages:
