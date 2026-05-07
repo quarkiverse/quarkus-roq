@@ -121,6 +121,48 @@ site.collections.recipes.layout=page
 site.collections.recipes.hidden=false
 ```
 
+### Collections from Data
+
+Generate collection pages from data files instead of content files using `from-data`. Each entry in the data produces a page rendered with the specified layout.
+
+**From a single data file** (`data/events.yml`):
+```yaml
+- id: hello-lads
+  name: "First event"
+  description: "This is the first event"
+- id: roq-and-roll
+  name: "SSG FTW"
+  description: "Static site generation with Roq"
+```
+
+```properties
+site.collections.events.layout=page-event
+site.collections.events.from-data.id-key=id
+```
+
+**From a data directory** (`data/events/first.yml`, `data/events/second.yml`):
+```properties
+site.collections.events.layout=page-event
+site.collections.events.from-data.id-key=_key
+```
+
+Both single files (array) and data directories work with `from-data`. For directories, each file in the directory becomes a page. `_key` is the object key (filename without extension). The `id-key` field specifies which data field to use as the page identifier (like a filename for content-based collections). The id-key value is slugified.
+
+By default, the data source name matches the collection id. Use `from-data.name` to point to a different data source:
+```properties
+site.collections.highlights.layout=page-highlight
+site.collections.highlights.from-data.id-key=id
+site.collections.highlights.from-data.name=events
+```
+This lets multiple collections share the same data source with different layouts.
+
+The layout template accesses data fields via `page.data`:
+```html
+<h1>{page.data.id}</h1>
+<h2>{page.data.name}</h2>
+<p>{page.data.description}</p>
+```
+
 **File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
 
 **Iterating**:

@@ -28,6 +28,10 @@ public record ConfiguredCollection(
         return fromData.map(CollectionFromData::idKey).orElse(null);
     }
 
-    public record CollectionFromData(String idKey) {
+    public String dataName() {
+        return fromData.map(CollectionFromData::name).orElse(id);
+    }
+
+    public record CollectionFromData(String idKey, String name) {
     }
 }

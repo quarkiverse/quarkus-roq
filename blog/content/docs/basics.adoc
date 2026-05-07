@@ -260,17 +260,14 @@ In this example, we have two collections: `posts` and `docs`. You need to define
 
 [source]
 ----
-site.collections.docs=true // <1>
-site.collections.docs.layout="page" //<2>
-site.collections.docs.future=true // <3>
+site.collections.docs.layout="page" // <1>
+site.collections.docs.future=true // <2>
 
-site.collections.posts=true
 site.collections.posts.layout="post"
 ----
 
-<1> We are adding the new collection `docs`;
-<2> Here, we set the layout for docs pages to `page`;
-<3> Since the new collection is not a time-based collection, we need to set `future` as true to show all files.
+<1> Here, we set the layout for docs pages to `page`;
+<2> Since the new collection is not a time-based collection, we need to set `future` as true to show all files.
 
 NOTE: Since we're adding a new collection, it's also necessary to declare the existing `posts` collection to ensure it continues to function correctly.
 
@@ -742,21 +739,67 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 |===
 ====
 
-== Global data
+== Data
 
-It is possible to declare global data as yaml or json in `data/` directory.
+Place JSON or YAML files in the `data/` directory. Each file becomes a named CDI bean, accessible in any Qute template.
 
-For example:
+NOTE: Supported extensions: `.json`, `.yml`, `.yaml`.
 
-[source,markdown]
+=== Accessing data in templates
+
+[source,yaml]
 .data/foo.yml
 ----
 bar: Roq
 ----
 
-Can be accessed with `{cdi:foo.bar}` in any template.
+Access it with the `cdi` namespace:
 
-You can also have a structure (Java type mapping) for the data among other features,  link:https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#_data_mapping[learn more,window=_blank].
+[source,html]
+----
+{cdi:foo.bar}
+----
+
+For structured data:
+
+[source,yaml]
+.data/authors.yml
+----
+ia3andy:
+  name: Andy
+  url: https://github.com/ia3andy
+john:
+  name: John Doe
+  url: https://example.com
+----
+
+[source,html]
+----
+{cdi:authors.ia3andy.name}
+
+{#let author=cdi:authors.get(page.data.author)}
+  <a href="{author.url}">{author.name}</a>
+{/let}
+----
+
+=== Data directories
+
+A directory inside `data/` is automatically grouped into a single bean, with each file as a key (filename without extension):
+
+[source]
+----
+data/heroes/
+  batman.yaml    # { "name": "Batman", "city": "Gotham" }
+  superman.yaml  # { "name": "Superman", "city": "Metropolis" }
+----
+
+[source,html]
+----
+{cdi:heroes.batman.name}
+{cdi:heroes.superman.city}
+----
+
+For type-safe Java mappings, data collections, and configuration, see the xref:advanced.adoc#data[Data section] in the advanced guide.
 
 == Template Extensions
 

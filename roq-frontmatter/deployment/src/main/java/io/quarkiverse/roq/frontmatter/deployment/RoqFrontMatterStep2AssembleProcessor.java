@@ -148,12 +148,12 @@ public class RoqFrontMatterStep2AssembleProcessor {
                 .collect(Collectors.toMap(RoqDataJsonBuildItem::getName, item -> item::getData)));
 
         siteConfig.collections().forEach(collection -> collection.fromData().ifPresent(ignored -> {
-            Supplier<Object> dataSupplier = dataBeans.get(collection.id());
+            Supplier<Object> dataSupplier = dataBeans.get(collection.dataName());
             if (dataSupplier == null) {
                 throw new RoqFrontMatterReadingException(
                         RoqException.builder("No data source found for collection '%s'".formatted(collection.id()))
-                                .hint("Ensure a data file named '%s.yml' (or .json) exists in the data/ directory"
-                                        .formatted(collection.id())));
+                                .hint("Add a '%s.yaml' (or .json) data file, or a '%s/' data directory"
+                                        .formatted(collection.dataName(), collection.dataName())));
             }
             generateDataPages(roqProject, collection, dataSupplier.get(), rawPageProducer);
         }));
@@ -163,8 +163,39 @@ public class RoqFrontMatterStep2AssembleProcessor {
     private void generateDataPages(RoqProjectBuildItem roqProject, ConfiguredCollection configuredCollection, Object item,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
         switch (item) {
-            case JsonObject jsonObject ->
-                generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+            case JsonObject jsonObject -> {
+                if (jsonObject.containsKey(configuredCollection.idKey())) {
+                    // Single item with the id key at top level
+                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+                } else {
+                    // Map of items (e.g. from a data directory), iterate values
+                    for (Map.Entry<String, Object> entry : jsonObject) {
+                        if (!(entry.getValue() instanceof JsonObject entryObject)) {
+                            throw new RoqFrontMatterReadingException(
+                                    RoqException.builder("Invalid data entry '%s' in collection '%s'"
+                                            .formatted(entry.getKey(), configuredCollection.id()))
+                                            .detail("Expected a JSON object but got: %s".formatted(
+                                                    entry.getValue() == null ? "null"
+                                                            : entry.getValue().getClass().getSimpleName()))
+                                            .hint("Each entry in the data must be a JSON object with an '%s' key"
+                                                    .formatted(configuredCollection.idKey())));
+                        }
+                        if ("_key".equals(configuredCollection.idKey())
+                                && !entryObject.containsKey("_key")) {
+                            entryObject.put("_key", entry.getKey());
+                        }
+                        if (!entryObject.containsKey(configuredCollection.idKey())) {
+                            throw new RoqFrontMatterReadingException(
+                                    RoqException.builder("Missing id-key '%s' in data entry '%s' for collection '%s'"
+                                            .formatted(configuredCollection.idKey(), entry.getKey(),
+                                                    configuredCollection.id()))
+                                            .hint("Each data entry must contain the '%s' field configured as id-key"
+                                                    .formatted(configuredCollection.idKey())));
+                        }
+                        generateDataPage(configuredCollection, entryObject, rawPageProducer, roqProject);
+                    }
+                }
+            }
             case JsonArray jsonArray -> jsonArray.forEach(element -> {
                 if (element instanceof JsonObject jsonObject) {
                     generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
