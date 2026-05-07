@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: /sitemap.xml
+Llms: /llms.txt
+Llms-full: /llms-full.txt
