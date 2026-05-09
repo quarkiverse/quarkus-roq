@@ -37,20 +37,13 @@ public class RoqPluginPrismProcessor {
     void generateBundle(RoqPluginPrismConfig config,
             BuildProducer<GeneratedStaticResourceBuildItem> generated) throws IOException {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        final String version = readPrismVersion(cl);
-        final String base = "META-INF/resources/_static/prismjs/" + version + "/";
+        final String base = resolvePrismResourceBase(cl);
 
         final JsonObject components = readJson(cl, base + "components.json");
         final JsonObject languagesMeta = components.getJsonObject("languages");
 
         final LinkedHashSet<String> resolved = resolveLanguages(config.languages(), languagesMeta);
-
-        final StringBuilder js = new StringBuilder();
-        js.append(read(cl, base + "components/prism-core.min.js"));
-        for (String lang : resolved) {
-            js.append('\n').append(read(cl, base + "components/prism-" + lang + ".min.js"));
-        }
-        js.append('\n').append(AUTO_HIGHLIGHT);
+        final String js = assembleJs(cl, base, resolved);
 
         final String themeName = config.theme();
         final String themePath = base + "themes/"
@@ -65,9 +58,32 @@ public class RoqPluginPrismProcessor {
                 resolved.size(), resolved, themeName, js.length(), css.length());
 
         generated.produce(new GeneratedStaticResourceBuildItem(JS_ENDPOINT,
-                js.toString().getBytes(StandardCharsets.UTF_8)));
+                js.getBytes(StandardCharsets.UTF_8)));
         generated.produce(new GeneratedStaticResourceBuildItem(CSS_ENDPOINT,
                 css.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Assemble the JS bundle: {@code prism-core.min.js} followed by each language's
+     * {@code prism-<name>.min.js} (in dep-resolved order) joined by newlines, with the
+     * auto-highlight trigger appended last. Package-private for unit testing.
+     */
+    static String assembleJs(ClassLoader cl, String base, Iterable<String> resolvedLanguages) throws IOException {
+        StringBuilder js = new StringBuilder();
+        js.append(read(cl, base + "components/prism-core.min.js"));
+        for (String lang : resolvedLanguages) {
+            js.append('\n').append(read(cl, base + "components/prism-" + lang + ".min.js"));
+        }
+        js.append('\n').append(AUTO_HIGHLIGHT);
+        return js.toString();
+    }
+
+    /**
+     * Resolve the classpath base directory for the {@code org.mvnpm:prismjs} JAR
+     * (e.g. {@code META-INF/resources/_static/prismjs/1.30.0/}). Package-private for unit testing.
+     */
+    static String resolvePrismResourceBase(ClassLoader cl) throws IOException {
+        return "META-INF/resources/_static/prismjs/" + readPrismVersion(cl) + "/";
     }
 
     static LinkedHashSet<String> resolveLanguages(List<String> requested, JsonObject languagesMeta) {
