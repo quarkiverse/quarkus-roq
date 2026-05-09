@@ -243,27 +243,34 @@ export class SyncManager {
      * Handles the result of a Git operation, showing notifications and refreshing status.
      * @param {Object} result The operation result
      * @param {string} successMessage Message to show on success
+     * @param {string} opType The operation type ('sync', 'publish', 'publishAndSync')
      * @param {boolean} fullRefresh Whether to perform a full status refresh (with fetch)
      */
-    async _handleOperationResult(result, successMessage, fullRefresh = false) {
+    async _handleOperationResult(result, successMessage, opType, fullRefresh = false) {
         if (result?.success) {
             this.onNotification(successMessage, 'success');
-            // Optimistically update local status to reflect success immediately
             if (this.status) {
-                this.status = {
-                    ...this.status,
-                    upToDate: true,
-                    hasUnpublished: false,
-                    ahead: 0,
-                    behind: 0
-                };
+                const updated = { ...this.status };
+                if (opType === 'publish' || opType === 'publishAndSync') {
+                    updated.hasUnpublished = false;
+                    updated.ahead = 0;
+                }
+                if (opType === 'sync' || opType === 'publishAndSync') {
+                    updated.behind = 0;
+                }
+                updated.upToDate = !updated.hasUnpublished && updated.ahead === 0 && updated.behind === 0
+                        && !updated.hasConflicts;
+                this.status = updated;
+                SyncManager._lastKnownStatus = this.status;
                 this.onStatusChange(this.status);
             }
             await this.refreshStatus(!fullRefresh);
         } else if (result?.hasConflicts) {
             await this.onConflict(result.conflictFiles);
+            await this.refreshStatus(true);
         } else if (result && !result.authFailed) {
             this.onNotification(result.message || "Operation failed", 'error');
+            await this.refreshStatus(true);
         }
         return result;
     }
@@ -276,7 +283,7 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.syncContent({ passphrase: pass }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content synchronized successfully', true);
+        return this._handleOperationResult(result, 'Content synchronized successfully', 'sync', true);
     }
 
     /**
@@ -289,7 +296,7 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.publishContent({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content published successfully', true);
+        return this._handleOperationResult(result, 'Content published successfully', 'publish', true);
     }
 
     /**
@@ -302,6 +309,6 @@ export class SyncManager {
         const result = await this._withPassphrase(
             (pass) => this.jsonRpc.publishAndSync({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
         );
-        return this._handleOperationResult(result, 'Content published and synchronized successfully', true);
+        return this._handleOperationResult(result, 'Content published and synchronized successfully', 'publishAndSync', true);
     }
 }

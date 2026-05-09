@@ -47,6 +47,7 @@ public class GitSyncServiceImpl implements GitSyncService {
     private final GitContentFilter contentFilter;
     private final GitOperationHelper operationHelper;
     private final ReentrantLock lock = new ReentrantLock();
+    private volatile Boolean cachedIsSsh;
 
     /**
      * Creates a new instance of GitSyncServiceImpl.
@@ -81,6 +82,7 @@ public class GitSyncServiceImpl implements GitSyncService {
             String currentBranch = repository.getBranch();
             RepositoryState repoState = repository.getRepositoryState();
             boolean isSsh = GitTransportHelper.isSsh(repository);
+            cachedIsSsh = isSsh;
 
             try (Git git = new Git(repository)) {
                 Status status = git.status().call();
@@ -90,22 +92,24 @@ public class GitSyncServiceImpl implements GitSyncService {
                 List<String> conflictFiles = new ArrayList<>(status.getConflicting());
                 boolean hasConflicts = !conflictFiles.isEmpty() || repoState != RepositoryState.SAFE;
 
-                boolean authRequired = GitTransportHelper.isAuthRequired(repository, passphrase);
                 boolean authFailed = false;
 
-                if (!skipFetch && !authRequired) {
+                if (!skipFetch) {
                     authFailed = tryFetch(git, passphrase, isSsh);
                 }
+
+                boolean passphraseMissing = isSsh && (passphrase == null || passphrase.isEmpty());
+                boolean needsAuth = authFailed || passphraseMissing;
 
                 int[] counts = getAheadBehindCounts(repository, currentBranch);
                 int aheadCount = counts[0];
                 int behindCount = counts[1];
 
                 boolean isUpToDate = aheadCount == 0 && behindCount == 0 && !hasUnpublished && repoState == RepositoryState.SAFE
-                        && !hasConflicts && !authFailed && !authRequired;
+                        && !hasConflicts && !needsAuth;
 
                 return new GitStatusInfo(isUpToDate, hasUnpublished, behindCount > 0, currentBranch,
-                        aheadCount, behindCount, contentChanges, authFailed || authRequired, hasConflicts, repoState.name(),
+                        aheadCount, behindCount, contentChanges, needsAuth, hasConflicts, repoState.name(),
                         conflictFiles, isSsh);
             }
         } catch (Exception e) {
@@ -180,10 +184,6 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
 
             try (Git git = new Git(repository)) {
-                if (GitTransportHelper.isAuthRequired(repository, passphrase)) {
-                    return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_REQUIRED, false, Collections.emptyList(), true);
-                }
-
                 boolean wasDirty = !git.status().call().isClean();
                 if (wasDirty) {
                     LOG.debug(MSG_STASH_BEFORE_SYNC);
@@ -219,10 +219,6 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
 
             try (Git git = new Git(repository)) {
-                if (GitTransportHelper.isAuthRequired(repository, passphrase)) {
-                    return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_REQUIRED, false, Collections.emptyList(), true);
-                }
-
                 RepositoryState state = repository.getRepositoryState();
                 if (state != RepositoryState.SAFE) {
                     return new GitSyncResult(false,
@@ -280,10 +276,6 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
 
             try (Git git = new Git(repository)) {
-                if (GitTransportHelper.isAuthRequired(repository, passphrase)) {
-                    return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_REQUIRED, false, Collections.emptyList(), true);
-                }
-
                 operationHelper.stageChanges(git, repository, filePaths);
 
                 GitSyncResult stateResult = operationHelper.finalizeState(git, repository, commitMessage);
@@ -357,13 +349,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @return an object containing as much status information as could be retrieved
      */
     private GitStatusInfo handleStatusFailure(Exception e) {
-        boolean isSsh = false;
-        try (Repository repository = openRepository()) {
-            if (repository != null) {
-                isSsh = GitTransportHelper.isSsh(repository);
-            }
-        } catch (Exception ignored) {
-        }
+        boolean isSsh = resolveIsSsh();
 
         boolean authFailed = GitTransportHelper.isAuthenticationError(e) && isSsh;
         if (authFailed) {
@@ -437,13 +423,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @return a result object describing the failure
      */
     private GitSyncResult handleSyncFailure(Exception e) {
-        boolean isSsh = false;
-        try (Repository repository = openRepository()) {
-            if (repository != null) {
-                isSsh = GitTransportHelper.isSsh(repository);
-            }
-        } catch (Exception ignored) {
-        }
+        boolean isSsh = resolveIsSsh();
         return new GitSyncResult(false, "Sync operation failed: " + e.getMessage(), false, Collections.emptyList(),
                 GitTransportHelper.isAuthenticationError(e) && isSsh);
     }
@@ -452,13 +432,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Handles failures during push operations.
      */
     private GitSyncResult handlePushFailure(Exception e) {
-        boolean isSsh = false;
-        try (Repository repository = openRepository()) {
-            if (repository != null) {
-                isSsh = GitTransportHelper.isSsh(repository);
-            }
-        } catch (Exception ignored) {
-        }
+        boolean isSsh = resolveIsSsh();
         boolean isAuth = GitTransportHelper.isAuthenticationError(e) && isSsh;
         if (isAuth) {
             LOG.warn("Push authentication failed: " + e.getMessage());
@@ -485,13 +459,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Handles failures during publish operations.
      */
     private GitSyncResult handlePublishFailure(Exception e) {
-        boolean isSsh = false;
-        try (Repository repository = openRepository()) {
-            if (repository != null) {
-                isSsh = GitTransportHelper.isSsh(repository);
-            }
-        } catch (Exception ignored) {
-        }
+        boolean isSsh = resolveIsSsh();
         boolean isAuth = GitTransportHelper.isAuthenticationError(e) && isSsh;
         if (isAuth) {
             LOG.warn("Publish authentication failed: " + e.getMessage());
@@ -527,5 +495,19 @@ public class GitSyncServiceImpl implements GitSyncService {
                 .setRemote("origin")
                 .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
                 .call();
+    }
+
+    private boolean resolveIsSsh() {
+        if (cachedIsSsh != null) {
+            return cachedIsSsh;
+        }
+        try (Repository repository = openRepository()) {
+            if (repository != null) {
+                cachedIsSsh = GitTransportHelper.isSsh(repository);
+                return cachedIsSsh;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
     }
 }

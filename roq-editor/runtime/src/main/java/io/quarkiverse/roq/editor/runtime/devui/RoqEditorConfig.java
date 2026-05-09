@@ -9,13 +9,8 @@ import io.smallrye.config.WithDefault;
 
 /**
  * Configuration for the Roq editor extension.
- * <p>
- * NOTE: Prior versions used the {@code editor.*} configuration prefix. This has been
- * changed to {@code quarkus.roq.editor.*}. Existing configurations must be migrated
- * by renaming keys from {@code editor.*} to {@code quarkus.roq.editor.*}, otherwise
- * they will no longer be read.
  */
-@ConfigMapping(prefix = "quarkus.roq.editor")
+@ConfigMapping(prefix = "editor")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface RoqEditorConfig {
 

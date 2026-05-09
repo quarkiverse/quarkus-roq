@@ -22,14 +22,16 @@ public class GitTransportHelper {
     public static final String ERR_AUTH_REQUIRED = "AUTH_REQUIRED:SSH passphrase required for remote operations.";
 
     /**
-     * Checks if the repository remote URL uses SSH.
+     * Checks if the repository uses SSH for any remote operation (fetch or push).
+     * Checks both pushurl and url — if either is SSH, returns true.
      *
      * @param repository the JGit repository
-     * @return true if the remote is SSH
+     * @return true if any remote URL uses SSH
      */
     public static boolean isSsh(Repository repository) {
+        String pushUrl = repository.getConfig().getString("remote", "origin", "pushurl");
         String remoteUrl = repository.getConfig().getString("remote", "origin", "url");
-        return isSshUrl(remoteUrl);
+        return isSshUrl(pushUrl) || isSshUrl(remoteUrl);
     }
 
     /**
