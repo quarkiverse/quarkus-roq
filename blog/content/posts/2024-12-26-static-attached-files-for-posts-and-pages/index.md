@@ -1,6 +1,6 @@
 ---
 title: Static attached files for posts and pages
-image: dina-badamshina-j7vbBmTHmjY-unsplash.jpg
+image: dina-badamshina-j7vbBmTHmjY-unsplash.webp
 description: |
   This Christmas, I’m Roq-ing a cool new feature (inspired by Hugo 😅): it is possible to attach static files to posts and pages. They will be served relative to the page. 🎁🤩
 author: ia3andy

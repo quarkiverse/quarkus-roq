@@ -330,7 +330,7 @@ NOTE: If you're not using a theme, you can create your own templates (https://gi
 If you’re using a theme, you can take advantage of its layouts, but you’re also free to add your own. Layouts are built on a powerful inheritance system, allowing flexibility and customization.
 
 // https://excalidraw.com/#json=NMbfajh74vODDIkfujKt8,0M5Vbhdd3oN02Nn-dgcbiw
-image::roq-layouts.png[Roq - Layouts]
+image::roq-layouts.webp[Roq - Layouts]
 
 TIP: When using a theme, you can create new layouts that extend the existing theme layouts or partially override them to better suit your needs. Learn more here: xref:advanced.adoc#overriding-theme[Overriding Theme].
 

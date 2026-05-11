@@ -2,7 +2,7 @@
 title: "How AI Helped Me Rebuild My Blog and Move from Jekyll to Quarkus Roq"
 date: 2026-05-06 10:00:00 +0200
 description: A comprehensive journey of rebuilding a personal blog with the help of AI, moving from Jekyll to Quarkus Roq, exploring GitHub Issues Driven Development, and discovering how modern AI tools can transform the way we build and maintain websites.
-image: hero-gimp-extracted.png
+image: hero-gimp-extracted.webp
 tags: blogging, ai, jekyll, quarkus-roq, github-copilot, design, migration
 author: sunix
 ---
@@ -32,7 +32,7 @@ So yeah: time, language, visual identity, and technology were all reasons why I 
 
 But recently, AI changed the equation.
 
-![old-blog-design.png](old-blog-design.png)
+![old-blog-design.webp](old-blog-design.webp)
 *This is what my blog looked like before the redesign and migration. The old Jekyll version is now archived at <a href="https://sunix.github.io/old-jekyll-blog.sunix.org/">https://sunix.github.io/old-jekyll-blog.sunix.org/</a>*
 
 # Keeping Jekyll, Redoing the Design (Without a Theme)
@@ -85,7 +85,7 @@ I ended up with a small helper like this:
 Which is then used directly inside templates, for example here:  
 <a href="https://github.com/tc11-fr/tc11.fr/blob/main/templates/layouts/post.html#L55">https://github.com/tc11-fr/tc11.fr/blob/main/templates/layouts/post.html#L55</a>
 
-![tennis-club-article.png](tennis-club-article.png)
+![tennis-club-article.webp](tennis-club-article.webp)
 *An example article page displaying an image and a downloadable attachment, powered by a custom Java extension.*
 
 That moment really clicked for me. I wasn't hacking around limitations anymore, I was extending the system in a clean, explicit way, using a language I'm comfortable with.
@@ -127,9 +127,9 @@ So I pushed further:
 
 It generated a few concepts, but they didn't really feel joyful.
 
-![design-iteration-1.png](design-iteration-1.png)
+![design-iteration-1.webp](design-iteration-1.webp)
 
-![design-iteration-2.png](design-iteration-2.png)
+![design-iteration-2.webp](design-iteration-2.webp)
 
 After asking for something colorful and tech-oriented, I wondered what would happen if I went even further:
 
@@ -137,7 +137,7 @@ After asking for something colorful and tech-oriented, I wondered what would hap
 
 The results were interesting: bold, very expressive, lots of neon colors and heavy contrast.
 
-![design-street-art.png](design-street-art.png)
+![design-street-art.webp](design-street-art.webp)
 
 After ruling out the street art direction, I tried to refine the idea instead of pushing it further:
 
@@ -145,7 +145,7 @@ After ruling out the street art direction, I tried to refine the idea instead of
 
 Once again, ChatGPT proposed several examples. Most of them were interesting, but still not _there_. And then one image caught my eye.
 
-![design-inspiration-found.png](design-inspiration-found.png)
+![design-inspiration-found.webp](design-inspiration-found.webp)
 
 It wasn't loud.  
 It wasn't aggressive.  
@@ -174,7 +174,7 @@ ChatGPT generated an image… and it was close. Very close.
 
 But not quite what I wanted.
 
-![hero-attempt-1.png](hero-attempt-1.png)
+![hero-attempt-1.webp](hero-attempt-1.webp)
 
 
 ## Narrowing the Style: Less Noise, More Intention
@@ -184,13 +184,13 @@ At that point, I realized something important: the problem wasn't the _idea_, it
 So I copied the reference image and told ChatGPT, very clearly:
 
 > _"No, in **this** style."_
-> ![hero-reference-style.png](hero-reference-style.png)
+> ![hero-reference-style.webp](hero-reference-style.webp)
 
 That made all the difference.
 
 The illustration wasn't black and white as I originally suggested, but the result was even better: a pastel style with controlled colors. And the developer really looked like me… except for the missing glasses.
 
-![hero-attempt-2-no-glasses.png](hero-attempt-2-no-glasses.png)
+![hero-attempt-2-no-glasses.webp](hero-attempt-2-no-glasses.webp)
 
 Then I added one last detail:
 
@@ -198,7 +198,7 @@ Then I added one last detail:
 
 And honestly… that was it.
 
-![hero-final-with-glasses.png](hero-final-with-glasses.png)
+![hero-final-with-glasses.webp](hero-final-with-glasses.webp)
 
 It felt modern, joyful, and clearly tech-oriented. Most importantly, it finally felt like _my_ blog.
 
@@ -222,7 +222,7 @@ Instead of iterating on vague concepts, I now had a full HTML page with:
 
 The first version used Tailwind via CDN, which was perfect for prototyping: copy/paste, open a browser, iterate fast.
 
-![website-skeleton-mockup.png](website-skeleton-mockup.png)
+![website-skeleton-mockup.webp](website-skeleton-mockup.webp)
 
 ## Getting the Hero Illustration Into the Skeleton (The "Transparent Background" Trap)
 
@@ -233,7 +233,7 @@ So I tried the obvious next step: ask ChatGPT to generate the same hero image ag
 In theory: perfect.  
 In practice: not really.
 
-![hero-transparent-background-fail.png](hero-transparent-background-fail.png)
+![hero-transparent-background-fail.webp](hero-transparent-background-fail.webp)
 
 The new image had a transparent background, as requested, but some details had disappeared, the mouth was missing, and the rocket and the light bulb looked unfinished. It felt more like a draft than the polished illustration I had before. It was a good image… just not _the_ one.
 
@@ -244,7 +244,7 @@ I extracted the character + desk + rainbow flow, cleaned the edges, removed the 
 Not glamorous, but effective.
 
 
-![hero-gimp-extracted.png](hero-gimp-extracted.png)
+![hero-gimp-extracted.webp](hero-gimp-extracted.webp)
 
 
 
@@ -312,7 +312,7 @@ Of course, it wasn't perfect on the first try. I had to adjust a few minor thing
 
 More importantly, it fit perfectly within my constraints: limited time, short bursts of focus, and the desire to keep momentum without mentally reopening a big "side project."
 
-![github-issue-redesign.png](github-issue-redesign.png)
+![github-issue-redesign.webp](github-issue-redesign.webp)
 
 ## Previewing a Pull Request (Without an IDE)
 
@@ -347,14 +347,14 @@ Technically, the deployment is very simple: build the site, then run the `surge`
 This gives me a real, clickable version of the site to review during my coffee break, exactly what I need when I'm not opening an IDE.
 
 
-![preview-command-comment.png](preview-command-comment.png)
+![preview-command-comment.webp](preview-command-comment.webp)
 *I simply comment `/preview` on the PR, and the preview site is automatically deployed and made available.*
 
 
-![preview-command-failed.png](preview-command-failed.png)
+![preview-command-failed.webp](preview-command-failed.webp)
 *If the deployment fails, I can investigate by checking the GitHub Actions workflow logs.*
 
-![preview-banner.png](preview-banner.png)
+![preview-banner.webp](preview-banner.webp)
 *In some projects, I also added a banner to clearly indicate that this is only a preview site, with a link back to the corresponding pull request.*
 
 ### Bootstrapping the Feature With… an Issue
@@ -462,11 +462,11 @@ After migrating to Quarkus Roq, that feature was simply gone.
 
 The posts were still there, but the homepage list only showed metadata: title, tags, date, and a "read more" button. No preview text anymore.
 
-![homepage-no-excerpt.png](homepage-no-excerpt.png)
+![homepage-no-excerpt.webp](homepage-no-excerpt.webp)
 *After migrating to Roq, the homepage list only displays metadata (title, tags, date) and a "read more" button, the excerpt is missing.*
 
 
- ![homepage-with-excerpt.png](homepage-with-excerpt.png)
+ ![homepage-with-excerpt.webp](homepage-with-excerpt.webp)
 *This is how it should be: meaningful preview text extracted from each article, giving context before clicking "read more."*
 
 I noticed it right away during the migration PR, but I deliberately chose **not to fix it there**. The migration pull request was already quite large, and I prefer one PR per concern. Also, the site was usable without excerpts, so it wasn't blocking.
@@ -545,7 +545,7 @@ Problem solved. Hooray 🚀
 Once the site was running on Roq, I opened the browser console.
 
 And there it was:
-![tailwind-cdn-warning.png](tailwind-cdn-warning.png)
+![tailwind-cdn-warning.webp](tailwind-cdn-warning.webp)
 ```
 (index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
 ```
@@ -605,7 +605,7 @@ I implemented it here:
 
 But… it wasn't working.
 
-![dark-mode-broken.png](dark-mode-broken.png)
+![dark-mode-broken.webp](dark-mode-broken.webp)
 *This is what happened when switching to dark mode: the text color changed, but the background didn't, leaving grey text on a white page and making the article difficult to read.*
 ### Dark Mode Was Broken
 
@@ -622,14 +622,14 @@ I compared the new version with an older working one and started investigating t
 
 👉 I wasn't using the correct Tailwind version.
 
-![debugging-tailwind-version-1.png](debugging-tailwind-version-1.png)
+![debugging-tailwind-version-1.webp](debugging-tailwind-version-1.webp)
 
 
-![debugging-tailwind-version-2.png](debugging-tailwind-version-2.png)
+![debugging-tailwind-version-2.webp](debugging-tailwind-version-2.webp)
 
 I provided some guidance, but Copilot did most of the work, and helped uncover that the project was using an outdated version of the Quarkus Web Bundler.
 
-![debugging-tailwind-version-3.png](debugging-tailwind-version-3.png)
+![debugging-tailwind-version-3.webp](debugging-tailwind-version-3.webp)
 
 The setup was supposed to work with **Tailwind CSS 4**, but my project was effectively using an older configuration via an outdated Quarkus Web Bundler plugin.
 
@@ -652,7 +652,7 @@ After that, dark mode worked perfectly again, and Tailwind is now compiled at bu
 
 Tailwind is compiled at build time in both dev and production modes, so what you see in dev mode is the same optimized output you get in production.
 
-![dark-mode-fixed.png](dark-mode-fixed.png)
+![dark-mode-fixed.webp](dark-mode-fixed.webp)
 *After upgrading the dependencies, dark mode finally behaves as expected, proper background, proper contrast, fully readable content.*
 
 ## Minor but Important: Old URL Redirects
@@ -662,7 +662,7 @@ Another issue appeared after the migration.
 Over the years, I had shared blog posts on social media using Jekyll-style URLs like:
 
 `/articles/howto/2026/01/11/feeling-powerful-with-just-a-browser.html`
-![old-url-404.png](old-url-404.png)
+![old-url-404.webp](old-url-404.webp)
 
 
 But the new Roq site uses cleaner URLs like:

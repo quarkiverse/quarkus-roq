@@ -1,6 +1,6 @@
 ---
 title: Do you want to publish a blog post series ?
-image: https://images.unsplash.com/photo-1621571029036-1573d2b1dc5c?q=80&w=3731&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: https://images.unsplash.com/photo-1621571029036-1573d2b1dc5c?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 description: Make your blog posts part of a series.
 author: jtama
 tags: guide, cool-stuff, plugin
@@ -55,6 +55,6 @@ series: My series Title <1>
 
 It will add the following at the head of your post:
 
-image::{page.image('series.foo.png')}[Series header]
+image::{page.image('series.foo.webp')}[Series header]
 
 A bit like what you see at the very begining of this post.
