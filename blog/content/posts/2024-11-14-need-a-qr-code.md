@@ -1,6 +1,6 @@
 ---
 title: Need a QR Code?
-image: https://images.unsplash.com/photo-1726255294277-57c46883bd94?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: https://images.unsplash.com/photo-1726255294277-57c46883bd94?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 description: Add a QR Code to your Roq website.
 author: ia3andy
 tags: guide,cool-stuff,plugin

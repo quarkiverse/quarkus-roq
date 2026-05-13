@@ -1,7 +1,7 @@
 = Roq 2.0 and Java Advent Calendar article
 ia3andy
 :description: An introduction to Roq 2.0, a Quarkus-inspired approach to static site generation in Java. Learn about its new foundation, plugin support, and live-reload feature through a practical tutorial.
-:image: roq-advent.png
+:image: roq-advent.webp
 :page-tags: blogging, cool-stuff
 
 Hello fellow Roqers,

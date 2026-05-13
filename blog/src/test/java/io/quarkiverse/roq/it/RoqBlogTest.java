@@ -33,8 +33,8 @@ public class RoqBlogTest {
 
     @Test
     public void testSpecialNameFile() {
-        RestAssured.when().get("/posts/roq-n-roll-your-tests/c'est de la poussière d'étoile.jpg").then().statusCode(200);
-        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.png").then().statusCode(200);
+        RestAssured.when().get("/posts/roq-n-roll-your-tests/c'est de la poussière d'étoile.webp").then().statusCode(200);
+        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.webp").then().statusCode(200);
     }
 
     @Test

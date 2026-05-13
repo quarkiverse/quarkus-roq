@@ -1,7 +1,7 @@
 ---
 title: RSS Feed of your blog posts
 description: Automatically generate an RSS feed of your blog links.
-image: https://images.unsplash.com/photo-1520636902994-f596446c3728?q=80&w=3198&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: https://images.unsplash.com/photo-1520636902994-f596446c3728?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 tags: plugin,guide
 author: melloware
 aliases: [rss]
