@@ -8,7 +8,7 @@ import io.quarkus.devtools.project.BuildTool;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "start", mixinStandardHelpOptions = true, description = "Start the Roq site in dev mode")
+@Command(name = "start", aliases = { "dev" }, mixinStandardHelpOptions = true, description = "Start the Roq site in dev mode")
 public class StartCommand extends BuildToolDelegatingCommand {
 
     @Option(names = { "-p",
