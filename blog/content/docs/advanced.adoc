@@ -403,6 +403,184 @@ Environment variable: `QUARKUS_HTTP_ROOT_PATH`
 
 TIP: For GitHub Pages, this is already detected and handled by the Roq GitHub Action, no need to do anything.
 
+[#data]
+== Data (advanced)
+
+For basic data usage (data files, directories, and template access), see the xref:basics.adoc#_data[Data section] in the basics guide.
+
+=== Type-safe mapping
+
+Use `@DataMapping` on a record to create a typed CDI bean from a data file:
+
+[source,java]
+.Mountain.java
+----
+import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
+
+@DataMapping("mountain") // <1>
+public record Mountain(String name, Integer elevation) {}
+----
+<1> The value must match the data filename (without extension).
+
+Then use it in templates:
+
+[source,html]
+----
+{cdi:mountain.name}: {cdi:mountain.elevation}
+----
+
+=== Array data files
+
+For data files where the root element is a JSON/YAML array, use `Type.ARRAY_FILE`:
+
+[source,java]
+----
+@DataMapping(value = "mountains", type = DataMapping.Type.ARRAY_FILE)
+public record Mountains(List<Mountain> list) {} // <1>
+----
+<1> The record must have a single `List<T>` constructor parameter.
+
+[source,html]
+----
+{#for mountain in cdi:mountains.list}
+  {mountain.name}: {mountain.elevation}
+{/for}
+----
+
+=== Directory mapping
+
+For type-safe access to data directories, use `ARRAY_DIR` or `OBJECT_DIR` with `@DataMapping`:
+
+.As a list
+[source,java]
+----
+@DataMapping(value = "heroes", type = DataMapping.Type.ARRAY_DIR) <1>
+public record HeroList(List<Hero> list) {
+    public record Hero(String name, String city) {}
+}
+----
+<1> The value must match the data directory name
+
+[source,html]
+----
+{#for hero in cdi:heroList.list}
+  {hero.name} from {hero.city}
+{/for}
+----
+
+.As a map (filename as key)
+[source,java]
+----
+@DataMapping(value = "heroes", type = DataMapping.Type.OBJECT_DIR)
+public record HeroMap(Map<String, Hero> map) {
+    public record Hero(String name, String city) {}
+}
+----
+
+[source,html]
+----
+{cdi:heroMap.map.batman.name}
+----
+
+=== Type reference
+
+[cols="1,1,1,2", options="header"]
+|===
+| Type | Source | Constructor | Description
+
+| `OBJECT_FILE`
+| Single file
+| Direct fields
+| Default. Maps a file to a typed object
+
+| `ARRAY_FILE`
+| Single file (array)
+| `List<T>`
+| Maps a root-level array file to a list
+
+| `ARRAY_DIR`
+| Directory
+| `List<T>`
+| Maps each file in a directory to a list item
+
+| `OBJECT_DIR`
+| Directory
+| `Map<String, T>`
+| Maps each file to a map entry (filename as key)
+|===
+
+=== Collections from data
+
+Generate collection pages from data files instead of writing individual content files. Each entry in the data produces a page rendered with the specified layout.
+
+.From a single data file (`data/events.yml`)
+[source,yaml]
+----
+- id: hello-lads
+  name: "First event"
+  description: "This is the first event"
+- id: roq-and-roll
+  name: "SSG FTW"
+  description: "Static site generation with Roq"
+----
+
+[source,properties]
+----
+site.collections.events.layout=page-event
+site.collections.events.from-data.id-key=id
+----
+
+.From a data directory (`data/events/first.yml`, `data/events/second.yml`)
+[source,properties]
+----
+site.collections.events.layout=page-event
+site.collections.events.from-data.id-key=_key
+----
+
+The `id-key` field specifies which data field to use as the page identifier (like a filename for content-based collections). For data directories, `_key` is the object key (filename without extension).
+
+The `id-key` value is slugified (e.g. `Hello lads !` becomes `hello-lads`).
+
+By default, the data source name matches the collection id (e.g. the `events` collection looks for `data/events.yml` or `data/events/`). Use `from-data.name` to point to a different data source:
+
+[source,properties]
+----
+site.collections.highlights.layout=page-highlight
+site.collections.highlights.from-data.id-key=id
+site.collections.highlights.from-data.name=events <1>
+----
+<1> The `highlights` collection generates pages from the `events` data source.
+
+This lets multiple collections share the same data source with different layouts.
+
+The layout template accesses data fields via `page.data`:
+
+[source,html]
+.templates/layouts/page-event.html
+----
+<h1>{page.data.name}</h1>
+<p>{page.data.description}</p>
+----
+
+=== Data configuration
+
+[cols="2,1,2", options="header"]
+|===
+| Property | Default | Description
+
+| `quarkus.roq.data.dir`
+| `data`
+| Location of data files relative to the Roq root directory
+
+| `quarkus.roq.data.enforce-bean`
+| `false`
+| When true, only data files with a matching `@DataMapping` annotation produce beans
+
+| `quarkus.roq.data.log-data-beans`
+| `true`
+| Log registered data beans during build
+|===
+
 == Debugging
 
 To debug errors, you may print debug information in the logs:

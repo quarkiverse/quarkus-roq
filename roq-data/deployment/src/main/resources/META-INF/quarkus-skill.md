@@ -27,6 +27,27 @@ john:
 {cdi:authors.ia3andy.name}
 ```
 
+### Data Directories
+
+A directory inside `data/` is automatically grouped into a single `JsonObject` CDI bean, with each file as a key (filename without extension). Individual files are also available as separate beans.
+
+**Example**:
+```
+data/heroes/
+  batman.yaml    # { "name": "Batman", "city": "Gotham" }
+  superman.yaml  # { "name": "Superman", "city": "Metropolis" }
+```
+
+This produces:
+- `@Named("heroes")` `JsonObject` with keys `batman` and `superman`
+- `@Named("heroes/batman")` `JsonObject` for the individual file
+
+**Template access**:
+```html
+{cdi:heroes.batman.name}
+{cdi:heroes.superman.city}
+```
+
 ### Type-Safe Mapping
 
 Use `@DataMapping` on a record or class to create a typed CDI bean from a data file:
@@ -49,12 +70,24 @@ Inject in Java code:
 Authors authors;
 ```
 
-- `value` — data file name without extension (must match a file in `data/`)
-- `required` — `true` if the data file must exist (default: `false`)
+- `value` — data file or directory name (without extension for files, must match an entry in `data/`)
+- `type` — determines how data is loaded (see `Type` enum below, default: `OBJECT_FILE`)
+- `required` — `true` if the data file/directory must exist (default: `false`)
 
-### Array Data
+### Type Enum
 
-For data files with a root-level JSON/YAML array, use `parentArray = true`:
+The `type` attribute on `@DataMapping` controls how data is loaded:
+
+| Type | Source | Constructor | Description |
+|------|--------|-------------|-------------|
+| `OBJECT_FILE` | Single file | Direct fields | Default. Maps a file to a typed object |
+| `ARRAY_FILE` | Single file (array) | `List<T>` | Maps a root-level array file to a list |
+| `ARRAY_DIR` | Directory | `List<T>` | Maps each file in a directory to a list item |
+| `OBJECT_DIR` | Directory | `Map<String, T>` | Maps each file to a map entry (filename as key) |
+
+### Array Data (from file)
+
+For data files with a root-level JSON/YAML array, use `type = Type.ARRAY_FILE`:
 
 **Example** (`data/contributors.json`):
 ```json
@@ -65,7 +98,7 @@ For data files with a root-level JSON/YAML array, use `parentArray = true`:
 ```
 
 ```java
-@DataMapping(value = "contributors", parentArray = true)
+@DataMapping(value = "contributors", type = DataMapping.Type.ARRAY_FILE)
 public record Contributors(List<Contributor> contributors) {
 
     public record Contributor(String name, String role) {}
@@ -73,6 +106,32 @@ public record Contributors(List<Contributor> contributors) {
 ```
 
 The record must have a single constructor parameter of type `List<T>`.
+
+Note: `parentArray = true` is deprecated but still works as an alias for `Type.ARRAY_FILE`.
+
+### Directory Mapping
+
+For data directories where each file represents an item, use `ARRAY_DIR` or `OBJECT_DIR`:
+
+**Example** (`data/heroes/batman.yaml`, `data/heroes/superman.yaml`):
+
+**As a list** (`ARRAY_DIR`):
+```java
+@DataMapping(value = "heroes", type = DataMapping.Type.ARRAY_DIR)
+public record HeroList(List<Hero> list) {
+    public record Hero(String name, String city) {}
+}
+```
+
+**As a map** (`OBJECT_DIR`, filename without extension as key):
+```java
+@DataMapping(value = "heroes", type = DataMapping.Type.OBJECT_DIR)
+public record HeroMap(Map<String, Hero> map) {
+    public record Hero(String name, String city) {}
+}
+```
+
+The record must have a single constructor parameter: `List<T>` for `ARRAY_DIR`, `Map<String, T>` for `OBJECT_DIR`.
 
 ### Dynamic Mapping
 
@@ -107,7 +166,7 @@ JsonArray contributors;
 
 ### Common Pitfalls
 
-- **File name must match annotation value** — `@DataMapping("authors")` requires a file named `authors.yaml`, `authors.yml`, or `authors.json` in `data/`.
-- **`parentArray=true` requires `List<T>` constructor** — When the root element is an array, the record must have a single `List<T>` constructor parameter.
+- **Name must match annotation value** — `@DataMapping("authors")` requires a file named `authors.yaml`/`.yml`/`.json` in `data/`, or a directory named `authors/` for `ARRAY_DIR`/`OBJECT_DIR`.
+- **Constructor parameter must match type** — `OBJECT_FILE`: direct fields. `ARRAY_FILE`/`ARRAY_DIR`: single `List<T>` parameter. `OBJECT_DIR`: single `Map<String, T>` parameter.
 - **Data files must be in `data/`** — Files placed elsewhere are not discovered. When used standalone (without the full `quarkus-roq` extension), the `data/` directory is under `src/main/resources/`. When used with the full Roq SSG, it's at the project root.
-- **Optional by default** — `@DataMapping` has `required = false` by default. If your app requires the data file to exist, set `required = true`.
+- **Optional by default** — `@DataMapping` has `required = false` by default. If your app requires the data file/directory to exist, set `required = true`.

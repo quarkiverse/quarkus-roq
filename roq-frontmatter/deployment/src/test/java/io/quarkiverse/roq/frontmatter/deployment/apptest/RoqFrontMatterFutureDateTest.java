@@ -23,7 +23,7 @@ public class RoqFrontMatterFutureDateTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "future-site")
-            .overrideConfigKey("site.collections.posts", "true")
+            .overrideConfigKey("site.collections.posts.enabled", "true")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("future-site"));
 

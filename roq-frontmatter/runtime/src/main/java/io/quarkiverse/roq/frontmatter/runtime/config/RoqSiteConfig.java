@@ -13,7 +13,6 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import io.smallrye.config.WithParentName;
 
 @ConfigMapping(prefix = "site")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
@@ -216,7 +215,9 @@ public interface RoqSiteConfig {
                                 e.getValue().future(),
                                 e.getValue().layout().orElse(null),
                                 e.getValue().fromData()
-                                        .map(value -> new ConfiguredCollection.CollectionFromData(value.idKey())))),
+                                        .map(value -> new ConfiguredCollection.CollectionFromData(
+                                                value.idKey(),
+                                                value.name().orElse(e.getKey()))))),
                 DEFAULT_COLLECTIONS.stream()
                         .filter(dc -> !collectionsMap().containsKey(dc.id())))
                 .toList();
@@ -239,7 +240,6 @@ public interface RoqSiteConfig {
         /**
          * If this collection is enabled
          */
-        @WithParentName
         @WithDefault("true")
         boolean enabled();
 
@@ -273,8 +273,13 @@ public interface RoqSiteConfig {
     interface CollectionFromData {
 
         /**
-         * The data attribute to use as the page identifier (slug).
+         * The data attribute to use as the page identifier. The value is slugified.
          */
         String idKey();
+
+        /**
+         * The name of the data source (file or directory in data/). Defaults to the collection id.
+         */
+        Optional<String> name();
     }
 }

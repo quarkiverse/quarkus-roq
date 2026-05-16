@@ -15,19 +15,26 @@ import java.lang.annotation.Target;
 public @interface DataMapping {
 
     /**
-     * Indicates the name of the data file, excluding the file extension.
-     * This name should match the data source file used for mapping purposes.
+     * Indicates the name of the data file (or directory), excluding the file extension.
+     * This name should match the data source used for mapping purposes.
      *
-     * @return the data file name without its extension
+     * @return the data file or directory name without its extension
      */
     String value();
+
+    /**
+     * The type of data mapping, determining how the data source is read and mapped.
+     */
+    Type type() default Type.OBJECT_FILE;
 
     /**
      * Indicates if the root element of the data file is structured as an array.
      * Set this to {@code true} if the root element is an array; otherwise, {@code false}.
      *
      * @return {@code true} if the root element is an array, {@code false} otherwise
+     * @deprecated Use {@code type = Type.ARRAY_FILE} instead
      */
+    @Deprecated
     boolean parentArray() default false;
 
     /**
@@ -36,4 +43,26 @@ public @interface DataMapping {
      * @return {@code true} if the data file is mandatory, {@code false} if it's optional.
      */
     boolean required() default false;
+
+    enum Type {
+        /**
+         * Single data file mapped to a typed object (default).
+         */
+        OBJECT_FILE,
+        /**
+         * Single data file with an array root, mapped to a parent type with a {@code List<T>} constructor.
+         */
+        ARRAY_FILE,
+        /**
+         * Directory of data files, each mapped to a typed item and collected into a {@code List<T>}.
+         * The parent type must have a {@code List<T>} constructor.
+         */
+        ARRAY_DIR,
+        /**
+         * Directory of data files, each mapped to a typed item and collected into a {@code Map<String, T>}
+         * where keys are filenames (without extension).
+         * The parent type must have a {@code Map<String, T>} constructor.
+         */
+        OBJECT_DIR
+    }
 }

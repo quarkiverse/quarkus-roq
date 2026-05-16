@@ -522,7 +522,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The data attribute to use as the page identifier (slug).
+The data attribute to use as the page identifier. The value is slugified.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -534,6 +534,27 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |required icon:exclamation-circle[title=Configuration property is required]
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-from-data-name]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-from-data-name[`+++site.collections."collections-map".from-data.name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.collections."collections-map".from-data.name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The name of the data source (file or directory in data/). Defaults to the collection id.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__FROM_DATA_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__FROM_DATA_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-generated-templates-output-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-generated-templates-output-dir[`+++site.generated-templates-output-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
