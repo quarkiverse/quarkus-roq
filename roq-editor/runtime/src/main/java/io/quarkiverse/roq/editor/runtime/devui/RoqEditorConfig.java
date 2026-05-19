@@ -88,7 +88,7 @@ public interface RoqEditorConfig {
          * Enable Git sync feature (commit, push, pull via the Editor UI)
          */
         @JsonProperty("enabled")
-        @WithDefault("true")
+        @WithDefault("false")
         boolean enabled();
 
         /**

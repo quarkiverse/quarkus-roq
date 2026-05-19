@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -19,6 +20,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.jboss.logging.Logger;
@@ -48,6 +50,7 @@ public class GitSyncServiceImpl implements GitSyncService {
     private final GitOperationHelper operationHelper;
     private final ReentrantLock lock = new ReentrantLock();
     private volatile Boolean cachedIsSsh;
+    private final GitCredentialHelper credentialHelper = new GitCredentialHelper();
 
     /**
      * Creates a new instance of GitSyncServiceImpl.
@@ -227,9 +230,8 @@ public class GitSyncServiceImpl implements GitSyncService {
                             Collections.emptyList(), false);
                 }
 
-                Iterable<PushResult> results = git.push().setRemote("origin")
-                        .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
-                        .call();
+                Iterable<PushResult> results = configureTransport(
+                        git.push().setRemote("origin"), repository, passphrase).call();
 
                 for (PushResult pushResult : results) {
                     for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
@@ -335,9 +337,13 @@ public class GitSyncServiceImpl implements GitSyncService {
             return false;
         } catch (Exception fetchEx) {
             if (GitTransportHelper.isAuthenticationError(fetchEx) && isSsh) {
-                LOG.warn("SSH authentication failed during fetch poll: " + fetchEx.getMessage());
+                LOG.warn("SSH authentication failed during fetch: " + fetchEx.getMessage());
                 return true;
             }
+            if (GitTransportHelper.isAuthenticationError(fetchEx)) {
+                credentialHelper.invalidate();
+            }
+            LOG.debug("Fetch failed (will retry on next poll): " + fetchEx.getMessage());
             return false;
         }
     }
@@ -386,11 +392,9 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     private GitSyncResult performPull(Git git, Repository repository, String passphrase) {
         try {
-            PullResult pullResult = git.pull()
-                    .setRemote("origin")
-                    .setRemoteBranchName(repository.getBranch())
-                    .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
-                    .call();
+            PullResult pullResult = configureTransport(
+                    git.pull().setRemote("origin").setRemoteBranchName(repository.getBranch()),
+                    repository, passphrase).call();
 
             if (!pullResult.isSuccessful()) {
                 return operationHelper.handleFailedPull(pullResult, git);
@@ -406,13 +410,7 @@ public class GitSyncServiceImpl implements GitSyncService {
 
             return new GitSyncResult(true, MSG_SYNC_SUCCESS, false, Collections.emptyList(), false);
         } catch (Exception e) {
-            boolean isSsh = GitTransportHelper.isSsh(repository);
-            if (GitTransportHelper.isAuthenticationError(e) && isSsh) {
-                LOG.warn("Sync authentication failed: " + e.getMessage());
-                return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_FAILED, false, Collections.emptyList(), true);
-            }
-            LOG.error("Content synchronization failed", e);
-            return new GitSyncResult(false, "Sync failed: " + e.getMessage(), false, Collections.emptyList(), false);
+            return handleRemoteFailure("Sync", e);
         }
     }
 
@@ -423,23 +421,11 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @return a result object describing the failure
      */
     private GitSyncResult handleSyncFailure(Exception e) {
-        boolean isSsh = resolveIsSsh();
-        return new GitSyncResult(false, "Sync operation failed: " + e.getMessage(), false, Collections.emptyList(),
-                GitTransportHelper.isAuthenticationError(e) && isSsh);
+        return handleRemoteFailure("Sync", e);
     }
 
-    /**
-     * Handles failures during push operations.
-     */
     private GitSyncResult handlePushFailure(Exception e) {
-        boolean isSsh = resolveIsSsh();
-        boolean isAuth = GitTransportHelper.isAuthenticationError(e) && isSsh;
-        if (isAuth) {
-            LOG.warn("Push authentication failed: " + e.getMessage());
-        } else {
-            LOG.error("Push operation failed", e);
-        }
-        return new GitSyncResult(false, "Push error: " + e.getMessage(), false, Collections.emptyList(), isAuth);
+        return handleRemoteFailure("Push", e);
     }
 
     /**
@@ -455,18 +441,8 @@ public class GitSyncServiceImpl implements GitSyncService {
         return null;
     }
 
-    /**
-     * Handles failures during publish operations.
-     */
     private GitSyncResult handlePublishFailure(Exception e) {
-        boolean isSsh = resolveIsSsh();
-        boolean isAuth = GitTransportHelper.isAuthenticationError(e) && isSsh;
-        if (isAuth) {
-            LOG.warn("Publish authentication failed: " + e.getMessage());
-        } else {
-            LOG.error("Publishing operation failed", e);
-        }
-        return new GitSyncResult(false, "Publish error: " + e.getMessage(), false, Collections.emptyList(), isAuth);
+        return handleRemoteFailure("Publish", e);
     }
 
     /**
@@ -491,10 +467,32 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     private void performFetch(Git git, String passphrase) throws Exception {
         LOG.debug("Performing Git fetch from origin...");
-        git.fetch()
-                .setRemote("origin")
-                .setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase))
-                .call();
+        configureTransport(git.fetch().setRemote("origin"), git.getRepository(), passphrase).call();
+    }
+
+    private <C extends TransportCommand<C, ?>> C configureTransport(C cmd, Repository repository, String passphrase) {
+        cmd.setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase));
+        if (!GitTransportHelper.isSsh(repository)) {
+            CredentialsProvider cp = credentialHelper.getCredentials(repository);
+            if (cp != null) {
+                cmd.setCredentialsProvider(cp);
+            }
+        }
+        return cmd;
+    }
+
+    private GitSyncResult handleRemoteFailure(String operation, Exception e) {
+        boolean isSsh = resolveIsSsh();
+        boolean isAuth = GitTransportHelper.isAuthenticationError(e);
+        if (isAuth && isSsh) {
+            LOG.warn(operation + " SSH authentication failed: " + e.getMessage());
+            return new GitSyncResult(false, GitTransportHelper.ERR_AUTH_FAILED, false, Collections.emptyList(), true);
+        }
+        if (isAuth) {
+            credentialHelper.invalidate();
+        }
+        LOG.error(operation + " failed", e);
+        return new GitSyncResult(false, operation + " failed: " + e.getMessage(), false, Collections.emptyList(), false);
     }
 
     private boolean resolveIsSsh() {
