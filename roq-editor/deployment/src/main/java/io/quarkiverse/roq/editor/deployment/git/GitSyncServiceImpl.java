@@ -185,26 +185,29 @@ public class GitSyncServiceImpl implements GitSyncService {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
-
             try (Git git = new Git(repository)) {
-                boolean wasDirty = !git.status().call().isClean();
-                if (wasDirty) {
-                    LOG.debug(MSG_STASH_BEFORE_SYNC);
-                    git.stashCreate().setIncludeUntracked(true).call();
-                }
-
-                GitSyncResult syncResult = performPull(git, repository, passphrase);
-
-                if (wasDirty) {
-                    syncResult = operationHelper.restoreStash(git, syncResult, MSG_RESTORE_STASH_AFTER_SYNC);
-                }
-                return syncResult;
+                return doSync(git, repository, passphrase);
             }
         } catch (Exception e) {
             return handleSyncFailure(e);
         } finally {
             lock.unlock();
         }
+    }
+
+    private GitSyncResult doSync(Git git, Repository repository, String passphrase) throws Exception {
+        boolean wasDirty = !git.status().call().isClean();
+        if (wasDirty) {
+            LOG.debug(MSG_STASH_BEFORE_SYNC);
+            git.stashCreate().setIncludeUntracked(true).call();
+        }
+
+        GitSyncResult syncResult = performPull(git, repository, passphrase);
+
+        if (wasDirty) {
+            syncResult = operationHelper.restoreStash(git, syncResult, MSG_RESTORE_STASH_AFTER_SYNC);
+        }
+        return syncResult;
     }
 
     /**
@@ -220,45 +223,40 @@ public class GitSyncServiceImpl implements GitSyncService {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
-
             try (Git git = new Git(repository)) {
-                RepositoryState state = repository.getRepositoryState();
-                if (state != RepositoryState.SAFE) {
-                    return new GitSyncResult(false,
-                            "Push blocked: Repository is in state " + state + ". Please finalize your merge/rebase first.",
-                            false,
-                            Collections.emptyList(), false);
-                }
-
-                Iterable<PushResult> results = configureTransport(
-                        git.push().setRemote("origin"), repository, passphrase).call();
-
-                for (PushResult pushResult : results) {
-                    for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
-                        if (update.getStatus() != RemoteRefUpdate.Status.OK
-                                && update.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE) {
-                            return new GitSyncResult(false,
-                                    "Push failed: " + update.getStatus() + " (" + update.getMessage() + ")",
-                                    false, Collections.emptyList(), false);
-                        }
-                    }
-                }
-
-                if (BranchTrackingStatus.of(repository, repository.getBranch()) == null) {
-                    StoredConfig config = repository.getConfig();
-                    String branchName = repository.getBranch();
-                    config.setString("branch", branchName, "remote", "origin");
-                    config.setString("branch", branchName, "merge", "refs/heads/" + branchName);
-                    config.save();
-                }
-
-                return new GitSyncResult(true, MSG_PUSH_SUCCESS, false, Collections.emptyList(), false);
+                return doPush(git, repository, passphrase);
             }
         } catch (Exception e) {
             return handlePushFailure(e);
         } finally {
             lock.unlock();
         }
+    }
+
+    private GitSyncResult doPush(Git git, Repository repository, String passphrase) throws Exception {
+        RepositoryState state = repository.getRepositoryState();
+        if (state != RepositoryState.SAFE) {
+            return new GitSyncResult(false,
+                    "Push blocked: Repository is in state " + state + ". Please finalize your merge/rebase first.",
+                    false, Collections.emptyList(), false);
+        }
+
+        Iterable<PushResult> results = configureTransport(
+                git.push().setRemote("origin"), repository, passphrase).call();
+
+        for (PushResult pushResult : results) {
+            for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
+                if (update.getStatus() != RemoteRefUpdate.Status.OK
+                        && update.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE) {
+                    return new GitSyncResult(false,
+                            "Push failed: " + update.getStatus() + " (" + update.getMessage() + ")",
+                            false, Collections.emptyList(), false);
+                }
+            }
+        }
+
+        autoConfigureTracking(repository);
+        return new GitSyncResult(true, MSG_PUSH_SUCCESS, false, Collections.emptyList(), false);
     }
 
     /**
@@ -286,9 +284,15 @@ public class GitSyncServiceImpl implements GitSyncService {
                 }
 
                 tryFetch(git, passphrase, GitTransportHelper.isSsh(repository));
-                GitSyncResult syncResult = smartSyncIfBehind(repository, passphrase);
-                if (syncResult != null && !syncResult.success()) {
-                    return syncResult;
+
+                BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
+                if (trackingStatus != null && trackingStatus.getBehindCount() > 0
+                        && repository.getRepositoryState() == RepositoryState.SAFE) {
+                    LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
+                    GitSyncResult syncResult = doSync(git, repository, passphrase);
+                    if (!syncResult.success()) {
+                        return syncResult;
+                    }
                 }
 
                 RepositoryState state = repository.getRepositoryState();
@@ -298,7 +302,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                             Collections.emptyList(), false);
                 }
 
-                return push(passphrase);
+                return doPush(git, repository, passphrase);
             }
         } catch (Exception e) {
             return handlePublishFailure(e);
@@ -400,26 +404,13 @@ public class GitSyncServiceImpl implements GitSyncService {
                 return operationHelper.handleFailedPull(pullResult, git);
             }
 
-            if (BranchTrackingStatus.of(repository, repository.getBranch()) == null) {
-                StoredConfig config = repository.getConfig();
-                String branchName = repository.getBranch();
-                config.setString("branch", branchName, "remote", "origin");
-                config.setString("branch", branchName, "merge", "refs/heads/" + branchName);
-                config.save();
-            }
-
+            autoConfigureTracking(repository);
             return new GitSyncResult(true, MSG_SYNC_SUCCESS, false, Collections.emptyList(), false);
         } catch (Exception e) {
             return handleRemoteFailure("Sync", e);
         }
     }
 
-    /**
-     * General failure handler for sync operations.
-     *
-     * @param e the exception that occurred
-     * @return a result object describing the failure
-     */
     private GitSyncResult handleSyncFailure(Exception e) {
         return handleRemoteFailure("Sync", e);
     }
@@ -428,21 +419,18 @@ public class GitSyncServiceImpl implements GitSyncService {
         return handleRemoteFailure("Push", e);
     }
 
-    /**
-     * Performs a sync operation if the local repository is behind the remote.
-     */
-    private GitSyncResult smartSyncIfBehind(Repository repository, String passphrase) throws IOException {
-        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
-        int behindCount = (trackingStatus != null) ? trackingStatus.getBehindCount() : 0;
-        if (behindCount > 0 && repository.getRepositoryState() == RepositoryState.SAFE) {
-            LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
-            return sync(passphrase);
-        }
-        return null;
-    }
-
     private GitSyncResult handlePublishFailure(Exception e) {
         return handleRemoteFailure("Publish", e);
+    }
+
+    private void autoConfigureTracking(Repository repository) throws IOException {
+        if (BranchTrackingStatus.of(repository, repository.getBranch()) == null) {
+            StoredConfig config = repository.getConfig();
+            String branchName = repository.getBranch();
+            config.setString("branch", branchName, "remote", "origin");
+            config.setString("branch", branchName, "merge", "refs/heads/" + branchName);
+            config.save();
+        }
     }
 
     /**

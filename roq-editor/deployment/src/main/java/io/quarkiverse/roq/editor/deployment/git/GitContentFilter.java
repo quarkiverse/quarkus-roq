@@ -54,9 +54,10 @@ public class GitContentFilter {
         if (relativePath.startsWith("/"))
             relativePath = relativePath.substring(1);
 
+        // contentDir covers content/posts/, content/docs/, etc.
+        // data/ and templates/ are standard Roq directories at the project root
         return relativePath.startsWith(siteConfig.contentDir()) ||
                 relativePath.startsWith(siteConfig.publicDir()) ||
-                relativePath.startsWith("posts/") ||
                 relativePath.startsWith("data/") ||
                 relativePath.startsWith("templates/") ||
                 relativePath.equals("roq.java");

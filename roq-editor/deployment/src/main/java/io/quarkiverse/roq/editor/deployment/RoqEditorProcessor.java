@@ -44,7 +44,7 @@ public class RoqEditorProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsDevelopment.class)
     List<LogCleanupFilterBuildItem> cleanupLoudJGitLogs() {
         return List.of(
                 new LogCleanupFilterBuildItem("org.eclipse.jgit.internal.transport.sshd.CachingKeyPairProvider",

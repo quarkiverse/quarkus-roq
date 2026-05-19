@@ -261,7 +261,6 @@ export class SyncManager {
                 updated.upToDate = !updated.hasUnpublished && updated.ahead === 0 && updated.behind === 0
                         && !updated.hasConflicts;
                 this.status = updated;
-                SyncManager._lastKnownStatus = this.status;
                 this.onStatusChange(this.status);
             }
             await this.refreshStatus(!fullRefresh);
