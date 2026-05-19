@@ -70,7 +70,7 @@ public interface RoqEditorConfig {
          * If enabled, Editor will suggest file path sync when it differs from content.
          */
         @JsonProperty("enabled")
-        @WithDefault("true")
+        @WithDefault("false")
         boolean enabled();
 
     }
