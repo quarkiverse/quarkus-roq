@@ -428,9 +428,9 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map[`+++site.collections."collections-map"+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-enabled]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-enabled[`+++site.collections."collections-map".enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++site.collections."collections-map"+++[]
+config_property_copy_button:+++site.collections."collections-map".enabled+++[]
 endif::add-copy-button-to-config-props[]
 
 
@@ -440,10 +440,10 @@ If this collection is enabled
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP_+++[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__ENABLED+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP_+++`
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean

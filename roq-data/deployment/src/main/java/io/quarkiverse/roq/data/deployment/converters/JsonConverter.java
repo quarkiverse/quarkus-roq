@@ -2,10 +2,12 @@ package io.quarkiverse.roq.data.deployment.converters;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapType;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
 import io.vertx.core.buffer.Buffer;
@@ -34,5 +36,11 @@ public class JsonConverter implements DataConverter {
     public <T> List<T> convertToTypedList(byte[] content, Class<T> clazz) throws IOException {
         final CollectionType collectionType = mapper.getTypeFactory().constructCollectionType(List.class, clazz);
         return mapper.readValue(content, collectionType);
+    }
+
+    @Override
+    public <T> Map<String, T> convertToTypedMap(byte[] content, Class<T> clazz) throws IOException {
+        final MapType mapType = mapper.getTypeFactory().constructMapType(Map.class, String.class, clazz);
+        return mapper.readValue(content, mapType);
     }
 }

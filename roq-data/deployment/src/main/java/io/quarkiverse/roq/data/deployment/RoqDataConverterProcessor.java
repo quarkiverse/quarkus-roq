@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
 
-import io.quarkiverse.roq.data.deployment.exception.DataListBindingException;
+import io.quarkiverse.roq.data.deployment.exception.DataBindingException;
 import io.quarkiverse.roq.data.deployment.exception.DataReadingException;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
@@ -21,54 +22,20 @@ public class RoqDataConverterProcessor {
 
         for (DataMappingBuildItem mapping : mappings) {
             if (mapping.isParentType()) {
-                Class<?> parentClass;
-                try {
-                    parentClass = Class.forName(mapping.getParentType().toString(), false,
-                            Thread.currentThread().getContextClassLoader());
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalStateException("Class %s not found".formatted(mapping.getParentType().toString()), e);
-                }
-
-                final Constructor<?> constructor;
-                try {
-                    constructor = parentClass.getConstructor(List.class);
-                } catch (NoSuchMethodException e) {
-                    throw new DataListBindingException(
-                            RoqException.builder("@DataMapping list binding error")
-                                    .detail("Class %s should declare a constructor with a List<%s> as unique parameter"
-                                            .formatted(parentClass.getName(), mapping.getClassName()))
-                                    .sourceFilePath(mapping.sourceFile().toString())
-                                    .hint("Add a public constructor like: public %s(List<%s> items)"
-                                            .formatted(parentClass.getSimpleName(), mapping.getClassName()))
-                                    .cause(e));
-                }
-
-                try {
-                    final Class<?> itemClass = Class.forName(mapping.getClassName().toString(), false,
-                            Thread.currentThread().getContextClassLoader());
-                    final List<?> list = mapping.getConverter().convertToTypedList(mapping.getContent(), itemClass);
-                    final Object data = constructor.newInstance(list);
-                    beans.produce(new RoqDataBeanBuildItem(mapping.getName(), parentClass, data, mapping.isRecord()));
-                } catch (IOException e) {
-                    throw new DataReadingException(
-                            RoqException.builder("Unable to read data file")
-                                    .detail("Could not read file %s as a List<%s>"
+                switch (mapping.getMappingType()) {
+                    case OBJECT_DIR -> produceCollectionBean(beans, mapping, true);
+                    case ARRAY_DIR, ARRAY_FILE -> produceCollectionBean(beans, mapping, false);
+                    case OBJECT_FILE -> throw new DataReadingException(
+                            RoqException.builder("Unable to convert data directory")
+                                    .detail("""
+                                            Could not convert directory %s as a %s.
+                                            This is usually an issue in Roq. A mapping with parent should not have types other than OBJECT_DIR or ARRAY_DIR.
+                                            """
                                             .formatted(mapping.sourceFile(), mapping.getClassName()))
-                                    .sourceFilePath(mapping.sourceFile().toString())
-                                    .hint("Check that the data file format matches the expected list structure")
-                                    .cause(e));
-                } catch (ClassNotFoundException | InvocationTargetException | InstantiationException
-                        | IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                                    .hint("Verify the data file structure matches the @DataMapping class fields"));
                 }
             } else {
-                Class<?> beanClass;
-                try {
-                    beanClass = Class.forName(mapping.getClassName().toString(), false,
-                            Thread.currentThread().getContextClassLoader());
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalStateException("Class %s not found".formatted(mapping.getClassName().toString()), e);
-                }
+                Class<?> beanClass = loadClass(mapping.getClassName().toString());
                 try {
                     final Object data = mapping.getConverter().convertToType(mapping.getContent(), beanClass);
                     beans.produce(new RoqDataBeanBuildItem(mapping.getName(), beanClass, data, mapping.isRecord()));
@@ -84,5 +51,58 @@ public class RoqDataConverterProcessor {
             }
         }
 
+    }
+
+    private void produceCollectionBean(BuildProducer<RoqDataBeanBuildItem> beans, DataMappingBuildItem mapping,
+            boolean isMap) {
+        Class<?> parentClass = loadClass(mapping.getParentType().toString());
+        Class<?> collectionClass = isMap ? Map.class : List.class;
+
+        final Constructor<?> constructor;
+        try {
+            constructor = parentClass.getConstructor(collectionClass);
+        } catch (NoSuchMethodException e) {
+            String collectionStr = isMap ? "Map<String, %s>" : "List<%s>";
+            throw new DataBindingException(
+                    RoqException.builder("@DataMapping %s binding error".formatted(isMap ? "map" : "list"))
+                            .detail(("Class %s should declare a constructor with a " + collectionStr + " as unique parameter")
+                                    .formatted(parentClass.getName(), mapping.getClassName()))
+                            .sourceFilePath(mapping.sourceFile().toString())
+                            .hint(("Add a public constructor like: public %s(" + collectionStr + " items)")
+                                    .formatted(parentClass.getSimpleName(), mapping.getClassName()))
+                            .cause(e));
+        }
+
+        try {
+            final Class<?> itemClass = loadClass(mapping.getClassName().toString());
+            final Object collection;
+            if (isMap) {
+                collection = mapping.getConverter().convertToTypedMap(mapping.getContent(), itemClass);
+            } else {
+                collection = mapping.getConverter().convertToTypedList(mapping.getContent(), itemClass);
+            }
+            final Object data = constructor.newInstance(collection);
+            beans.produce(new RoqDataBeanBuildItem(mapping.getName(), parentClass, data, mapping.isRecord()));
+        } catch (IOException e) {
+            String collectionStr = isMap ? "Map<String,%s>" : "List<%s>";
+            throw new DataReadingException(
+                    RoqException.builder("Unable to read data file")
+                            .detail(("Could not read file %s as a " + collectionStr)
+                                    .formatted(mapping.sourceFile(), mapping.getClassName()))
+                            .sourceFilePath(mapping.sourceFile().toString())
+                            .hint("Check that the data file format matches the expected %s structure"
+                                    .formatted(isMap ? "map" : "list"))
+                            .cause(e));
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Class<?> loadClass(String className) {
+        try {
+            return Class.forName(className, false, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Class %s not found".formatted(className), e);
+        }
     }
 }

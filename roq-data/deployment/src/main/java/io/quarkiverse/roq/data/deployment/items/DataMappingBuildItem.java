@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.jboss.jandex.DotName;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
+import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkus.builder.item.MultiBuildItem;
 
 public final class DataMappingBuildItem extends MultiBuildItem {
@@ -46,9 +47,11 @@ public final class DataMappingBuildItem extends MultiBuildItem {
      */
     private final boolean isRecord;
 
+    private final DataMapping.Type type;
+
     public DataMappingBuildItem(String name, Path sourceFile, DotName parentType, DotName className, byte[] content,
             DataConverter converter,
-            boolean isRecord) {
+            boolean isRecord, DataMapping.Type type) {
         this.name = name;
         this.sourceFile = sourceFile;
         this.parentType = parentType;
@@ -56,6 +59,7 @@ public final class DataMappingBuildItem extends MultiBuildItem {
         this.content = content;
         this.converter = converter;
         this.isRecord = isRecord;
+        this.type = type;
     }
 
     public Path sourceFile() {
@@ -80,6 +84,10 @@ public final class DataMappingBuildItem extends MultiBuildItem {
 
     public boolean isParentType() {
         return parentType != null;
+    }
+
+    public DataMapping.Type getMappingType() {
+        return type;
     }
 
     public boolean isRecord() {
