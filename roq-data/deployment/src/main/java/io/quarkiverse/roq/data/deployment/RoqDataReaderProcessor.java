@@ -5,7 +5,6 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +26,10 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import io.quarkiverse.roq.data.deployment.converters.DataConverterFinder;
+import io.quarkiverse.roq.data.deployment.converters.JsonConverter;
 import io.quarkiverse.roq.data.deployment.exception.DataConversionException;
 import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
 import io.quarkiverse.roq.data.deployment.exception.DataMappingRequiredFileException;
@@ -106,6 +108,7 @@ public class RoqDataReaderProcessor {
     void scanDataMappings(
             CombinedIndexBuildItem index,
             List<RoqDataBuildItem> roqDataBuildItems,
+            RoqJacksonBuildItem jackson,
             BuildProducer<DataMappingBuildItem> dataMappingProducer,
             BuildProducer<RoqDataJsonBuildItem> dataJsonProducer,
             BuildProducer<RoqDataBeanBuildItem> dataBeanProducer,
@@ -132,20 +135,21 @@ public class RoqDataReaderProcessor {
         Map<String, Object> convertedData = new HashMap<>();
 
         for (RoqDataBuildItem roqDataBuildItem : roqDataBuildItems) {
-            String name = roqDataBuildItem.getName();
-            if (annotationMap.containsKey(name)) {
-                DataMapping.Type type = resolvedTypes.get(name);
+            String fullName = roqDataBuildItem.getName();
+            String derivedName = getCollectionName(fullName);
+            if (annotationMap.containsKey(derivedName)) {
+                DataMapping.Type type = resolvedTypes.get(derivedName);
                 if (type == DataMapping.Type.ARRAY_DIR || type == DataMapping.Type.OBJECT_DIR) {
                     // Directory annotations are handled after the loop
                     continue;
                 }
 
-                AnnotationTarget target = annotationMap.get(name).target();
-                if (!dataJsonMap.containsKey(name)) {
+                AnnotationTarget target = annotationMap.get(derivedName).target();
+                if (!dataJsonMap.containsKey(derivedName)) {
                     continue;
                 }
 
-                RoqDataBuildItem item = dataJsonMap.get(name);
+                RoqDataBuildItem item = dataJsonMap.get(derivedName);
                 DotName className = target.asClass().name();
 
                 if (type == DataMapping.Type.ARRAY_FILE) {
@@ -156,19 +160,19 @@ public class RoqDataReaderProcessor {
                             "@DataMapping(type=ARRAY_FILE) should declare a constructor with a List<T> parameter"));
                     final DotName itemType = methodInfo.parameterType(0).asParameterizedType().arguments().get(0).name();
                     dataMappingProducer.produce(new DataMappingBuildItem(
-                            name, item.sourceFile(), className, itemType,
-                            item.getContent(), item.converter(), target.asClass().isRecord()));
+                            fullName, item.sourceFile(), className, itemType,
+                            item.getContent(), item.converter(), target.asClass().isRecord(), type));
                 } else {
                     dataMappingProducer.produce(new DataMappingBuildItem(
-                            name, item.sourceFile(), null, className,
-                            item.getContent(), item.converter(), target.asClass().isRecord()));
+                            fullName, item.sourceFile(), null, className,
+                            item.getContent(), item.converter(), target.asClass().isRecord(), null));
                 }
             } else {
                 try {
                     final Object converted = roqDataBuildItem.converter().convert(roqDataBuildItem.getContent());
-                    dataJsonProducer.produce(new RoqDataJsonBuildItem(name, converted));
-                    producedJsonNames.add(name);
-                    convertedData.put(name, converted);
+                    dataJsonProducer.produce(new RoqDataJsonBuildItem(fullName, converted));
+                    producedJsonNames.add(fullName);
+                    convertedData.put(fullName, converted);
                 } catch (IOException e) {
                     throw new DataConversionException(
                             RoqException.builder("Unable to convert data file")
@@ -198,7 +202,16 @@ public class RoqDataReaderProcessor {
         }
 
         // Handle typed directory annotations (ARRAY_DIR / OBJECT_DIR)
-        processDirectoryAnnotations(allDirFiles, annotationMap, resolvedTypes, dirAnnotationNames, dataBeanProducer);
+        processDirectoryAnnotations(allDirFiles, annotationMap, resolvedTypes, dirAnnotationNames, dataMappingProducer,
+                jackson.getJsonMapper());
+    }
+
+    private static String getCollectionName(String fullName) {
+        int indexOfSlash = fullName.indexOf("/");
+        if (indexOfSlash == -1) {
+            return fullName;
+        }
+        return fullName.substring(0, indexOfSlash);
     }
 
     private static Map<String, DataMapping.Type> resolveAnnotationTypes(Map<String, AnnotationInstance> annotationMap) {
@@ -268,7 +281,8 @@ public class RoqDataReaderProcessor {
             Map<String, AnnotationInstance> annotationMap,
             Map<String, DataMapping.Type> resolvedTypes,
             Set<String> dirAnnotationNames,
-            BuildProducer<RoqDataBeanBuildItem> dataBeanProducer) {
+            BuildProducer<DataMappingBuildItem> dataMappingProducer,
+            JsonMapper jsonMapper) {
 
         for (String dirName : dirAnnotationNames) {
             AnnotationInstance ann = annotationMap.get(dirName);
@@ -292,16 +306,19 @@ public class RoqDataReaderProcessor {
                             .orElseThrow(() -> new RuntimeException(
                                     "@DataMapping(type=ARRAY_DIR) on '%s' should declare a constructor with a List<T> parameter"
                                             .formatted(parentClassName)));
-                    DotName itemTypeName = methodInfo.parameterType(0).asParameterizedType().arguments().get(0).name();
+                    DotName itemTypeName = methodInfo.parameterType(0).asParameterizedType().arguments().getFirst().name();
                     Class<?> itemClass = Class.forName(itemTypeName.toString(), false, cl);
 
                     List<Object> items = new ArrayList<>();
                     for (RoqDataBuildItem fileItem : dirFiles.values()) {
+                        //Concatenate YAML
                         items.add(fileItem.converter().convertToType(fileItem.getContent(), itemClass));
                     }
-                    Object data = parentClass.getConstructor(List.class).newInstance(items);
-                    dataBeanProducer.produce(
-                            new RoqDataBeanBuildItem(dirName, parentClass, data, target.asClass().isRecord()));
+
+                    dataMappingProducer.produce(new DataMappingBuildItem(
+                            dirName, Path.of(dirName), DotName.createSimple(parentClass), itemTypeName,
+                            jsonMapper.writeValueAsBytes(items), new JsonConverter(jsonMapper), target.asClass().isRecord(),
+                            type));
 
                 } else {
                     MethodInfo methodInfo = target.asClass().constructors().stream()
@@ -319,12 +336,13 @@ public class RoqDataReaderProcessor {
                         items.put(fileEntry.getKey(),
                                 fileItem.converter().convertToType(fileItem.getContent(), itemClass));
                     }
-                    Object data = parentClass.getConstructor(Map.class).newInstance(items);
-                    dataBeanProducer.produce(
-                            new RoqDataBeanBuildItem(dirName, parentClass, data, target.asClass().isRecord()));
+
+                    dataMappingProducer.produce(new DataMappingBuildItem(
+                            dirName, Path.of(dirName), DotName.createSimple(parentClass), itemTypeName,
+                            jsonMapper.writeValueAsBytes(items), new JsonConverter(jsonMapper), target.asClass().isRecord(),
+                            type));
                 }
-            } catch (ClassNotFoundException | NoSuchMethodException | IOException
-                    | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            } catch (ClassNotFoundException | IOException e) {
                 throw new RuntimeException(
                         "Failed to process @DataMapping(type=%s) for directory '%s'".formatted(type, dirName), e);
             }

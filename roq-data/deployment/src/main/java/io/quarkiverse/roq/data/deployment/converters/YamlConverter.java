@@ -7,6 +7,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
@@ -45,6 +46,12 @@ public class YamlConverter implements DataConverter {
     public <T> List<T> convertToTypedList(byte[] content, Class<T> clazz) throws IOException {
         final CollectionType collectionType = mapper.getTypeFactory().constructCollectionType(List.class, clazz);
         return mapper.readValue(content, collectionType);
+    }
+
+    @Override
+    public <T> Map<String, T> convertToTypedMap(byte[] content, Class<T> clazz) throws IOException {
+        final MapType mapType = mapper.getTypeFactory().constructMapType(Map.class, String.class, clazz);
+        return mapper.readValue(content, mapType);
     }
 
 }
