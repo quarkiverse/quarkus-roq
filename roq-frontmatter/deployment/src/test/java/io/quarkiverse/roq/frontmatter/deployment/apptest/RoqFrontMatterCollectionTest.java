@@ -28,7 +28,6 @@ public class RoqFrontMatterCollectionTest {
             .overrideConfigKey("quarkus.roq.dir", "src/test/collection-site")
             .overrideConfigKey("quarkus.roq.resource-dir", "collection-site-resources")
             .overrideConfigKey("site.theme", "my-theme")
-            .overrideConfigKey("site.collections.posts.enabled", "true")
             .overrideConfigKey("site.collections.guides.layout", "guide")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("collection-site-resources"));

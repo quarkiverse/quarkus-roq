@@ -13,7 +13,7 @@ This site is built with [Roq](https://iamroq.dev), a static site generator power
 <div class="authors">
   {#for id in cdi:authors.fields}
     {#let author=cdi:authors.get(id)}
-    {#roq/authorCard name=author.name avatar=author.avatar nickname=author.nickname profile=author.profile /}
+    {#roq/authorCard name=author.name avatar=author.avatar?? nickname=author.nickname profile=author.profile /}
   {/for}
 </div>
 
