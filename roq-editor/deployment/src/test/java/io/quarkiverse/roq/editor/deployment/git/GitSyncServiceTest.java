@@ -720,6 +720,11 @@ class GitSyncServiceTest {
                     }
                 };
             }
+
+            @Override
+            public AiConfig ai() {
+                return Optional::empty;
+            }
         };
     }
 }

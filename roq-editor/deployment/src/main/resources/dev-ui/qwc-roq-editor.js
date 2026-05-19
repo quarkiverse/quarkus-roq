@@ -9,6 +9,7 @@ import './components/simple-editor.js';
 import './components/loading-dialog.js';
 import './components/sync-status-bar.js';
 import './components/sync-controls.js';
+import './components/ai-prompt-widget.js';
 import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
@@ -263,6 +264,7 @@ export class QwcRoqEditor extends LitElement {
                 .content="${this._fileContent}"
                 @save-content="${this._onSaveContent}"
                 @page-sync-path="${this._onPageSyncPath}"
+                @generate-ai-content="${this._onGenerateAiContent}"
               >
               </qwc-visual-editor>
             `;
@@ -498,6 +500,49 @@ export class QwcRoqEditor extends LitElement {
                 this._posts.push(c);
             });
             this._loadingContent = false;
+        });
+    }
+
+    _onGenerateAiContent(e) {
+        const { editor } = e.detail;
+        if (!editor || editor.isDestroyed) return;
+
+        const coords = editor.view.coordsAtPos(editor.view.state.selection.from);
+
+        const widget = document.createElement('qwc-ai-prompt');
+        widget.style.left = `${coords.left}px`;
+        widget.style.top = `${coords.bottom + 4}px`;
+        document.body.appendChild(widget);
+
+        widget.addEventListener('close', () => editor.commands.focus());
+
+        widget.addEventListener('generate', async (e) => {
+            const { prompt } = e.detail;
+            try {
+                const pos = editor.state.selection.from;
+                const textBefore = editor.state.doc.textBetween(0, pos, '\n');
+                const textAfter = editor.state.doc.textBetween(pos, editor.state.doc.content.size, '\n');
+                const trimBefore = textBefore.length > 2000 ? '...' + textBefore.slice(-2000) : textBefore;
+                const trimAfter = textAfter.length > 1000 ? textAfter.slice(0, 1000) + '...' : textAfter;
+                const context = `Article content before cursor:\n${trimBefore}\n\n---CURSOR IS HERE---\n\n`
+                    + (trimAfter.trim() ? `Article content after cursor:\n${trimAfter}` : '(end of article)');
+                const response = await this.jsonRpc.generateContent({ message: prompt, context });
+                const raw = response.result;
+
+                let markdown;
+                try {
+                    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    markdown = parsed.body || parsed.answer || parsed.markdown || parsed.content || raw;
+                } catch (err) {
+                    markdown = raw;
+                }
+
+                editor.chain().focus().insertContent(markdown, { contentType: 'markdown' }).run();
+                widget.close();
+            } catch (error) {
+                console.error('Error generating content:', error);
+                widget.showError();
+            }
         });
     }
 
