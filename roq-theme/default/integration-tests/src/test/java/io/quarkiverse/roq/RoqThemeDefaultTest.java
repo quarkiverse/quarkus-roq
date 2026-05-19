@@ -43,6 +43,15 @@ public class RoqThemeDefaultTest {
     }
 
     @Test
+    public void testPostWithDefaultAvatar() {
+        final String body = RestAssured.when().get("/posts/post-without-avatar").then().statusCode(200).log()
+                .ifValidationFails().extract()
+                .asString();
+        assertThat(body).contains("<title>Post Without Avatar");
+        assertThat(body).contains("default-avatar.svg");
+    }
+
+    @Test
     public void test404() {
         final String body = RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
