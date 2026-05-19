@@ -1,0 +1,188 @@
+include::./_includes/attributes.adoc[]
+
+= Quarkus Roq TOC Plugin
+
+The Roq TOC plugin generates a table of contents from the headings in your Markdown and AsciiDoc pages.
+It parses rendered HTML at runtime, extracts headings with IDs, and exposes the result as structured data or a ready-to-use HTML navigation block in your Qute templates.
+
+NOTE: The TOC plugin is not included in the `io.quarkiverse.roq:quarkus-roq` aggregate extension. Add the dependency described in <<installation>> to use it.
+
+[id="understand-toc"]
+== Understand the TOC plugin
+
+The plugin works by parsing the rendered HTML content of each page with https://jsoup.org/[JSoup].
+It extracts all headings (`h1`–`h6`) that have an `id` attribute, which both the Markdown and AsciiDoc renderers generate automatically.
+
+The extracted headings are organized into a nested hierarchy based on their levels.
+For example, an `h3` following an `h2` becomes a child of that `h2` in the TOC tree.
+
+Because the plugin operates on rendered HTML rather than raw source, it works consistently with both Markdown and AsciiDoc content without any special configuration.
+
+All HTML output is XSS-escaped.
+
+[id="installation"]
+== Add a table of contents to your pages
+
+=== Add the dependency
+
+Add the TOC plugin to your project's `pom.xml`:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.roq</groupId>
+    <artifactId>quarkus-roq-plugin-toc</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+=== Use the pre-rendered HTML block
+
+To display a TOC with default markup, add `\{page.tocHtml}` to your layout template:
+
+[source,html]
+----
+{page.tocHtml}
+
+{#insert /}
+----
+
+This produces a `<nav class="roq-toc" aria-label="Table of contents">` element containing a nested `<ul>` list with anchor links to each heading.
+Each `<li>` carries a `data-level` attribute with 0-indexed depth (h1 → `0`, h2 → `1`, h3 → `2`, …), matching the convention used by the default theme's `toc.js` — so the same JavaScript can decorate server-rendered TOCs with scroll tracking and active-section highlighting.
+
+[source,html]
+----
+<nav class="roq-toc" aria-label="Table of contents">
+<ul>
+<li data-level="1"><a href="#introduction">Introduction</a></li>
+<li data-level="1"><a href="#getting-started">Getting Started</a>
+<ul>
+<li data-level="2"><a href="#prerequisites">Prerequisites</a></li>
+<li data-level="2"><a href="#installation">Installation</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+----
+
+Style the TOC with CSS using the `.roq-toc` class selector, or target specific depths with `[data-level="N"]`.
+
+=== Use structured data for custom rendering
+
+For full control over the TOC markup, iterate over the `\{page.toc}` list:
+
+[source,html]
+----
+{#let toc=page.toc}
+{#if toc.size > 0}
+<aside class="my-toc">
+  <h2>On this page</h2>
+  <ul>
+  {#for entry in toc}
+    <li>
+      <a href="#{entry.id}">{entry.title}</a>
+      {#if entry.children.size > 0}
+      <ul>
+        {#for child in entry.children}
+        <li><a href="#{child.id}">{child.title}</a></li>
+        {/for}
+      </ul>
+      {/if}
+    </li>
+  {/for}
+  </ul>
+</aside>
+{/if}
+{/let}
+----
+
+NOTE: This example renders only two heading levels.
+To render deeper descendants, nest additional `\{#for}` loops inside the `child` block, or use `\{page.tocHtml}` which renders the full hierarchy automatically.
+
+[id="configuration"]
+== Configuration
+
+Pages can tune the TOC through the following front matter keys, which mirror the keys used by the default theme's client-side TOC so the two implementations can share the same configuration:
+
+[cols="1,1,3"]
+|===
+| Key | Default | Description
+
+| `content-toc`
+| `true`
+| Set to `false` to suppress the TOC on an individual page. Applies to both `\{page.toc}` and `\{page.tocHtml}`.
+
+| `content-toc-levels`
+| `6`
+| Maximum heading tag level to include (1–6). For example, `content-toc-levels: 3` includes only `h1`, `h2`, and `h3`. Set to `3` for parity with the default theme's JavaScript TOC default.
+
+| `content-toc-title`
+| `Table of contents`
+| Text used as the `aria-label` on the rendered `<nav>` element.
+|===
+
+Example front matter disabling the TOC on a specific page:
+
+[source,yaml]
+----
+---
+title: My Page
+content-toc: false
+---
+----
+
+=== Progressive enhancement with the default theme's JS TOC
+
+Because `\{page.tocHtml}` emits the same `data-level` convention as the default theme's `toc.js`, you can place the server-rendered TOC inside the default theme's existing `<aside class="content-toc">` wrapper and let the JavaScript layer add scroll tracking and active-section highlighting on top of the already-crawlable HTML:
+
+[source,html]
+----
+{#if page.data.content-toc??}
+<aside class="content-toc" data-title="Contents" data-levels="2">
+  {page.tocHtml}
+</aside>
+{/if}
+----
+
+Search engines and AI crawlers that don't execute JavaScript still see the full TOC; visitors with JavaScript enabled also get the interactive enhancements.
+
+[id="reference"]
+== Template API reference
+
+=== Template extensions on `Page`
+
+[cols="1,1,3"]
+|===
+| Expression | Return type | Description
+
+| `\{page.toc}`
+| `List<TocEntry>`
+| A hierarchical list of TOC entries extracted from the page content. Returns an empty list if the page has no headings with IDs.
+
+| `\{page.tocHtml}`
+| `RawString`
+| A pre-rendered `<nav class="roq-toc" aria-label="...">` HTML block with `data-level` attributes on each `<li>`. Returns an empty string if the page has no headings with IDs or if `content-toc: false` is set.
+|===
+
+=== `TocEntry` properties
+
+[cols="1,1,3"]
+|===
+| Property | Type | Description
+
+| `id`
+| `String`
+| The heading's HTML `id` attribute, used as the anchor fragment.
+
+| `title`
+| `String`
+| The heading's text content.
+
+| `level`
+| `int`
+| The heading level (1–6).
+
+| `children`
+| `List<TocEntry>`
+| Nested child entries (headings at a deeper level).
+|===
