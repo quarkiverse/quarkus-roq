@@ -1,0 +1,46 @@
+= Generate first class citizen pages from your data
+:description: You can now generate pages dynamically from data collections, perfect for catalogs, team pages, or any content driven by structured data files.
+:page-tags: cool-stuff, guide
+:page-series: roq-2.1
+:page-author: jtama
+:page-date: 2026-05-22
+:page-image: https://images.unsplash.com/photo-1629135458283-0c69f7cead37??q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+:qute: true
+
+
+You have all that nicely structured content in `yaml` ou `json`, and all you would like is to generate static pages out of it. May that be events, catalog or any type of roq collection really.
+
+However, if it was already possible to declare data using link:{=site.url}[Roq] via link:{=site.url("/docs/basics/")}#data[roq-data], for which it is even possible to have https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html#data_mapping[strong typing], it was not possible to extract pages directly from them.
+One could create pages _by hand_ that used the data, or, as https://philippart-s.github.io/blog/[Stéphane Philippart] did, generate pages programmatically from these...
+
+The first solution is useful if you only want a single page containing all the content. This is the case, for example, in this blog for  link:{=site.url("events/")}[the list of events] that I gave. However, it is not possible to send a specific link to a particular talk.
+
+Since Roq  link:{=site.url("/posts/roq-2-1-is-here/")}[version 2.1], it is possible to automatically generate a page for each collection item simply by declaring it.
+
+In the configuration file we just need to add:
+
+[source]
+.application.properties
+----
+site.collections.events.layout=event <1>
+site.collections.events.from-data.id-key=id <2>
+----
+<1> Every collection item will be rendered using the `events` layout, which source can be found under <root_dir>\templates\layouts\events.html.
+<2> The property name to be used as _identifiant_
+
+In this case one item of this collection would be found under the `\https://iamroq.dev/events/<slugified form of the title>`.
+
+And that's all. There is NOTHING else to do. Ok, maybe the _layout_ is still work to do. Ok. A minor peculiarity, for the moment item will be made available for the templating through the page `data`, even you have specified `@DataMapping`.
+
+To access it in your **__Qute__** template you will have to use `{page.data.title}` (or if you use the alternative syntax `\{=page.data.title}`).
+
+The feature is beeing particularly usefull in this AI era where LLM are so keen to generate structured output. 
+
+[TIP]
+====
+We do not particularly like generated post, but it can be very usefull for summaries, check https://devoured.fyi/ that make good use of this feature !!!
+==== 
+
+Full documentation is link:{=site.url("/docs/advanced/")}#collections-from-data[already available].
+
+Illustration by https://unsplash.com/@_staticvoid[Lucas Santos]
