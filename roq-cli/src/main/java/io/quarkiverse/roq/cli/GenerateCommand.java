@@ -11,13 +11,24 @@ import picocli.CommandLine.Command;
 public class GenerateCommand extends BuildToolDelegatingCommand {
 
     private static final Map<BuildTool, String> ACTION_MAPPING = Map.of(
-            BuildTool.MAVEN, "package quarkus:run -DskipTests",
-            BuildTool.GRADLE, "build quarkusRun -x test",
-            BuildTool.GRADLE_KOTLIN_DSL, "build quarkusRun -x test");
+            BuildTool.MAVEN, "package",
+            BuildTool.GRADLE, "build",
+            BuildTool.GRADLE_KOTLIN_DSL, "build");
 
     @Override
     public void prepareMaven(BuildToolContext context) {
-        // Skip resources:resources, already part of the package lifecycle
+        // Skip resources:resources (already part of the package lifecycle)
+        // and add the quarkus:run goal with -DskipTests
+        context.getParams().add("quarkus:run");
+        context.getParams().add("-DskipTests");
+    }
+
+    @Override
+    public void prepareGradle(BuildToolContext context) {
+        super.prepareGradle(context);
+        context.getParams().add("quarkusRun");
+        context.getParams().add("-x");
+        context.getParams().add("test");
     }
 
     @Override
