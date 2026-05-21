@@ -28,7 +28,8 @@ export class ImageDialog extends LitElement {
         _loadingImages: { state: true },
         _uploading: { state: true },
         _uploadError: { state: true },
-        _pagePath: { state: true }
+        _pagePath: { state: true },
+        _mode: { state: true }
     };
 
     static styles = css`
@@ -59,16 +60,18 @@ export class ImageDialog extends LitElement {
         this._uploading = false;
         this._uploadError = null;
         this._pagePath = '';
+        this._mode = 'content';
     }
 
-    show(defaultValues = {}, pagePath = '') {
+    show(defaultValues = {}, pagePath = '', options = {}) {
         return new Promise((resolve) => {
             // Cache jsonRpc reference when dialog opens
             if (!cachedJsonRpc) {
                 const editor = document.querySelector('qwc-roq-editor');
                 cachedJsonRpc = editor?.jsonRpc || null;
             }
-            
+
+            this._mode = options.mode || 'content';
             this._values = {
                 src: defaultValues.src || '',
                 alt: defaultValues.alt || '',
@@ -96,8 +99,8 @@ export class ImageDialog extends LitElement {
                         ${this._showPicker ? 'Select Image' : 'Add Image'}
                     </h2>
                 `, [this._showPicker])}
-                ${dialogRenderer(() => this._showPicker ? this._renderPicker() : this._renderForm(), 
-                    [this._values, this._showPicker, this._pageImages, this._publicImages, this._loadingImages, this._uploading, this._uploadError])}
+                ${dialogRenderer(() => this._showPicker ? this._renderPicker() : this._renderForm(),
+                    [this._values, this._showPicker, this._pageImages, this._publicImages, this._loadingImages, this._uploading, this._uploadError, this._mode])}
                 ${dialogFooterRenderer(() => html`
                     ${this._showPicker ? html`
                         <vaadin-button theme="tertiary" @click=${() => this._showPicker = false}>
@@ -141,16 +144,18 @@ export class ImageDialog extends LitElement {
                         Browse
                     </vaadin-button>
                 </div>
-                <vaadin-text-field
-                    label="Alternate text"
-                    .value=${this._values.alt}
-                    @value-changed=${(e) => this._updateValue('alt', e.detail.value)}
-                ></vaadin-text-field>
-                <vaadin-text-field
-                    label="Title"
-                    .value=${this._values.title}
-                    @value-changed=${(e) => this._updateValue('title', e.detail.value)}
-                ></vaadin-text-field>
+                ${this._mode !== 'frontmatter' ? html`
+                    <vaadin-text-field
+                        label="Alternate text"
+                        .value=${this._values.alt}
+                        @value-changed=${(e) => this._updateValue('alt', e.detail.value)}
+                    ></vaadin-text-field>
+                    <vaadin-text-field
+                        label="Title"
+                        .value=${this._values.title}
+                        @value-changed=${(e) => this._updateValue('title', e.detail.value)}
+                    ></vaadin-text-field>
+                ` : ''}
             </vaadin-vertical-layout>
         `;
     }
@@ -204,8 +209,9 @@ export class ImageDialog extends LitElement {
     }
 
     _onImageSelected(e) {
-        const { image } = e.detail;
-        this._values = { ...this._values, src: image.path };
+        const { image, location } = e.detail;
+        const src = location === 'page' ? image.name : image.path;
+        this._values = { ...this._values, src };
         this._showPicker = false;
     }
 
@@ -274,10 +280,10 @@ customElements.define('qwc-image-dialog', ImageDialog);
 
 let dialogInstance = null;
 
-export function showImageDialog(defaultValues = {}, pagePath = '') {
+export function showImageDialog(defaultValues = {}, pagePath = '', options = {}) {
     if (!dialogInstance) {
         dialogInstance = document.createElement('qwc-image-dialog');
         document.body.appendChild(dialogInstance);
     }
-    return dialogInstance.show(defaultValues, pagePath);
+    return dialogInstance.show(defaultValues, pagePath, options);
 }
