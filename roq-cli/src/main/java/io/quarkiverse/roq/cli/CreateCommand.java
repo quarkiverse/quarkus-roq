@@ -81,6 +81,13 @@ public class CreateCommand implements Callable<Integer> {
                 output.info("");
                 output.info("  \u276F cd " + name);
                 output.info("  \u276F roq start");
+                if (buildTool == BuildTool.GRADLE || buildTool == BuildTool.GRADLE_KOTLIN_DSL) {
+                    output.info("");
+                    output.info("\u26A0\uFE0F  Gradle requires extra setup:");
+                    output.info("  1. Add the native plugin to your build file:");
+                    output.info("     id 'io.mvnpm.gradle.plugin.native-java-plugin' version '1.0.0' (or newer)");
+                    output.info("  2. Create src/main/java/ with at least one .java file (e.g. package-info.java)");
+                }
                 output.info("");
                 return CommandLine.ExitCode.OK;
             } else {

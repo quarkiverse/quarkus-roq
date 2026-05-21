@@ -5,10 +5,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
 
 import io.quarkus.devtools.commands.CreateProject;
 import io.quarkus.devtools.commands.CreateProjectHelper;
@@ -140,8 +141,8 @@ public class RoqProjectCreator {
             }
         }
 
-        // Remove src/ (not needed for a Roq site)
-        deleteDir(projectDir.resolve("src"));
+        // Remove src/ if it has no files (not needed for a Roq site, but Gradle needs src/main/java with sources)
+        deleteDirIfNoFiles(projectDir.resolve("src"));
 
         // Replace the default Quarkus README with a Roq-specific one
         copyBaseResource("README.md");
@@ -200,17 +201,16 @@ public class RoqProjectCreator {
         return ROQ_PREFIX + value;
     }
 
-    private static void deleteDir(Path dir) throws IOException {
-        if (Files.exists(dir)) {
-            try (var stream = Files.walk(dir)) {
-                stream.sorted(Comparator.reverseOrder())
-                        .forEach(p -> {
-                            try {
-                                Files.delete(p);
-                            } catch (IOException ignored) {
-                            }
-                        });
+    private static void deleteDirIfNoFiles(Path dir) throws IOException {
+        if (!Files.isDirectory(dir)) {
+            return;
+        }
+        try (var stream = Files.find(dir, Integer.MAX_VALUE, (p, a) -> a.isRegularFile())) {
+            if (stream.findAny().isPresent()) {
+                return;
             }
         }
+        FileUtils.deleteDirectory(dir.toFile());
     }
+
 }
