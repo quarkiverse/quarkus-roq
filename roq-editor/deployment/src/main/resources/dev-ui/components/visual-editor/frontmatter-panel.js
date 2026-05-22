@@ -5,6 +5,7 @@ import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/date-time-picker';
 import { parseAndFormatDate } from '../../utils/frontmatter.js';
+import { showImageDialog } from '../image-dialog.js';
 
 export class FrontmatterPanel extends LitElement {
     
@@ -12,6 +13,7 @@ export class FrontmatterPanel extends LitElement {
         frontmatter: { type: Object },
         date: { type: String },  // Initial date from file path (used as fallback if not in frontmatter)
         dateFormat: { type: String },  // Date format from server config (e.g., "yyyy-MM-dd[ HH:mm][:ss][ Z]")
+        pagePath: { type: String },
         _fields: { state: true }
     };
 
@@ -52,19 +54,41 @@ export class FrontmatterPanel extends LitElement {
         .field-group {
             margin-bottom: var(--lumo-space-m);
         }
+        .field-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--lumo-space-xs);
+        }
         .field-label {
             display: block;
             font-size: var(--lumo-font-size-s);
             font-weight: 500;
             color: var(--lumo-body-text-color);
-            margin-bottom: var(--lumo-space-xs);
+            flex: 1;
+        }
+        .field-header .delete-icon {
+            cursor: pointer;
+            color: var(--lumo-contrast-30pct);
+            font-size: var(--lumo-font-size-xs);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .field-group:hover .delete-icon {
+            opacity: 1;
+        }
+        .field-header .delete-icon:hover {
+            color: var(--lumo-error-color);
+        }
+        .suffix-icon {
+            cursor: pointer;
+            color: var(--lumo-contrast-50pct);
+        }
+        .suffix-icon:hover {
+            color: var(--lumo-contrast-80pct);
         }
         vaadin-text-field,
         vaadin-text-area {
             width: 100%;
-        }
-        .array-field {
-            margin-bottom: var(--lumo-space-s);
         }
         .array-item {
             display: flex;
@@ -134,6 +158,7 @@ export class FrontmatterPanel extends LitElement {
         this.frontmatter = {};
         this.date = '';  // Initial date from file path (used as fallback if not in frontmatter)
         this.dateFormat = 'yyyy-MM-dd';  // Default date format, will be overridden by server config
+        this.pagePath = '';
         this._fields = {};
         this._fieldTypes = {}; // Store field types: { fieldName: 'textarea' | 'text' | 'number' | 'boolean' | 'array' }
         this._newFieldKey = '';
@@ -226,11 +251,22 @@ export class FrontmatterPanel extends LitElement {
         `;
     }
 
+    _renderFieldHeader(key) {
+        return html`
+            <div class="field-header">
+                <label class="field-label">${key}</label>
+                <vaadin-icon icon="font-awesome-solid:xmark" class="delete-icon"
+                    title="Remove field"
+                    @click="${() => this._removeField(key)}"></vaadin-icon>
+            </div>
+        `;
+    }
+
     _renderField(key, value) {
         if (Array.isArray(value)) {
             return html`
                 <div class="field-group">
-                    <label class="field-label">${key}</label>
+                    ${this._renderFieldHeader(key)}
                     ${value.map((item, index) => html`
                         <div class="array-item">
                             <vaadin-text-field
@@ -238,9 +274,10 @@ export class FrontmatterPanel extends LitElement {
                                 @input="${(e) => this._updateArrayItem(key, index, e.target.value)}">
                             </vaadin-text-field>
                             <vaadin-button
-                                theme="tertiary error"
-                                @click="${() => this._removeArrayItem(key, index)}">
-                                <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
+                                theme="tertiary error icon small"
+                                @click="${() => this._removeArrayItem(key, index)}"
+                                title="Remove item">
+                                <vaadin-icon icon="font-awesome-solid:xmark"></vaadin-icon>
                             </vaadin-button>
                         </div>
                     `)}
@@ -250,65 +287,56 @@ export class FrontmatterPanel extends LitElement {
                         <vaadin-icon icon="font-awesome-solid:plus" slot="prefix"></vaadin-icon>
                         Add Item
                     </vaadin-button>
-                    <vaadin-button
-                        theme="tertiary error small"
-                        @click="${() => this._removeField(key)}"
-                        style="margin-top: var(--lumo-space-xs);">
-                        <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
-                        Remove Field
-                    </vaadin-button>
                 </div>
             `;
         } else if (typeof value === 'object' && value !== null) {
-            // For nested objects, render as textarea with YAML-like format
             return html`
                 <div class="field-group">
-                    <label class="field-label">${key}</label>
+                    ${this._renderFieldHeader(key)}
                     <vaadin-text-area
                         value="${JSON.stringify(value, null, 2)}"
                         rows="4"
                         @input="${(e) => this._updateField(key, e.target.value, true)}">
                     </vaadin-text-area>
-                    <vaadin-button
-                        theme="tertiary error small"
-                        @click="${() => this._removeField(key)}"
-                        style="margin-top: var(--lumo-space-xs);">
-                        <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
-                        Remove Field
-                    </vaadin-button>
                 </div>
             `;
         } else if (typeof value === 'boolean') {
-            // Boolean field - use checkbox
             return html`
                 <div class="field-group">
-                    <label class="field-label" style="display: flex; align-items: center; gap: var(--lumo-space-xs); cursor: pointer;">
-                        <input 
-                            type="checkbox"
-                            ?checked="${value}"
-                            @change="${(e) => this._updateField(key, e.target.checked)}"
-                            style="width: auto; margin: 0; cursor: pointer;">
-                        <span>${key}</span>
-                    </label>
-                    <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-contrast-60pct); margin-top: var(--lumo-space-xs); margin-left: calc(var(--lumo-space-m) + 4px);">
-                        Value: ${value ? 'true' : 'false'}
+                    <div class="field-header">
+                        <label class="field-label" style="display: flex; align-items: center; gap: var(--lumo-space-xs); cursor: pointer;">
+                            <input
+                                type="checkbox"
+                                ?checked="${value}"
+                                @change="${(e) => this._updateField(key, e.target.checked)}"
+                                style="width: auto; margin: 0; cursor: pointer;">
+                            <span>${key}</span>
+                        </label>
+                        <vaadin-icon icon="font-awesome-solid:xmark" class="delete-icon"
+                            title="Remove field"
+                            @click="${() => this._removeField(key)}"></vaadin-icon>
                     </div>
-                    <vaadin-button
-                        theme="tertiary error small"
-                        @click="${() => this._removeField(key)}"
-                        style="margin-top: var(--lumo-space-xs);">
-                        <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
-                        Remove Field
-                    </vaadin-button>
+                </div>
+            `;
+        } else if (key === 'image') {
+            return html`
+                <div class="field-group">
+                    ${this._renderFieldHeader(key)}
+                    <vaadin-text-field
+                        value="${String(value || '')}"
+                        @input="${(e) => this._updateField(key, e.target.value)}">
+                        <vaadin-icon slot="suffix" icon="font-awesome-solid:folder-open" class="suffix-icon"
+                            title="Browse images"
+                            @click="${() => this._browseImage(key, value)}"></vaadin-icon>
+                    </vaadin-text-field>
                 </div>
             `;
         } else {
-            // String, number
             const fieldType = this._fieldTypes[key];
             const isTextarea = fieldType === 'textarea' || (typeof value === 'string' && value.length > 100);
             return html`
                 <div class="field-group">
-                    <label class="field-label">${key}</label>
+                    ${this._renderFieldHeader(key)}
                     ${isTextarea
                         ? html`
                             <vaadin-text-area
@@ -325,16 +353,19 @@ export class FrontmatterPanel extends LitElement {
                             </vaadin-text-field>
                         `
                     }
-                    <vaadin-button
-                        theme="tertiary error small"
-                        @click="${() => this._removeField(key)}"
-                        style="margin-top: var(--lumo-space-xs);">
-                        <vaadin-icon icon="font-awesome-solid:trash" slot="prefix"></vaadin-icon>
-                        Remove Field
-                    </vaadin-button>
                 </div>
             `;
         }
+    }
+
+    _browseImage(key, currentValue) {
+        showImageDialog({ src: String(currentValue || '') }, this.pagePath, { mode: 'frontmatter' }).then(({ src }) => {
+            if (src) {
+                this._fields[key] = src;
+                this._notifyChange();
+                this.requestUpdate();
+            }
+        });
     }
 
     _updateField(key, value, isJSON = false) {

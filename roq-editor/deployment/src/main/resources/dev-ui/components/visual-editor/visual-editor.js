@@ -538,6 +538,7 @@ export class RoqVisualEditor extends BaseEditor {
                 .frontmatter="${this._frontmatter}"
                 .date="${this.page.date}"
                 .dateFormat="${this.dateFormat}"
+                .pagePath="${this.page?.path || ''}"
                 @frontmatter-changed="${this._onFrontmatterChanged}"
               >
               </qwc-frontmatter-panel>
