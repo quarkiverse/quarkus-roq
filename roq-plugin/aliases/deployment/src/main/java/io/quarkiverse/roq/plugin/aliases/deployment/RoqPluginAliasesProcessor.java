@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.Set;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.plugin.aliases.deployment.items.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.plugin.aliases.runtime.RoqFrontMatterAliasesRecorder;

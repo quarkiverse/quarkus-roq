@@ -19,7 +19,7 @@ public class RoqErrorPageSetup implements HotReplacementSetup {
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException",
-            "io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException",
+            "io.quarkiverse.roq.frontmatter.runtime.exception.RoqTemplateLinkException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException",
             "io.quarkiverse.roq.frontmatter.deployment.exception.RoqPluginException",

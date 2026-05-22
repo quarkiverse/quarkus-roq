@@ -18,11 +18,13 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.IsDevelopment;
+import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
+import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.console.ConsoleCommand;
 import io.quarkus.deployment.console.ConsoleStateManager;
 import io.quarkus.deployment.logging.LogCleanupFilterBuildItem;
@@ -44,6 +46,15 @@ public class RoqEditorProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    // Workaround for SmallRye Config greedy wildcard bug (smallrye/smallrye-config#1492).
+    // TODO: remove when Quarkus upgrades to SmallRye Config 3.17+
+    @BuildStep
+    void suppressWildcardMapMismatch(BuildProducer<SuppressNonRuntimeConfigChangedWarningBuildItem> producer) {
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("editor.collections.*"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("editor.collections.*.name"));
+        producer.produce(new SuppressNonRuntimeConfigChangedWarningBuildItem("editor.collections.*.sync-name"));
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)

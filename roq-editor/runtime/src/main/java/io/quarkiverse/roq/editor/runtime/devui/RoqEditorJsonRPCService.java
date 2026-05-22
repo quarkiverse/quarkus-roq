@@ -27,10 +27,10 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
-import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.assistant.runtime.dev.Assistant;
 import io.smallrye.common.annotation.Blocking;
@@ -106,7 +106,6 @@ public class RoqEditorJsonRPCService {
 
     @Blocking
     public SyncPathResult syncPath(String path) {
-
         try {
             Page page = resolvePage(path);
             String slug = toSlug(page.title());
@@ -115,33 +114,10 @@ public class RoqEditorJsonRPCService {
             if (suggestedPath == null) {
                 return new SyncPathResult(null, null);
             }
-            Path currentFilePath = getPageAbsolutePath(page);
-            Path contentDir = resolveContentDirPath(page);
-            final Path newFilePath = contentDir.resolve(suggestedPath);
-            final Path from;
-            final Path to;
-            if (page.source().isIndex()) {
-                from = currentFilePath.getParent();
-                to = newFilePath.getParent();
-            } else {
-                from = currentFilePath;
-                to = newFilePath;
+            String error = doRename(page, suggestedPath);
+            if (error != null) {
+                return new SyncPathResult(null, error);
             }
-
-            if (Files.exists(to)) {
-                if (Files.isDirectory(to)) {
-                    try {
-                        Files.delete(to);
-                    } catch (DirectoryNotEmptyException e) {
-                        return new SyncPathResult(null, "Target dir already exists and is not empty: " + to);
-                    }
-                } else {
-                    return new SyncPathResult(null, "Target already exists: " + to);
-                }
-            }
-
-            Files.move(from, to);
-            LOG.infof("Moved document from %s to %s", from, to);
             return new SyncPathResult(suggestedPath, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error move document for path: %s", path);
@@ -152,30 +128,70 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public SaveResult savePageContent(String path, String content, String date, String title) {
         if (content == null) {
-            return new SaveResult(null, "Content parameter is required");
+            return new SaveResult(null, null, "Content parameter is required");
         }
 
         try {
             Page page = resolvePage(path);
-            Path filePath = getPageAbsolutePath(page);
+            boolean wasInSync = getCurrentSuggestedPath(page) == null;
 
             String suggestedPath = null;
-            if (page instanceof DocumentPage) {
-                if (title != null && date != null) {
-                    // Move post if date or title changed, returns new path and new file location
-                    String newSlug = toSlug(title);
-                    suggestedPath = getSuggestedPath(page, date, newSlug);
-                }
+            if (page instanceof DocumentPage && title != null && date != null) {
+                suggestedPath = getSuggestedPath(page, date, toSlug(title));
             }
 
-            Files.writeString(filePath, content, StandardCharsets.UTF_8);
-            LOG.infof("Successfully saved page: %s", filePath);
+            if (wasInSync && suggestedPath != null) {
+                String error = doRename(page, suggestedPath);
+                if (error != null) {
+                    Files.writeString(getPageAbsolutePath(page), content, StandardCharsets.UTF_8);
+                    return new SaveResult(suggestedPath, null, null);
+                }
+                Path contentDir = resolveContentDirPath(page);
+                Path newFilePath = contentDir.resolve(suggestedPath);
+                Files.writeString(newFilePath, content, StandardCharsets.UTF_8);
+                LOG.infof("Auto-synced and saved page: %s", newFilePath);
+                return new SaveResult(null, suggestedPath, null);
+            }
 
-            return new SaveResult(suggestedPath, null);
+            Files.writeString(getPageAbsolutePath(page), content, StandardCharsets.UTF_8);
+            LOG.infof("Successfully saved page: %s", getPageAbsolutePath(page));
+            return new SaveResult(suggestedPath, null, null);
         } catch (Exception e) {
             LOG.errorf(e, "Error saving page for path: %s", path);
-            return new SaveResult(null, e.getMessage());
+            return new SaveResult(null, null, e.getMessage());
         }
+    }
+
+    private String doRename(Page page, String suggestedPath) throws IOException {
+        Path currentFilePath = getPageAbsolutePath(page);
+        Path contentDir = resolveContentDirPath(page);
+        Path newFilePath = contentDir.resolve(suggestedPath);
+        final Path from;
+        final Path to;
+        if (page.source().isIndex()) {
+            from = currentFilePath.getParent();
+            to = newFilePath.getParent();
+        } else {
+            from = currentFilePath;
+            to = newFilePath;
+        }
+
+        if (Files.exists(to)) {
+            if (Files.isDirectory(to)) {
+                try {
+                    Files.delete(to);
+                } catch (DirectoryNotEmptyException e) {
+                    return "Target dir already exists and is not empty: " + to;
+                }
+            } else {
+                return "Target already exists: " + to;
+            }
+        }
+
+        Files.createDirectories(to.getParent());
+        Files.move(from, to);
+        LOG.infof("Moved document from %s to %s", from, to);
+        return null;
     }
 
     @Blocking
@@ -200,7 +216,9 @@ public class RoqEditorJsonRPCService {
             final String date;
             if (collectionId != null) {
                 date = LocalDate.now().format(FILE_NAME_DATE_FORMAT);
-                dirName = date + "-" + slug;
+                var collConfig = getCollectionConfig(collectionId);
+                String pattern = collConfig != null ? collConfig.name() : RoqEditorConfig.DEFAULT_COLLECTION_NAME_PATTERN;
+                dirName = resolveFileNamePattern(pattern, date, slug);
                 parentDir = contentDir.resolve(collectionId);
             } else {
                 dirName = slug;
@@ -391,6 +409,13 @@ public class RoqEditorJsonRPCService {
         return StringPaths.slugify(title.toLowerCase().trim(), false, false);
     }
 
+    private RoqEditorConfig.CollectionEditorConfig getCollectionConfig(String collectionId) {
+        if (collectionId != null && editorConfig.collectionsMap().containsKey(collectionId)) {
+            return editorConfig.collectionsMap().get(collectionId);
+        }
+        return null;
+    }
+
     private String getCurrentSuggestedPath(Page page) {
         String slug = toSlug(page.title());
         final String date = formatDate(page.date());
@@ -398,7 +423,11 @@ public class RoqEditorJsonRPCService {
     }
 
     private String getSuggestedPath(Page page, String date, String slug) {
-        if (page instanceof NormalPage) {
+        if (!(page instanceof DocumentPage docPage)) {
+            return null;
+        }
+        var collectionConfig = getCollectionConfig(docPage.collectionId());
+        if (collectionConfig == null || !collectionConfig.syncName()) {
             return null;
         }
         boolean isDirPage = page.source().isIndex();
@@ -409,7 +438,7 @@ public class RoqEditorJsonRPCService {
         if (!matcher.matches()) {
             return null;
         }
-        String syncedName = date + "-" + slug;
+        String syncedName = resolveFileNamePattern(collectionConfig.name(), date, slug);
         if (syncedName.equals(currentName)) {
             return null;
         }
@@ -425,13 +454,25 @@ public class RoqEditorJsonRPCService {
         return contentDir.relativize(newFilePath).toString();
     }
 
+    private String resolveFileNamePattern(String pattern, String date, String slug) {
+        String year = date.length() >= 4 ? date.substring(0, 4) : "";
+        String month = date.length() >= 7 ? date.substring(5, 7) : "";
+        String day = date.length() >= 10 ? date.substring(8, 10) : "";
+        return TemplateLink.resolvePattern(pattern, Map.of(
+                ":date", date,
+                ":slug", slug,
+                ":year", year,
+                ":month", month,
+                ":day", day));
+    }
+
     public record PageContentResult(String content, String errorMessage) {
         public boolean isError() {
             return errorMessage != null && !errorMessage.isEmpty();
         }
     }
 
-    public record SaveResult(String suggestedPath, String errorMessage) {
+    public record SaveResult(String suggestedPath, String newPath, String errorMessage) {
         public boolean isError() {
             return errorMessage != null && !errorMessage.isEmpty();
         }

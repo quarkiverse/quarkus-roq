@@ -403,28 +403,26 @@ export class QwcRoqEditor extends LitElement {
                 console.error(result.errorMessage);
                 return;
             }
-            const updated = {...page, path: result.newPath, suggestedPath: null}
-
-            if (page.collectionId) {
-                this._posts = this._posts.map(p => p.path === page.path ? updated : p);
-            } else {
-                this._pages = this._pages.map(p => p.path === page.path ? updated : p);
-            }
-
-            if (this._selectedPage?.path === page.path) {
-                this._selectedPage = updated;
-            }
-
-            // Centralized Git handling
-            this._syncManager?.markAsDirty();
-            this._syncManager?.refreshStatus(true);
-
-            this._pendingRefreshPages = true;
+            this._applyPagePath(page, result.newPath);
         }).catch(error => {
             showNotification('Error syncing page path: ' + error.message);
             console.error(error);
         });
+    }
 
+    _applyPagePath(page, newPath) {
+        const updated = {...page, path: newPath, suggestedPath: null};
+        if (page.collectionId) {
+            this._posts = this._posts.map(p => p.path === page.path ? updated : p);
+        } else {
+            this._pages = this._pages.map(p => p.path === page.path ? updated : p);
+        }
+        if (this._selectedPage?.path === page.path) {
+            this._selectedPage = updated;
+        }
+        this._syncManager?.markAsDirty();
+        this._syncManager?.refreshStatus(true);
+        this._pendingRefreshPages = true;
     }
 
     async _onPageOpen(e) {
@@ -567,7 +565,9 @@ export class QwcRoqEditor extends LitElement {
                 // Success - update the file path if it changed (e.g., due to date/title change)
                 this._fileContent = content;
 
-                if (result && result.suggestedPath && this._selectedPage) {
+                if (result?.newPath && this._selectedPage) {
+                    this._applyPagePath(this._selectedPage, result.newPath);
+                } else if (result?.suggestedPath && this._selectedPage) {
                     this._selectedPage = {
                         ...this._selectedPage,
                         suggestedPath: result.suggestedPath

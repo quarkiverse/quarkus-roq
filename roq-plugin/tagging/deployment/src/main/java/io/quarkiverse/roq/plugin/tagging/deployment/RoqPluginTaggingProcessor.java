@@ -21,14 +21,14 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUr
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.plugin.tagging.RoqTaggingTemplateExtension;
 import io.quarkiverse.roq.plugin.tagging.RoqTaggingUtils;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
