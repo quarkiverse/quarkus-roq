@@ -138,6 +138,7 @@ export function renderImageForm(ctx) {
           </vaadin-text-field>
           <vaadin-text-field
             label="Alternate text"
+            required
             id="prompt-alt"
             .value=${ctx.values.alt ?? ''}
             @value-changed=${(e) => ctx.update('alt', e.detail.value)}

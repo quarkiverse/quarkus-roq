@@ -1,10 +1,9 @@
-package io.quarkiverse.roq.editor.deployment;
+package io.quarkiverse.roq.editor.deployment.git;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import io.quarkiverse.roq.editor.deployment.git.GitSyncService;
 import io.quarkus.devui.spi.buildtime.BuildTimeActionBuildItem;
 
 /**

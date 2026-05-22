@@ -96,7 +96,7 @@ export class ImageDialog extends LitElement {
                 @closed=${() => { if (this._resolve) this._handleCancel(); }}
                 ${dialogHeaderRenderer(() => html`
                     <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">
-                        ${this._showPicker ? 'Select Image' : 'Add Image'}
+                        ${this._showPicker ? 'Select Image' : 'Image'}
                     </h2>
                 `, [this._showPicker])}
                 ${dialogRenderer(() => this._showPicker ? this._renderPicker() : this._renderForm(),
@@ -115,11 +115,12 @@ export class ImageDialog extends LitElement {
                         <vaadin-button theme="tertiary" @click=${this._handleCancel}>
                             Cancel
                         </vaadin-button>
-                        <vaadin-button theme="primary" @click=${this._handleConfirm}>
+                        <vaadin-button theme="primary" @click=${this._handleConfirm}
+                            ?disabled=${!this._isFormValid()}>
                             OK
                         </vaadin-button>
                     `}
-                `, [this._showPicker])}
+                `, [this._showPicker, this._values.src, this._values.alt, this._mode])}
             ></vaadin-dialog>
         `;
     }
@@ -147,6 +148,7 @@ export class ImageDialog extends LitElement {
                 ${this._mode !== 'frontmatter' ? html`
                     <vaadin-text-field
                         label="Alternate text"
+                        required
                         .value=${this._values.alt}
                         @value-changed=${(e) => this._updateValue('alt', e.detail.value)}
                     ></vaadin-text-field>
@@ -173,6 +175,12 @@ export class ImageDialog extends LitElement {
                 @image-upload=${this._onImageUpload}
             ></qwc-image-picker>
         `;
+    }
+
+    _isFormValid() {
+        if (!this._values.src) return false;
+        if (this._mode !== 'frontmatter' && !this._values.alt) return false;
+        return true;
     }
 
     _updateValue(key, value) {
@@ -210,7 +218,7 @@ export class ImageDialog extends LitElement {
 
     _onImageSelected(e) {
         const { image, location } = e.detail;
-        const src = location === 'page' ? image.name : image.path;
+        const src = (this._mode !== 'frontmatter' && location === 'public') ? image.path : image.name;
         this._values = { ...this._values, src };
         this._showPicker = false;
     }
@@ -260,6 +268,7 @@ export class ImageDialog extends LitElement {
     }
 
     _handleConfirm() {
+        if (!this._isFormValid()) return;
         if (this._resolve) {
             this._resolve({ ...this._values });
             this._resolve = null;

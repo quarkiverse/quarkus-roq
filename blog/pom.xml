@@ -78,11 +78,11 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>io.quarkiverse.chappie</groupId>
             <artifactId>quarkus-chappie</artifactId>
             <version>1.6.3</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>

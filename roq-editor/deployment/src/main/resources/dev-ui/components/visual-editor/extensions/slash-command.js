@@ -152,36 +152,16 @@ export const SlashCommand = Extension.create({
         (pos) =>
           ({ editor, chain }) => {
             if (pos == null) {
+              console.log('openSlashMenu: pos is null');
               return false;
             }
-            const $root = editor.$pos(pos);
-
-            if ($root.node.type.name !== 'doc') return false
-
-            const $from = $root.firstChild;
-            if (!$from.node.isTextblock) return false;
-            console.log($from.textContent);
-            const hasContent = $from.textContent?.length > 0;
-            if (hasContent) {
-              return chain()
-                .focus()
-                .insertContentAt($from.to, [
-                  {
-                    type: 'paragraph',
-                    content: [
-                      {
-                        type: 'text',
-                        text: '/',
-                      },
-                    ],
-                  }], { updateSelection: true })
-                .run();
+            // Focus at the position, then insert / to trigger the slash command
+            chain().focus(pos).run();
+            const { $from } = editor.state.selection;
+            if ($from.parent.textContent.length > 0) {
+              return chain().splitBlock().insertContent('/').run();
             }
-
-            return chain()
-              .focus()
-              .insertContentAt($from.pos, '/', { updateSelection: true })
-              .run()
+            return chain().insertContent('/').run();
           },
 
     }

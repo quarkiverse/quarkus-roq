@@ -72,14 +72,14 @@ public interface RoqEditorConfig {
     @WithName("collections")
     Map<String, CollectionEditorConfig> collectionsMap();
 
-    String DEFAULT_COLLECTION_NAME_PATTERN = ":date-:slug~5";
+    String DEFAULT_COLLECTION_NAME_PATTERN = ":date-:slug~7";
 
     interface CollectionEditorConfig {
 
         /**
          * File name pattern using link-style placeholders.
          * Supported: :date, :slug, :Slug, :name, :Name, :year, :month, :day.
-         * Use ~W to truncate to W hyphen-separated words (e.g., :slug~5).
+         * Use ~W to truncate to W hyphen-separated words (e.g., :slug~7).
          */
         @WithDefault(DEFAULT_COLLECTION_NAME_PATTERN)
         String name();
@@ -87,7 +87,6 @@ public interface RoqEditorConfig {
         /**
          * If enabled, auto-sync file names when they match the convention and the title/date changes.
          */
-        @WithName("sync-name")
         @WithDefault("true")
         boolean syncName();
     }

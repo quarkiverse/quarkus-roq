@@ -440,7 +440,7 @@ export class RoqVisualEditor extends BaseEditor {
             onSelectionUpdate: () => this.requestUpdate(),
         });
 
-        this._provider.setValue({editor: this._editor, editorElement: this._editorElement});
+        this._provider.setValue({editor: this._editor, editorElement: this._editorElement, pagePath: this.page?.path || ''});
         // Move selection to end
         this._editor.commands.setTextSelection(this._editor.state.doc.content.size);
         // Focus
