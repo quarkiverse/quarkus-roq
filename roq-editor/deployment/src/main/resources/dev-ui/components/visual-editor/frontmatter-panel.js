@@ -60,6 +60,7 @@ export class FrontmatterPanel extends LitElement {
             margin-bottom: var(--lumo-space-xs);
         }
         .field-label {
+            display: block;
             font-size: var(--lumo-font-size-s);
             font-weight: 500;
             color: var(--lumo-body-text-color);
@@ -88,9 +89,6 @@ export class FrontmatterPanel extends LitElement {
         vaadin-text-field,
         vaadin-text-area {
             width: 100%;
-        }
-        .array-field {
-            margin-bottom: var(--lumo-space-s);
         }
         .array-item {
             display: flex;
