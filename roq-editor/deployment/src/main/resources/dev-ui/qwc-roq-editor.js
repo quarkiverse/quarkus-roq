@@ -14,7 +14,6 @@ import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
 import {showNotification} from './components/notification-toast.js';
 import {showConflictDialog} from './components/conflict-dialog.js';
-import './components/passphrase-dialog.js';
 import {showFileSelector} from './components/file-selector-dialog.js';
 import {SyncManager} from './utils/sync-manager.js';
 import {markups, config} from 'build-time-data';
@@ -85,7 +84,6 @@ export class QwcRoqEditor extends LitElement {
         this._syncing = false;
         this._publishing = false;
         this._syncManager = null;
-        this._pendingSyncOperation = null; // operation waiting for passphrase
     }
 
     // Components callbacks
@@ -128,7 +126,6 @@ export class QwcRoqEditor extends LitElement {
                     (status) => { this._syncStatus = status; },
                     config.sync,
                     {
-                        onPassphraseRequired: (errorMsg) => this._showPassphraseDialog(errorMsg),
                         onNotification: (msg, type) => showNotification(msg, type),
                         onConflict: (files) => showConflictDialog(files),
                         onBusy: (isBusy) => { this._syncing = isBusy; }
@@ -236,10 +233,6 @@ export class QwcRoqEditor extends LitElement {
                 </div>
             ` : ''}
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
-            <passphrase-dialog
-                @passphrase-confirmed="${this._onPassphraseConfirmed}"
-                @passphrase-cancelled="${() => { this._pendingSyncOperation = null; }}">
-            </passphrase-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
               : this._renderContent()
@@ -619,31 +612,13 @@ export class QwcRoqEditor extends LitElement {
         });
     }
 
-    _showPassphraseDialog(errorMsg) {
-        this.shadowRoot?.querySelector('passphrase-dialog')?.show(errorMsg);
-    }
-
-    async _onPassphraseConfirmed(e) {
-        const { passphrase } = e.detail;
-        await this._syncManager.setPassphrase(passphrase);
-        if (this._pendingSyncOperation) {
-            const operation = this._pendingSyncOperation;
-            this._pendingSyncOperation = null;
-            operation();
-        }
-    }
-
     async _onSyncRequested() {
         this._syncing = true;
-        this._pendingSyncOperation = () => this._onSyncRequested();
         try {
             const result = await this._syncManager.manualSync();
-            if (!result?.authFailed) {
-                this._pendingSyncOperation = null;
-                if (result?.success) {
-                    this._pendingRefreshPages = true;
-                    this._refreshPageInfo();
-                }
+            if (result?.success) {
+                this._pendingRefreshPages = true;
+                this._refreshPageInfo();
             }
         } catch (error) {
             showNotification('Sync failed: ' + error.message, 'error');
@@ -670,12 +645,8 @@ export class QwcRoqEditor extends LitElement {
         }
 
         this._publishing = true;
-        this._pendingSyncOperation = () => this._onPublishRequested(event);
         try {
-            const result = await this._syncManager.manualPublish(message, selectedFiles);
-            if (!result?.authFailed) {
-                this._pendingSyncOperation = null;
-            }
+            await this._syncManager.manualPublish(message, selectedFiles);
         } catch (error) {
             showNotification('Publish failed: ' + error.message, 'error');
         } finally {

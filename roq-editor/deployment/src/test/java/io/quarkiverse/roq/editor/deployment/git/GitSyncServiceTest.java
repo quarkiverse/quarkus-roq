@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -87,7 +88,7 @@ class GitSyncServiceTest {
 
     @Test
     void shouldReportUpToDateForCleanRepository() {
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.upToDate()).isTrue();
         assertThat(status.branch()).isNotBlank();
     }
@@ -95,7 +96,7 @@ class GitSyncServiceTest {
     @Test
     void shouldDetectNewUntrackedContentFiles() throws IOException {
         Files.writeString(localDirectory.resolve("content/new-post.md"), "# New Post");
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.hasUnpublished()).isTrue();
         assertThat(status.upToDate()).isFalse();
     }
@@ -103,7 +104,7 @@ class GitSyncServiceTest {
     @Test
     void shouldDetectModifiedTrackedFiles() throws IOException {
         Files.writeString(localDirectory.resolve("content/init.md"), "Modified content\n");
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.hasUnpublished()).isTrue();
         assertThat(status.upToDate()).isFalse();
     }
@@ -114,7 +115,7 @@ class GitSyncServiceTest {
         localRepository.add().addFilepattern("content/post.md").call();
         localRepository.commit().setMessage("Local commit").call();
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.ahead()).isEqualTo(1);
     }
 
@@ -132,7 +133,7 @@ class GitSyncServiceTest {
             otherGit.push().call();
         }
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.behind()).isEqualTo(1);
         cleanDirectory(otherPersonDir);
     }
@@ -155,7 +156,7 @@ class GitSyncServiceTest {
             otherGit.push().call();
         }
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
         assertThat(status.ahead()).isEqualTo(1);
         assertThat(status.behind()).isEqualTo(1);
         cleanDirectory(otherPersonDir);
@@ -163,7 +164,7 @@ class GitSyncServiceTest {
 
     @Test
     void shouldReturnSuccessWhenPublishingWithNoChanges() {
-        GitSyncResult result = gitSyncService.publish("No changes commit", null, null);
+        GitSyncResult result = gitSyncService.publish("No changes commit", null);
         assertThat(result.success()).isTrue();
         assertThat(result.message()).matches(m -> m.equals("Nothing to publish") || m.contains("successfully"));
     }
@@ -171,14 +172,28 @@ class GitSyncServiceTest {
     @Test
     void shouldSuccessfullyPublishNewFiles() throws Exception {
         Files.writeString(localDirectory.resolve("content/post.md"), "# New Post Content");
-        GitSyncResult result = gitSyncService.publish("Add new post", null, null);
+        GitSyncResult result = gitSyncService.publish("Add new post", null);
         assertThat(result.success()).isTrue();
         assertThat(result.message()).isEqualTo("Changes pushed successfully");
     }
 
     @Test
+    void shouldIgnoreFilePathsOutsideContentDuringPublish() throws Exception {
+        Files.writeString(localDirectory.resolve("content/post.md"), "# Post");
+        Files.writeString(localDirectory.resolve("outside.md"), "should not be committed");
+
+        GitSyncResult result = gitSyncService.publish("Publish with mixed paths",
+                List.of("content/post.md", "outside.md"));
+
+        assertThat(result.success()).isTrue();
+        Status status = localRepository.status().call();
+        assertThat(status.getUntracked()).contains("outside.md");
+        assertThat(status.getUntracked()).doesNotContain("content/post.md");
+    }
+
+    @Test
     void shouldSucceedWhenSyncingWithNoRemoteChanges() {
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
         assertThat(result.success()).isTrue();
     }
 
@@ -198,7 +213,7 @@ class GitSyncServiceTest {
         }
 
         Files.writeString(localDirectory.resolve(fileName), "local dirty content\n");
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
         assertThat(result.success()).isFalse();
         assertThat(result.hasConflicts()).isTrue();
         assertThat(result.conflictFiles()).contains(fileName);
@@ -223,7 +238,7 @@ class GitSyncServiceTest {
         }
 
         Files.writeString(localDirectory.resolve(fileName), "local line 1\ninitial content\n");
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
         assertThat(result.success()).isTrue();
         String finalContent = Files.readString(localDirectory.resolve(fileName));
         assertThat(finalContent).contains("local line 1");
@@ -234,7 +249,7 @@ class GitSyncServiceTest {
     @Test
     void shouldSuccessfullyPerformCombinedPublishAndSync() throws Exception {
         Files.writeString(localDirectory.resolve("content/update.md"), "batch update content");
-        GitSyncResult result = gitSyncService.publishAndSync("Full sync test", null, null);
+        GitSyncResult result = gitSyncService.publishAndSync("Full sync test", null);
         assertThat(result.success()).isTrue();
         assertThat(result.message()).containsIgnoringCase("successfully");
     }
@@ -254,7 +269,7 @@ class GitSyncServiceTest {
             otherGit.push().call();
         }
 
-        GitSyncResult result = gitSyncService.publish("Try to publish", null, null);
+        GitSyncResult result = gitSyncService.publish("Try to publish", null);
         assertThat(result.success()).isTrue();
         assertThat(result.message()).isEqualTo("Changes pushed successfully");
         cleanDirectory(otherPersonDir);
@@ -279,7 +294,7 @@ class GitSyncServiceTest {
 
         Files.writeString(localDirectory.resolve(fileName), "LOCAL CHANGE\ninitial content\n");
 
-        GitSyncResult result = gitSyncService.publish("Local update", null, null);
+        GitSyncResult result = gitSyncService.publish("Local update", null);
 
         assertThat(result.success()).isFalse();
         assertThat(result.hasConflicts()).isTrue();
@@ -305,10 +320,10 @@ class GitSyncServiceTest {
         }
 
         Files.writeString(localDirectory.resolve(fileName), "local conflicting content\n");
-        gitSyncService.sync(null);
+        gitSyncService.sync();
 
         Files.writeString(localDirectory.resolve(fileName), "resolved content\n");
-        GitSyncResult result = gitSyncService.publish("Resolve conflict", null, null);
+        GitSyncResult result = gitSyncService.publish("Resolve conflict", null);
 
         assertThat(result.success()).isTrue();
         assertThat(result.message()).isEqualTo("Changes pushed successfully");
@@ -343,7 +358,7 @@ class GitSyncServiceTest {
 
         Files.writeString(localDirectory.resolve(fileName), "remote content\n");
 
-        GitSyncResult result = gitSyncService.publish("Resolve", null, null);
+        GitSyncResult result = gitSyncService.publish("Resolve", null);
 
         assertThat(result.success()).isTrue();
         assertThat(localRepository.getRepository().getRepositoryState()).isEqualTo(RepositoryState.SAFE);
@@ -372,7 +387,7 @@ class GitSyncServiceTest {
         localRepository.add().addFilepattern(fileName).call();
         localRepository.commit().setMessage("Local update").call();
 
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
         assertThat(result.success()).isFalse();
         assertThat(result.hasConflicts()).isTrue();
         assertThat(result.conflictFiles()).contains(fileName);
@@ -382,13 +397,28 @@ class GitSyncServiceTest {
     @Test
     void shouldReportAuthFailedWhenFetchFailsOnSshRemote() throws Exception {
         StoredConfig config = localRepository.getRepository().getConfig();
-        config.setString("remote", "origin", "url", "git@github.com:quarkiverse/quarkus-roq.git");
+        config.setString("remote", "origin", "url", "git@example.com:test/repo.git");
         config.save();
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = authFailingService().getStatus(false);
 
         assertThat(status.isSsh()).isTrue();
         assertThat(status.authFailed()).isTrue();
+    }
+
+    @Test
+    void shouldKeepAuthFailedStickyOnSubsequentSkipFetchStatus() throws Exception {
+        StoredConfig config = localRepository.getRepository().getConfig();
+        config.setString("remote", "origin", "url", "git@example.com:test/repo.git");
+        config.save();
+
+        GitSyncServiceImpl service = authFailingService();
+        GitStatusInfo fetched = service.getStatus(false);
+        assertThat(fetched.authFailed()).isTrue();
+
+        GitStatusInfo skipped = service.getStatus(true);
+        assertThat(skipped.authFailed()).isTrue();
+        assertThat(skipped.upToDate()).isFalse();
     }
 
     @Test
@@ -399,10 +429,10 @@ class GitSyncServiceTest {
         Files.writeString(localDirectory.resolve("content/dirty.md"), "dirty content");
 
         StoredConfig config = localRepository.getRepository().getConfig();
-        config.setString("remote", "origin", "url", "git@github.com:quarkiverse/quarkus-roq.git");
+        config.setString("remote", "origin", "url", "git@example.com:test/repo.git");
         config.save();
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = authFailingService().getStatus(false);
 
         assertThat(status.isSsh()).isTrue();
         assertThat(status.authFailed()).isTrue();
@@ -410,6 +440,34 @@ class GitSyncServiceTest {
         assertThat(status.ahead()).isEqualTo(1);
         assertThat(status.hasUnpublished()).isTrue();
         assertThat(status.pendingFiles()).contains("content/dirty.md");
+    }
+
+    @Test
+    void isAuthenticationErrorClassifiesSshCredentialFailures() {
+        assertThat(GitTransportHelper.isAuthenticationError(
+                new javax.security.auth.login.FailedLoginException("encrypted key")))
+                .isTrue();
+        assertThat(GitTransportHelper.isAuthenticationError(
+                new org.eclipse.jgit.api.errors.TransportException(
+                        "git@host: Cannot log in\npublickey: no keys to try")))
+                .isTrue();
+        assertThat(GitTransportHelper.isAuthenticationError(
+                new java.io.IOException("Connection timed out")))
+                .isFalse();
+    }
+
+    /**
+     * Builds a service whose fetch always reports an SSH authentication failure, so the
+     * {@code authFailed} propagation and sticky-state logic can be exercised without hitting
+     * a real remote.
+     */
+    private GitSyncServiceImpl authFailingService() {
+        return new GitSyncServiceImpl(createEditorConfig(), createSiteConfig(), localDirectory.toFile()) {
+            @Override
+            protected boolean tryFetch(Git git, String passphrase, boolean isSsh) {
+                return isSsh;
+            }
+        };
     }
 
     @Test
@@ -436,7 +494,7 @@ class GitSyncServiceTest {
 
         assertThat(BranchTrackingStatus.of(localRepository.getRepository(), newBranch)).isNull();
 
-        GitStatusInfo status = gitSyncService.getStatus(null, false);
+        GitStatusInfo status = gitSyncService.getStatus(false);
 
         assertThat(status.branch()).isEqualTo(newBranch);
         assertThat(status.behind()).isEqualTo(1);
@@ -467,7 +525,7 @@ class GitSyncServiceTest {
 
         assertThat(BranchTrackingStatus.of(localRepository.getRepository(), newBranch)).isNull();
 
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
 
         assertThat(result.success()).isTrue();
         assertThat(BranchTrackingStatus.of(localRepository.getRepository(), newBranch)).isNotNull();
@@ -497,7 +555,7 @@ class GitSyncServiceTest {
         // Create a new untracked file locally
         Files.writeString(localDirectory.resolve(untrackedFileName), "untracked content\n");
 
-        GitSyncResult result = gitSyncService.sync(null);
+        GitSyncResult result = gitSyncService.sync();
 
         assertThat(result.success()).isTrue();
         assertThat(Files.exists(localDirectory.resolve(remoteFileName))).isTrue();
@@ -516,7 +574,7 @@ class GitSyncServiceTest {
         for (int i = 0; i < threadCount; i++) {
             new Thread(() -> {
                 try {
-                    GitStatusInfo status = gitSyncService.getStatus(null, false);
+                    GitStatusInfo status = gitSyncService.getStatus(false);
                     if (status.branch() != null) {
                         successCount.incrementAndGet();
                     }
@@ -682,6 +740,11 @@ class GitSyncServiceTest {
                     @Override
                     public boolean enabled() {
                         return true;
+                    }
+
+                    @Override
+                    public Optional<String> sshPassphrase() {
+                        return Optional.empty();
                     }
 
                     @Override

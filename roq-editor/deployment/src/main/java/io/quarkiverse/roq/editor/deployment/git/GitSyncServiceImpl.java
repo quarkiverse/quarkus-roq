@@ -50,7 +50,9 @@ public class GitSyncServiceImpl implements GitSyncService {
     private final GitOperationHelper operationHelper;
     private final ReentrantLock lock = new ReentrantLock();
     private volatile Boolean cachedIsSsh;
+    private volatile boolean lastAuthFailed;
     private final GitCredentialHelper credentialHelper = new GitCredentialHelper();
+    private final String configuredPassphrase;
 
     /**
      * Creates a new instance of GitSyncServiceImpl.
@@ -63,18 +65,18 @@ public class GitSyncServiceImpl implements GitSyncService {
         this.rootDirectory = rootDirectory;
         this.contentFilter = new GitContentFilter(siteConfig, rootDirectory);
         this.operationHelper = new GitOperationHelper(editorConfig, contentFilter);
+        this.configuredPassphrase = editorConfig.sync().sshPassphrase().filter(p -> !p.isEmpty()).orElse(null);
     }
 
     /**
      * Retrieves the current status of the Git repository including local changes,
      * remote tracking status (ahead/behind), and repository state.
      *
-     * @param passphrase the SSH passphrase if required
      * @param skipFetch if true, skip the network fetch operation
      * @return an object containing detailed Git status information
      */
     @Override
-    public GitStatusInfo getStatus(String passphrase, boolean skipFetch) {
+    public GitStatusInfo getStatus(boolean skipFetch) {
         lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
@@ -95,14 +97,13 @@ public class GitSyncServiceImpl implements GitSyncService {
                 List<String> conflictFiles = new ArrayList<>(status.getConflicting());
                 boolean hasConflicts = !conflictFiles.isEmpty() || repoState != RepositoryState.SAFE;
 
-                boolean authFailed = false;
-
+                boolean needsAuth;
                 if (!skipFetch) {
-                    authFailed = tryFetch(git, passphrase, isSsh);
+                    needsAuth = tryFetch(git, configuredPassphrase, isSsh);
+                    lastAuthFailed = needsAuth;
+                } else {
+                    needsAuth = lastAuthFailed;
                 }
-
-                boolean passphraseMissing = isSsh && (passphrase == null || passphrase.isEmpty());
-                boolean needsAuth = authFailed || passphraseMissing;
 
                 int[] counts = getAheadBehindCounts(repository, currentBranch);
                 int aheadCount = counts[0];
@@ -175,18 +176,17 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Synchronizes the local repository with the remote (git pull).
      * If there are local changes, it uses stash to ensure a clean pull.
      *
-     * @param passphrase the SSH passphrase if required
      * @return the result of the synchronization operation
      */
     @Override
-    public GitSyncResult sync(String passphrase) {
+    public GitSyncResult sync() {
         lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
             try (Git git = new Git(repository)) {
-                return doSync(git, repository, passphrase);
+                return doSync(git, repository, configuredPassphrase);
             }
         } catch (Exception e) {
             return handleSyncFailure(e);
@@ -213,18 +213,17 @@ public class GitSyncServiceImpl implements GitSyncService {
     /**
      * Pushes local commits to the remote repository.
      *
-     * @param passphrase the SSH passphrase if required
      * @return the result of the push operation
      */
     @Override
-    public GitSyncResult push(String passphrase) {
+    public GitSyncResult push() {
         lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
             try (Git git = new Git(repository)) {
-                return doPush(git, repository, passphrase);
+                return doPush(git, repository, configuredPassphrase);
             }
         } catch (Exception e) {
             return handlePushFailure(e);
@@ -263,12 +262,11 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Publishes changes by staging, committing, and pushing to the remote repository.
      *
      * @param commitMessage the commit message
-     * @param passphrase the SSH passphrase if required
      * @param filePaths the file paths to publish
      * @return the result of the publish operation
      */
     @Override
-    public GitSyncResult publish(String commitMessage, String passphrase, List<String> filePaths) {
+    public GitSyncResult publish(String commitMessage, List<String> filePaths) {
         lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
@@ -283,13 +281,13 @@ public class GitSyncServiceImpl implements GitSyncService {
                     return stateResult;
                 }
 
-                tryFetch(git, passphrase, GitTransportHelper.isSsh(repository));
+                tryFetch(git, configuredPassphrase, GitTransportHelper.isSsh(repository));
 
                 BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
                 if (trackingStatus != null && trackingStatus.getBehindCount() > 0
                         && repository.getRepositoryState() == RepositoryState.SAFE) {
                     LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
-                    GitSyncResult syncResult = doSync(git, repository, passphrase);
+                    GitSyncResult syncResult = doSync(git, repository, configuredPassphrase);
                     if (!syncResult.success()) {
                         return syncResult;
                     }
@@ -302,7 +300,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                             Collections.emptyList(), false);
                 }
 
-                return doPush(git, repository, passphrase);
+                return doPush(git, repository, configuredPassphrase);
             }
         } catch (Exception e) {
             return handlePublishFailure(e);
@@ -315,16 +313,15 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Publishes changes and then synchronizes with the remote repository.
      *
      * @param commitMessage the commit message
-     * @param passphrase the SSH passphrase if required
      * @param filePaths the file paths to publish
      * @return the result of the publish and sync operation
      */
     @Override
-    public GitSyncResult publishAndSync(String commitMessage, String passphrase, List<String> filePaths) {
-        GitSyncResult publishResult = publish(commitMessage, passphrase, filePaths);
+    public GitSyncResult publishAndSync(String commitMessage, List<String> filePaths) {
+        GitSyncResult publishResult = publish(commitMessage, filePaths);
         if (!publishResult.success())
             return publishResult;
-        return sync(passphrase);
+        return sync();
     }
 
     /**
@@ -335,7 +332,7 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @param isSsh true if the remote is an SSH URL
      * @return true if authentication failed
      */
-    private boolean tryFetch(Git git, String passphrase, boolean isSsh) {
+    protected boolean tryFetch(Git git, String passphrase, boolean isSsh) {
         try {
             performFetch(git, passphrase);
             return false;
