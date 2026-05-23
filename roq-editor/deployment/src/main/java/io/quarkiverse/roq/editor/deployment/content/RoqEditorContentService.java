@@ -71,9 +71,10 @@ public class RoqEditorContentService {
         checkPath(to);
         checkReady();
         executor.submit(() -> run(() -> {
+            // Write content before rename so data is safe if rename fails
+            Files.writeString(from, content, StandardCharsets.UTF_8);
             doRename(from, to);
-            Files.writeString(writePath, content, StandardCharsets.UTF_8);
-            LOG.infof("Renamed %s -> %s and written content", from, to);
+            LOG.infof("Written and renamed %s -> %s", from, to);
         }));
     }
 

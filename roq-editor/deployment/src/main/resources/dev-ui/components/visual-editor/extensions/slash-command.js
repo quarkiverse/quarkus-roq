@@ -152,7 +152,7 @@ export const SlashCommand = Extension.create({
         (pos) =>
           ({ editor, chain }) => {
             if (pos == null) {
-              console.log('openSlashMenu: pos is null');
+              console.warn('openSlashMenu: pos is null');
               return false;
             }
             // Focus at the position, then insert / to trigger the slash command

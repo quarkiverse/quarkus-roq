@@ -127,6 +127,7 @@ public class RoqEditorProcessor {
         return AdditionalBeanBuildItem.unremovableOf(RoqEditorImageResource.class);
     }
 
+    // Static so the instance (and its AtomicReference status) survives hot-reloads.
     private static volatile RoqEditorContentService contentService;
 
     // writeStatus is a build-time action (not runtime) so it remains available during hot-reload
