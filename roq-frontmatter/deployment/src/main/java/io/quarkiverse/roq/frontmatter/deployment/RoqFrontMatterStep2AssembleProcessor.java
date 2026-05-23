@@ -2,7 +2,6 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.processTemplate;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
-import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.LAYOUTS_DIR;
 import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
@@ -138,6 +137,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
     @BuildStep
     void processDataContent(RoqProjectBuildItem roqProject,
             RoqSiteConfig siteConfig,
+            RoqFrontMatterAvailableLayoutsBuildItem availableLayouts,
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<DataMappingBuildItem> roqDataBeanBuildItems,
             BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
@@ -155,18 +155,19 @@ public class RoqFrontMatterStep2AssembleProcessor {
                                 .hint("Add a '%s.yaml' (or .json) data file, or a '%s/' data directory"
                                         .formatted(collection.dataName(), collection.dataName())));
             }
-            generateDataPages(roqProject, collection, dataSupplier.get(), rawPageProducer);
+            generateDataPages(roqProject, collection, dataSupplier.get(), rawPageProducer, availableLayouts, siteConfig);
         }));
 
     }
 
     private void generateDataPages(RoqProjectBuildItem roqProject, ConfiguredCollection configuredCollection, Object item,
-            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer) {
+            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPageProducer,
+            RoqFrontMatterAvailableLayoutsBuildItem availableLayouts, RoqSiteConfig config) {
         switch (item) {
             case JsonObject jsonObject -> {
                 if (jsonObject.containsKey(configuredCollection.idKey())) {
                     // Single item with the id key at top level
-                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject, availableLayouts, config);
                 } else {
                     // Map of items (e.g. from a data directory), iterate values
                     for (Map.Entry<String, Object> entry : jsonObject) {
@@ -192,13 +193,14 @@ public class RoqFrontMatterStep2AssembleProcessor {
                                             .hint("Each data entry must contain the '%s' field configured as id-key"
                                                     .formatted(configuredCollection.idKey())));
                         }
-                        generateDataPage(configuredCollection, entryObject, rawPageProducer, roqProject);
+                        generateDataPage(configuredCollection, entryObject, rawPageProducer, roqProject, availableLayouts,
+                                config);
                     }
                 }
             }
             case JsonArray jsonArray -> jsonArray.forEach(element -> {
                 if (element instanceof JsonObject jsonObject) {
-                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject);
+                    generateDataPage(configuredCollection, jsonObject, rawPageProducer, roqProject, availableLayouts, config);
                 } else {
                     throw new RoqFrontMatterReadingException(
                             RoqException.builder("Invalid data element in collection '%s'"
@@ -217,7 +219,8 @@ public class RoqFrontMatterStep2AssembleProcessor {
     }
 
     private void generateDataPage(ConfiguredCollection configuredCollection, JsonObject item,
-            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject) {
+            BuildProducer<RoqFrontMatterRawPageBuildItem> rawPagesProducer, RoqProjectBuildItem roqProject,
+            RoqFrontMatterAvailableLayoutsBuildItem availableLayouts, RoqSiteConfig config) {
         final String extractedKey = item.getString(configuredCollection.idKey());
         if (extractedKey == null) {
             throw new RoqFrontMatterReadingException(RoqException
@@ -227,7 +230,7 @@ public class RoqFrontMatterStep2AssembleProcessor {
         }
         final String id = configuredCollection.id() + "/" + slugify(extractedKey, false, false);
         final String path = id + ".html";
-        final String layoutId = configuredCollection.layout() != null ? LAYOUTS_DIR + configuredCollection.layout() : null;
+        final String layoutId = availableLayouts.resolveCollectionLayoutId(config.theme(), configuredCollection);
         rawPagesProducer.produce(new RoqFrontMatterRawPageBuildItem(
                 TemplateSource.create(
                         id,
