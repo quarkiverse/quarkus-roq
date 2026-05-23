@@ -422,6 +422,28 @@ class GitSyncServiceTest {
     }
 
     @Test
+    void shouldClearAuthFailedAfterSuccessfulFetch() throws Exception {
+        StoredConfig config = localRepository.getRepository().getConfig();
+        config.setString("remote", "origin", "url", "git@example.com:test/repo.git");
+        config.save();
+
+        AtomicInteger fetchCount = new AtomicInteger(0);
+        GitSyncServiceImpl service = new GitSyncServiceImpl(createEditorConfig(), createSiteConfig(),
+                localDirectory.toFile()) {
+            @Override
+            protected boolean tryFetch(Git git, boolean isSsh) {
+                return fetchCount.getAndIncrement() == 0;
+            }
+        };
+
+        GitStatusInfo firstStatus = service.getStatus(false);
+        assertThat(firstStatus.authFailed()).isTrue();
+
+        GitStatusInfo recovered = service.getStatus(false);
+        assertThat(recovered.authFailed()).isFalse();
+    }
+
+    @Test
     void shouldPreserveLocalStatusEvenWhenAuthIsRequired() throws Exception {
         Files.writeString(localDirectory.resolve("content/ahead.md"), "ahead content");
         localRepository.add().addFilepattern("content/ahead.md").call();
@@ -464,7 +486,7 @@ class GitSyncServiceTest {
     private GitSyncServiceImpl authFailingService() {
         return new GitSyncServiceImpl(createEditorConfig(), createSiteConfig(), localDirectory.toFile()) {
             @Override
-            protected boolean tryFetch(Git git, String passphrase, boolean isSsh) {
+            protected boolean tryFetch(Git git, boolean isSsh) {
                 return isSsh;
             }
         };

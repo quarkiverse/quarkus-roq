@@ -99,7 +99,7 @@ public class GitSyncServiceImpl implements GitSyncService {
 
                 boolean needsAuth;
                 if (!skipFetch) {
-                    needsAuth = tryFetch(git, configuredPassphrase, isSsh);
+                    needsAuth = tryFetch(git, isSsh);
                     lastAuthFailed = needsAuth;
                 } else {
                     needsAuth = lastAuthFailed;
@@ -186,7 +186,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
             try (Git git = new Git(repository)) {
-                return doSync(git, repository, configuredPassphrase);
+                return doSync(git, repository);
             }
         } catch (Exception e) {
             return handleSyncFailure(e);
@@ -195,14 +195,14 @@ public class GitSyncServiceImpl implements GitSyncService {
         }
     }
 
-    private GitSyncResult doSync(Git git, Repository repository, String passphrase) throws Exception {
+    private GitSyncResult doSync(Git git, Repository repository) throws Exception {
         boolean wasDirty = !git.status().call().isClean();
         if (wasDirty) {
             LOG.debug(MSG_STASH_BEFORE_SYNC);
             git.stashCreate().setIncludeUntracked(true).call();
         }
 
-        GitSyncResult syncResult = performPull(git, repository, passphrase);
+        GitSyncResult syncResult = performPull(git, repository);
 
         if (wasDirty) {
             syncResult = operationHelper.restoreStash(git, syncResult, MSG_RESTORE_STASH_AFTER_SYNC);
@@ -223,7 +223,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                 return new GitSyncResult(false, MSG_REPO_NOT_FOUND, false, Collections.emptyList(), false);
             }
             try (Git git = new Git(repository)) {
-                return doPush(git, repository, configuredPassphrase);
+                return doPush(git, repository);
             }
         } catch (Exception e) {
             return handlePushFailure(e);
@@ -232,7 +232,7 @@ public class GitSyncServiceImpl implements GitSyncService {
         }
     }
 
-    private GitSyncResult doPush(Git git, Repository repository, String passphrase) throws Exception {
+    private GitSyncResult doPush(Git git, Repository repository) throws Exception {
         RepositoryState state = repository.getRepositoryState();
         if (state != RepositoryState.SAFE) {
             return new GitSyncResult(false,
@@ -241,7 +241,7 @@ public class GitSyncServiceImpl implements GitSyncService {
         }
 
         Iterable<PushResult> results = configureTransport(
-                git.push().setRemote("origin"), repository, passphrase).call();
+                git.push().setRemote("origin"), repository).call();
 
         for (PushResult pushResult : results) {
             for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
@@ -281,13 +281,13 @@ public class GitSyncServiceImpl implements GitSyncService {
                     return stateResult;
                 }
 
-                tryFetch(git, configuredPassphrase, GitTransportHelper.isSsh(repository));
+                tryFetch(git, GitTransportHelper.isSsh(repository));
 
                 BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
                 if (trackingStatus != null && trackingStatus.getBehindCount() > 0
                         && repository.getRepositoryState() == RepositoryState.SAFE) {
                     LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
-                    GitSyncResult syncResult = doSync(git, repository, configuredPassphrase);
+                    GitSyncResult syncResult = doSync(git, repository);
                     if (!syncResult.success()) {
                         return syncResult;
                     }
@@ -300,7 +300,7 @@ public class GitSyncServiceImpl implements GitSyncService {
                             Collections.emptyList(), false);
                 }
 
-                return doPush(git, repository, configuredPassphrase);
+                return doPush(git, repository);
             }
         } catch (Exception e) {
             return handlePublishFailure(e);
@@ -328,13 +328,12 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Attempts to fetch from remote, handling authentication errors specifically for SSH.
      *
      * @param git the Git instance
-     * @param passphrase the SSH passphrase
      * @param isSsh true if the remote is an SSH URL
      * @return true if authentication failed
      */
-    protected boolean tryFetch(Git git, String passphrase, boolean isSsh) {
+    protected boolean tryFetch(Git git, boolean isSsh) {
         try {
-            performFetch(git, passphrase);
+            performFetch(git);
             return false;
         } catch (Exception fetchEx) {
             if (GitTransportHelper.isAuthenticationError(fetchEx) && isSsh) {
@@ -388,14 +387,13 @@ public class GitSyncServiceImpl implements GitSyncService {
      *
      * @param git the Git instance
      * @param repository the JGit repository
-     * @param passphrase the SSH passphrase
      * @return the result of the pull operation
      */
-    private GitSyncResult performPull(Git git, Repository repository, String passphrase) {
+    private GitSyncResult performPull(Git git, Repository repository) {
         try {
             PullResult pullResult = configureTransport(
                     git.pull().setRemote("origin").setRemoteBranchName(repository.getBranch()),
-                    repository, passphrase).call();
+                    repository).call();
 
             if (!pullResult.isSuccessful()) {
                 return operationHelper.handleFailedPull(pullResult, git);
@@ -447,16 +445,15 @@ public class GitSyncServiceImpl implements GitSyncService {
      * Performs a fetch operation from the remote repository.
      *
      * @param git the Git instance
-     * @param passphrase the SSH passphrase
      * @throws Exception if an error occurs during fetch
      */
-    private void performFetch(Git git, String passphrase) throws Exception {
+    private void performFetch(Git git) throws Exception {
         LOG.debug("Performing Git fetch from origin...");
-        configureTransport(git.fetch().setRemote("origin"), git.getRepository(), passphrase).call();
+        configureTransport(git.fetch().setRemote("origin"), git.getRepository()).call();
     }
 
-    private <C extends TransportCommand<C, ?>> C configureTransport(C cmd, Repository repository, String passphrase) {
-        cmd.setTransportConfigCallback(GitTransportHelper.createTransportCallback(passphrase));
+    private <C extends TransportCommand<C, ?>> C configureTransport(C cmd, Repository repository) {
+        cmd.setTransportConfigCallback(GitTransportHelper.createTransportCallback(configuredPassphrase));
         if (!GitTransportHelper.isSsh(repository)) {
             CredentialsProvider cp = credentialHelper.getCredentials(repository);
             if (cp != null) {

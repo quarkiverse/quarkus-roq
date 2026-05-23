@@ -12,11 +12,14 @@ import org.eclipse.jgit.transport.sshd.KeyPasswordProvider;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
 import org.eclipse.jgit.transport.sshd.agent.ConnectorFactory;
 import org.eclipse.jgit.util.FS;
+import org.jboss.logging.Logger;
 
 /**
  * Helper class for Git transport and authentication operations.
  */
 public class GitTransportHelper {
+
+    private static final Logger LOG = Logger.getLogger(GitTransportHelper.class);
 
     private static final Pattern SCP_LIKE_SSH_URL = Pattern.compile("^[^@]+@[^:]+:[^/].*$");
 
@@ -88,9 +91,13 @@ public class GitTransportHelper {
      * @return the configured callback
      */
     private static ConnectorFactory loadConnectorFactory() {
-        return ServiceLoader.load(ConnectorFactory.class, GitTransportHelper.class.getClassLoader())
+        ConnectorFactory factory = ServiceLoader.load(ConnectorFactory.class, GitTransportHelper.class.getClassLoader())
                 .findFirst()
                 .orElse(null);
+        if (factory == null) {
+            LOG.debug("No SSH agent ConnectorFactory found via ServiceLoader. SSH agent authentication will not be available.");
+        }
+        return factory;
     }
 
     public static TransportConfigCallback createTransportCallback(String passphrase) {
