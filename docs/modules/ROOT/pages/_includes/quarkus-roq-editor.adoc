@@ -91,26 +91,47 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-suggested-path-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-suggested-path-enabled[`+++editor.suggested-path.enabled+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-collections-collections-map-name]] [.property-path]##link:#quarkus-roq-editor_editor-collections-collections-map-name[`+++editor.collections."collections-map".name+++`]##
 ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++editor.suggested-path.enabled+++[]
+config_property_copy_button:+++editor.collections."collections-map".name+++[]
 endif::add-copy-button-to-config-props[]
 
 
 [.description]
 --
-If enabled, Editor will suggest file path sync when it differs from content.
+File name pattern using link-style placeholders. Supported: :date, :slug, :Slug, :name, :Name, :year, :month, :day. Use ~W to truncate to W hyphen-separated words (e.g., :slug~7).
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++EDITOR_SUGGESTED_PATH_ENABLED+++[]
+Environment variable: env_var_with_copy_button:+++EDITOR_COLLECTIONS__COLLECTIONS_MAP__NAME+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++EDITOR_SUGGESTED_PATH_ENABLED+++`
+Environment variable: `+++EDITOR_COLLECTIONS__COLLECTIONS_MAP__NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++:date-:slug~7+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-collections-collections-map-sync-name]] [.property-path]##link:#quarkus-roq-editor_editor-collections-collections-map-sync-name[`+++editor.collections."collections-map".sync-name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.collections."collections-map".sync-name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+If enabled, auto-sync file names when they match the convention and the title/date changes.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_COLLECTIONS__COLLECTIONS_MAP__SYNC_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_COLLECTIONS__COLLECTIONS_MAP__SYNC_NAME+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++false+++`
+|`+++true+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-enabled[`+++editor.sync.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
