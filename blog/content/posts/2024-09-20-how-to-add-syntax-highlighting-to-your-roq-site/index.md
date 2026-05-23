@@ -30,11 +30,11 @@ Roq is pre-configured with the [Quarkus Web-Bundler](https://github.com/quarkive
 
 The Roq default theme includes the `\{#bundle /}` [tag](https://docs.quarkiverse.io/quarkus-web-bundler/dev/advanced-guides.html#bundle-tag), if you are using your own templates, make sure it is present.
 
-Now, let’s configure Highlight.js. In your `src/main/resources/web/app/main.js`, import the library and activate it:
+Now, let’s configure Highlight.js. In your `web/app/main.js`, import the library and activate it:
 
 ```javascript
 import hljs from 'highlight.js';
-import 'highlight.js/scss/default.scss';
+import 'highlight.js/scss/monokai.scss';
 
 hljs.highlightAll();
 ```
