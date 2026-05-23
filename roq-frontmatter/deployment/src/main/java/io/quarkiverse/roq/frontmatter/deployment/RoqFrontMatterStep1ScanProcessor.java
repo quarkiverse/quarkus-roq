@@ -230,7 +230,7 @@ public class RoqFrontMatterStep1ScanProcessor {
                     if (config.slugifyFiles()) {
                         name = PageFiles.slugifyFile(name);
                     }
-                    pageAttachments.get(ownerDir).add(new RoqFrontMatterAttachment(name, f.file()));
+                    pageAttachments.get(ownerDir).add(toAttachment(name, f));
                 }
             }
         }

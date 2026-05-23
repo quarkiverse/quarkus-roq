@@ -142,6 +142,15 @@ public final class RoqFrontMatterScanUtils {
         return sourcePath.replaceAll("\\s+", "-");
     }
 
+    // ── Attachment helpers ────────────────────────────────────────────────
+
+    public static RoqFrontMatterAttachment toAttachment(String name, ProjectFile f) {
+        if (f.isLocalFile()) {
+            return new RoqFrontMatterAttachment(name, f.file());
+        }
+        return new RoqFrontMatterAttachment(name, f.content());
+    }
+
     // ── Scanner query helpers ───────────────────────────────────────────
 
     /**
@@ -182,7 +191,7 @@ public final class RoqFrontMatterScanUtils {
             if (config.slugifyFiles()) {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
-            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
+            attachments.add(toAttachment(attachmentName, f));
         }
 
         // Public dir files (served at root path)
@@ -191,7 +200,7 @@ public final class RoqFrontMatterScanUtils {
             if (config.slugifyFiles()) {
                 attachmentName = PageFiles.slugifyFile(attachmentName);
             }
-            attachments.add(new RoqFrontMatterAttachment(attachmentName, f.file()));
+            attachments.add(toAttachment(attachmentName, f));
         }
     }
 

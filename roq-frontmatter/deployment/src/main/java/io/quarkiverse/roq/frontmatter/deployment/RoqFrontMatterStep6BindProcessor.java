@@ -240,13 +240,14 @@ public class RoqFrontMatterStep6BindProcessor {
         Map<String, String> paths = new HashMap<>();
         for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
             final String endpoint = prefixWithSlash(staticFile.link());
-            final String prev = paths.put(endpoint, staticFile.filePath().toString());
+            final String sourceDescription = staticFile.isFile() ? staticFile.filePath().toString() : endpoint;
+            final String prev = paths.put(endpoint, sourceDescription);
             if (prev != null) {
                 String message = """
                         Conflict detected: Multiple source files are targeting the same endpoint '%s':
                           - '%s'
                           - '%s'
-                        """.formatted(endpoint, prev, staticFile.filePath());
+                        """.formatted(endpoint, prev, sourceDescription);
                 if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
                     LOGGER.warn(message
                             + "\nIn development, the first occurrence will be kept, but this will cause an exception in normal mode.");
@@ -255,15 +256,18 @@ public class RoqFrontMatterStep6BindProcessor {
                     throw new RoqPathConflictException(
                             RoqException.builder("Static file path conflict")
                                     .detail("Multiple source files target the same endpoint '%s': '%s' and '%s'."
-                                            .formatted(endpoint, prev, staticFile.filePath()))
+                                            .formatted(endpoint, prev, sourceDescription))
                                     .hint("Rename or move one of the conflicting files so they produce different output paths."));
                 }
             }
 
             LOGGER.debugf("Published static file: '%s'", endpoint);
             selectedPathProducer.produce(new SelectedPathBuildItem(endpoint, null));
-            staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(
-                    endpoint, staticFile.filePath()));
+            if (staticFile.isFile()) {
+                staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(endpoint, staticFile.filePath()));
+            } else {
+                staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(endpoint, staticFile.content()));
+            }
         }
     }
 

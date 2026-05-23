@@ -97,6 +97,11 @@ public class RoqFrontMatterStep3DataProcessor {
 
         // Process pages: merge parent data, then filter by date/draft rules
         for (RoqFrontMatterRawPageBuildItem item : rawPages) {
+            if (item.layout() != null && !layoutsById.containsKey(item.layout())) {
+                throw new IllegalStateException(
+                        "Page '%s' has unresolved layout ID '%s'. Layout IDs must be resolved using RoqFrontMatterAvailableLayoutsBuildItem before producing a RoqFrontMatterRawPageBuildItem."
+                                .formatted(item.templateSource().path(), item.layout()));
+            }
             JsonObject data = mergeParents(config, item.layout(), item.data(),
                     item.templateSource(), layoutsById);
 
@@ -173,8 +178,13 @@ public class RoqFrontMatterStep3DataProcessor {
             if (item.raw().attachments() != null) {
                 // Publish static assets
                 for (RoqFrontMatterAttachment attachment : item.raw().attachments()) {
-                    staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(
-                            item.url().resolve(attachment.name()).resourcePath(), attachment.path()));
+                    String resourcePath = item.url().resolve(attachment.name()).resourcePath();
+                    if (attachment.isFile()) {
+                        staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(resourcePath, attachment.path()));
+                    } else {
+                        staticFileProducer
+                                .produce(new RoqFrontMatterStaticFileBuildItem(resourcePath, attachment.content()));
+                    }
                 }
             }
             // Prepare Documents and Paginated pages

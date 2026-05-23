@@ -16,6 +16,7 @@ import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkus.builder.item.SimpleBuildItem;
 
@@ -127,6 +128,20 @@ public final class RoqFrontMatterAvailableLayoutsBuildItem extends SimpleBuildIt
         }
 
         return firstMatchOrFail(layoutValue, candidates);
+    }
+
+    /**
+     * Resolves the layout ID for a collection's configured layout.
+     *
+     * @param activeTheme the active theme name
+     * @param collection the collection configuration
+     * @return the resolved layout ID, or null if the collection has no layout configured
+     */
+    public String resolveCollectionLayoutId(Optional<String> activeTheme, ConfiguredCollection collection) {
+        if (collection.layout() == null) {
+            return null;
+        }
+        return resolveLayoutId(activeTheme, Optional.empty(), new LayoutRef(collection.layout(), false));
     }
 
     private String findOrFail(String id, String errorName) {
