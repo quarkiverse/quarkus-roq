@@ -147,9 +147,8 @@ public class RoqEditorJsonRPCService {
                 Path newFilePath = contentDir.resolve(suggestedPath);
                 Path from = page.source().isIndex() ? filePath.getParent() : filePath;
                 Path to = page.source().isIndex() ? newFilePath.getParent() : newFilePath;
-                Path writeTarget = page.source().isIndex() ? newFilePath : to;
                 CompletableFuture.runAsync(() -> DevConsoleManager.invoke("roq-submit-write-and-rename", Map.of(
-                        "writePath", writeTarget.toString(), "content", content,
+                        "writePath", filePath.toString(), "content", content,
                         "from", from.toString(), "to", to.toString())));
                 return WriteActionResult.success(new SaveResult(null, suggestedPath));
             }
