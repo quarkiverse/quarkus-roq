@@ -335,26 +335,16 @@ export class QwcRoqEditor extends LitElement {
         const defaultMarkup = (collectionId ? config.docMarkup : config.pageMarkup).toLowerCase()
         showPrompt(`Add new ${collectionId ? 'document' : 'page'}` , { title: '', markup: defaultMarkup }, this._renderCreatePageForm).then(({title, markup}) => {
             if (title) {
-                this.jsonRpc.createPage({collectionId, title, markup}).then(jsonRpcResponse => {
+                this._writeCall('createPage', {collectionId, title, markup}).then(jsonRpcResponse => {
                     const result = jsonRpcResponse.result;
-                    // Check if result contains an error
-                    if (result?.error) {
-                        showNotification('Error creating page: ' + result.errorMessage);
-                        console.error(result.errorMessage);
-                        return;
-                    }
-                    console.log('result', result);
                     this._pendingRefreshPages = true;
                     if (collectionId) {
                         this._posts = [result.page].concat(this._posts);
                     } else {
                         this._pages = [result.page].concat(this._pages);
                     }
-
-                    // Centralized Git handling
                     this._syncManager?.markAsDirty();
                     this._syncManager?.refreshStatus(true);
-
                     this._onPageOpen({detail: {page: result.page, content: result.content}});
                 }).catch(error => {
                     showNotification('Error creating page: ' + error.message);
@@ -394,37 +384,58 @@ export class QwcRoqEditor extends LitElement {
         );
         if (!confirmed) return;
 
-        // Save file content to backend
-        this.jsonRpc.syncPath({path: page.path}).then(jsonRpcResponse => {
+        this._writeCall('syncPath', {path: page.path}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
-            // Check if result contains an error
-            if (result && result.error) {
-                showNotification('Error syncing page path: ' + result.errorMessage);
-                console.error(result.errorMessage);
-                return;
-            }
-            const updated = {...page, path: result.newPath, suggestedPath: null}
-
-            if (page.collectionId) {
-                this._posts = this._posts.map(p => p.path === page.path ? updated : p);
-            } else {
-                this._pages = this._pages.map(p => p.path === page.path ? updated : p);
-            }
-
-            if (this._selectedPage?.path === page.path) {
-                this._selectedPage = updated;
-            }
-
-            // Centralized Git handling
-            this._syncManager?.markAsDirty();
-            this._syncManager?.refreshStatus(true);
-
-            this._pendingRefreshPages = true;
+            this._applyPagePath(page, result.newPath);
         }).catch(error => {
             showNotification('Error syncing page path: ' + error.message);
             console.error(error);
         });
+    }
 
+    _applyPagePath(page, newPath) {
+        const updated = {...page, path: newPath, suggestedPath: null};
+        if (page.collectionId) {
+            this._posts = this._posts.map(p => p.path === page.path ? updated : p);
+        } else {
+            this._pages = this._pages.map(p => p.path === page.path ? updated : p);
+        }
+        if (this._selectedPage?.path === page.path) {
+            this._selectedPage = updated;
+        }
+        this._syncManager?.markAsDirty();
+        this._syncManager?.refreshStatus(true);
+        this._pendingRefreshPages = true;
+    }
+
+    async _writeCall(method, params) {
+        const response = await this.jsonRpc[method](params);
+        const wrapper = response.result;
+        if (wrapper?.error) {
+            throw new Error(wrapper.error);
+        }
+        if (!wrapper?.async) {
+            return { result: wrapper?.result };
+        }
+        const timeout = 15000;
+        const interval = 500;
+        const start = Date.now();
+        while (Date.now() - start < timeout) {
+            await new Promise(r => setTimeout(r, interval));
+            try {
+                const statusResponse = await this.jsonRpc.writeStatus();
+                const status = statusResponse.result;
+                if (status.status === 'DONE') return { result: wrapper.result };
+                if (status.status === 'ERROR') {
+                    const err = new Error(status.error || 'File operation failed');
+                    err._writeOpError = true;
+                    throw err;
+                }
+            } catch (e) {
+                if (e._writeOpError) throw e;
+            }
+        }
+        throw new Error('File operation timed out');
     }
 
     async _onPageOpen(e) {
@@ -551,38 +562,25 @@ export class QwcRoqEditor extends LitElement {
         const detail = e.detail;
         const target = e.target;
 
-        // Save file content to backend
-        this.jsonRpc.savePageContent({path, content, date, title}).then(jsonRpcResponse => {
+        this._writeCall('savePageContent', {path, content, date, title}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
-            // Check if result contains an error
-            if (result?.error) {
-                // Handle error
-                if (target && target.markSaveError) {
-                    target.markSaveError();
-                }
-                showNotification('Error saving file: ' + result.errorMessage);
-                console.error(result.errorMessage);
-                return;
-            } else {
-                // Success - update the file path if it changed (e.g., due to date/title change)
-                this._fileContent = content;
+            this._fileContent = content;
 
-                if (result && result.suggestedPath && this._selectedPage) {
-                    this._selectedPage = {
-                        ...this._selectedPage,
-                        suggestedPath: result.suggestedPath
-                    };
-                }
+            if (result?.newPath && this._selectedPage) {
+                this._applyPagePath(this._selectedPage, result.newPath);
+            } else if (result?.suggestedPath && this._selectedPage) {
+                this._selectedPage = {
+                    ...this._selectedPage,
+                    suggestedPath: result.suggestedPath
+                };
+            }
 
-                this._pendingRefreshPages = "background";
+            this._pendingRefreshPages = "background";
+            this._syncManager?.markAsDirty();
+            this._syncManager?.refreshStatus(true);
 
-                // Centralized Git handling
-                this._syncManager?.markAsDirty();
-                this._syncManager?.refreshStatus(true);
-
-                if (target && target.markSaved) {
-                    target.markSaved();
-                }
+            if (target && target.markSaved) {
+                target.markSaved();
             }
         }).catch(error => {
             if (target && target.markSaveError) {
@@ -605,24 +603,16 @@ export class QwcRoqEditor extends LitElement {
         );
         if (!confirmed) return;
 
-        this.jsonRpc.deletePage({path: page.path}).then(jsonRpcResponse => {
-            const result = jsonRpcResponse.result;
-            if (result === 'success' || result === true) {
-                const source = page.collectionId ? this._posts : this._pages;
-                const updated = source.filter(p => p.path !== page.path);
-                if (page.collectionId) {
-                    this._posts = updated;
-                } else {
-                    this._pages = updated;
-                }
-
-                // Centralized Git handling
-                this._syncManager?.markAsDirty();
-                this._syncManager?.refreshStatus(true);
-
+        this._writeCall('deletePage', {path: page.path}).then(() => {
+            const source = page.collectionId ? this._posts : this._pages;
+            const updated = source.filter(p => p.path !== page.path);
+            if (page.collectionId) {
+                this._posts = updated;
             } else {
-                showNotification('Error deleting page: ' + (result || 'Unknown error'));
+                this._pages = updated;
             }
+            this._syncManager?.markAsDirty();
+            this._syncManager?.refreshStatus(true);
         }).catch(error => {
             showNotification('Error deleting page: ' + error.message);
             console.error(error);

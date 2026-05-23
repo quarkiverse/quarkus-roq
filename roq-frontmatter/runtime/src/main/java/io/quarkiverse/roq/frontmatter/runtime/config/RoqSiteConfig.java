@@ -159,7 +159,7 @@ public interface RoqSiteConfig {
     /**
      * Format for dates
      */
-    @WithDefault("yyyy-M-d[ HH:mm][:ss][ Z]")
+    @WithDefault("yyyy-MM-dd[ HH:mm][:ss][ Z]")
     String dateFormat();
 
     /**

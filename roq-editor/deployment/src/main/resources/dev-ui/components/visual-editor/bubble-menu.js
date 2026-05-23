@@ -8,7 +8,7 @@ import { editorContext } from './editor-context.js';
 import { ContextConsumer } from '../../bundle.js';
 import { showPrompt } from '../prompt-dialog.js';
 import './heading-dropdown.js';
-import {renderImageForm} from "./extensions/image.js";
+import {showImageDialog} from "../image-dialog.js";
 
 export class BubbleMenu extends LitElement {
     static properties = {
@@ -120,6 +120,10 @@ export class BubbleMenu extends LitElement {
         return this._editorConsumer.value?.editorElement || null;
     }
 
+    get pagePath() {
+        return this._editorConsumer.value?.pagePath || '';
+    }
+
 
     render() {
         return html`
@@ -222,7 +226,7 @@ export class BubbleMenu extends LitElement {
             const src = currentImageAttrs.src || '';
             const title = currentImageAttrs.title || '';
             const alt = currentImageAttrs.alt || '';
-            showPrompt('Image', { alt, title, src}, renderImageForm).then(({ src, title, alt}) => {
+            showImageDialog({ src, alt, title }, this.pagePath).then(({ src, alt, title }) => {
                 if (src) {
                     this.editor.chain().focus().setImage({ alt, src, title }).run();
                 }

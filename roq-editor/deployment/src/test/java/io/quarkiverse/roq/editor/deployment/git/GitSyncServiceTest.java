@@ -672,8 +672,8 @@ class GitSyncServiceTest {
             }
 
             @Override
-            public SuggestedPathConfig suggestedPath() {
-                return () -> true;
+            public Map<String, CollectionEditorConfig> collectionsMap() {
+                return Map.of();
             }
 
             @Override

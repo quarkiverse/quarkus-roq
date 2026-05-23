@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.editor.runtime.devui;
 
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,6 +10,7 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 /**
  * Configuration for the Roq editor extension.
@@ -63,20 +65,30 @@ public interface RoqEditorConfig {
     }
 
     /**
-     * Suggested path configuration
+     * Per-collection editor configuration.
+     * Keys are collection IDs (e.g., "posts", "docs").
      */
-    @JsonProperty("suggestedPath")
-    SuggestedPathConfig suggestedPath();
+    @JsonIgnore
+    @WithName("collections")
+    Map<String, CollectionEditorConfig> collectionsMap();
 
-    interface SuggestedPathConfig {
+    String DEFAULT_COLLECTION_NAME_PATTERN = ":date-:slug~7";
+
+    interface CollectionEditorConfig {
 
         /**
-         * If enabled, Editor will suggest file path sync when it differs from content.
+         * File name pattern using link-style placeholders.
+         * Supported: :date, :slug, :Slug, :name, :Name, :year, :month, :day.
+         * Use ~W to truncate to W hyphen-separated words (e.g., :slug~7).
          */
-        @JsonProperty("enabled")
-        @WithDefault("false")
-        boolean enabled();
+        @WithDefault(DEFAULT_COLLECTION_NAME_PATTERN)
+        String name();
 
+        /**
+         * If enabled, auto-sync file names when they match the convention and the title/date changes.
+         */
+        @WithDefault("true")
+        boolean syncName();
     }
 
     /**

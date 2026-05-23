@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
-import static io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.pageLink;
-import static io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.paginateLink;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.pageLink;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.paginateLink;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,13 +13,13 @@ import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.roq.frontmatter.deployment.exception.RoqTemplateLinkException;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.PageLinkData;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.PaginateLinkData;
+import io.quarkiverse.roq.frontmatter.runtime.exception.RoqTemplateLinkException;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.PageLinkData;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.PaginateLinkData;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -153,6 +153,60 @@ class TemplateLinkTest {
         assertDoesNotThrow(() -> pageLink("", "/:year/:month/:day/:slug", data));
         assertDoesNotThrow(() -> pageLink("", "/:path:ext", data));
         assertDoesNotThrow(() -> pageLink("", "/:name/:Slug", data));
+    }
+
+    @Test
+    void testSlugTruncation() {
+        JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post About Quarkus");
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post-about-quarkus.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("2024/08/27/my-first-blog/", pageLink("", ":year/:month/:day/:slug~3", data));
+    }
+
+    @Test
+    void testSlugTruncationCasePreserving() {
+        JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("2024/08/27/My-First/", pageLink("", ":year/:month/:day/:Slug~2", data));
+    }
+
+    @Test
+    void testSlugTruncationExceedsWordCount() {
+        JsonObject frontMatter = new JsonObject().put("title", "Short");
+        final PageSource templateSource = createPageSource("posts/short.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("2024/08/27/short/", pageLink("", ":year/:month/:day/:slug~100", data));
+    }
+
+    @Test
+    void testSlugNoTruncationBackwardsCompatible() {
+        JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
+        final PageSource templateSource = createPageSource("posts/my-first-blog-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("2024/08/27/my-first-blog-post/", pageLink("", ":year/:month/:day/:slug", data));
+    }
+
+    @Test
+    void testTruncationOnUnsupportedPlaceholder() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Post");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertThrows(RoqTemplateLinkException.class, () -> pageLink("", ":year~2/:slug", data));
+    }
+
+    @Test
+    void testNameTruncation() {
+        JsonObject frontMatter = new JsonObject().put("title", "Something Else Entirely");
+        final PageSource templateSource = createPageSource("posts/2024-03-02-My-First-Blog-Post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("2024/08/27/my-first/", pageLink("", ":year/:month/:day/:name~2", data));
     }
 
     @Test

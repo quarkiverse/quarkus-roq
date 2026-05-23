@@ -72,8 +72,8 @@ public final class RoqProjectBuildItem extends SimpleBuildItem {
             return;
         }
         try (Stream<Path> walk = Files.walk(dir)) {
-            walk.filter(Files::isDirectory).forEach(d -> watch.produce(HotDeploymentWatchedFileBuildItem.builder()
-                    .setLocation(d.toAbsolutePath().toString()).build()));
+            walk.forEach(f -> watch.produce(HotDeploymentWatchedFileBuildItem.builder()
+                    .setLocation(f.toAbsolutePath().toString()).build()));
         } catch (IOException e) {
             // directory not accessible, skip
         }

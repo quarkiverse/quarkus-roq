@@ -1,7 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
-import static io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink.DEFAULT_PAGINATE_LINK_TEMPLATE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.DEFAULT_PAGINATE_LINK_TEMPLATE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,13 +17,13 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUr
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.util.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.Paginator;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
