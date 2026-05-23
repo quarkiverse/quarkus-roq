@@ -154,6 +154,31 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-ssh-passphrase]] [.property-path]##link:#quarkus-roq-editor_editor-sync-ssh-passphrase[`+++editor.sync.ssh-passphrase+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++editor.sync.ssh-passphrase+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Optional SSH passphrase used as a fallback when no SSH agent is available to unlock a passphrase-protected key for remote operations.
+
+Most users do not need this: JGit uses the system SSH agent (macOS Keychain, `ssh-agent`, Pageant) automatically. Set it only when no agent is running.
+
+For security, provide it via the `EDITOR_SYNC_SSH_PASSPHRASE` environment variable or a non-version-controlled config file (e.g. `.env`). Never commit it to `application.properties`. It is never sent to the browser.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++EDITOR_SYNC_SSH_PASSPHRASE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++EDITOR_SYNC_SSH_PASSPHRASE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-editor_editor-sync-auto-sync-enabled]] [.property-path]##link:#quarkus-roq-editor_editor-sync-auto-sync-enabled[`+++editor.sync.auto-sync.enabled+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++editor.sync.auto-sync.enabled+++[]

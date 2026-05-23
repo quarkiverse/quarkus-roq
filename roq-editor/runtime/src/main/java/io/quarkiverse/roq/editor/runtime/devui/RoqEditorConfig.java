@@ -107,6 +107,20 @@ public interface RoqEditorConfig {
         boolean enabled();
 
         /**
+         * Optional SSH passphrase used as a fallback when no SSH agent is available to unlock a
+         * passphrase-protected key for remote operations.
+         * <p>
+         * Most users do not need this: JGit uses the system SSH agent (macOS Keychain, {@code ssh-agent},
+         * Pageant) automatically. Set it only when no agent is running.
+         * <p>
+         * For security, provide it via the {@code EDITOR_SYNC_SSH_PASSPHRASE} environment variable or a
+         * non-version-controlled config file (e.g. {@code .env}). Never commit it to
+         * {@code application.properties}. It is never sent to the browser.
+         */
+        @JsonIgnore
+        Optional<String> sshPassphrase();
+
+        /**
          * Auto-sync configuration (pull from remote)
          */
         @JsonProperty("autoSync")

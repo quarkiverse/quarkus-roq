@@ -178,7 +178,7 @@ export class SyncStatusBar extends LitElement {
         const isDirty = this.status.hasUnpublished || this.status.ahead > 0;
         const isBehind = this.status.behind > 0 || this.status.hasRemoteChanges;
 
-        if (this.status.authFailed && this.status.isSsh) return 'SSH Authentication Required';
+        if (this.status.authFailed && this.status.isSsh) return 'SSH Authentication Failed';
         if (this.status.hasConflicts) return 'Git Conflicts Detected';
 
         if (isDirty && isBehind) return 'Remote & Local changes';

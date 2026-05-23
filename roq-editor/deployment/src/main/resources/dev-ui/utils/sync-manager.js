@@ -1,6 +1,10 @@
 /**
- * Orchestrator for Git synchronization background tasks and authentication management.
- * Handles polling for repository status, automatic sync/publish, and SSH passphrase flows.
+ * Orchestrator for Git synchronization background tasks.
+ * Handles polling for repository status and automatic sync/publish.
+ *
+ * SSH authentication is fully delegated to the server: it relies on the system SSH agent
+ * (macOS Keychain, ssh-agent, Pageant) and, as a fallback, the EDITOR_SYNC_SSH_PASSPHRASE
+ * environment variable. No passphrase is ever sent from the browser.
  */
 export class SyncManager {
     /**
@@ -8,7 +12,6 @@ export class SyncManager {
      * @param {Function} onStatusChange - Callback fired when Git status is updated
      * @param {Object} syncConfig - Git sync configuration from RoqEditorConfig
      * @param {Object} callbacks - Collection of UI callbacks
-     * @param {Function} callbacks.onPassphraseRequired - Trigger the SSH passphrase dialog
      * @param {Function} callbacks.onNotification - Show a UI notification (message, type)
      * @param {Function} callbacks.onConflict - Show the conflict resolution dialog (files)
      */
@@ -16,13 +19,11 @@ export class SyncManager {
         this.jsonRpc = jsonRpc;
         this.onStatusChange = onStatusChange;
         this.syncConfig = syncConfig;
-        this.onPassphraseRequired = callbacks.onPassphraseRequired;
         this.onNotification = callbacks.onNotification;
         this.onConflict = callbacks.onConflict;
         this.onBusy = callbacks.onBusy || (() => {});
 
         this.status = null;
-        this.passphrase = null;
         this.authError = false;
         this.intervalId = null;
         this.pollingCount = 0;
@@ -55,13 +56,12 @@ export class SyncManager {
         this.refreshStatus(false);
 
         this.intervalId = setInterval(async () => {
-            const isAuthBlocked = this.status?.authFailed && !this.passphrase;
-            const skipFetch = isAuthBlocked || (this.pollingCount % 6 !== 0);
+            const skipFetch = this.status?.authFailed || (this.pollingCount % 6 !== 0);
 
             this.pollingCount++;
             const status = await this.refreshStatus(skipFetch);
 
-            if (!status || status.hasConflicts) return;
+            if (!status || status.hasConflicts || status.authFailed) return;
 
             const now = Date.now();
 
@@ -71,10 +71,8 @@ export class SyncManager {
                 const timeSinceLastSync = now - this.lastAutoSyncTime;
                 if (timeSinceLastSync >= syncIntervalMs) {
                     try {
-                        if (!status.isSsh || this.passphrase) {
-                            await this.manualSync();
-                            this.lastAutoSyncTime = now;
-                        }
+                        await this.manualSync();
+                        this.lastAutoSyncTime = now;
                     } catch (e) {
                         console.warn("[SyncManager] Auto-sync failed:", e.message);
                     }
@@ -82,21 +80,17 @@ export class SyncManager {
             }
 
             const autoPublishConfig = this.syncConfig?.autoPublish;
-            if (autoPublishConfig?.enabled === true) {
-                if (status.hasUnpublished) {
-                    const publishIntervalMs = (autoPublishConfig.intervalSeconds || 300) * 1000;
-                    const timeSinceLastPublish = now - this.lastAutoPublishTime;
+            if (autoPublishConfig?.enabled === true && status.hasUnpublished) {
+                const publishIntervalMs = (autoPublishConfig.intervalSeconds || 300) * 1000;
+                const timeSinceLastPublish = now - this.lastAutoPublishTime;
 
-                    if (timeSinceLastPublish >= publishIntervalMs) {
-                        try {
-                            if (!status.isSsh || this.passphrase) {
-                                const message = this.syncConfig?.commitMessage?.template || "Auto-update via Roq Editor";
-                                await this.manualPublish(message, status.pendingFiles || []);
-                                this.lastAutoPublishTime = now;
-                            }
-                        } catch (e) {
-                            console.warn("[SyncManager] Auto-publish failed:", e.message);
-                        }
+                if (timeSinceLastPublish >= publishIntervalMs) {
+                    try {
+                        const message = this.syncConfig?.commitMessage?.template || "Auto-update via Roq Editor";
+                        await this.manualPublish(message, status.pendingFiles || []);
+                        this.lastAutoPublishTime = now;
+                    } catch (e) {
+                        console.warn("[SyncManager] Auto-publish failed:", e.message);
                     }
                 }
             }
@@ -147,25 +141,14 @@ export class SyncManager {
         this._refreshingPromise = (async () => {
             if (!skipFetch) this.onBusy(true);
             try {
-                const response = await this.jsonRpc.getSyncStatus({
-                    passphrase: this.passphrase,
-                    skipFetch
-                });
+                const response = await this.jsonRpc.getSyncStatus({ skipFetch });
                 const statusInfo = response.result;
                 if (!statusInfo) return;
 
                 this.status = statusInfo;
 
                 if (statusInfo.authFailed && statusInfo.isSsh) {
-                    const isNewFailure = !!this.passphrase;
-                    if (isNewFailure) {
-                        console.warn("[SyncManager] SSH authentication failed with the provided passphrase.");
-                        this.authError = true;
-                        this.passphrase = null;
-                        this.onPassphraseRequired("SSH authentication failed. Please check your passphrase.");
-                    } else if (!this.authError) {
-                        this.onPassphraseRequired(null);
-                    }
+                    this._notifyAuthError();
                 } else if (!statusInfo.authFailed) {
                     this.authError = false;
                 }
@@ -184,59 +167,17 @@ export class SyncManager {
     }
 
     /**
-     * Sets the SSH passphrase and triggers an immediate refresh to validate it.
-     * @param {string} passphrase - The SSH passphrase
-     */
-    async setPassphrase(passphrase) {
-        this.passphrase = passphrase;
-        this.authError = false;
-        this._refreshingPromise = null;
-        await this.refreshStatus(false);
-    }
-
-    /**
-     * Internal check to identify authentication-related errors.
-     * @param {any} errorOrMsg - Error object or message string
-     * @returns {boolean}
+     * Notifies the user once about an SSH authentication failure, pointing to the
+     * server-side configuration options. Avoids spamming on every poll.
      * @private
      */
-    _isAuthError(errorOrMsg) {
-        const msg = typeof errorOrMsg === 'string' ? errorOrMsg : (errorOrMsg?.message || "");
-        return msg.includes("AUTH_FAILED:") || msg.includes("AUTH_REQUIRED:");
-    }
-
-    /**
-     * Wrapper for Git operations that require SSH authentication.
-     * Handles automatic passphrase prompting and error reporting.
-     * @param {Function} operation - The function to execute (receives passphrase)
-     * @returns {Promise<any>} Result of the operation
-     * @private
-     */
-    async _withPassphrase(operation) {
-        if (!this.passphrase && this.status?.authFailed && this.status?.isSsh) {
-            this.onPassphraseRequired(null);
-            throw new Error("AUTH_REQUIRED: SSH passphrase required");
-        }
-        try {
-            const result = await operation(this.passphrase);
-
-            if (result?.authFailed && this.status?.isSsh) {
-                const hadPassphrase = !!this.passphrase;
-                this.passphrase = null;
-                const errorMsg = result?.message || "Authentication failed";
-                this.onPassphraseRequired(hadPassphrase ? errorMsg.replace("AUTH_FAILED:", "").replace("AUTH_REQUIRED:", "") : null);
-                throw new Error(errorMsg.startsWith("AUTH_") ? errorMsg : `AUTH_FAILED:${errorMsg}`);
-            }
-            return result;
-        } catch (error) {
-            if (this._isAuthError(error)) {
-                const hadPassphrase = !!this.passphrase;
-                this.passphrase = null;
-                const msg = typeof error === 'string' ? error : error.message;
-                this.onPassphraseRequired(hadPassphrase ? msg.replace("AUTH_FAILED:", "").replace("AUTH_REQUIRED:", "") : null);
-            }
-            throw error;
-        }
+    _notifyAuthError() {
+        if (this.authError) return;
+        this.authError = true;
+        this.onNotification(
+            "SSH authentication failed. Make sure your key is loaded in your ssh-agent, " +
+            "or set the EDITOR_SYNC_SSH_PASSPHRASE environment variable for a passphrase-protected key.",
+            'error');
     }
 
     /**
@@ -267,7 +208,10 @@ export class SyncManager {
         } else if (result?.hasConflicts) {
             await this.onConflict(result.conflictFiles);
             await this.refreshStatus(true);
-        } else if (result && !result.authFailed) {
+        } else if (result?.authFailed) {
+            this._notifyAuthError();
+            await this.refreshStatus(true);
+        } else if (result) {
             this.onNotification(result.message || "Operation failed", 'error');
             await this.refreshStatus(true);
         }
@@ -279,9 +223,7 @@ export class SyncManager {
      * @returns {Promise<Object>} Result of the operation
      */
     async manualSync() {
-        const result = await this._withPassphrase(
-            (pass) => this.jsonRpc.syncContent({ passphrase: pass }).then(r => r.result)
-        );
+        const result = await this.jsonRpc.syncContent().then(r => r.result);
         return this._handleOperationResult(result, 'Content synchronized successfully', 'sync', true);
     }
 
@@ -292,9 +234,7 @@ export class SyncManager {
      * @returns {Promise<Object>} Result of the operation
      */
     async manualPublish(message, filePaths) {
-        const result = await this._withPassphrase(
-            (pass) => this.jsonRpc.publishContent({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
-        );
+        const result = await this.jsonRpc.publishContent({ message, filePaths: filePaths ?? [] }).then(r => r.result);
         return this._handleOperationResult(result, 'Content published successfully', 'publish', true);
     }
 
@@ -305,9 +245,7 @@ export class SyncManager {
      * @returns {Promise<Object>} Combined result
      */
     async publishAndSync(message, filePaths) {
-        const result = await this._withPassphrase(
-            (pass) => this.jsonRpc.publishAndSync({ message, passphrase: pass, filePaths: filePaths ?? [] }).then(r => r.result)
-        );
+        const result = await this.jsonRpc.publishAndSync({ message, filePaths: filePaths ?? [] }).then(r => r.result);
         return this._handleOperationResult(result, 'Content published and synchronized successfully', 'publishAndSync', true);
     }
 }

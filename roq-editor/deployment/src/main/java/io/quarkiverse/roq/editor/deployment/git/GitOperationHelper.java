@@ -43,13 +43,15 @@ public class GitOperationHelper {
      * @throws GitAPIException if staging fails
      */
     public void stageChanges(Git git, Repository repository, List<String> filePaths) throws GitAPIException {
+        String prefix = contentFilter.resolveWorkingPrefix(repository);
         List<String> filesToAdd;
         if (filePaths != null && !filePaths.isEmpty()) {
-            filesToAdd = filePaths;
+            filesToAdd = filePaths.stream()
+                    .filter(path -> contentFilter.isSignificantContentFile(path, prefix))
+                    .toList();
         } else {
             Status status = git.status().call();
-            filesToAdd = new ArrayList<>(
-                    contentFilter.extractSignificantContentChanges(status, contentFilter.resolveWorkingPrefix(repository)));
+            filesToAdd = new ArrayList<>(contentFilter.extractSignificantContentChanges(status, prefix));
             filesToAdd.addAll(status.getConflicting());
         }
 

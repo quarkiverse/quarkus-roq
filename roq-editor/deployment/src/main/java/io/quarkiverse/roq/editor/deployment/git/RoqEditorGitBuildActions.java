@@ -21,28 +21,24 @@ public class RoqEditorGitBuildActions {
         BuildTimeActionBuildItem actions = new BuildTimeActionBuildItem();
 
         actions.actionBuilder().methodName("getSyncStatus").function(parameters -> {
-            String passphrase = parseString(parameters.get("passphrase"));
             boolean skipFetch = parseBoolean(parameters.get("skipFetch"));
-            return CompletableFuture.supplyAsync(() -> gitService.getStatus(passphrase, skipFetch));
+            return CompletableFuture.supplyAsync(() -> gitService.getStatus(skipFetch));
         }).build();
 
         actions.actionBuilder().methodName("syncContent").function(parameters -> {
-            String passphrase = parseString(parameters.get("passphrase"));
-            return CompletableFuture.supplyAsync(() -> gitService.sync(passphrase));
+            return CompletableFuture.supplyAsync(gitService::sync);
         }).build();
 
         actions.actionBuilder().methodName("publishContent").function(parameters -> {
             String commitMessage = parseString(parameters.get("message"));
-            String passphrase = parseString(parameters.get("passphrase"));
             List<String> filePaths = extractList(parameters.get("filePaths"));
-            return CompletableFuture.supplyAsync(() -> gitService.publish(commitMessage, passphrase, filePaths));
+            return CompletableFuture.supplyAsync(() -> gitService.publish(commitMessage, filePaths));
         }).build();
 
         actions.actionBuilder().methodName("publishAndSync").function(parameters -> {
             String commitMessage = parseString(parameters.get("message"));
-            String passphrase = parseString(parameters.get("passphrase"));
             List<String> filePaths = extractList(parameters.get("filePaths"));
-            return CompletableFuture.supplyAsync(() -> gitService.publishAndSync(commitMessage, passphrase, filePaths));
+            return CompletableFuture.supplyAsync(() -> gitService.publishAndSync(commitMessage, filePaths));
         }).build();
 
         return actions;
