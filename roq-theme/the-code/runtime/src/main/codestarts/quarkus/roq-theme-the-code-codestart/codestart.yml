@@ -1,0 +1,12 @@
+name: roq-theme-the-code-codestart
+ref: roq-theme-the-code
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq The Code Theme
+  description: A minimal, developer-focused Roq site
+  related-guide-section: https://iamroq.dev/docs/basics/
+language:
+  base:
+    dependencies:
+      - "io.quarkiverse.roq:quarkus-roq:${project.version}"

@@ -1,0 +1,12 @@
+---
+title: Tags
+layout: page
+---
+
+<div class="tag-list">
+  {#for tag in site.collections.posts.tagsCount}
+  <a href="{site.url('/posts/tag/')}{tag.name}" class="tag-badge">
+    {tag.name} <span class="tag-count">({tag.count})</span>
+  </a>
+  {/for}
+</div>
