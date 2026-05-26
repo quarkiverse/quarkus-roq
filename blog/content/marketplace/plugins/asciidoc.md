@@ -6,6 +6,7 @@ icon: fa-solid fa-file-lines
 install-name: asciidoc
 tags: [content, markup]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/asciidoc
+search-boost: 20
 ---
 
 Fast Java-based AsciiDoc processor (based on [Yupiik asciidoc-java](https://github.com/yupiik/tools-maven-plugin/tree/master/asciidoc-java)). Provides fast startup but does not support all AsciiDoc options yet. For the full feature set, see [AsciiDoc JRuby](/plugin/asciidoc-jruby/).
@@ -45,9 +46,9 @@ AsciiDoc headers are parsed by Roq and used as page data:
 
 ### Roq attributes
 
+{|
 | Name | Description |
 |---|---|
-{|
 | `{site-url}` | The full site url (e.g. `https://my-site.com/blog/`) |
 | `{site-path}` | The site path (e.g. `/blog/`) |
 | `{page-url}` | The full page url (e.g. `https://my-site.com/blog/about/`) |

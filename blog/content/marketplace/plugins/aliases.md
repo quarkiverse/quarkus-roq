@@ -6,6 +6,7 @@ icon: fa-solid fa-shuffle
 install-name: aliases
 tags: [navigation, seo]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/aliases
+search-boost: 20
 ---
 
 Create one or many aliases (redirections) for a page. Add `aliases: [your-alias-here, another-alias-here]` in the Front Matter to access the page using a customized URL.

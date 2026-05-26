@@ -31,52 +31,18 @@ Roq provides a https://github.com/quarkiverse/quarkus-roq/blob/main/action.yml[G
 [[github-pages]]
 === To GitHub Pages
 
-Check if you already have the `.github/workflows/deploy.yml` file, if you don't create it:
+The deploy workflow file `.github/workflows/deploy.yml` is already included when you create a project with `roq create` (https://github.com/quarkiverse/quarkus-roq/blob/main/roq-theme/shared-codestart/.github/workflows/deploy.yml[view source]). If you don't have it, create it from the source link.
 
-..github/workflows/deploy.yml
-[source,yaml]
-----
-## Deploy to GH-Pages for your Quarkus Roq site.
-name: Roq Site Deploy
+Then enable GitHub Pages in your repository:
 
-on:
-  push:
-    branches: [ main ]   # Switch to the branch which should be deployed to GitHub Pages
-  schedule:
-    - cron: "0 5 * * *"  # Runs every day at 05:00 UTC (10:30 AM IST)
-  workflow_dispatch:
+1. Go to **Settings** > **Pages**
+2. Under **Build and deployment**, select **GitHub Actions** as the source
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Generate Roq Site
-        uses: quarkiverse/quarkus-roq@v1.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}   # Used to automatically get the GitHub Pages url
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-----
+image::github-pages-setup.png[GitHub Pages setup,width=600]
 
-Then to enable GitHub Pages:
+Push to `main` and the workflow will run automatically. After a minute or two, your site will be live!
 
-1. *Open* your GitHub repository page
-2. **Go to** Settings->Page
-3. *Pick:* `Source: GitHub Actions`, that's enough (no save button)
-
-It's all good, restart your deploy workflow and enjoy!
+The workflow also runs daily to publish any scheduled content (posts with a future date).
 
 === To other services
 
@@ -95,7 +61,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate Roq Site
         uses: quarkiverse/quarkus-roq@v1.1
         with:

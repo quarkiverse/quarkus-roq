@@ -6,6 +6,7 @@ icon: fa-brands fa-markdown
 install-name: markdown
 tags: [content, markup]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/markdown
+search-boost: 20
 ---
 
 Process `.md` and `.markdown` files using [CommonMark Java](https://github.com/commonmark/commonmark-java).

@@ -7,11 +7,13 @@ include::../../includes/edit-contrib.adoc[]
 Roq uses https://quarkus.io/guides/qute[Qute templates] and a different content model than Jekyll, Hugo, or other static site generators.
 This guide covers the workflow, syntax mappings, and Roq-specific pitfalls for migrating an existing static site to Roq.
 
+TIP: Already using Roq and looking to update to a newer version? See the link:{site-url}docs/advanced/#updating-roq[updating guide] and the link:{site-url}docs/releases/#migration-guide[migration guide].
+
 == Prerequisites
 
-* Familiarity with Roq concepts (see the link:{site-baseurl}docs/getting-started/[Getting Started guide])
+* Familiarity with Roq concepts (see the link:{site-url}docs/getting-started/[Getting Started guide])
 * An existing static site you want to migrate (Jekyll, Hugo, or similar)
-* The Roq CLI installed (see link:{site-baseurl}docs/getting-started/[Getting Started])
+* The Roq CLI installed (see link:{site-url}docs/getting-started/[Getting Started])
 * Java 21+ installed
 
 == Using an LLM to accelerate migration
@@ -91,8 +93,8 @@ Create a new Roq project with the Roq CLI:
 roq create my-site
 ----
 
-This creates a project with the link:{site-baseurl}theme/default-theme/[default theme] (full blog layout, dark mode, sidebar, SEO support).
-If you want full control over the design and prefer to build your own layouts from scratch, use the link:{site-baseurl}theme/base-theme/[base theme] instead:
+This creates a project with the link:{site-url}theme/default-theme/[default theme] (full blog layout, dark mode, sidebar, SEO support).
+If you want full control over the design and prefer to build your own layouts from scratch, use the link:{site-url}theme/base-theme/[base theme] instead:
 
 [source,shell]
 ----
@@ -204,10 +206,10 @@ Layouts are the highest-value conversion target.
 Jekyll uses Liquid templates; Hugo uses Go templates.
 Roq uses Qute, which has a different syntax but similar concepts.
 
-If you created your project with the link:{site-baseurl}theme/default-theme/[default theme], it already provides `main`, `page`, and `post` layouts with a full blog design.
+If you created your project with the link:{site-url}theme/default-theme/[default theme], it already provides `main`, `page`, and `post` layouts with a full blog design.
 You can override any theme layout by creating a file with the same name in `templates/layouts/`.
 
-If you used the link:{site-baseurl}theme/base-theme/[base theme], you have a minimal HTML structure and will need to create your own layouts to match your existing site's design.
+If you used the link:{site-url}theme/base-theme/[base theme], you have a minimal HTML structure and will need to create your own layouts to match your existing site's design.
 
 === Key syntax differences (Jekyll Liquid to Qute)
 
@@ -386,7 +388,7 @@ mkdir -p public/js
 cp path/to/your/javascript/*.js public/js/
 ----
 
-Add `<script>` tags to your root layout, or place JS/CSS sources in `web/` to use the built-in Web Bundler (see link:{site-baseurl}docs/basics/#_styles_and_javascript[Styles and Javascript]).
+Add `<script>` tags to your root layout, or place JS/CSS sources in `web/` to use the built-in Web Bundler (see link:{site-url}docs/basics/#_styles_and_javascript[Styles and Javascript]).
 
 === SCSS/CSS
 
@@ -551,7 +553,7 @@ A fresh conversation with "Continue from Phase B" works better than pushing thro
 
 * **Liquid filters**: Jekyll's Liquid filters (for example, `+| date: "%B %d, %Y"+`) do not have direct Qute equivalents. Qute uses method calls instead (for example, `+{=post.date.format('MMMM dd, yyyy')}+`). The LLM usually handles common filters, but verify date formats and edge cases.
 
-* **Jekyll plugins**: Jekyll plugins cannot be reused in Roq, but Roq has its own plugin ecosystem covering common needs (sitemap, tagging, aliases, RSS, etc.). Check the link:{site-baseurl}marketplace/#plugins[Plugins & Themes] directory and install with `roq add plugin:<name>`.
+* **Jekyll plugins**: Jekyll plugins cannot be reused in Roq, but Roq has its own plugin ecosystem covering common needs (sitemap, tagging, aliases, RSS, etc.). Check the link:{site-url}marketplace/#plugins[Plugins & Themes] directory and install with `roq add plugin:<name>`.
 
 * **SCSS processing**: Jekyll processes Sass files automatically and supports Jekyll-specific front matter and Liquid variables in SCSS. With Roq, the web-bundler handles SCSS, but you must remove Jekyll-specific syntax from entry points and update import paths. The LLM can help with the syntax changes but not with debugging build tool differences.
 
@@ -561,7 +563,7 @@ A fresh conversation with "Continue from Phase B" works better than pushing thro
 
 * **AsciidoctorJ security boundaries**: AsciidoctorJ may block `include::` directives that resolve to paths outside the content directory. If you see security errors, move included files inside `content/` or adjust the safe mode configuration.
 
-* **RSS feeds**: Jekyll's `feed.xml` uses Liquid syntax. Roq has built-in RSS support (see link:{site-baseurl}docs/basics/#rss[RSS]). Create a `content/rss.xml` with `++{#include fm/rss.html}++` and add `++{#rss site /}++` to your layout's `<head>`.
+* **RSS feeds**: Jekyll's `feed.xml` uses Liquid syntax. Roq has built-in RSS support (see link:{site-url}docs/basics/#rss[RSS]). Create a `content/rss.xml` with `++{#include fm/rss.html}++` and add `++{#rss site /}++` to your layout's `<head>`.
 
 [[cleanup]]
 == Clean up Jekyll artifacts
@@ -582,7 +584,7 @@ Keep files that Roq still uses:
 [[next-steps]]
 == What's next
 
-* Read the link:{site-baseurl}docs/basics/[Roq the basics] for the full feature set
-* Browse the link:{site-baseurl}marketplace/[Plugins & Themes] directory
+* Read the link:{site-url}docs/basics/[Roq the basics] for the full feature set
+* Browse the link:{site-url}marketplace/[Plugins & Themes] directory
 * Check the https://github.com/quarkiverse/quarkus-roq/tree/main/blog[Roq blog source] for a complete working example
 * If you develop migration scripts or improved prompts, consider contributing them back to the project (see https://github.com/quarkiverse/quarkus-roq/issues/780[issue #780])

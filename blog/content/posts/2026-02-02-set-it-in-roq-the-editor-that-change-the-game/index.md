@@ -1,7 +1,7 @@
 ---
 title: "Set It in Roq: The Editor that changes the game!"
 image: https://images.unsplash.com/photo-1594643469650-dd506331ff7a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-tags: guide, cool-stuff
+tags: new-feature, cool-stuff
 description: Roq introduces a TipTap-powered editor with Markdown support, transforming it from a static site generator into a lightweight, developer-friendly CMS. Create, edit, and preview content seamlessly within the Quarkus dev experience.
 date: 2026-05-04 10:00:00 +0200
 series: roq-2.1

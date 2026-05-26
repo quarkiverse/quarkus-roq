@@ -12,6 +12,7 @@ screenshots:
     source: screenshots/home-light.png
   - label: Dark mode
     source: screenshots/home-dark.png
+search-boost: 20
 ---
 
 Build a personal resume or CV with a data-driven YAML configuration.

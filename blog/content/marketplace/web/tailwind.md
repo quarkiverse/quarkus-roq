@@ -6,6 +6,7 @@ icon: fa-solid fa-wind
 install-name: tailwind
 tags: [css, styling, tailwind]
 source: https://github.com/quarkiverse/quarkus-web-bundler/tree/main/tailwind
+search-boost: 20
 ---
 
 Add Tailwind CSS support to your Roq project. Write utility-first CSS classes directly in your templates, with automatic purging of unused styles for optimized production builds.

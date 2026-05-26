@@ -6,6 +6,7 @@ icon: fa-solid fa-magnifying-glass
 install-name: lunr
 tags: [search]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/lunr
+search-boost: 20
 ---
 
 Enable search for your site without the need for external, server-side, search services.

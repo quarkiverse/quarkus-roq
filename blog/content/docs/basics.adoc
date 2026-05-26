@@ -75,7 +75,7 @@ description: It is time to start Roqing 🎸!
 <1> The index.html also describe your `site` information through a FrontMatter header.
 <2> We use the `{site.url(path)}` using Qute to manually resolve other pages urls.
 
-TIP: There are different ways to link your pages as explained in the  link:{site-baseurl}docs/advanced#links[Links & Urls] section.
+TIP: There are different ways to link your pages as explained in the  link:{site-url}docs/advanced#links[Links & Urls] section.
 
 [#pages]
 === Pages

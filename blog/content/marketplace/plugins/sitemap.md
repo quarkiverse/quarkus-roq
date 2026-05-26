@@ -6,6 +6,7 @@ icon: fa-solid fa-sitemap
 install-name: sitemap
 tags: [seo]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/sitemap
+search-boost: 20
 ---
 
 Easily create a `sitemap.xml` for your site.

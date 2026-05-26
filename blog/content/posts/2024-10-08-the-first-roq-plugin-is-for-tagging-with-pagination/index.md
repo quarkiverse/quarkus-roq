@@ -4,7 +4,7 @@ title: The first Roq plugin is for tagging (with pagination)
 image: tagging.webp
 description: We introduced the first Roq plugin, it is for collection tagging & with pagination support!
 author: ia3andy
-tags: plugin, guide, cool-stuff
+tags: plugin, new-feature, cool-stuff
 series: roq-plugins
 ---
 

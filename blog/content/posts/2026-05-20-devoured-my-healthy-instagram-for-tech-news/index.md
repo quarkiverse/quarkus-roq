@@ -2,7 +2,7 @@
 title: "Devoured: My Healthy Instagram for Tech News"
 description: How I built a daily AI-curated tech digest with Roq, replacing doomscrolling with something actually useful.
 image: https://images.unsplash.com/photo-1532356884227-66d7c0e9e4c2?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-tags: cool-stuff, guide
+tags: cool-stuff, tutorial
 author: ia3andy
 date: 2026-05-20 10:00:00 +0200
 ---
