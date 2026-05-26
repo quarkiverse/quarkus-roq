@@ -13,12 +13,9 @@ Easily create a `sitemap.xml` for your site.
 
 Create a new sitemap file:
 
-{|
 ```html
-<!-- content/sitemap.xml -->
-{#include fm/sitemap.xml}
+\{#include fm/sitemap.xml}
 ```
-|}
 
 To remove pages from the sitemap, use `sitemap: false` in the FM data.
 
