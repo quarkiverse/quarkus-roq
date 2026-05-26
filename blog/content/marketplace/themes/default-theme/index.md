@@ -38,6 +38,7 @@ screenshots:
   - label: Home (vibrant) - dark
     description: Customised with fuchsia + lime
     source: screenshots/home-vibrant-dark.png
+search-boost: 20
 ---
 
 The default Roq theme for blogs and sites (used on this site). Built with Tailwind CSS, featuring dark mode, responsive design, sidebar navigation, and social media links. The accent color palette can easily be customized with your own colors or any existing Tailwind color palette.

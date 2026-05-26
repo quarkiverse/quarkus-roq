@@ -5,6 +5,7 @@ layout: marketplace-web
 icon: fa-brands fa-sass
 tags: [css, styling]
 source: https://github.com/quarkiverse/quarkus-web-bundler/tree/main/sass
+search-boost: 20
 ---
 
 Add Sass/SCSS support to your Roq project. Use variables, nesting, mixins, and all Sass features to write maintainable stylesheets.

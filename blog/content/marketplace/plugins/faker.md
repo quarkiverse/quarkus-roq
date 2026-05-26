@@ -6,6 +6,7 @@ icon: fa-solid fa-wand-magic-sparkles
 install-name: faker
 tags: [development, testing]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/faker
+search-boost: 20
 ---
 
 Populate your site with realistic fake content during development. Generates posts with random titles, descriptions, authors, dates, tags, and images so you can test layouts, pagination, and styling without writing real content.

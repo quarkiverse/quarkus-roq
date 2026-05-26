@@ -6,6 +6,7 @@ icon: fa-solid fa-qrcode
 install-name: qrcode
 tags: [media]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/qrcode
+search-boost: 20
 ---
 
 Add QR codes to your website. Create a template and add the `#qrcode` tag to it, then style and size it as you want.

@@ -6,6 +6,7 @@ icon: fa-solid fa-file-lines
 install-name: asciidoc-jruby
 tags: [content, markup]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/asciidoc-jruby
+search-boost: 20
 ---
 
 Full-featured Asciidoctor implementation based on [AsciidoctorJ](https://github.com/asciidoctor/asciidoctorj). Offers the complete AsciiDoc feature set including all extensions. Slower startup than the [Java variant](/plugin/asciidoc/) but covers all advanced AsciiDoc options.
@@ -45,9 +46,9 @@ AsciiDoc headers are parsed by Roq and used as page data:
 
 ### Roq attributes
 
+{|
 | Name | Description |
 |---|---|
-{|
 | `{site-url}` | The full site url (e.g. `https://my-site.com/blog/`) |
 | `{site-path}` | The site path (e.g. `/blog/`) |
 | `{page-url}` | The full page url (e.g. `https://my-site.com/blog/about/`) |
