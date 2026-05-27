@@ -23,7 +23,7 @@ public class RoqBlogTest {
                 .body(containsString("Static</span> Sites"))
                 .body(containsString("Imagined for AI"))
                 .body(containsString("&copy; ROQ"))
-                .body(containsString("<a href=\"https://central.sonatype.com/artifact/io.quarkiverse.roq/quarkus-roq\""));
+                .body(containsString("data-github-source"));
     }
 
     @Test
