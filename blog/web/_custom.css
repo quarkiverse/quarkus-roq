@@ -44,17 +44,6 @@
     @apply content-none;
 }
 
-.about .roq-version {
-    @apply mt-3 mb-4 md:mt-0;
-}
-
-.about .roq-version a {
-    @apply inline-block text-xs font-mono px-2 py-0.5 rounded-full no-underline;
-    @apply bg-neutral-700 text-accent-400;
-    @apply transition-colors duration-200;
-    @apply hover:bg-neutral-600 hover:text-accent-300;
-}
-
 .about .site-logo {
     @apply w-[350px] md:w-[180px] mb-0 md:mb-2.5;
 }
@@ -82,11 +71,6 @@
 .sidebar.main .search-trigger-shortcut {
     @apply text-neutral-500 bg-transparent;
     border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* === Social icons === */
-.contact ul li a {
-    @apply text-neutral-300;
 }
 
 /* === Dark mode toggle (always dark like sidebar) === */

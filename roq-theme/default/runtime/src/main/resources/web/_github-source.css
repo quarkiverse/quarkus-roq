@@ -1,0 +1,48 @@
+@keyframes github-source-fact-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Base styles */
+.github-source {
+    @apply flex flex-col items-center gap-1 px-3 py-2 rounded-lg no-underline;
+    @apply transition-colors duration-200;
+}
+
+.github-source-label {
+    @apply flex items-center gap-1.5 text-sm font-medium;
+}
+
+.github-source-icon {
+    @apply shrink-0;
+}
+
+.github-source-icon svg {
+    @apply w-5 h-5;
+}
+
+.github-source-facts {
+    @apply flex gap-3 text-xs font-normal mt-0.5;
+}
+
+.github-source-fact {
+    @apply flex items-center gap-1;
+}
+
+.github-source-repo--active .github-source-fact {
+    animation: github-source-fact-in 0.4s ease-out;
+}
+
+.github-source-fact svg {
+    @apply opacity-60;
+}
+
+/* Sidebar variant */
+.github-source--sidebar {
+    @apply mb-4 text-neutral-300;
+    @apply hover:text-white hover:bg-white/5;
+}
+
+.github-source--sidebar .github-source-facts {
+    @apply text-neutral-400;
+}

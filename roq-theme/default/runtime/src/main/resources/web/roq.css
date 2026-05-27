@@ -37,6 +37,7 @@
 @import "./_terminal.css";
 @import "./_clipboard.css";
 @import "./_gallery.css";
+@import "./_github-source.css";
 
 /* Typography */
 @import "./_prose.css";
