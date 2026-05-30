@@ -62,6 +62,36 @@ public class RoqTemplateExtensionUnitTest {
     }
 
     @Test
+    @DisplayName("slugify with lowerCase=true lowercases the result")
+    public void testSlugifyLowerCase() {
+        assertEquals("hello-world", RoqTemplateExtension.slugify("Hello World!", true));
+    }
+
+    @Test
+    @DisplayName("slugify with lowerCase=false preserves case")
+    public void testSlugifyPreserveCase() {
+        assertEquals("Hello-World", RoqTemplateExtension.slugify("Hello World!", false));
+    }
+
+    @Test
+    @DisplayName("slugify with preservePath=true preserves slashes")
+    public void testSlugifyPreservePath() {
+        assertEquals("Hello/World", RoqTemplateExtension.slugify("Hello/World", false, true));
+    }
+
+    @Test
+    @DisplayName("slugify with preservePath=false replaces slashes with hyphens")
+    public void testSlugifyReplacePath() {
+        assertEquals("Hello-World", RoqTemplateExtension.slugify("Hello/World", false, false));
+    }
+
+    @Test
+    @DisplayName("slugify with lowerCase and preservePath combines both options")
+    public void testSlugifyLowerAndPreservePath() {
+        assertEquals("hello/world", RoqTemplateExtension.slugify("Hello/World", true, true));
+    }
+
+    @Test
     @DisplayName("mimeType resolves PDF")
     public void testMimeTypePdf() {
         assertEquals("application/pdf", RoqTemplateExtension.mimeType("doc.pdf"));

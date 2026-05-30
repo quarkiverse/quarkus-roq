@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.qute.TemplateExtension.TemplateAttribute;
@@ -88,6 +89,47 @@ public class RoqTemplateExtension {
         return wordLimit(stripHtml(htmlContent), limit);
     }
 
+    // ── Page link placeholder extensions ──────────────────────────────────
+
+    /**
+     * Returns the lowercased slug for this page (matches the {@code :slug} link placeholder).<br>
+     * Resolved from FM {@code slug} key, then {@code title}, then the source file name.<br>
+     * Example: "{page.slug}" → "my-post-title".
+     */
+    public static String slug(Page page) {
+        return TemplateLink.resolveSlug(page.source(), page.data()).toLowerCase();
+    }
+
+    /**
+     * Returns the case-preserving slug for this page (matches the {@code :Slug} link placeholder).<br>
+     * Resolved from FM {@code slug} key, then {@code title}, then the source file name.<br>
+     * Example: "{page.Slug}" → "My-Post-Title".
+     */
+    @TemplateExtension(matchName = "Slug")
+    public static String slugCasePreserving(Page page) {
+        return TemplateLink.resolveSlug(page.source(), page.data());
+    }
+
+    /**
+     * Returns the lowercased name for this page (matches the {@code :name} link placeholder).<br>
+     * This is the slugified source file name (with date prefix removed).<br>
+     * Example: "{page.name}" → "my-post".
+     */
+    @TemplateExtension(matchName = "name")
+    public static String pageName(Page page) {
+        return TemplateLink.resolveName(page.source()).toLowerCase();
+    }
+
+    /**
+     * Returns the case-preserving name for this page (matches the {@code :Name} link placeholder).<br>
+     * This is the slugified source file name (with date prefix removed).<br>
+     * Example: "{page.Name}" → "My-Post".
+     */
+    @TemplateExtension(matchName = "Name")
+    public static String pageNameCasePreserving(Page page) {
+        return TemplateLink.resolveName(page.source());
+    }
+
     /**
      * Returns the text part of this string by stripping all html tags.<br>
      * Example: "{'<div>Hello World</div>'.stripHtml}" → "Hello World".
@@ -157,11 +199,48 @@ public class RoqTemplateExtension {
     }
 
     /**
-     * Returns the slugified version of the given text.<br>
+     * Returns the slugified version of the given text.
      * Example: "{'Hello World'.slugify}" → "Hello-World".
      */
     public static String slugify(String text) {
         return StringPaths.slugify(text, false, false);
+    }
+
+    /**
+     * Returns the slugified version of the given text with optional case and path control,
+     * matching the underlying {@code StringPaths.slugify} behaviour.
+     * <ul>
+     * <li>{@code slugify(false)} — case-preserving (default), slashes replaced with hyphens</li>
+     * <li>{@code slugify(true)} — lowercased, slashes replaced with hyphens (matches URL generation)</li>
+     * </ul>
+     * Example: "{'Hello World'.slugify(true)}" → "hello-world".
+     *
+     * @param text the text to slugify
+     * @param lowerCase when {@code true}, the result is lowercased
+     * @return the slugified text
+     */
+    public static String slugify(String text, boolean lowerCase) {
+        String result = StringPaths.slugify(text, false, false);
+        return lowerCase ? result.toLowerCase() : result;
+    }
+
+    /**
+     * Returns the slugified version of the given text with full control over case and path separators,
+     * matching the underlying {@code StringPaths.slugify} behaviour.
+     * <ul>
+     * <li>{@code slugify(true, false)} — lowercased, slashes replaced with hyphens (matches URL generation)</li>
+     * <li>{@code slugify(false, true)} — case-preserving, slashes preserved (for path-like segments)</li>
+     * </ul>
+     * Example: "{'Hello/World'.slugify(true, true)}" → "hello/world".
+     *
+     * @param text the text to slugify
+     * @param lowerCase when {@code true}, the result is lowercased
+     * @param preservePath when {@code true}, slashes ({@code /}) are preserved instead of replaced with hyphens
+     * @return the slugified text
+     */
+    public static String slugify(String text, boolean lowerCase, boolean preservePath) {
+        String result = StringPaths.slugify(text, preservePath, false);
+        return lowerCase ? result.toLowerCase() : result;
     }
 
     /**
