@@ -24,6 +24,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig.SyncConfig.Mode;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig.SyncConfig.PrFlowConfig;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig.SyncConfig.PrFlowConfig.CommitStrategy;
 import io.quarkiverse.roq.editor.runtime.devui.git.GitStatusInfo;
 import io.quarkiverse.roq.editor.runtime.devui.git.GitSyncResult;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -610,6 +613,139 @@ class GitSyncServiceTest {
         assertThat(successCount.get()).isEqualTo(threadCount);
     }
 
+    @Test
+    void shouldCreateContentBranchAndPushOnPublishFromMainInPrMode() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.NEW_COMMITS, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        Files.writeString(localDirectory.resolve("content/draft.md"), "draft content");
+
+        GitSyncResult result = prService.publish("Add draft", null, "my-draft");
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.targetBranch()).isEqualTo("content/my-draft");
+        assertThat(localRepository.getRepository().getBranch()).isEqualTo("content/my-draft");
+        assertThat(localRepository.getRepository().findRef("refs/remotes/origin/content/my-draft")).isNotNull();
+        assertThat(localRepository.getRepository().findRef("refs/heads/" + mainBranch)).isNotNull();
+    }
+
+    @Test
+    void shouldAutoGenerateBranchNameWhenOverrideMissing() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.NEW_COMMITS, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        Files.writeString(localDirectory.resolve("content/auto-named.md"), "content");
+
+        GitSyncResult result = prService.publish("Update", null, null);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.targetBranch()).startsWith("content/update-");
+    }
+
+    @Test
+    void shouldAddNewCommitWhenPublishingAgainOnContentBranch() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.NEW_COMMITS, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        Files.writeString(localDirectory.resolve("content/post.md"), "first");
+        prService.publish("First", null, "feature");
+
+        Files.writeString(localDirectory.resolve("content/post.md"), "second");
+        GitSyncResult result = prService.publish("Second", null, null);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.targetBranch()).isEqualTo("content/feature");
+        int commitsOnBranch = 0;
+        for (var ignored : localRepository.log().add(localRepository.getRepository().resolve("content/feature"))
+                .not(localRepository.getRepository().resolve(mainBranch)).call()) {
+            commitsOnBranch++;
+        }
+        assertThat(commitsOnBranch).isEqualTo(2);
+    }
+
+    @Test
+    void shouldAmendPreviousCommitWhenStrategyIsAmend() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.AMEND, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        Files.writeString(localDirectory.resolve("content/post.md"), "first");
+        prService.publish("First", null, "amend-test");
+
+        Files.writeString(localDirectory.resolve("content/post.md"), "second");
+        GitSyncResult result = prService.publish("Second", null, null);
+
+        assertThat(result.success()).isTrue();
+        int commitsOnBranch = 0;
+        for (var ignored : localRepository.log().add(localRepository.getRepository().resolve("content/amend-test"))
+                .not(localRepository.getRepository().resolve(mainBranch)).call()) {
+            commitsOnBranch++;
+        }
+        assertThat(commitsOnBranch).isEqualTo(1);
+    }
+
+    @Test
+    void shouldSwitchBackToMainWhenContentBranchPrunedFromRemote() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.NEW_COMMITS, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        Files.writeString(localDirectory.resolve("content/pr-1.md"), "wip");
+        prService.publish("Open PR", null, "merged");
+        assertThat(localRepository.getRepository().getBranch()).isEqualTo("content/merged");
+
+        try (Git bareGit = Git.open(remoteDirectory.toFile())) {
+            bareGit.branchDelete().setBranchNames("refs/heads/content/merged").setForce(true).call();
+        }
+
+        Files.writeString(localDirectory.resolve("content/next.md"), "new cycle");
+        GitSyncResult result = prService.publish("Start next", null, "next-pr");
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.targetBranch()).isEqualTo("content/next-pr");
+        assertThat(localRepository.getRepository().getBranch()).isEqualTo("content/next-pr");
+    }
+
+    @Test
+    void shouldFallBackToDirectPushOnUnknownBranchInPrMode() throws Exception {
+        String mainBranch = localRepository.getRepository().getBranch();
+        GitSyncServiceImpl prService = new GitSyncServiceImpl(
+                createEditorConfig(Mode.PR, CommitStrategy.NEW_COMMITS, Optional.of(mainBranch)),
+                createSiteConfig(), localDirectory.toFile());
+
+        localRepository.checkout().setCreateBranch(true).setName("feature-x").call();
+        Files.writeString(localDirectory.resolve("content/foo.md"), "x");
+
+        GitSyncResult result = prService.publish("Push to feature-x", null, null);
+
+        assertThat(result.success()).isTrue();
+        assertThat(localRepository.getRepository().getBranch()).isEqualTo("feature-x");
+    }
+
+    @Test
+    void shouldExtractGitHubPrCreationUrlFromPushMessages() {
+        String messages = "remote: \n"
+                + "remote: Create a pull request for 'content/draft' on GitHub by visiting:\n"
+                + "remote:   https://github.com/org/repo/pull/new/content/draft\n"
+                + "remote: \n";
+        assertThat(GitPrFlowPublisher.extractPrCreationUrl(messages))
+                .isEqualTo("https://github.com/org/repo/pull/new/content/draft");
+    }
+
+    @Test
+    void shouldReturnNullWhenPushMessagesContainNoPrUrl() {
+        assertThat(GitPrFlowPublisher.extractPrCreationUrl("remote: Everything up-to-date\n")).isNull();
+        assertThat(GitPrFlowPublisher.extractPrCreationUrl(null)).isNull();
+    }
+
     private RoqSiteConfig createSiteConfig() {
         return new RoqSiteConfig() {
             @Override
@@ -725,6 +861,10 @@ class GitSyncServiceTest {
     }
 
     private RoqEditorConfig createEditorConfig() {
+        return createEditorConfig(Mode.DIRECT, CommitStrategy.NEW_COMMITS, Optional.empty());
+    }
+
+    private RoqEditorConfig createEditorConfig(Mode mode, CommitStrategy commitStrategy, Optional<String> mainBranchName) {
         return new RoqEditorConfig() {
             @Override
             public Markup pageMarkup() {
@@ -762,6 +902,31 @@ class GitSyncServiceTest {
                     @Override
                     public boolean enabled() {
                         return true;
+                    }
+
+                    @Override
+                    public Mode mode() {
+                        return mode;
+                    }
+
+                    @Override
+                    public PrFlowConfig prFlow() {
+                        return new PrFlowConfig() {
+                            @Override
+                            public String contentBranchPrefix() {
+                                return "content/";
+                            }
+
+                            @Override
+                            public CommitStrategy commitStrategy() {
+                                return commitStrategy;
+                            }
+
+                            @Override
+                            public Optional<String> mainBranch() {
+                                return mainBranchName;
+                            }
+                        };
                     }
 
                     @Override

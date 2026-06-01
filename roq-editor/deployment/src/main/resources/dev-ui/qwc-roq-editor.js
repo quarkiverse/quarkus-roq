@@ -644,14 +644,41 @@ export class QwcRoqEditor extends LitElement {
             if (!message) return;
         }
 
+        let branchName = null;
+        if (needsCommit && this._isStartingPrCycle(freshStatus)) {
+            const suggested = this._suggestContentBranchName();
+            branchName = await showPrompt('Branch name for the content PR', suggested);
+            if (!branchName) return;
+        }
+
         this._publishing = true;
         try {
-            await this._syncManager.manualPublish(message, selectedFiles);
+            await this._syncManager.manualPublish(message, selectedFiles, branchName);
         } catch (error) {
             showNotification('Publish failed: ' + error.message, 'error');
         } finally {
             this._publishing = false;
         }
+    }
+
+    /**
+     * Returns true when the next publish will open a fresh content-branch cycle and the user
+     * should be prompted for a branch name: PR mode is active and the current branch is not
+     * already a content branch (heuristically, doesn't start with the configured prefix).
+     */
+    _isStartingPrCycle(status) {
+        if (config.sync?.mode !== 'PR') return false;
+        const prefix = config.sync?.prFlow?.contentBranchPrefix ?? 'content/';
+        const branch = status?.branch ?? '';
+        return !branch.startsWith(prefix);
+    }
+
+    _suggestContentBranchName() {
+        const prefix = config.sync?.prFlow?.contentBranchPrefix ?? 'content/';
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+        return `${prefix}update-${stamp}`;
     }
 
 }
