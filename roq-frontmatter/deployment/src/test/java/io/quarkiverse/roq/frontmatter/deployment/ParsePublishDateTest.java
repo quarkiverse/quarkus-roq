@@ -1,7 +1,9 @@
 package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.RoqFrontMatterStep3DataProcessor.parsePublishDate;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -75,6 +77,18 @@ public class ParsePublishDateTest {
                 .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 
         assertEquals("2020-10-13T13:10:00Z[GMT]", publishDate);
+    }
+
+    /**
+     * This format is used in some Jekyll blogs, including the Quarkus one
+     */
+    @Test
+    public void testDateTimeWithCustomFormatInFrontMatter() {
+        String publishDate = parsePublishDate("no-date-here.md", JsonObject.of("date", "2025-03-12T13:10:00Z"),
+                "yyyy-MM-dd['T'HH:mm:ss][X]", GMT, testSource("no-date-here.md"))
+                .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+
+        assertEquals("2025-03-12T13:10:00Z[GMT]", publishDate);
     }
 
     @Test

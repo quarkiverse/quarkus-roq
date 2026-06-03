@@ -7,7 +7,7 @@ import java.util.List;
 @DataMapping(value = "events", type = DataMapping.Type.ARRAY_DIR)
 public record Events(List<Event> list) {
 
-    public Events{
+    public Events {
         list.sort(Comparator.comparing(Event::parsedDate).reversed());
     }
 
