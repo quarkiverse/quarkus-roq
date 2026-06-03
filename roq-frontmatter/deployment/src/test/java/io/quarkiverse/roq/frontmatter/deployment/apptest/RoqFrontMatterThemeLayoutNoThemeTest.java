@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * Site: {@code theme-layout-no-theme-site} (resource)
@@ -18,7 +18,7 @@ import io.quarkus.test.QuarkusUnitTest;
 public class RoqFrontMatterThemeLayoutNoThemeTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "theme-layout-no-theme-site")
             .overrideConfigKey("site.theme", "")
             .withApplicationRoot((jar) -> jar

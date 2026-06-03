@@ -6,14 +6,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.RestAssured;
 
 @DisplayName("Roq FrontMatter - Two collections sharing the same data source")
 public class RoqFrontMatterRoqDataSharedSourceTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .overrideConfigKey("site.collections.events.layout", "page-event")
             .overrideConfigKey("site.collections.events.from-data.id-key", "id")
             .overrideConfigKey("site.collections.highlights.layout", "page-highlight")

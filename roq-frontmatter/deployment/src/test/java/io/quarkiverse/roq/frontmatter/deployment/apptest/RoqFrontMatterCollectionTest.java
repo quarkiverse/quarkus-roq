@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.RestAssured;
 
 /**
@@ -24,7 +24,7 @@ import io.restassured.RestAssured;
 public class RoqFrontMatterCollectionTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .overrideConfigKey("quarkus.roq.dir", "src/test/collection-site")
             .overrideConfigKey("quarkus.roq.resource-dir", "collection-site-resources")
             .overrideConfigKey("site.theme", "my-theme")

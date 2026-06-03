@@ -12,13 +12,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.roq.data.test.util.Foo;
 import io.quarkiverse.roq.data.test.util.Foos;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.RestAssured;
 
 public class RoqDataBindingTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest quarkusUnitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .addClasses(Foo.class, Foos.class)
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq"),

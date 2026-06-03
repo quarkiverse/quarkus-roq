@@ -9,12 +9,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.roq.data.test.util.Hero;
 import io.quarkiverse.roq.data.test.util.HeroMap;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 public class RoqDataObjectDirTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .addClasses(Hero.class, HeroMap.class)
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq"),

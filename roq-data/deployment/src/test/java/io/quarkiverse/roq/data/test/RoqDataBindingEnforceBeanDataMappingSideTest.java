@@ -9,12 +9,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.roq.data.deployment.exception.DataMappingMismatchException;
 import io.quarkiverse.roq.data.test.util.Bar;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 public class RoqDataBindingEnforceBeanDataMappingSideTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest quarkusUnitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .addClass(Bar.class)
                     .add(new StringAsset("quarkus.roq.dir=src/test/site\nquarkus.roq.data.enforce-bean=true"),
