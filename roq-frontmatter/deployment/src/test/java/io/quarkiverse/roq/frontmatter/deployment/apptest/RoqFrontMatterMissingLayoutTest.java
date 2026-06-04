@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * Site: {@code missing-layout-site} (resource)
@@ -18,7 +18,7 @@ import io.quarkus.test.QuarkusUnitTest;
 public class RoqFrontMatterMissingLayoutTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .overrideConfigKey("quarkus.roq.resource-dir", "missing-layout-site")
             .withApplicationRoot((jar) -> jar
                     .addAsResource("missing-layout-site"))

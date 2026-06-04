@@ -7,12 +7,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 public class RoqDataBindingEnforceBeanDataFileSideTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest quarkusUnitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest quarkusUnitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq\nquarkus.roq.data.enforce-bean=true"),
                             "application.properties"))

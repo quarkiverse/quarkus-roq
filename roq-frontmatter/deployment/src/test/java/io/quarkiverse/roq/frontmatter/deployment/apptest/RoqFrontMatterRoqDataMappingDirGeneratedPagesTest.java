@@ -6,14 +6,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.RestAssured;
 
 @DisplayName("Roq FrontMatter - Roq data directory generated pages")
 public class RoqFrontMatterRoqDataMappingDirGeneratedPagesTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
 
             .overrideConfigKey("site.collections.incidents.layout", "page-event")
             .overrideConfigKey("site.collections.incidents.from-data.id-key", "id")

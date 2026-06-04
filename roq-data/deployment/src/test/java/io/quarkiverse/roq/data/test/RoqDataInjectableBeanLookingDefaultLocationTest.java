@@ -8,14 +8,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class RoqDataInjectableBeanLookingDefaultLocationTest {
 
     @RegisterExtension
-    final static QuarkusUnitTest devMode = new QuarkusUnitTest()
+    final static QuarkusExtensionTest devMode = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .addAsResource("fromResource.json", "data/fromResource.json")
                     .add(new StringAsset("quarkus.roq.dir=src/test/roq"),
