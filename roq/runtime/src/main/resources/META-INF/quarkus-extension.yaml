@@ -19,3 +19,12 @@ metadata:
   config:
     - "site"
   status: "preview"
+  codestart:
+    name: "roq-site-codestart"
+    extra-names:
+    - "roq-project-codestart"
+    languages:
+    - "java"
+    - "kotlin"
+    - "scala"
+    artifact: "io.quarkiverse.roq:quarkus-roq-frontmatter:codestarts:jar:${project.version}"

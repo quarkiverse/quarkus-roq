@@ -1,0 +1,176 @@
+.sidebar-create-btn {
+  @apply mt-3 w-full justify-center text-xs;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.create-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.create-section h2 {
+  @apply text-lg font-semibold flex items-center gap-2 font-heading;
+}
+
+.create-section h2 i {
+  @apply opacity-60;
+}
+
+.create-fields {
+  @apply flex flex-col sm:flex-row gap-4;
+}
+
+.create-field {
+  @apply flex flex-col gap-1 flex-1;
+}
+
+.create-label {
+  @apply text-sm font-medium text-neutral-600 dark:text-neutral-400;
+}
+
+.create-label-hint {
+  @apply text-xs text-neutral-400 dark:text-neutral-500;
+}
+
+.create-input {
+  @apply px-4 py-3 border-2 rounded-lg text-base transition-colors;
+  @apply border-neutral-300 dark:border-neutral-600;
+  @apply bg-white dark:bg-neutral-800;
+  @apply text-neutral-900 dark:text-neutral-100;
+}
+
+.create-input:focus {
+  @apply outline-none border-pop-500;
+}
+
+.create-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.create-card {
+  @apply relative flex flex-col gap-1 p-4 rounded-lg cursor-pointer transition-all;
+  @apply border-2 border-neutral-300 dark:border-neutral-600;
+  @apply bg-white dark:bg-neutral-800;
+}
+
+.create-card:hover {
+  @apply border-accent-400 dark:border-accent-500;
+}
+
+.create-card.selected {
+  @apply border-pop-500 bg-pop-50 dark:bg-pop-950;
+}
+
+.create-card-check {
+  @apply absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs transition-all;
+  @apply border-2 border-neutral-300 dark:border-neutral-600;
+}
+
+.create-card.selected .create-card-check {
+  @apply bg-pop-500 border-pop-500 text-white;
+}
+
+.create-card-icon {
+  @apply text-xl opacity-70;
+}
+
+.create-card-name {
+  @apply font-semibold;
+}
+
+.create-card-desc {
+  @apply text-sm leading-tight opacity-70;
+}
+
+.create-grid-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.create-chip {
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all text-sm font-medium;
+  @apply border-2 border-neutral-300 dark:border-neutral-600;
+  @apply bg-white dark:bg-neutral-800;
+}
+
+.create-chip:hover {
+  @apply border-accent-400 dark:border-accent-500;
+}
+
+.create-chip.selected {
+  @apply border-pop-500 bg-pop-50 dark:bg-pop-950 text-pop-700 dark:text-pop-300;
+}
+
+.create-chip.locked {
+  @apply cursor-default opacity-75;
+}
+
+.create-chip i {
+  @apply opacity-60 text-xs;
+}
+
+.create-via {
+  @apply text-xs opacity-60 font-normal;
+}
+
+.create-chip[data-tooltip] {
+  position: relative;
+}
+
+.create-chip[data-tooltip]::after {
+  content: attr(data-tooltip);
+  @apply absolute left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg text-xs leading-snug font-normal;
+  @apply bg-neutral-800 dark:bg-neutral-700 text-neutral-100;
+  @apply opacity-0 pointer-events-none;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 220px;
+  z-index: 50;
+  transition: opacity 0.15s;
+}
+
+.create-chip[data-tooltip]::before {
+  content: '';
+  @apply absolute left-1/2 -translate-x-1/2;
+  @apply opacity-0 pointer-events-none;
+  bottom: calc(100% + 2px);
+  border: 5px solid transparent;
+  border-top-color: var(--color-neutral-800);
+  z-index: 50;
+  transition: opacity 0.15s;
+}
+
+.create-chip[data-tooltip]:hover::after,
+.create-chip[data-tooltip]:hover::before {
+  @apply opacity-100;
+}
+
+
+.create-actions {
+  @apply flex gap-4 flex-wrap pt-2;
+}
+
+
+
+@media (max-width: 640px) {
+  .create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .create-actions {
+    @apply flex-col;
+  }
+
+  .create-btn {
+    @apply justify-center;
+  }
+}

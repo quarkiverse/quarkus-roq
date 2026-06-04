@@ -32,7 +32,7 @@
         @apply inline-flex items-center gap-2;
         @apply py-2.5 px-6 rounded-lg;
         @apply font-semibold text-sm;
-        @apply no-underline;
+        @apply no-underline cursor-pointer;
         @apply transition-all duration-200;
         @apply font-heading;
     }

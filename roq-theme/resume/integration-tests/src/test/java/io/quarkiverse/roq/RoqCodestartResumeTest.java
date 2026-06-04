@@ -1,5 +1,7 @@
 package io.quarkiverse.roq;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +17,7 @@ public class RoqCodestartResumeTest {
             .languages(QuarkusCodestartCatalog.Language.JAVA, QuarkusCodestartCatalog.Language.KOTLIN,
                     QuarkusCodestartCatalog.Language.SCALA)
             .setupStandaloneExtensionTest("io.quarkiverse.roq:quarkus-roq-theme-resume")
+            .putData("site", Map.of("title", "My Roq Site"))
             .build();
 
     @ParameterizedTest

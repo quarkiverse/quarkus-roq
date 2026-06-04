@@ -1,11 +1,9 @@
 package io.quarkiverse.roq.cli;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -85,7 +83,7 @@ public class RoqProjectCreator {
      * @return true if the project was created successfully
      */
     public boolean create() throws Exception {
-        Set<String> allExtensions = new HashSet<>();
+        Set<String> allExtensions = new LinkedHashSet<>();
         allExtensions.add(withVersion(ROQ_EXTENSION));
 
         if (extensions != null) {
@@ -112,6 +110,7 @@ public class RoqProjectCreator {
                 .artifactId(artifactId)
                 .version(version)
                 .extensions(allExtensions)
+                .extraCodestarts(Set.of("roq-project-codestart"))
                 .noDockerfiles();
 
         if (noCode) {
@@ -141,33 +140,7 @@ public class RoqProjectCreator {
             }
         }
 
-        // Remove src/ if it has no files (not needed for a Roq site, but Gradle needs src/main/java with sources)
         deleteDirIfNoFiles(projectDir.resolve("src"));
-
-        // Replace the default Quarkus README with a Roq-specific one
-        copyBaseResource("README.md");
-
-        // Copy base site files when no theme provided an index and code generation is enabled
-        if (!noCode && !Files.exists(projectDir.resolve("content/index.html"))) {
-            copyBaseResource("content/index.html");
-            boolean hasTailwind = allExtensions.stream().anyMatch(e -> e.contains("web-bundler-tailwind"));
-            copyBaseResource(hasTailwind ? "web/app-tailwind.css" : "web/app.css", "web/app.css");
-        }
-    }
-
-    private void copyBaseResource(String relativePath) throws IOException {
-        copyBaseResource(relativePath, relativePath);
-    }
-
-    private void copyBaseResource(String resourcePath, String targetPath) throws IOException {
-        Path target = projectDir.resolve(targetPath);
-        Files.createDirectories(target.getParent());
-        try (InputStream in = getClass().getClassLoader()
-                .getResourceAsStream("roq-base/" + resourcePath)) {
-            if (in != null) {
-                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
     }
 
     private String withVersion(String gav) {
