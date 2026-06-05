@@ -1,16 +1,18 @@
 package io.quarkiverse.roq.it;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
+
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @RoqAndRoll
@@ -19,11 +21,8 @@ public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testIndex() {
-        RestAssured.when().get("/").then().statusCode(200)
-                .log()
-                .everything()
-                .body(containsString("Static</span> Sites"))
-                .body(containsString("Imagined for AI"))
+        RestAssured.when().get("/").then().statusCode(200).log().everything()
+                .body(containsString("Static</span> Sites")).body(containsString("Imagined for AI"))
                 .body(containsString("&copy; ROQ"));
     }
 
@@ -34,8 +33,10 @@ public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testSlugifyFile() {
-        RestAssured.when().get("/posts/roq-n-roll-your-tests/c-est-de-la-poussi-re-d-toile.webp").then().statusCode(200);
-        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.webp").then().statusCode(200);
+        RestAssured.when().get("/posts/roq-n-roll-your-tests/c-est-de-la-poussi-re-d-toile.webp").then()
+                .statusCode(200);
+        RestAssured.when().get("/posts/do-you-want-to-publish-a-blog-post-series/series.foo.webp").then()
+                .statusCode(200);
     }
 
     @Test
@@ -48,9 +49,10 @@ public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testPostsAsciidoc() {
-        ValidatableResponse body = RestAssured.when().get("/posts/write-your-blog-posts-in-asciidoc").then().statusCode(200).body(containsString(
-                        "Writing content is AsciiDoc format is an absolut no brainer"))
-                .body(containsString("<code class=\"language-shell hljs\" data-lang=\"shell\">roq add plugin:asciidoc</code>"))
+        ValidatableResponse body = RestAssured.when().get("/posts/write-your-blog-posts-in-asciidoc").then()
+                .statusCode(200).body(containsString("Writing content is AsciiDoc format is an absolut no brainer"))
+                .body(containsString(
+                        "<code class=\"language-shell hljs\" data-lang=\"shell\">roq add plugin:asciidoc</code>"))
                 .body(containsString("&copy; ROQ"));
         System.out.println(body.extract().body().asString());
     }
@@ -58,8 +60,7 @@ public class RoqBlogSlugifiedFilesTest {
     @Test
     public void testPage() {
         RestAssured.when().get("/events").then().statusCode(200)
-                .body(containsString("<h2 class=\"event-title\">Roq 2.0</h2>"))
-                .body(containsString("&copy; ROQ"));
+                .body(containsString("<h2 class=\"event-title\">Roq 2.0</h2>")).body(containsString("&copy; ROQ"));
     }
 
     @Test
@@ -70,21 +71,16 @@ public class RoqBlogSlugifiedFilesTest {
 
     @Test
     public void testRss() {
-        RestAssured.when().get("/rss.xml").then().statusCode(200)
-                .body(startsWith("<rss xmlns:dc="))
+        RestAssured.when().get("/rss.xml").then().statusCode(200).body(startsWith("<rss xmlns:dc="))
                 .body(endsWith("</rss>\n"));
     }
 
     @Test
     public void testSitemap() {
-        RestAssured.when().get("/sitemap.xml").then().statusCode(200)
-                .body(containsString("<urlset"))
-                .body(containsString("<loc>/</loc>"))
-                .body(containsString("<loc>/posts/tag/plugin/</loc>"))
-                .body(not(containsString("<loc>/404.html</loc>")))
-                .body(containsString("</urlset>"));
+        RestAssured.when().get("/sitemap.xml").then().statusCode(200).body(containsString("<urlset"))
+                .body(containsString("<loc>/</loc>")).body(containsString("<loc>/posts/tag/plugin/</loc>"))
+                .body(not(containsString("<loc>/404.html</loc>"))).body(containsString("</urlset>"));
     }
-
 
     public static class SlugifyFilesConfig implements QuarkusTestProfile {
 
@@ -93,7 +89,5 @@ public class RoqBlogSlugifiedFilesTest {
             return Map.of("site.slugify-files", "true");
         }
     }
-
-
 
 }
