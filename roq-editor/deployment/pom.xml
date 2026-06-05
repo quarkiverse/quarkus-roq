@@ -145,7 +145,7 @@
                     <dependency>
                         <groupId>org.mvnpm.at.mvnpm</groupId>
                         <artifactId>tiptap</artifactId>
-                        <version>3.23.5</version>
+                        <version>3.25.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
