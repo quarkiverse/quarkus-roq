@@ -58,6 +58,13 @@ class RoqUrlTest {
     }
 
     @Test
+    void testReplace() {
+        RoqUrl url = new RoqUrl(testRoot(), "/version/3.15/guides");
+        RoqUrl result = url.replace(".", "-");
+        assertEquals("/blog/version/3-15/guides", result.path());
+    }
+
+    @Test
     void testRemoveFirst() {
         RoqUrl url = new RoqUrl(testRoot(), "/posts/my-post");
         RoqUrl result = url.removeFirst("/posts");
