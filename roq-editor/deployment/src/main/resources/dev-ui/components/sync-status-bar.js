@@ -156,8 +156,12 @@ export class SyncStatusBar extends LitElement {
     }
 
     _renderStatus() {
+        if (this.publishing) {
+            return html`<vaadin-icon class="status-icon unpublished spin" icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>`;
+        }
+
         if (this.syncing) {
-            return html`<vaadin-icon class="status-icon up-to-date spin" icon="font-awesome-solid:check"></vaadin-icon>`;
+            return html`<vaadin-icon class="status-icon syncing spin" icon="font-awesome-solid:arrows-rotate"></vaadin-icon>`;
         }
 
         if (!this.status) {
@@ -195,6 +199,7 @@ export class SyncStatusBar extends LitElement {
     }
 
     _getStatusText() {
+        if (this.publishing) return 'Publishing...';
         if (this.syncing) return 'Syncing...';
         if (!this.status) return 'Checking status...';
 
@@ -242,27 +247,23 @@ export class SyncStatusBar extends LitElement {
     }
 
     _renderActions() {
+        const actions = [];
+
         if (this._hasPublishAction()) {
-            return html`
-                <div class="action-buttons">
-                    <vaadin-button
-                        theme="primary small"
-                        title="Publish"
-                        aria-label="Publish"
-                        ?disabled="${!this._canPublish()}"
-                        @click="${this._onPublishClick}">
-                        <vaadin-icon icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>
-                    </vaadin-button>
-                </div>
-            `;
+            actions.push(html`
+                <vaadin-button
+                    theme="primary small"
+                    title="Publish"
+                    aria-label="Publish"
+                    ?disabled="${!this._canPublish()}"
+                    @click="${this._onPublishClick}">
+                    <vaadin-icon icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>
+                </vaadin-button>
+            `);
         }
 
-        if (!this._hasSyncAction()) {
-            return '';
-        }
-
-        return html`
-            <div class="action-buttons">
+        if (this._hasSyncAction()) {
+            actions.push(html`
                 <vaadin-button
                     theme="tertiary-inline small"
                     title="Refresh"
@@ -271,8 +272,10 @@ export class SyncStatusBar extends LitElement {
                     @click="${this._onSyncClick}">
                     <vaadin-icon icon="font-awesome-solid:arrows-rotate"></vaadin-icon>
                 </vaadin-button>
-            </div>
-        `;
+            `);
+        }
+
+        return actions.length ? html`<div class="action-buttons">${actions}</div>` : '';
     }
 
     render() {
@@ -312,6 +315,7 @@ export class SyncStatusBar extends LitElement {
     }
 
     _getStatusClass() {
+        if (this.publishing) return 'unpublished';
         if (this.syncing || !this.status) return 'syncing';
 
         const isDirty = this.status.hasUnpublished || this.status.ahead > 0;
