@@ -168,7 +168,29 @@ public record RoqUrl(
     }
 
     /**
-     * Replace all occurrences matching the regex with the replacement
+     * Check if the URL path contains the given string.
+     *
+     * @param str the string to search for
+     * @return true if the path contains the string
+     */
+    public boolean contains(String str) {
+        return path().contains(str);
+    }
+
+    /**
+     * Replace all literal occurrences of target with replacement.
+     *
+     * @param target the string to replace
+     * @param replacement the replacement string
+     * @return a new RoqUrl with the replaced path
+     */
+    public RoqUrl replace(String target, String replacement) {
+        String newPath = resourcePath().replace(target, replacement);
+        return new RoqUrl(root(), newPath);
+    }
+
+    /**
+     * Replace all occurrences matching the regex with the replacement.
      *
      * @param regex the regular expression
      * @param replacement the replacement string
