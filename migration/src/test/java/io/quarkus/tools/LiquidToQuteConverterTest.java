@@ -1,6 +1,7 @@
 package io.quarkus.tools;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -584,5 +585,72 @@ class LiquidToQuteConverterTest {
         String expected = "{=page.content.stripHtml.wordLimit(75)}";
         assertConverts(input, expected,
                 "Chained filters should not have spaces between method calls");
+    }
+
+    @Nested
+    class StandardSyntaxTest {
+
+        private LiquidToQuteConverter converter;
+
+        @BeforeEach
+        void setUp() {
+            converter = new LiquidToQuteConverter(false);
+        }
+
+        private void assertConverts(String input, String expected, String message) {
+            assertEquals(expected, converter.convert(input), message);
+        }
+
+        @Test
+        void testVariable() {
+            assertConverts("{{page.title}}", "{page.title}",
+                    "Standard syntax should use {expr} not {=expr}");
+        }
+
+        @Test
+        void testFilter() {
+            assertConverts("{{text | upcase}}", "{text.toUpperCase}",
+                    "Standard syntax should apply filters inside {expr}");
+        }
+
+        @Test
+        void testDefaultFilter() {
+            assertConverts("{{var | default: \"value\"}}", "{var ?: \"value\"}",
+                    "Standard syntax should convert default filter inside {expr}");
+        }
+
+        @Test
+        void testChainedFilters() {
+            assertConverts("{{page.content | strip_html | truncatewords: 75}}",
+                    "{page.content.stripHtml.wordLimit(75)}",
+                    "Standard syntax should chain filters correctly");
+        }
+
+        @Test
+        void testTernaryWrapping() {
+            assertConverts("{{post.author | default: \"\" | split: \",\"}}",
+                    "{(page.author ?: \"\").split(\",\")}",
+                    "Standard syntax should wrap ternary before method calls");
+        }
+
+        @Test
+        void testForLoop() {
+            assertConverts("{% for item in items %}{{item}}{% endfor %}",
+                    "{#for item in items}{item}{/for}",
+                    "Standard syntax for loop should use {expr} for outputs");
+        }
+
+        @Test
+        void testSpaceRemoval() {
+            assertConverts("{variable .trim()}", "{variable.trim()}",
+                    "Standard syntax should remove spaces before methods in expressions");
+        }
+
+        @Test
+        void testExtensionSyntaxDefaultConstructor() {
+            LiquidToQuteConverter ext = new LiquidToQuteConverter();
+            assertEquals("{=page.title}", ext.convert("{{page.title}}"),
+                    "Default constructor should use extension syntax");
+        }
     }
 }

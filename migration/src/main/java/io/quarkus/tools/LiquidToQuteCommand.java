@@ -31,7 +31,14 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     @Option(names = {"-v", "--verbose"}, description = "Verbose output")
     private boolean verbose;
 
-    private final LiquidToQuteConverter converter = new LiquidToQuteConverter();
+    @Option(names = {"-e", "--extensions"}, description = "Template file extensions to process (default: .html, .htm, .liquid, .md, .markdown)", split = ",")
+    private List<String> templateExtensions = List.of(".html", ".htm", ".liquid", ".md", ".markdown");
+
+    @Option(names = {"--extension-syntax"}, description = "Use Qute extension syntax {=expr} instead of standard {expr} (default: true)",
+            defaultValue = "true", negatable = true)
+    private boolean extensionSyntax = true;
+
+    private LiquidToQuteConverter converter = new LiquidToQuteConverter();
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new LiquidToQuteCommand()).execute(args);
@@ -40,6 +47,8 @@ public class LiquidToQuteCommand implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
+        converter = new LiquidToQuteConverter(extensionSyntax);
+
         if (!Files.exists(input)) {
             System.err.println("Error: Input path '" + input + "' does not exist");
             return 1;
@@ -101,8 +110,6 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     }
 
     private void convertDirectory(Path inputDir, Path outputDir) throws IOException {
-        List<String> templateExtensions = List.of(".html", ".htm", ".liquid", ".md", ".markdown");
-
         int convertedCount = 0;
         int errorCount = 0;
 

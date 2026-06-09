@@ -7,7 +7,18 @@ import java.util.regex.Pattern;
 
 public class LiquidToQuteConverter {
 
+    private final boolean useExtensionSyntax;
+    private final String exprOpen;
     private final List<String> conversionsApplied = new ArrayList<>();
+
+    LiquidToQuteConverter() {
+        this(true);
+    }
+
+    LiquidToQuteConverter(boolean useExtensionSyntax) {
+        this.useExtensionSyntax = useExtensionSyntax;
+        this.exprOpen = useExtensionSyntax ? "{=" : "{";
+    }
 
     String convert(String content) {
         String original = content;
@@ -111,7 +122,7 @@ public class LiquidToQuteConverter {
             // Convert post.* to page.* (Roq uses page for all content)
             var = var.replaceAll("\\bpost\\.", "page.");
 
-            matcher.appendReplacement(sb, "{=" + Matcher.quoteReplacement(var) + "}");
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(exprOpen) + Matcher.quoteReplacement(var) + "}");
         }
         matcher.appendTail(sb);
 
@@ -124,7 +135,9 @@ public class LiquidToQuteConverter {
     }
 
     private String convertFilters(String content) {
-        Pattern blockPattern = Pattern.compile("\\{=[^}]*\\}|\\{%[^%]*%\\}");
+        Pattern blockPattern = useExtensionSyntax
+                ? Pattern.compile("\\{=[^}]*\\}|\\{%[^%]*%\\}")
+                : Pattern.compile("\\{(?![%#/!|])[^}]*\\}|\\{%[^%]*%\\}");
         Matcher matcher = blockPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
 
@@ -857,8 +870,9 @@ public class LiquidToQuteConverter {
 
     private String transformInsideExpressions(String content,
             java.util.function.UnaryOperator<String> transform, String conversionLabel) {
-        // Match Qute expressions: {=...}, {#...}, {/...}, {!...!}
-        Pattern exprPattern = Pattern.compile("\\{[=#/!][^}]*\\}");
+        Pattern exprPattern = useExtensionSyntax
+                ? Pattern.compile("\\{[=#/!][^}]*\\}")
+                : Pattern.compile("\\{[^}]*\\}");
         Matcher matcher = exprPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
 
