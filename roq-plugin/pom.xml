@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <name>Quarkus Roq - Plugins</name>
     <properties>
-        <jgit.version>7.6.0.202603022253-r</jgit.version>
+        <jgit.version>7.7.0.202606012155-r</jgit.version>
     </properties>
     <modules>
         <module>tagging</module>
