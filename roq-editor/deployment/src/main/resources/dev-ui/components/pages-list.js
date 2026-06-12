@@ -3,12 +3,16 @@ import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/text-field';
 import './page-card.js';
+import './sync-status-bar.js';
 
 export class PagesList extends LitElement {
     
     static properties = {
         pages: { type: Array },
         collectionId: { type: String },
+        syncStatus: { type: Object },
+        syncing: { type: Boolean },
+        publishing: { type: Boolean },
         _filterText: { type: String, state: true }
     };
 
@@ -24,6 +28,11 @@ export class PagesList extends LitElement {
             align-items: center;
             margin-bottom: var(--lumo-space-m);
         }
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--lumo-space-s);
+        }
         .filter-input {
             min-width: 250px;
         }
@@ -38,23 +47,33 @@ export class PagesList extends LitElement {
         const pages = this.pages || [];
         const type = this.collectionId ? 'Document' : 'Page';
         const filteredPages = this._filterPages(pages);
+        const hasSync = this.syncStatus && this.syncStatus.branch && this.syncStatus.branch !== 'no-git-repo';
         return html`
             <div class="toolbar">
                 <h2>${this.collectionId?.toUpperCase() || 'PAGES'}</h2>
-                <vaadin-text-field
-                    class="filter-input"
-                    placeholder="Filter by title or description..."
-                    .value="${this._filterText}"
-                    @input="${this._onFilterInput}"
-                    clear-button-visible>
-                    <vaadin-icon icon="font-awesome-solid:magnifying-glass" slot="prefix"></vaadin-icon>
-                </vaadin-text-field>
-                <vaadin-button 
-                    theme="primary" 
-                    @click="${this._addNewPage}">
-                    <vaadin-icon icon="font-awesome-solid:plus" slot="prefix"></vaadin-icon>
-                    Add New ${type}
-                </vaadin-button>
+                <div class="toolbar-actions">
+                    <vaadin-text-field
+                        class="filter-input"
+                        placeholder="Filter by title or description..."
+                        .value="${this._filterText}"
+                        @input="${this._onFilterInput}"
+                        clear-button-visible>
+                        <vaadin-icon icon="font-awesome-solid:magnifying-glass" slot="prefix"></vaadin-icon>
+                    </vaadin-text-field>
+                    ${hasSync ? html`
+                        <qwc-sync-status-bar
+                            .status="${this.syncStatus}"
+                            .syncing="${this.syncing}"
+                            .publishing="${this.publishing}">
+                        </qwc-sync-status-bar>
+                    ` : ''}
+                    <vaadin-button
+                        theme="primary"
+                        @click="${this._addNewPage}">
+                        <vaadin-icon icon="font-awesome-solid:plus" slot="prefix"></vaadin-icon>
+                        Add New ${type}
+                    </vaadin-button>
+                </div>
             </div>
             ${filteredPages.length > 0 
                 ? html`

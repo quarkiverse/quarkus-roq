@@ -1,11 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import '@vaadin/icon';
+import '@vaadin/button';
 
 export class SyncStatusBar extends LitElement {
 
     static properties = {
         status: { type: Object },
-        syncing: { type: Boolean }
+        syncing: { type: Boolean },
+        publishing: { type: Boolean }
     };
 
     static styles = css`
@@ -13,15 +15,8 @@ export class SyncStatusBar extends LitElement {
             display: flex;
             align-items: center;
             gap: var(--lumo-space-s);
-            padding: var(--lumo-space-xs) var(--lumo-space-s);
-            background: var(--lumo-contrast-5pct);
-            border-radius: var(--lumo-border-radius-m);
+            padding: 0;
             font-size: var(--lumo-font-size-xs);
-            transition: background 0.3s ease;
-        }
-
-        :host(:hover) {
-            background: var(--lumo-contrast-10pct);
         }
 
         :host([has-conflicts]) {
@@ -51,13 +46,13 @@ export class SyncStatusBar extends LitElement {
         .syncing { color: var(--lumo-contrast-40pct); }
         .auth { color: var(--lumo-error-color); }
 
-        .pulse {
-            animation: pulse 1.5s ease-in-out infinite;
+        .spin {
+            animation: spin 1s linear infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.9); }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .status-text {
@@ -104,12 +99,24 @@ export class SyncStatusBar extends LitElement {
             margin-left: 4px;
             font-weight: bold;
         }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--lumo-space-xs);
+            align-items: center;
+        }
+
+        .action-buttons vaadin-button {
+            min-width: auto;
+            padding: 0;
+        }
     `;
 
     constructor() {
         super();
         this.status = null;
         this.syncing = false;
+        this.publishing = false;
     }
 
     updated(changedProperties) {
@@ -132,17 +139,37 @@ export class SyncStatusBar extends LitElement {
         }
     }
 
+    _onSyncClick(event) {
+        event.stopPropagation();
+        this.dispatchEvent(new CustomEvent('sync-requested', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _onPublishClick(event) {
+        event.stopPropagation();
+        this.dispatchEvent(new CustomEvent('publish-requested', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
     _renderStatus() {
+        if (this.publishing) {
+            return html`<vaadin-icon class="status-icon unpublished spin" icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>`;
+        }
+
         if (this.syncing) {
-            return html`<vaadin-icon class="status-icon syncing pulse" icon="font-awesome-solid:rotate"></vaadin-icon>`;
+            return html`<vaadin-icon class="status-icon syncing spin" icon="font-awesome-solid:arrows-rotate"></vaadin-icon>`;
         }
 
         if (!this.status) {
-            return html`<div class="status-icon syncing pulse" style="background: var(--lumo-contrast-20pct); border-radius: 50%; width: 8px; height: 8px;"></div>`;
+            return html`<div class="status-icon syncing" style="background: var(--lumo-contrast-20pct); border-radius: 50%; width: 8px; height: 8px;"></div>`;
         }
 
         if (this.status.authFailed && this.status.isSsh) {
-            return html`<vaadin-icon class="status-icon auth pulse" icon="font-awesome-solid:lock"></vaadin-icon>`;
+            return html`<vaadin-icon class="status-icon auth" icon="font-awesome-solid:lock"></vaadin-icon>`;
         }
 
         if (this.status.hasConflicts) {
@@ -165,13 +192,14 @@ export class SyncStatusBar extends LitElement {
         }
 
         if (this.status.upToDate) {
-            return html`<div class="status-icon up-to-date" style="background: currentColor; border-radius: 50%; width: 8px; height: 8px; margin: 4px;"></div>`;
+            return html`<vaadin-icon class="status-icon up-to-date" icon="font-awesome-solid:check"></vaadin-icon>`;
         }
 
         return html`<div class="status-icon syncing" style="background: var(--lumo-contrast-20pct); border-radius: 50%; width: 8px; height: 8px; margin: 4px;"></div>`;
     }
 
     _getStatusText() {
+        if (this.publishing) return 'Publishing...';
         if (this.syncing) return 'Syncing...';
         if (!this.status) return 'Checking status...';
 
@@ -185,12 +213,69 @@ export class SyncStatusBar extends LitElement {
 
         if (isBehind) return 'Remote changes detected';
 
-        if (this.status.hasUnpublished) return 'Content Not Published';
+        if (this.status.hasUnpublished) return 'New content to publish';
         if (this.status.ahead > 0) return 'Local commits pending';
 
-        if (this.status.upToDate) return 'Content Up to date';
+        if (this.status.upToDate) return 'Git is synced';
 
         return 'Ready';
+    }
+
+    _hasPublishAction() {
+        return Boolean(this.status?.hasUnpublished || this.status?.ahead > 0 || this.status?.hasConflicts);
+    }
+
+    _hasSyncAction() {
+        return Boolean(this.status?.upToDate || this.status?.behind > 0 || this.status?.hasRemoteChanges);
+    }
+
+    _canPublish() {
+        const statusKnown = this.status !== null;
+        const hasUnpublished = this.status?.hasUnpublished;
+        const ahead = this.status?.ahead > 0;
+        const hasConflicts = this.status?.hasConflicts;
+
+        return (!statusKnown || hasUnpublished || ahead || hasConflicts) && !this.publishing && !this.syncing;
+    }
+
+    _canSync() {
+        const statusKnown = this.status !== null;
+        const hasUnpublished = this.status?.hasUnpublished;
+        const behind = this.status?.behind > 0;
+
+        return (!statusKnown || behind || !hasUnpublished) && !this.syncing && !this.publishing;
+    }
+
+    _renderActions() {
+        const actions = [];
+
+        if (this._hasPublishAction()) {
+            actions.push(html`
+                <vaadin-button
+                    theme="primary small"
+                    title="Publish"
+                    aria-label="Publish"
+                    ?disabled="${!this._canPublish()}"
+                    @click="${this._onPublishClick}">
+                    <vaadin-icon icon="font-awesome-solid:cloud-arrow-up"></vaadin-icon>
+                </vaadin-button>
+            `);
+        }
+
+        if (this._hasSyncAction()) {
+            actions.push(html`
+                <vaadin-button
+                    theme="tertiary-inline small"
+                    title="Refresh"
+                    aria-label="Refresh"
+                    ?disabled="${!this._canSync()}"
+                    @click="${this._onSyncClick}">
+                    <vaadin-icon icon="font-awesome-solid:arrows-rotate"></vaadin-icon>
+                </vaadin-button>
+            `);
+        }
+
+        return actions.length ? html`<div class="action-buttons">${actions}</div>` : '';
     }
 
     render() {
@@ -223,11 +308,14 @@ export class SyncStatusBar extends LitElement {
                         ` : ''}
                     </div>
                 ` : ''}
+
+                ${this._renderActions()}
             </div>
         `;
     }
 
     _getStatusClass() {
+        if (this.publishing) return 'unpublished';
         if (this.syncing || !this.status) return 'syncing';
 
         const isDirty = this.status.hasUnpublished || this.status.ahead > 0;

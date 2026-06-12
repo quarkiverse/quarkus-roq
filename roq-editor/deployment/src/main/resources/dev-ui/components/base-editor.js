@@ -5,6 +5,7 @@ import { hljsTheme } from '../hljs-theme.js';
 import { showConfirm } from './confirm-dialog.js';
 import './preview-panel.js';
 import './toolbar.js';
+import './sync-status-bar.js';
 
 export class BaseEditor extends LitElement {
     static properties = {
@@ -12,6 +13,9 @@ export class BaseEditor extends LitElement {
         page: { type: Object },
         loading: { type: Boolean },
         saving: { type: Boolean },
+        syncStatus: { type: Object },
+        syncing: { type: Boolean },
+        publishing: { type: Boolean },
 
         // Shared internal state
         _error: { state: true },
@@ -63,6 +67,7 @@ export class BaseEditor extends LitElement {
         display: flex;
         gap: var(--lumo-space-s);
         align-items: center;
+        flex-wrap: nowrap;
       }
 
       .editor-content {
@@ -149,6 +154,7 @@ export class BaseEditor extends LitElement {
     /** ---- Shared UI ---- */
     _renderHeader() {
         const isError = this._isError();
+        const hasSync = this.syncStatus && this.syncStatus.branch && this.syncStatus.branch !== 'no-git-repo';
         return html`
       <div class="editor-header">
         <h3 class="editor-title">
@@ -156,6 +162,15 @@ export class BaseEditor extends LitElement {
           ${this._isDirty ? html`<span class="dirty-indicator">(unsaved changes)</span>` : ''}
         </h3>
         <div class="header-actions">
+          ${hasSync
+            ? html`
+                <qwc-sync-status-bar
+                  .status="${this.syncStatus}"
+                  .syncing="${this.syncing}"
+                  .publishing="${this.publishing}">
+                </qwc-sync-status-bar>
+              `
+            : ''}
           ${!isError
             ? html`
                 <vaadin-button

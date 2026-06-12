@@ -7,8 +7,6 @@ import './components/tags-list.js';
 import './components/visual-editor/visual-editor.js';
 import './components/simple-editor.js';
 import './components/loading-dialog.js';
-import './components/sync-status-bar.js';
-import './components/sync-controls.js';
 import './components/ai-prompt-widget.js';
 import {showPrompt} from './components/prompt-dialog.js';
 import {showConfirm} from './components/confirm-dialog.js';
@@ -44,15 +42,6 @@ export class QwcRoqEditor extends LitElement {
             flex: 1;
             overflow: auto;
             padding: var(--lumo-space-m);
-        }
-        .sync-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--lumo-space-s) var(--lumo-space-m);
-            background: var(--lumo-base-color);
-            border-bottom: 1px solid var(--lumo-contrast-10pct);
-            margin-bottom: var(--lumo-space-m);
         }
     `;
 
@@ -213,25 +202,8 @@ export class QwcRoqEditor extends LitElement {
     }
 
     render() {
-        const isGitRepo = this._syncStatus?.branch && this._syncStatus.branch !== 'no-git-repo';
         return html`
           <div class="content-area">
-            ${config.sync?.enabled && isGitRepo ? html`
-                <div class="sync-header">
-                    <qwc-sync-status-bar
-                        .status="${this._syncStatus}"
-                        .syncing="${this._syncing || this._publishing}"
-                        @show-conflicts="${(e) => showConflictDialog(e.detail.files)}">
-                    </qwc-sync-status-bar>
-                    <qwc-sync-controls
-                        .status="${this._syncStatus}"
-                        .syncing="${this._syncing}"
-                        .publishing="${this._publishing}"
-                        @sync-requested="${this._onSyncRequested}"
-                        @publish-requested="${this._onPublishRequested}">
-                    </qwc-sync-controls>
-                </div>
-            ` : ''}
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
@@ -247,6 +219,12 @@ export class QwcRoqEditor extends LitElement {
 
 
     _renderEditor() {
+        const syncProps = {
+            syncStatus: this._syncStatus,
+            syncing: this._syncing,
+            publishing: this._publishing
+        };
+
         if (this._visualEditorEnabled) {
             return html`
               <qwc-visual-editor
@@ -258,6 +236,12 @@ export class QwcRoqEditor extends LitElement {
                 @save-content="${this._onSaveContent}"
                 @page-sync-path="${this._onPageSyncPath}"
                 @generate-ai-content="${this._onGenerateAiContent}"
+                .syncStatus="${syncProps.syncStatus}"
+                .syncing="${syncProps.syncing}"
+                .publishing="${syncProps.publishing}"
+                @sync-requested="${this._onSyncRequested}"
+                @publish-requested="${this._onPublishRequested}"
+                @show-conflicts="${(e) => showConflictDialog(e.detail.files)}"
               >
               </qwc-visual-editor>
             `;
@@ -270,6 +254,12 @@ export class QwcRoqEditor extends LitElement {
             .content="${this._fileContent}"
             @save-content="${this._onSaveContent}"
             @page-sync-path="${this._onPageSyncPath}"
+            .syncStatus="${syncProps.syncStatus}"
+            .syncing="${syncProps.syncing}"
+            .publishing="${syncProps.publishing}"
+            @sync-requested="${this._onSyncRequested}"
+            @publish-requested="${this._onPublishRequested}"
+            @show-conflicts="${(e) => showConflictDialog(e.detail.files)}"
           >
           </qwc-simple-editor>
         `;
@@ -293,10 +283,16 @@ export class QwcRoqEditor extends LitElement {
           <qwc-pages-list
             collectionId="posts"
             .pages="${this._posts}"
+            .syncStatus="${this._syncStatus}"
+            .syncing="${this._syncing}"
+            .publishing="${this._publishing}"
             @add-new-page="${this._addNewPage}"
             @page-open="${this._onPageOpen}"
             @page-delete="${this._onPageDelete}"
             @page-sync-path="${this._onPageSyncPath}"
+            @sync-requested="${this._onSyncRequested}"
+            @publish-requested="${this._onPublishRequested}"
+            @show-conflicts="${(e) => showConflictDialog(e.detail.files)}"
           >
           </qwc-pages-list>
         `;
@@ -306,7 +302,13 @@ export class QwcRoqEditor extends LitElement {
         return html`
           <qwc-pages-list
             .pages="${this._pages}"
-            @page-open="${this._onPageOpen}">
+            .syncStatus="${this._syncStatus}"
+            .syncing="${this._syncing}"
+            .publishing="${this._publishing}"
+            @page-open="${this._onPageOpen}"
+            @sync-requested="${this._onSyncRequested}"
+            @publish-requested="${this._onPublishRequested}"
+            @show-conflicts="${(e) => showConflictDialog(e.detail.files)}">
           </qwc-pages-list>
         `;
     }
