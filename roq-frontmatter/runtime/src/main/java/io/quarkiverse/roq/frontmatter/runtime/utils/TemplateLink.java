@@ -80,34 +80,41 @@ public class TemplateLink {
                         () -> data.pageSource().isTargetHtml() ? ".html" : "." + data.pageSource().extension()),
                 Map.entry(":slug", () -> resolveSlug(data).toLowerCase()),
                 Map.entry(":Slug", () -> resolveSlug(data)),
-                Map.entry(":name", () -> StringPaths.slugify(resolveName(data), true, false)
-                        .toLowerCase()),
-                Map.entry(":Name", () -> StringPaths.slugify(resolveName(data), true, false)))); // Case-preserving slug
+                Map.entry(":name", () -> resolveName(data).toLowerCase()),
+                Map.entry(":Name", () -> resolveName(data))));
         if (other != null) {
             result.putAll(other);
         }
         return result;
     }
 
-    private static String resolveName(LinkData data) {
+    public static String resolveName(PageSource pageSource) {
         final String name;
-        if (data.pageSource().isIndex()) {
-            final Path parent = Path.of(data.pageSource().path()).getParent();
+        if (pageSource.isIndex()) {
+            final Path parent = Path.of(pageSource.path()).getParent();
             name = parent != null ? parent.getFileName().toString() : "not-available";
         } else {
-            name = data.pageSource().baseFileName();
+            name = pageSource.baseFileName();
         }
 
-        return removeDate(name);
+        return StringPaths.slugify(removeDate(name), true, false);
+    }
+
+    private static String resolveName(LinkData data) {
+        return resolveName(data.pageSource());
+    }
+
+    public static String resolveSlug(PageSource pageSource, JsonObject data) {
+        String title = data.getString(SLUG,
+                data.getString(TITLE));
+        if (title == null || title.isBlank()) {
+            return resolveName(pageSource);
+        }
+        return slugify(title);
     }
 
     public static String resolveSlug(LinkData data) {
-        String title = data.data().getString(SLUG,
-                data.data().getString(TITLE));
-        if (title == null || title.isBlank()) {
-            title = resolveName(data);
-        }
-        return slugify(title);
+        return resolveSlug(data.pageSource(), data.data());
     }
 
     public static String pageLink(String basePath, String template, PageLinkData data) {
