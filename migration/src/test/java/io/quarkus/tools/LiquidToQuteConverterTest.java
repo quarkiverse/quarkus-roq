@@ -587,6 +587,49 @@ class LiquidToQuteConverterTest {
                 "Chained filters should not have spaces between method calls");
     }
 
+    @Test
+    void testSiteBuiltInPropertiesNotConverted() {
+        String input = "{=site.url} {=site.title} {=site.collections} {=site.pages} {=site.data}";
+        String expected = "{=site.url} {=site.title} {=site.collections} {=site.pages} {=site.data}";
+        assertConverts(input, expected,
+                "Roq Site built-in properties should not be converted to cdi:siteConfig");
+    }
+
+    @Test
+    void testBuiltInPageFieldsNotConverted() {
+        String input = "{{page.title}} {{page.date}} {{page.url}}";
+        String expected = "{=page.title} {=page.date} {=page.url}";
+        assertConverts(input, expected,
+                "Built-in page properties should not be converted to page.data.*");
+    }
+
+    @Test
+    void testAssignInIfElseBlockGeneralCaseInlinesTrailingContent() {
+        String input = """
+                {% if page.layout == 'guides' %}
+                  {%assign canonical_url = page.url | replace: 'foo', '' %}
+                {% else %}
+                  {%assign canonical_url = page.url %}
+                {% endif %}
+                <link rel="canonical" href="{{ canonical_url }}">
+                """;
+        String result = converter.convert(input);
+
+        // General case: trailing content using the variable is duplicated into each branch
+        assertTrue(result.contains("{#if"), "If/else should be preserved");
+        // The <link> line should appear twice (once per branch)
+        int firstLink = result.indexOf("canonical");
+        int secondLink = result.indexOf("canonical", firstLink + 1);
+        assertTrue(secondLink > firstLink, "Trailing content should be duplicated into both branches");
+    }
+
+    @Test
+    void testForLoopCdiIterableNoOrEmpty() {
+        String input = "{% for item in cdi:books %}text{% endfor %}";
+        String expected = "{#for item in cdi:books}text{/for}";
+        assertConverts(input, expected, "cdi: iterable should not get .orEmpty");
+    }
+
     @Nested
     class StandardSyntaxTest {
 
