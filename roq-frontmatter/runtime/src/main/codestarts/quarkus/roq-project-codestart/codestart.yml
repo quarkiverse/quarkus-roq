@@ -1,0 +1,15 @@
+name: roq-project-codestart
+ref: roq-project
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq Project
+  description: Common project files for Roq sites (README, .gitignore, favicons, GitHub Action).
+  related-guide-section: https://iamroq.dev/docs/
+language:
+  base:
+    shared-data:
+      site:
+        title: My Roq Site
+      readme:
+        include-default-content: false

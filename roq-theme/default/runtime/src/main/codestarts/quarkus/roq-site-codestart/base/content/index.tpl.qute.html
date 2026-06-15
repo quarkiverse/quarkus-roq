@@ -1,7 +1,7 @@
 ---
-title: Hello, world! I'm Roq
+title: {site.title}
 description: Java Static Site Generator
-name: I am Roq
+name: {site.title}
 simple-name: Roq
 image: logo.svg
 social-twitter: quarkusio
@@ -11,6 +11,7 @@ social-linkedin: quarkusio
 layout: home
 ---
 
+{|
 {#roq/hero logo="/images/mascot.svg"}
   {#title}Ready to <span class="shimmer">Roq</span> my world!{/title}
   {#tagline}Your site, powered by Quarkus{/tagline}
@@ -38,3 +39,4 @@ layout: home
   <h2>Next steps</h2>
   <p>Edit the content in the <code>content/</code> directory, customize the look in <code>web/</code>, and make it yours.</p>
 </section>
+|}

@@ -1,11 +1,11 @@
-name: roq-theme-default-codestart
-ref: roq-theme-default
+name: roq-site-codestart
+ref: roq-site
 type: code
 tags: extension-codestart
 metadata:
   title: Roq Default Theme
   description: This codestart provides a starter Roq site with the default theme.
-  related-guide-section: https://quarkiverse.github.io/quarkiverse-docs/quarkus-roq/dev/
+  related-guide-section: https://iamroq.dev/theme/default-theme/
 language:
   base:
     dependencies:

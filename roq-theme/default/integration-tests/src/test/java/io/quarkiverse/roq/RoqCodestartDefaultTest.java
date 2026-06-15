@@ -1,5 +1,7 @@
 package io.quarkiverse.roq;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,13 +17,14 @@ public class RoqCodestartDefaultTest {
             .languages(QuarkusCodestartCatalog.Language.JAVA, QuarkusCodestartCatalog.Language.KOTLIN,
                     QuarkusCodestartCatalog.Language.SCALA)
             .setupStandaloneExtensionTest("io.quarkiverse.roq:quarkus-roq-theme-default")
+            .putData("site", Map.of("title", "My Roq Site"))
             .build();
 
     @ParameterizedTest
     @EnumSource(QuarkusCodestartCatalog.Language.class)
     void testContent(QuarkusCodestartCatalog.Language language) throws Throwable {
         codestartTest.assertThatGeneratedFile(language, "content/index.html")
-                .content().contains("title: Hello, world! I'm Roq");
+                .content().contains("title: My Roq Site");
         codestartTest.assertThatGeneratedFile(language, "data/authors.yml")
                 .content()
                 .contains("Roq Boxer");

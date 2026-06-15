@@ -1,0 +1,71 @@
+---
+title: Create a Roq Project
+description: Start a new Roq static site project
+layout: page
+page-class: page-alt page-wide
+---
+
+<p>Pick a name, choose your theme and plugins, then download or push to GitHub.</p>
+
+{#if site.collections.get('marketplace')}
+<script id="roq-extensions" type="application/json">
+{=site.collections.marketplace.toCreateJson}
+</script>
+{/if}
+
+<div class="create-form">
+  <div class="create-section">
+    <h2><i class="fa-solid fa-rocket"></i> Project</h2>
+    <div class="create-fields">
+      <label class="create-field">
+        <span class="create-label">Title</span>
+        <input class="create-input" type="text" data-field="title" value="My Roq Site" placeholder="My Roq Site">
+      </label>
+      <label class="create-field">
+        <span class="create-label">Name <span class="create-label-hint">(artifactId)</span></span>
+        <input class="create-input" type="text" data-field="name" value="my-roq-site" placeholder="my-roq-site">
+      </label>
+    </div>
+  </div>
+
+  <div class="create-section">
+    <h2><i class="fa-solid fa-palette"></i> Theme</h2>
+    <div class="create-grid">
+      {#for item in site.collections.get('marketplace').sortBy('title', false)}
+      {#if item.data.kind == 'theme'}
+      <div class="create-card{#if item.data.install-name == 'default'} selected{/if}" data-theme="{=item.data.install-name}">
+        <div class="create-card-check">{#if item.data.install-name == 'default'}<i class="fa-solid fa-check"></i>{/if}</div>
+        <span class="create-card-icon"><i class="{=item.data.icon ?: ''}"></i></span>
+        <span class="create-card-name">{=item.title}</span>
+        <span class="create-card-desc">{=item.description}</span>
+      </div>
+      {/if}
+      {/for}
+    </div>
+  </div>
+
+  <div class="create-section">
+    <h2><i class="fa-solid fa-puzzle-piece"></i> Plugins</h2>
+    <div class="create-grid-compact">
+      {#for item in site.collections.get('marketplace').sortBy('title', false)}
+      {#if item.data.kind == 'plugin'}
+      <div class="create-chip{#if item.data.install-name == 'markdown'} selected locked{/if}" data-plugin="{=item.data.install-name}" data-tooltip="{=item.description}">
+        <i class="{=item.data.icon ?: ''}"></i>
+        <span>{=item.title}</span>
+      </div>
+      {/if}
+      {/for}
+    </div>
+  </div>
+
+  <div class="create-section">
+    <div class="create-actions">
+      <button class="btn btn-primary" data-action="download">
+        <i class="fa-solid fa-download"></i> Download ZIP
+      </button>
+      <button class="btn btn-secondary" data-action="github">
+        <i class="fa-brands fa-github"></i> Push to GitHub <span class="create-via">via code.quarkus.io</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -28,7 +28,7 @@ public class RoqThemeDefaultTest {
     public void testAbout() {
         final String body = RestAssured.when().get("/about").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
-        assertThat(body).contains("<title>About - Hello, world! I&#39;m Roq</title>");
+        assertThat(body).contains("<title>About - My Roq Site</title>");
         assertThat(body).contains("About this site");
         assertThat(body).contains("Roqqy Balboa");
     }
@@ -38,7 +38,7 @@ public class RoqThemeDefaultTest {
         final String body = RestAssured.when().get("/posts/the-first-roq").then().statusCode(200).log()
                 .ifValidationFails().extract()
                 .asString();
-        assertThat(body).contains("<title>The First Roq! - Hello, world! I&#39;m Roq</title>");
+        assertThat(body).contains("<title>The First Roq! - My Roq Site</title>");
         assertThat(body).contains("You can access page data like this");
     }
 
@@ -55,7 +55,7 @@ public class RoqThemeDefaultTest {
     public void test404() {
         final String body = RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
-        assertThat(body).contains("<title>Oops! Roq is saying 404 - Hello, world! I&#39;m Roq</title>");
+        assertThat(body).contains("<title>Oops! Roq is saying 404 - My Roq Site</title>");
     }
 
     @Test

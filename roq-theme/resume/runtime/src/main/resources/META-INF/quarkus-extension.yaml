@@ -17,7 +17,9 @@ metadata:
     - "site"
   status: "preview"
   codestart:
-    name: "roq-theme-resume"
+    name: "roq-site-codestart"
+    extra-names:
+    - "roq-project-codestart"
     languages:
     - "java"
     - "kotlin"
