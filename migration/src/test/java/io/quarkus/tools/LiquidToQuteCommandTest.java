@@ -51,7 +51,7 @@ class LiquidToQuteCommandTest {
         assertTrue(Files.exists(outputDir.resolve("post.html")), "post.html should be converted");
 
         String defaultContent = Files.readString(outputDir.resolve("default.html"));
-        assertEquals("<html>{=content}</html>", defaultContent);
+        assertEquals("<html>{#insert /}</html>", defaultContent);
 
         String postContent = Files.readString(outputDir.resolve("post.html"));
         assertEquals("{#if page.title}<h1>{=page.title}</h1>{/if}", postContent);
