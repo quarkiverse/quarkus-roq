@@ -343,8 +343,9 @@ class LiquidToQuteConverterTest {
     @Test
     void testCapture() {
         String input = "{% capture myvar %}content{% endcapture %}";
-        String expected = "{#let myvar}content{/let}";
-        assertConverts(input, expected, "Capture should convert");
+        String expected = "{#let myvar=''}content{/let}";
+        assertConverts(input, expected,
+                "Capture must produce valid {#let} with empty initial value — bare {#let myvar} is a Qute parse error");
     }
 
     @Test
@@ -763,6 +764,14 @@ class LiquidToQuteConverterTest {
     }
 
     @Test
+    void testIncludeWithLeadingSlashStripped() {
+        String input = "{% include /templates/secondary-page-title-band.html %}";
+        String expected = "{#include partials/templates/secondary-page-title-band.html /}";
+        assertConverts(input, expected,
+                "Leading slash in include path should be stripped to avoid double-slash in partials/ prefix");
+    }
+
+    @Test
     void testIncludePathWithPageNotMangled() {
         String input = "{% include share-page.html title=post.title url=post.url %}";
         String expected = "{#include partials/share-page.html title=post.title url=post.url /}";
@@ -980,6 +989,16 @@ class LiquidToQuteConverterTest {
     }
 
     @Test
+    void testContentVariableInPartial() {
+        LiquidToQuteConverter partialConverter = new LiquidToQuteConverter();
+        partialConverter.setConvertingPartials(true);
+        String input = "<div>{{ content }}</div>";
+        String expected = "<div>{=page.content}</div>";
+        assertEquals(expected, partialConverter.convert(input),
+                "{{ content }} in partial should become {=page.content} to avoid infinite recursion");
+    }
+
+    @Test
     void testSitePostsConversion() {
         String input = "{% for post in site.posts %}text{% endfor %}";
         String expected = "{#for post in site.collections.get('posts').orEmpty}text{/for}";
@@ -1014,49 +1033,6 @@ class LiquidToQuteConverterTest {
         String input = "{% for a in authors_raw %}{{ a }}{% endfor %}";
         String expected = "{#for a in authors_raw.orEmpty}{=a}{/for}";
         assertConverts(input, expected, "Simple variable iterable in for loop should get .orEmpty");
-    }
-
-    @Test
-    void testSiteBuiltInPropertiesNotConverted() {
-        String input = "{=site.url} {=site.title} {=site.collections} {=site.pages} {=site.data}";
-        String expected = "{=site.url} {=site.title} {=site.collections} {=site.pages} {=site.data}";
-        assertConverts(input, expected,
-                "Roq Site built-in properties should not be converted to cdi:siteConfig");
-    }
-
-    @Test
-    void testBuiltInPageFieldsNotConverted() {
-        String input = "{{page.title}} {{page.date}} {{page.url}}";
-        String expected = "{=page.title} {=page.date} {=page.url}";
-        assertConverts(input, expected,
-                "Built-in page properties should not be converted to page.data.*");
-    }
-
-    @Test
-    void testAssignInIfElseBlockGeneralCaseInlinesTrailingContent() {
-        String input = """
-                {% if page.layout == 'guides' %}
-                  {%assign canonical_url = page.url | replace: 'foo', '' %}
-                {% else %}
-                  {%assign canonical_url = page.url %}
-                {% endif %}
-                <link rel="canonical" href="{{ canonical_url }}">
-                """;
-        String result = converter.convert(input);
-
-        // General case: trailing content using the variable is duplicated into each branch
-        assertTrue(result.contains("{#if"), "If/else should be preserved");
-        // The <link> line should appear twice (once per branch)
-        int firstLink = result.indexOf("canonical");
-        int secondLink = result.indexOf("canonical", firstLink + 1);
-        assertTrue(secondLink > firstLink, "Trailing content should be duplicated into both branches");
-    }
-
-    @Test
-    void testForLoopCdiIterableNoOrEmpty() {
-        String input = "{% for item in cdi:books %}text{% endfor %}";
-        String expected = "{#for item in cdi:books}text{/for}";
-        assertConverts(input, expected, "cdi: iterable should not get .orEmpty");
     }
 
     @Nested

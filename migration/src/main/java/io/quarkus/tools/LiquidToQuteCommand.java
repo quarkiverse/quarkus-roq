@@ -25,7 +25,7 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     @Parameters(index = "1", description = "Output file or directory (optional for single files)", arity = "0..1")
     private Path output;
 
-    @Option(names = {"-r", "--recursive"}, description = "Process directories recursively")
+    @Option(names = {"-r", "--recursive"}, description = "Process directories recursively", defaultValue = "true", negatable = true)
     private boolean recursive;
 
     @Option(names = {"-v", "--verbose"}, description = "Verbose output")
@@ -38,6 +38,9 @@ public class LiquidToQuteCommand implements Callable<Integer> {
             defaultValue = "true", negatable = true)
     private boolean extensionSyntax = true;
 
+    @Option(names = {"--partials"}, description = "Converting partials/includes (uses {page.content} instead of {#insert /})", defaultValue = "true", negatable = true)
+    private boolean partials;
+
     private LiquidToQuteConverter converter = new LiquidToQuteConverter();
 
     public static void main(String... args) {
@@ -48,6 +51,7 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         converter = new LiquidToQuteConverter(extensionSyntax);
+        converter.setConvertingPartials(partials);
 
         if (!Files.exists(input)) {
             System.err.println("Error: Input path '" + input + "' does not exist");
