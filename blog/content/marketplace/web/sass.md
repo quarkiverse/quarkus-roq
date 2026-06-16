@@ -33,3 +33,9 @@ $radius: 0.5rem;
 }
 ```
 |}
+
+You can then reference the bundled stylesheet as `/static/bundle/app.css`, for example
+
+```html
+<link rel="stylesheet" href="/static/bundle/app.css" />
+```
