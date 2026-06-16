@@ -14,6 +14,7 @@ public class LiquidToQuteConverter {
     private final boolean useExtensionSyntax;
     private final String exprOpen;
     private final List<String> conversionsApplied = new ArrayList<>();
+    private boolean convertingPartials;
 
     LiquidToQuteConverter() {
         this(true);
@@ -22,6 +23,10 @@ public class LiquidToQuteConverter {
     LiquidToQuteConverter(boolean useExtensionSyntax) {
         this.useExtensionSyntax = useExtensionSyntax;
         this.exprOpen = useExtensionSyntax ? "{=" : "{";
+    }
+
+    void setConvertingPartials(boolean convertingPartials) {
+        this.convertingPartials = convertingPartials;
     }
 
     String convert(String content) {
@@ -926,6 +931,9 @@ public class LiquidToQuteConverter {
 
         while (includeMatcher.find()) {
             String file = includeMatcher.group(1);
+            if (file.startsWith("/")) {
+                file = file.substring(1);
+            }
             String params = includeMatcher.group(2).trim();
 
             // Roq resolves includes from templates/ directory;
@@ -1142,7 +1150,7 @@ public class LiquidToQuteConverter {
         }
 
         // Capture (multi-line assignment) — already block-scoped
-        content = content.replaceAll("\\{%\\s*capture\\s+(\\w+)\\s*%\\}", "{#let $1}");
+        content = content.replaceAll("\\{%\\s*capture\\s+(\\w+)\\s*%\\}", "{#let $1=''}");
         content = content.replaceAll("\\{%\\s*endcapture\\s*%\\}", "{/let}");
 
         if (!content.equals(original)) {
@@ -1308,8 +1316,14 @@ public class LiquidToQuteConverter {
         content = content.replaceAll("\\{%\\s*prepend\\s+(\\w+)\\s*%\\}", "{#prepend $1}");
         content = content.replaceAll("\\{%\\s*endprepend\\s*%\\}", "{/prepend}");
 
-        // Jekyll's {{ content }} in layouts renders child content; Qute uses {#insert /}
-        content = content.replaceAll("\\{=content\\}", "{#insert /}");
+        // Jekyll's {{ content }} renders child content.
+        // In layouts: Qute uses {#insert /}
+        // In partials: use {page.content} since {#insert /} causes infinite recursion
+        if (convertingPartials) {
+            content = content.replaceAll("\\{=content\\}", exprOpen + "page.content}");
+        } else {
+            content = content.replaceAll("\\{=content\\}", "{#insert /}");
+        }
 
         if (!content.equals(original)) {
             conversionsApplied.add("Converted layout tags");
