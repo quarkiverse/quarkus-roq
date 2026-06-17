@@ -33,3 +33,10 @@ $radius: 0.5rem;
 }
 ```
 |}
+
+You can then reference the bundled stylesheet (i.e `/static/bundle/app-xxxxx.css`), via the bundle user tag (already included in base and other themes):
+```html
+{#bundle /}
+```
+
+See [the related documentation](/docs/basics/#styles-and-javascript).
