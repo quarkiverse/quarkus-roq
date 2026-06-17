@@ -34,8 +34,9 @@ $radius: 0.5rem;
 ```
 |}
 
-You can then reference the bundled stylesheet as `/static/bundle/app.css`, for example
-
+You can then reference the bundled stylesheet (i.e `/static/bundle/app-xxxxx.css`), via the bundle user tag (already included in base and other themes):
 ```html
-<link rel="stylesheet" href="/static/bundle/app.css" />
+{#bundle /}
 ```
+
+See [the related documentation](/docs/basics/#styles-and-javascript).
