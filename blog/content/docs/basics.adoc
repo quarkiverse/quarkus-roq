@@ -1063,10 +1063,10 @@ my-site/
 NOTE: `src/main/resources/web/app/` also works if you prefer the standard Java resources layout.
 
 
-To include the generated bundle in your template, specify the bundle tag in the `html>head` tag:
+To include the generated bundle in your template (the base theme and the others already includes it), specify the bundle tag in the `html>head` tag:
 
 [source,html]
-.layouts/head.html
+.partials/head.html
 ----
 <head>
   ...
