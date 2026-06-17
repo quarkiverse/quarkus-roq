@@ -1062,8 +1062,9 @@ my-site/
 
 NOTE: `src/main/resources/web/app/` also works if you prefer the standard Java resources layout.
 
+The bundled files will be generated in `/static/bundle/...`,  you can see them in the target directory or the output of generation, but you don't have to reference them manually.
 
-To include the generated bundle in your template (the base theme and the others already includes it), specify the bundle tag in the `html>head` tag:
+Instead, to include the generated bundle in your templates (the base theme and the others already includes it), specify the bundle user tag in the `html>head` tag:
 
 [source,html]
 .partials/head.html
