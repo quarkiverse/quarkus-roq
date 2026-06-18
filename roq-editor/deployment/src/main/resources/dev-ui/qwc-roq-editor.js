@@ -73,6 +73,8 @@ export class QwcRoqEditor extends LitElement {
         this._syncing = false;
         this._publishing = false;
         this._syncManager = null;
+        this._fromHistoryNavigation = false;
+        this._historyEntryForEditor = false;
     }
 
     // Components callbacks
@@ -84,8 +86,11 @@ export class QwcRoqEditor extends LitElement {
         super.connectedCallback();
         const showSidebar = location.search.includes('showSidebar');
         if (!showSidebar) {
-            document.querySelector('qwc-menu').style.display = 'none';
+            document.querySelector('qwc-menu')._smaller();
         }
+
+        this._popStateHandler = (e) => this._onPopState(e);
+        window.addEventListener('popstate', this._popStateHandler);
 
         try {
             const [postsResponse, pagesResponse, dateFormatResponse] = await Promise.all([
@@ -97,6 +102,7 @@ export class QwcRoqEditor extends LitElement {
             this._pages = pagesResponse.result || [];
             this._dateFormat = dateFormatResponse.result;
             this._pendingRefreshPages = false;
+            await this._restorePageFromUrl();
         } catch (error) {
             console.error('Error loading initial data:', error);
             showNotification('Error loading initial data: ' + error.message);
@@ -129,12 +135,90 @@ export class QwcRoqEditor extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        if (this._popStateHandler) {
+            window.removeEventListener('popstate', this._popStateHandler);
+        }
         if (this._connectionStateObserver) {
             connectionState.removeObserver(this._connectionStateObserver);
         }
         if (this._syncManager) {
             this._syncManager.stop();
         }
+    }
+
+    _buildEditorUrl(pagePath) {
+        const url = new URL(window.location.href);
+        if (pagePath) {
+            url.searchParams.set('page', pagePath);
+        } else {
+            url.searchParams.delete('page');
+        }
+        return url;
+    }
+
+    _getPagePathFromUrl() {
+        return new URL(window.location.href).searchParams.get('page');
+    }
+
+    _findPageByPath(path) {
+        return this._posts?.find(p => p.path === path)
+            || this._pages?.find(p => p.path === path);
+    }
+
+    _updateHistoryForPage(page, { push = true } = {}) {
+        const url = this._buildEditorUrl(page.path);
+        const state = { roqEditor: { view: 'page', path: page.path } };
+        if (push) {
+            history.pushState(state, '', url);
+            this._historyEntryForEditor = true;
+        } else {
+            history.replaceState(state, '', url);
+            this._historyEntryForEditor = false;
+        }
+    }
+
+    _replaceListHistory() {
+        const url = this._buildEditorUrl(null);
+        history.replaceState({ roqEditor: { view: 'list' } }, '', url);
+        this._historyEntryForEditor = false;
+    }
+
+    async _restorePageFromUrl() {
+        const pagePath = this._getPagePathFromUrl();
+        if (!pagePath) {
+            return;
+        }
+
+        const page = this._findPageByPath(pagePath);
+        if (!page) {
+            this._replaceListHistory();
+            return;
+        }
+
+        this._fromHistoryNavigation = true;
+        try {
+            await this._onPageOpen({ detail: { page } });
+            this._updateHistoryForPage(page, { push: false });
+        } finally {
+            this._fromHistoryNavigation = false;
+        }
+    }
+
+    _onPopState(e) {
+        this._historyEntryForEditor = false;
+        const pagePath = e.state?.roqEditor?.path ?? this._getPagePathFromUrl();
+        if (pagePath) {
+            const page = this._findPageByPath(pagePath);
+            if (page) {
+                this._fromHistoryNavigation = true;
+                this._onPageOpen({ detail: { page } })
+                    .finally(() => {
+                        this._fromHistoryNavigation = false;
+                    });
+                return;
+            }
+        }
+        this._closeViewerInternal();
     }
 
     _onConnectionStateChange() {
@@ -397,6 +481,10 @@ export class QwcRoqEditor extends LitElement {
         }
         if (this._selectedPage?.path === page.path) {
             this._selectedPage = updated;
+            if (this._historyEntryForEditor || history.state?.roqEditor?.view === 'page') {
+                const url = this._buildEditorUrl(newPath);
+                history.replaceState({ roqEditor: { view: 'page', path: newPath } }, '', url);
+            }
         }
         this._syncManager?.markAsDirty();
         this._syncManager?.refreshStatus(true);
@@ -436,6 +524,15 @@ export class QwcRoqEditor extends LitElement {
     async _onPageOpen(e) {
         const page = e.detail.page;
         const content = e.detail.content;
+
+        if (this._selectedPage?.path === page.path && this._fileContent !== null && !content) {
+            return;
+        }
+
+        if (!this._fromHistoryNavigation) {
+            this._updateHistoryForPage(page);
+        }
+
         this._selectedPage = page;
         if (content) {
             this._visualEditorEnabled = await this._shouldEnableVisualEditor(content);
@@ -496,6 +593,18 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _closeViewer() {
+        if (this._historyEntryForEditor) {
+            this._historyEntryForEditor = false;
+            history.back();
+            return;
+        }
+        if (this._getPagePathFromUrl()) {
+            this._replaceListHistory();
+        }
+        this._closeViewerInternal();
+    }
+
+    _closeViewerInternal() {
         this._selectedPage = null;
         this._fileContent = null;
         this._visualEditorEnabled = false;
