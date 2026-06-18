@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 
 public class LiquidToQuteConverter {
 
+    public static final String DATA_NAME = "siteConfig";
+    private static final String CDI_REFERENCE = "cdi:" + DATA_NAME;
     private final boolean useExtensionSyntax;
     private final String exprOpen;
     private final List<String> conversionsApplied = new ArrayList<>();
@@ -218,11 +220,11 @@ public class LiquidToQuteConverter {
     private String convertUrlFilters(String content) {
         // Jekyll's | relative_url prepends site.baseurl to a path.
         // Rewrite as | prepend: so the concatenation filter handles the expression walk.
-        content = content.replaceAll("\\|\\s*relative_url", "| prepend: cdi:siteConfig.baseurl");
+        content = content.replaceAll("\\|\\s*relative_url", "| prepend: " + CDI_REFERENCE + ".baseurl");
         // TODO: absolute_url should prepend site.url + site.baseurl, but chaining two prepends
         // interacts badly with convertUrlConcatenation's site.url.resolve() transform.
         // For now, treat same as relative_url (sufficient when site.url is not needed).
-        content = content.replaceAll("\\|\\s*absolute_url", "| prepend: cdi:siteConfig.baseurl");
+        content = content.replaceAll("\\|\\s*absolute_url", "| prepend: " + CDI_REFERENCE + ".baseurl");
         return content;
     }
 
@@ -1490,7 +1492,7 @@ public class LiquidToQuteConverter {
 
         Pattern pattern = Pattern.compile(
                 "\\bsite\\.((?!(?:" + knownSiteProps + ")\\b)[a-zA-Z_][a-zA-Z0-9_]*)\\b");
-        String result = pattern.matcher(content).replaceAll("cdi:siteConfig.$1");
+        String result = pattern.matcher(content).replaceAll(CDI_REFERENCE + ".$1");
 
         if (!result.equals(content)) {
             conversionsApplied.add("Converted site data properties to CDI references");
@@ -1649,19 +1651,19 @@ public class LiquidToQuteConverter {
 
         // Add a warning comment at the start of the body
         String warning = "\n{! TODO: site.tags not available in Roq by default.\n" +
-                "   The tag listing feature is currently disabled (replaced with cdi:siteConfig.tags=[]).\n" +
+                "   The tag listing feature is currently disabled (replaced with " + CDI_REFERENCE + ".tags=[]).\n" +
                 "   Options to restore functionality:\n" +
                 "   (1) Use collection.tagsCount() for a specific collection,\n" +
                 "   (2) Add a site.tags extension method, or\n" +
                 "   (3) Remove the tag listing feature entirely.\n" +
                 "   See migration implementation notes for details. !}\n";
 
-        // Replace all site.tags with cdi:siteConfig.tags (which is an empty list)
-        body = pattern.matcher(body).replaceAll("cdi:siteConfig.tags");
+        // Replace all site.tags with " + CDI_REFERENCE + ".tags (which is an empty list)
+        body = pattern.matcher(body).replaceAll(CDI_REFERENCE + ".tags");
 
         String result = frontmatter + warning + body;
 
-        conversionsApplied.add("Replaced site.tags with cdi:siteConfig.tags (needs manual implementation)");
+        conversionsApplied.add("Replaced site.tags with " + CDI_REFERENCE + ".tags (needs manual implementation)");
 
         return result;
     }
