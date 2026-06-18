@@ -12,7 +12,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "jekyll-config", mixinStandardHelpOptions = true, version = "1.0", description = "Converts Jekyll _config.yml to Roq application.properties and data/siteConfig.yml")
+@Command(name = "jekyll-config", mixinStandardHelpOptions = true, version = "1.0",
+        description = "Converts Jekyll _config.yml to Roq application.properties and data/siteConfig.yml")
 public class JekyllConfigCommand implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Jekyll project directory")

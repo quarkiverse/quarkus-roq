@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
+import static io.quarkus.tools.LiquidToQuteConverter.DATA_NAME;
+
 /**
  * Converts Jekyll _config.yml to Roq application.properties and data/siteConfig.yml.
  * Replaces the bash script logic from roq-it-jekyll lines 61-62, 184-192, and 238-277.
@@ -41,6 +43,7 @@ public class JekyllConfigConverter {
 
     /**
      * Create application.properties values with standard Roq properties for Jekyll compatibility.
+     * Replaces roq-it-jekyll lines 184-192.
      *
      * @return Application properties (without plugin-dependent properties)
      */
@@ -62,6 +65,8 @@ public class JekyllConfigConverter {
         properties.setProperty("quarkus.qute.alt-expr-syntax", "true");
         // Set a date format with a sensible default for Jekyll.
         properties.setProperty("site.date-format", "yyyy-MM-dd['T'HH:mm:ss][X]");
+        // Jekyll templates access arbitrary frontmatter fields that may not exist on every page
+        // echo "quarkus.qute.strict-rendering=false" >> ${project_dir}/config/application.properties
         properties.setProperty("quarkus.qute.strict-rendering", "false");
         if (!strictProperties) {
             // Liquid silently swallows missing properties (outputs nothing).
@@ -73,6 +78,7 @@ public class JekyllConfigConverter {
         // - Object.* (JsonArray iteration yields Object at build time)
         // - Page.paginator (only on NormalPage subclass, not visible at compile time)
         // - DocumentPage.* (post loop variables access custom frontmatter via data)
+        properties.setProperty("quarkus.qute.strict-rendering", "false");
         properties.setProperty("quarkus.qute.type-check-excludes",
                 "java.lang.Object.*,"
                         + "io.quarkiverse.roq.frontmatter.runtime.model.Page.paginator,"
@@ -148,6 +154,8 @@ public class JekyllConfigConverter {
             }
             copyNodeWithCamelCaseKeys(config.get(key), siteConfig, key);
         });
+
+        }
 
         // Add empty tags array (for Jekyll compatibility)
         siteConfig.put("tags", new Object[0]);
