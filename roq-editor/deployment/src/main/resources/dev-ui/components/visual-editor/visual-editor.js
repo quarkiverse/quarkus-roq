@@ -22,6 +22,7 @@ import {combineFrontmatter, parseAndFormatDate, parseFrontmatter} from '../../ut
 import {editorContext} from './editor-context.js';
 import './bubble-menu.js';
 import './table-menu.js';
+import './code-block-menu.js';
 import './frontmatter-panel.js';
 import './gutter-menu.js';
 import '../preview-panel.js';
@@ -239,7 +240,12 @@ export class RoqVisualEditor extends BaseEditor {
             }
             .tiptap.ProseMirror .tiptap-image-img {
                 border-radius: .25rem;
-            }            
+            }
+
+            .tiptap-editor pre {
+                position: relative;
+                padding-top: 2.25rem;
+            }
         `,
     ];
 
@@ -519,6 +525,7 @@ export class RoqVisualEditor extends BaseEditor {
                 <div class="tiptap-editor">
                   <qwc-bubble-menu style="visibility: hidden; position: absolute;"></qwc-bubble-menu>
                   <qwc-table-menu></qwc-table-menu>
+                  <qwc-code-block-menu></qwc-code-block-menu>
                   <qwc-gutter-menu id="gutter-menu" style="visibility: hidden;"></qwc-gutter-menu>
                 </div>
               </div>
@@ -528,7 +535,7 @@ export class RoqVisualEditor extends BaseEditor {
                   id="code-editor"
                   showlinenumbers
                   editable
-                  mode="${this.fileExtension}"
+                  mode="${this.page.extension}"
                   @value-changed="${this._onCodeBlockChange}"
                 >
                 </qui-themed-code-block>

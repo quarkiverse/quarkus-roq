@@ -17,8 +17,10 @@ import { createContext, ContextProvider, ContextConsumer } from '@lit/context'
 import { parse as yamlParse, stringify as yamlStringify } from 'yaml'
 import { TextSelection } from 'prosemirror-state'
 
+const lowlight = createLowlight(common)
+
 const ConfCodeBlockLowlight = CodeBlockLowlight.configure({
-    lowlight: createLowlight(common)
+    lowlight
 })
 
-export { Editor, Extension, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, Suggestion, createContext, ContextProvider, ContextConsumer, TextSelection, Placeholder, yamlParse, yamlStringify };
+export { Editor, Extension, Node, mergeAttributes, StarterKit, Markdown, Image, Link, BubbleMenu, DragHandle, Table, TableRow, TableCell, TableHeader, ConfCodeBlockLowlight, lowlight, Suggestion, createContext, ContextProvider, ContextConsumer, TextSelection, Placeholder, yamlParse, yamlStringify };
