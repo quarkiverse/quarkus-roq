@@ -42,10 +42,10 @@ public class DiagramConverter {
     /**
      * Encodes the given diagram source into an <code><img></code> html tag or the equivalent asciidoctor macro with the encoded
      * diagram image.
-     *
+     * <p>
      * Leverages the data inlining capability to produce images with the following template :
      * <code>data:<mime_type>;base64,<encoded_image></code>
-     *
+     * <p>
      * This allows to work around the hassle of file writing and image linking.
      *
      * @param diagramSource The diagram as text
@@ -54,12 +54,12 @@ public class DiagramConverter {
     public String encode(String diagramSource, DiagramParams params) {
 
         byte[] imageBytes;
-        String dataUri = null;
+        String data = null;
         try {
             imageBytes = krokiApi.generateDiagram(
                     new KrokiRestClient.DiagramRequest(params.language(), diagramSource,
                             params.diagramOutputFormat().getFormatString()));
-            dataUri = dataUri(imageBytes, params.diagramOutputFormat());
+            data = data(imageBytes, params.diagramOutputFormat());
         } catch (Exception e) {
             logger.error("Failed to generate diagram", e);
             String errorSvg = """
@@ -69,12 +69,22 @@ public class DiagramConverter {
                       <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="30px" fill="#B38D97FF">It seems there was an error...</text>
                     </svg>
                     """;
-            dataUri = dataUri(errorSvg.getBytes(StandardCharsets.UTF_8), DiagramOutputFormat.svg);
+            data = data(errorSvg.getBytes(StandardCharsets.UTF_8), DiagramOutputFormat.svg);
         }
 
-        if (params.asciidoc()) {
+        if (params.diagramOutputFormat() == DiagramOutputFormat.svg) {
+            if (params.asciidoc()) {
+                return """
+                        ++++
+                         %s
+                        ++++
+                        """.formatted(data);
+            }
+            return data;
+
+        } else if (params.asciidoc()) {
             return "image::%s[alt=\"%s\", width=%d,height=%d]".formatted(
-                    dataUri,
+                    data,
                     params.alt(),
                     params.width(),
                     params.height());
@@ -82,10 +92,13 @@ public class DiagramConverter {
 
         return String.format(
                 "<img src=\"%s\" alt=\"%s\" width=\"%d\" height=\"%d\"/>",
-                dataUri, params.alt(), params.width(), params.height());
+                data, params.alt(), params.width(), params.height());
     }
 
-    private String dataUri(byte[] bytes, DiagramOutputFormat outputFormat) {
+    private String data(byte[] bytes, DiagramOutputFormat outputFormat) {
+        if (outputFormat == DiagramOutputFormat.svg) {
+            return "<span style=\"display: block; overflow: auto;\">" + new String(bytes, StandardCharsets.UTF_8) + "</span>";
+        }
         return "data:%s;base64,%s".formatted(outputFormat.getMimeType(), Base64.getEncoder().encodeToString(bytes));
     }
 }
