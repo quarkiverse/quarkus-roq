@@ -19,6 +19,7 @@ Don't forget to include tests in your pull requests. Also don't forget the docum
 
 See https://github.com/quarkusio/quarkus/blob/main/CONTRIBUTING.md#llm-usage-policy
 
+Moreover, once the commit is shared, it belongs to you, there should not be any `co-authored by` usage. You are fully accountable for your commits. 
 
 ### Running
 
