@@ -117,28 +117,51 @@ public class RoqGenerator implements Handler<RoutingContext> {
 
     public Uni<Path> generate() {
         final FileSystem fs = vertx.get().fileSystem();
-        final List<Uni<Void>> all = new ArrayList<>();
         final Path outputDir = Path.of(outputDir()).toAbsolutePath();
-        for (SelectedPath path : this.selectedPaths) {
-            all.add(fetchContent(path.path())
-                    .onFailure()
-                    .retry().atMost(config.requestRetry())
-                    .chain(r -> {
-                        final Path targetPath = outputDir.resolve(path.outputPath());
-                        return Uni.createFrom()
-                                .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
-                                .chain(() -> Uni.createFrom().completionStage(fs
-                                        .writeFile(targetPath.toString(), r != null ? r : Buffer.buffer()).toCompletionStage()))
-                                .invoke(() -> LOGGER.infof("Roq generated file %s", path.outputPath()));
-                    }));
 
-        }
+        ConfiguredPathsProvider.enqueueAll(selectedPaths);
 
         return clearOutputDir(fs, outputDir)
                 .chain(this::pollRoqPing)
-                .chain(() -> Uni.join().all(all).andFailFast().map(l -> outputDir))
+                .chain(() -> processQueue(outputDir, fs))
+                .map(v -> outputDir)
                 .ifNoItem().after(Duration.ofSeconds(config.timeout()))
                 .fail();
+    }
+
+    // Drains and processes paths from the shared queue in batches.
+    // Processing a batch may enqueue new paths (e.g. dynamic images discovered during rendering),
+    // so we recurse until the queue is empty.
+    private Uni<Void> processQueue(Path outputDir, FileSystem fs) {
+        var queue = ConfiguredPathsProvider.pathQueue();
+        if (queue.isEmpty()) {
+            return Uni.createFrom().voidItem();
+        }
+        var batch = new ArrayList<SelectedPath>();
+        SelectedPath p;
+        while ((p = queue.poll()) != null) {
+            batch.add(p);
+        }
+        return Multi.createFrom().iterable(batch)
+                .onItem().transformToUniAndMerge(path -> fetchAndWrite(path, outputDir, fs))
+                .collect().last()
+                .replaceWithVoid()
+                .chain(() -> processQueue(outputDir, fs));
+    }
+
+    private Uni<Void> fetchAndWrite(SelectedPath path, Path outputDir, FileSystem fs) {
+        return fetchContent(path.path())
+                .onFailure()
+                .retry().atMost(config.requestRetry())
+                .chain(r -> {
+                    final Path targetPath = outputDir.resolve(path.outputPath());
+                    return Uni.createFrom()
+                            .completionStage(() -> fs.mkdirs(targetPath.getParent().toString()).toCompletionStage())
+                            .chain(() -> Uni.createFrom().completionStage(fs
+                                    .writeFile(targetPath.toString(), r != null ? r : Buffer.buffer())
+                                    .toCompletionStage()))
+                            .invoke(() -> LOGGER.infof("Roq generated file %s", path.outputPath()));
+                });
     }
 
     private static Uni<Void> clearOutputDir(FileSystem fs, Path outputDir) {
