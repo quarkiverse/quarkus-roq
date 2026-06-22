@@ -5,6 +5,7 @@ import static io.quarkiverse.roq.plugin.aliases.runtime.RoqAliasesKeys.REDIRECT_
 import static io.quarkiverse.roq.plugin.aliases.runtime.RoqAliasesKeys.REDIRECT_FROM_HYPHEN;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeTrailingSlash;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,8 +84,14 @@ public class RoqPluginAliasesProcessor {
             BuildProducer<RouteBuildItem> routes,
             List<RoqFrontMatterAliasesBuildItem> aliases) {
         for (RoqFrontMatterAliasesBuildItem item : aliases) {
+            String withSlash = prefixWithSlash(addTrailingSlash(item.alias()));
+            String withoutSlash = prefixWithSlash(removeTrailingSlash(item.alias()));
             routes.produce(RouteBuildItem.builder()
-                    .route(prefixWithSlash(item.alias()))
+                    .route(withSlash)
+                    .handler(recorder.sendRedirectPage(item.target()))
+                    .build());
+            routes.produce(RouteBuildItem.builder()
+                    .route(withoutSlash)
                     .handler(recorder.sendRedirectPage(item.target()))
                     .build());
         }
