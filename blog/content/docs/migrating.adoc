@@ -81,6 +81,34 @@ Collect these files from a working Roq project (the https://github.com/quarkiver
 
 TIP: If you are using an LLM, attach these files directly or paste them as code blocks. You can also point the LLM to https://iamroq.dev/llms-full.txt for complete Roq documentation.
 
+[[sanitize]]
+== Sanitize
+
+Before starting to convert, it's a good idea to tidy up any inconsistencies, warnings or use of deprecated capabilities in your site.
+Here are some things to look out for.
+
+=== Eliminate forward-lookups in SCSS
+
+Older versions of Jekyll use the RubySass or LibSass libraries, both deprecated. These Sass implementations allow variables in `.scss` files to be references before they are defined.
+Jekyll's RubySass and LibSass uses a multi-pass compilation approach. The first pass scans entire file and collects all variable definitions.
+The second pass resolves variable references.
+
+However, the Sass specification requires variables to be defined before they are used.
+This is enforced by Dart Sass, which is used by both Roq and newer versions of Jekyll.
+
+=== Choose a single date format in frontmatter
+
+Roq allows you to specify the date format used for posts, but only one.
+If your site uses a number of different date formats that can't be described by the same date format string, reduce how many are used.
+Remember that `[]` can be used for optional parts of the format string, for example:
+
+[source,properties]
+----
+site.date-format=yyyy-MM-dd['T'HH:mm:ss][X]
+----
+
+This gives some flexibility, as long as the date formats aren't totally inconsistent.
+
 [[scaffold]]
 == Create the project scaffold
 
