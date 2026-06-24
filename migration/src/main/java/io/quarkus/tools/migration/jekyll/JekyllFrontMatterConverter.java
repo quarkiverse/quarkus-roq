@@ -64,7 +64,8 @@ public class JekyllFrontMatterConverter {
             if (normalized.equals(filenameNoExt)) {
                 content = PERMALINK_LINE.matcher(content).replaceFirst("");
             } else {
-                content = PERMALINK_LINE.matcher(content).replaceFirst("aliases: " + Matcher.quoteReplacement(matcher.group(1)) + "\n");
+                content = PERMALINK_LINE.matcher(content)
+                        .replaceFirst("aliases: " + Matcher.quoteReplacement(matcher.group(1)) + "\n");
             }
 
             Files.writeString(file, content);

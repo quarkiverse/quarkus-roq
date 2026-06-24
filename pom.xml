@@ -130,6 +130,7 @@
             </activation>
             <modules>
                 <module>blog</module>
+                <module>migration</module>
             </modules>
         </profile>
     </profiles>
