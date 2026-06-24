@@ -10,7 +10,7 @@ export tmp_dir=~/tmp
 export ROQ_VERSION=${ROQ_VERSION:-999-SNAPSHOT}
 
 ## Build the converter
-mvn -f ${tools_dir}/pom.xml install -q
+mvn -f ${tools_dir}/pom.xml install -q -DskipTests
 
 ## Ensure a clean state in the starting project
 
@@ -64,10 +64,13 @@ fi
 
 mv ${project_dir}/_site/index.html ${project_dir}
 
+# Convert Jekyll frontmatter (pagination, permalinks) to Roq equivalents
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.jekyll.JekyllFrontMatterCommand" -Dexec.args="${project_dir}"
+
 # Convert Liquid to Qute; this has the side effect of renaming directories to adjust the structure
 mkdir -p ${project_dir}/templates/partials
 mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_includes ${project_dir}/templates/partials"
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts --no-partials"
 
 # Data directories (subdirs of data/) can't be accessed as single CDI beans.
 # Revert cdi: prefix for these and leave a TODO comment in the templates.
