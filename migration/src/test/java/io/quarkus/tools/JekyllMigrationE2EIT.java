@@ -45,6 +45,7 @@ import io.quarkus.test.junit.QuarkusTest;
  * <p>
  * Set {@code test.base.url} to run the same assertions against any server.
  * Quarkus still boots (ignored), but the tests hit the external URL.
+ *
  * </p>
  *
  * <pre>{@code
