@@ -1,10 +1,10 @@
 package io.quarkus.tools;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class LiquidToQuteConverterTest {
 
@@ -417,9 +417,9 @@ class LiquidToQuteConverterTest {
     @Test
     void testAndOrInProseNotCorrupted() {
         String input = "<p>This is information or data and more text</p>\n" +
-                       "{% if a and b %}yes{% endif %}";
+                "{% if a and b %}yes{% endif %}";
         String expected = "<p>This is information or data and more text</p>\n" +
-                         "{#if a && b}yes{/if}";
+                "{#if a && b}yes{/if}";
         assertConverts(input, expected,
                 "and/or in prose text should not be converted, only inside conditionals");
     }
@@ -427,12 +427,12 @@ class LiquidToQuteConverterTest {
     @Test
     void testAuthorFileLines36to38() {
         String input = "      {% comment %} Build multi-author list for this post {% endcomment %}\n" +
-                       "      {% assign authors_raw = post.author | default: \"\" | split: \",\" %}\n" +
-                       "      {% assign authors_clean = \"\" | split: \"\" %}";
+                "      {% assign authors_raw = post.author | default: \"\" | split: \",\" %}\n" +
+                "      {% assign authors_clean = \"\" | split: \"\" %}";
 
         String expected = "      {!  Build multi-author list for this post  !}\n" +
-                         "      {#let authors_raw=str:split(post.data.author??, \",\")}\n" +
-                         "      {#let authors_clean=str:split(\"\", \"\")}{/let}{/let}";
+                "      {#let authors_raw=str:split(post.data.author??, \",\")}\n" +
+                "      {#let authors_clean=str:split(\"\", \"\")}{/let}{/let}";
 
         assertConverts(input, expected, "Author file lines 36-38 should convert without {?:} errors");
     }

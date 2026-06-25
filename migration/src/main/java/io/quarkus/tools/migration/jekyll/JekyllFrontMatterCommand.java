@@ -12,8 +12,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "jekyll-frontmatter", mixinStandardHelpOptions = true, version = "1.0",
-        description = "Converts Jekyll frontmatter (pagination, permalinks) to Roq equivalents")
+@Command(name = "jekyll-frontmatter", mixinStandardHelpOptions = true, version = "1.0", description = "Converts Jekyll frontmatter (pagination, permalinks) to Roq equivalents")
 public class JekyllFrontMatterCommand implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Jekyll project directory")

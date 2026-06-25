@@ -15,8 +15,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "liquid-to-qute", mixinStandardHelpOptions = true, version = "1.0",
-        description = "Converts Liquid templates to Qute templates for Roq")
+@Command(name = "liquid-to-qute", mixinStandardHelpOptions = true, version = "1.0", description = "Converts Liquid templates to Qute templates for Roq")
 public class LiquidToQuteCommand implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Input file or directory")
@@ -25,20 +24,23 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     @Parameters(index = "1", description = "Output file or directory (optional for single files)", arity = "0..1")
     private Path output;
 
-    @Option(names = {"-r", "--recursive"}, description = "Process directories recursively", defaultValue = "true", negatable = true)
+    @Option(names = { "-r",
+            "--recursive" }, description = "Process directories recursively", defaultValue = "true", negatable = true)
     private boolean recursive;
 
-    @Option(names = {"-v", "--verbose"}, description = "Verbose output")
+    @Option(names = { "-v", "--verbose" }, description = "Verbose output")
     private boolean verbose;
 
-    @Option(names = {"-e", "--extensions"}, description = "Template file extensions to process (default: .html, .htm, .liquid, .md, .markdown)", split = ",")
+    @Option(names = { "-e",
+            "--extensions" }, description = "Template file extensions to process (default: .html, .htm, .liquid, .md, .markdown)", split = ",")
     private List<String> templateExtensions = List.of(".html", ".htm", ".liquid", ".md", ".markdown");
 
-    @Option(names = {"--extension-syntax"}, description = "Use Qute extension syntax {=expr} instead of standard {expr} (default: true)",
-            defaultValue = "true", negatable = true)
+    @Option(names = {
+            "--extension-syntax" }, description = "Use Qute extension syntax {=expr} instead of standard {expr} (default: true)", defaultValue = "true", negatable = true)
     private boolean extensionSyntax = true;
 
-    @Option(names = {"--partials"}, description = "Converting partials/includes (uses {page.content} instead of {#insert /})", defaultValue = "true", negatable = true)
+    @Option(names = {
+            "--partials" }, description = "Converting partials/includes (uses {page.content} instead of {#insert /})", defaultValue = "true", negatable = true)
     private boolean partials;
 
     private LiquidToQuteConverter converter = new LiquidToQuteConverter();

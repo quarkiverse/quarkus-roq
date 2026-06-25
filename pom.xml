@@ -25,6 +25,7 @@
         <module>roq-plugin</module>
         <module>roq-theme</module>
         <module>roq-cli</module>
+        <module>migration</module>
     </modules>
 
     <scm>
