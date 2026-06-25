@@ -16,7 +16,6 @@
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
-        <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <mvnpm.medium-zoom.version>1.1.0</mvnpm.medium-zoom.version>
         <mvnpm.highlightjs.version>11.11.1</mvnpm.highlightjs.version>
     </properties>
