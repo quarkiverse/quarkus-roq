@@ -250,6 +250,11 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 | The raw file path of the page without the extension.
 | `My$`, `my car` or `été/2024`
 
+| All
+| `:dir`
+| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root.
+| `posts`, `posts/v2/guides`, or empty
+
 
 | All
 | `:slug`

@@ -153,6 +153,7 @@ class TemplateLinkTest {
         assertDoesNotThrow(() -> pageLink("", "/:year/:month/:day/:slug", data));
         assertDoesNotThrow(() -> pageLink("", "/:path:ext", data));
         assertDoesNotThrow(() -> pageLink("", "/:name/:Slug", data));
+        assertDoesNotThrow(() -> pageLink("", "/:dir/:slug", data));
     }
 
     @Test
@@ -207,6 +208,44 @@ class TemplateLinkTest {
         PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
 
         assertEquals("2024/08/27/my-first/", pageLink("", ":year/:month/:day/:name~2", data));
+    }
+
+    // --- :dir placeholder tests ---
+
+    @Test
+    void testDirPlaceholderSimple() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Post");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("posts/my-post/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderNested() {
+        JsonObject frontMatter = new JsonObject().put("title", "AMQP Dev Services");
+        final PageSource templateSource = createPageSource("posts/v2/guides/amqp.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/v2/guides/amqp-dev-services/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderNoDirectory() {
+        JsonObject frontMatter = new JsonObject().put("title", "Root File");
+        final PageSource templateSource = createPageSource("myfile.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("root-file/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderIndex() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Dir");
+        final PageSource templateSource = createPageSource("posts/my-dir/index.md", true, true);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/my-dir/", pageLink("", ":dir/:slug", data));
     }
 
     // --- :path with explicit slug tests ---
