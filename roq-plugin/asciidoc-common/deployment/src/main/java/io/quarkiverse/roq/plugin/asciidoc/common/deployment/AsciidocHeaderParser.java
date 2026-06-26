@@ -37,8 +37,11 @@ import io.yupiik.asciidoc.parser.resolver.RelativeContentResolver;
 public class AsciidocHeaderParser {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(AsciidocHeaderParser.class);
 
-    private static final ContentResolver EMPTY_CONTENT_RESOLVER = (ref, encoding) -> Optional.empty();
     private static final String QUTE_KEY = "qute";
+
+    // Pattern used to short-circuit more complex evaluation
+    private static final Pattern SIMPLE_CONDITIONAL = Pattern
+            .compile("ifn?(?:def|eval)");
 
     // Mirrors Asciidoctor's ConditionalDirectiveRx — one pattern for all conditional directives.
     // group 1: leading backslash (escaped directive, treat as literal text)
@@ -54,7 +57,11 @@ public class AsciidocHeaderParser {
     public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean qute, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             Parser parser = new Parser();
-            String content = stripConditionalDirectives(stripFrontMatter(templateContext.content()));
+            String content = templateContext.content();
+            if (SIMPLE_CONDITIONAL.matcher(content).find()) {
+                content = stripConditionalDirectives(stripFrontMatter(content));
+            }
+
             ContentResolver contentResolver = new PathContentResolver(templateContext.sourceFile().getParent());
             Header header = parser.parseHeader(new Reader(content.lines().toList()),
                     new Parser.ParserContext(contentResolver));
