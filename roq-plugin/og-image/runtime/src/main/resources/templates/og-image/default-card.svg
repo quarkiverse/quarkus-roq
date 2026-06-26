@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0b1220"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <rect x="0" y="0" width="100%" height="8" fill="#4589ff"/>
+  <text x="72" y="88" fill="#78a9ff" font-family="Arial, Helvetica, sans-serif" font-size="18" letter-spacing="2">{#if card.kicker}{card.kicker}{#else}{card.siteName}{/if}</text>
+  <text x="72" y="170" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700">{card.title}</text>
+  <text x="72" y="250" fill="#c6c6c6" font-family="Arial, Helvetica, sans-serif" font-size="28">{card.description}</text>
+  <text x="72" y="582" fill="#8d8d8d" font-family="Arial, Helvetica, sans-serif" font-size="22">{card.siteName}</text>
+</svg>

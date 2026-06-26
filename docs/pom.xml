@@ -38,6 +38,11 @@
             <artifactId>quarkus-roq-plugin-tagging-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-plugin-og-image-deployment</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

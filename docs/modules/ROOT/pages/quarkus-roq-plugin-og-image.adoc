@@ -1,0 +1,260 @@
+include::./_includes/attributes.adoc[]
+
+= Roq Plugin OG Image
+
+The OG Image plugin generates 1200×630 PNG social preview cards from Qute SVG templates, injects `og-image` frontmatter so `{#seo /}` emits `og:image` and `twitter:card=summary_large_image`, and registers PNG paths with the Roq Generator for static output.
+
+== Dependency
+
+[source,xml]
+----
+<dependency>
+  <groupId>io.quarkiverse.roq</groupId>
+  <artifactId>quarkus-roq-plugin-og-image</artifactId>
+</dependency>
+----
+
+== How it works
+
+At build time the deployment processor:
+
+. Selects pages from configured collections and/or explicit include paths
+. Reads page frontmatter (`title`, `description`, and optional keys such as `kicker` and `eyebrow`) to build card data
+. Renders each card to PNG with Apache Batik and publishes the bytes as static files via `RoqFrontMatterStaticFileBuildItem`
+. Injects `og-image`, `og-image-width`, `og-image-height`, and `og-image-alt` into page frontmatter
+
+The bundled `{#ogSeoImage /}` tag (from this plugin) reads `page.data.og-image` and optional width/height/alt keys. Sites without the plugin use a no-op stub in `roq-frontmatter`.
+
+== Configuration
+
+All properties use the prefix `quarkus.roq.plugin.og-image` and are fixed at build time.
+
+[source,properties]
+----
+quarkus.roq.plugin.og-image.collections=poster
+quarkus.roq.plugin.og-image.include-paths=/
+quarkus.roq.plugin.og-image.exclude-paths=/poster/tag/
+quarkus.roq.plugin.og-image.output-prefix=/og
+quarkus.roq.plugin.og-image.collection-output-segment=:collections
+quarkus.roq.plugin.og-image.width=1200
+quarkus.roq.plugin.og-image.height=630
+quarkus.roq.plugin.og-image.skip-if-image-set=true
+quarkus.roq.plugin.og-image.site-name=My Site
+quarkus.roq.plugin.og-image.template=og-image/default-card.svg
+----
+
+[cols="2,1,3"]
+|===
+| Property | Default | Purpose
+
+| `collections`
+| *(empty)*
+| Roq collection ids for which OG images are generated (e.g. `poster` → `/og/posters/{slug}.png`). At least one of `collections` or `include-paths` must be set.
+
+| `include-paths`
+| *(empty)*
+| Explicit page paths to include (e.g. `/` → `/og/index.png`).
+
+| `exclude-paths`
+| `/poster/tag/`
+| Page path prefixes to skip (tag indexes and similar).
+
+| `output-prefix`
+| `/og`
+| Base URL path for generated PNG files.
+
+| `collection-output-segment`
+| `:collections`
+| Folder name for collection documents. `:collection` is replaced with the collection id; `:collections` appends `s` (`poster` → `posters`).
+
+| `width` / `height`
+| `1200` / `630`
+| Output PNG dimensions in pixels (passed to the Batik transcoder).
+
+| `skip-if-image-set`
+| `true`
+| When `true`, pages that already declare `image`, `img`, or `picture` frontmatter are skipped.
+
+| `site-name`
+| `Site`
+| Site branding on the card and fallback for `og-image-alt` text.
+
+| `template`
+| `og-image/default-card.svg`
+| Qute template id for the SVG card (site templates under `templates/` override bundled defaults).
+|===
+
+== Headless mode
+
+PNG rendering uses Apache Batik, which relies on Java2D/AWT for text and graphics—even though the plugin does not use Swing, JavaFX, or any desktop UI directly.
+
+On macOS and other environments with a display, the JVM defaults to *non-headless* AWT (`java.awt.headless=false`). When Batik rasterizes a card, you may briefly see a Java process appear in the dock or task switcher. In CI, containers, and generator batch runs, set headless mode explicitly:
+
+[source,properties]
+----
+# application.properties — dev mode and quarkus:run
+quarkus.args=-Djava.awt.headless=true
+----
+
+Or export an environment variable before Maven or your container entrypoint:
+
+[source,shell]
+----
+export JAVA_TOOL_OPTIONS=-Djava.awt.headless=true
+QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run
+----
+
+Headless rendering still needs fonts available to the JVM. The bundled template references `Arial`; on minimal Linux images install a font package or switch the template to a font present in the image.
+
+== SVG card template
+
+Add a Qute SVG template under `templates/og-image/` and point `quarkus.roq.plugin.og-image.template` at its id (path relative to `templates/`, e.g. `og-image/my-card.svg`).
+
+At render time the plugin passes a single `card` data object to the template:
+
+[source,java]
+----
+record OgCardData(String title, String description, String siteName,
+                  String kicker, String eyebrow, int width, int height)
+----
+
+Use `{card.width}` and `{card.height}` in the SVG root so the template stays aligned with `quarkus.roq.plugin.og-image.width` and `.height`. Title and description are XML-escaped before render.
+
+Bundled default: `og-image/default-card.svg` in the extension jar.
+
+=== How frontmatter feeds the template
+
+Page frontmatter (FMT) is the input; the plugin maps selected keys into `card` fields at build time. Config properties fill in site-wide defaults and dimensions.
+
+[cols="1,1,2"]
+|===
+| Source | `card` field | Notes
+
+| `title` frontmatter
+| `card.title`
+| Falls back to `quarkus.roq.plugin.og-image.site-name` when absent. Truncated to 120 characters.
+
+| `description` frontmatter
+| `card.description`
+| Falls back to `title` when absent. Truncated to 200 characters.
+
+| `kicker` frontmatter
+| `card.kicker`
+| Optional short label above the title (e.g. section or series name).
+
+| `eyebrow` frontmatter
+| `card.eyebrow`
+| Optional secondary label; not used by the bundled default template but available in custom templates.
+
+| `quarkus.roq.plugin.og-image.site-name`
+| `card.siteName`
+| Shown in the card footer and used when building alt text.
+
+| `quarkus.roq.plugin.og-image.width` / `.height`
+| `card.width` / `card.height`
+| Also passed to the Batik PNG transcoder.
+|===
+
+Pages that declare `image`, `img`, or `picture` are skipped when `skip-if-image-set=true` (the default), because Roq treats those keys as static assets under `images/`, not generated PNG routes.
+
+After a page is selected, the plugin *injects* additional frontmatter keys used by `{#seo /}`—these are outputs, not template inputs:
+
+* `og-image` — site-relative PNG path (e.g. `/og/posters/start-here.png`)
+* `og-image-width` / `og-image-height` — dimensions for Open Graph meta tags
+* `og-image-alt` — alt text for `twitter:image:alt`
+
+=== Example: page frontmatter and template
+
+Given this collection post at `content/poster/start-here.md`:
+
+[source,yaml]
+----
+---
+title: Start here with Bob
+description: Your first steps with Roq static sites.
+kicker: Getting started
+collection: poster
+---
+----
+
+…and this configuration:
+
+[source,properties]
+----
+quarkus.roq.plugin.og-image.collections=poster
+quarkus.roq.plugin.og-image.site-name=The Main Thread
+quarkus.roq.plugin.og-image.template=og-image/my-card.svg
+----
+
+…the build registers `/og/posters/start-here.png`, injects `og-image` metadata into the page, and renders the card from a template like:
+
+[source,xml]
+----
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="{card.width}" height="{card.height}"
+     viewBox="0 0 {card.width} {card.height}">
+  <rect width="100%" height="100%" fill="#0b1220"/>
+  {#if card.kicker}
+  <text x="72" y="88" fill="#78a9ff" font-family="Arial, sans-serif" font-size="18">
+    {card.kicker}
+  </text>
+  {/if}
+  <text x="72" y="170" fill="#ffffff" font-family="Arial, sans-serif" font-size="52" font-weight="700">
+    {card.title}
+  </text>
+  <text x="72" y="250" fill="#c6c6c6" font-family="Arial, sans-serif" font-size="28">
+    {card.description}
+  </text>
+  <text x="72" y="582" fill="#8d8d8d" font-family="Arial, sans-serif" font-size="22">
+    {card.siteName}
+  </text>
+</svg>
+----
+
+The resulting PNG shows *Getting started* as the kicker, *Start here with Bob* as the title, the description underneath, and *The Main Thread* in the footer. Browse `/og/posters/start-here.png` in dev mode, or fetch it during generator batch to write `target/roq/og/posters/start-here.png`.
+
+== Static site output
+
+Run the generator batch to emit PNGs alongside HTML:
+
+[source,shell]
+----
+JAVA_TOOL_OPTIONS=-Djava.awt.headless=true \
+  QUARKUS_ROQ_GENERATOR_BATCH=true mvn package quarkus:run
+----
+
+PNG files appear under `target/roq/og/`.
+
+In dev mode, browse `/og/posters/my-page.png` directly.
+
+== Frontmatter keys
+
+[cols="1,2"]
+|===
+| Key | Purpose
+
+| `title`, `description`
+| Card content; mapped to `card.title` and `card.description` in the SVG template.
+
+| `kicker`, `eyebrow`
+| Optional labels mapped to `card.kicker` and `card.eyebrow`.
+
+| `image`, `img`, `picture`
+| When present and `skip-if-image-set=true`, the page is excluded from OG image generation.
+
+| `og-image`
+| Site-relative PNG path injected by the plugin (e.g. `/og/posters/start-here.png`).
+
+| `og-image-width` / `og-image-height`
+| Dimensions for `og:image:width` / `og:image:height` meta tags.
+
+| `og-image-alt`
+| Alt text for `twitter:image:alt`.
+|===
+
+Do not use the standard `image` frontmatter key for generated cards — Roq resolves `image` as a static file under `images/`.
+
+[[extension-configuration-reference]]
+== Extension Configuration Reference
+
+include::_includes/quarkus-roq-plugin-og-image.adoc[leveloffset=+1, opts=optional]

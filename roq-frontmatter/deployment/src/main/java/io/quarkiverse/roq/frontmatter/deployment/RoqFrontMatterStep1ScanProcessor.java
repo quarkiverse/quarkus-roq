@@ -397,4 +397,24 @@ public class RoqFrontMatterStep1ScanProcessor {
 
         }
     }
+
+    private static final String OG_SEO_IMAGE_TAG = "tags/ogSeoImage.html";
+
+    /**
+     * No-op stub overridden by {@code quarkus-roq-plugin-og-image} when that extension is present.
+     */
+    @BuildStep
+    void registerOgSeoImageStub(BuildProducer<TemplatePathBuildItem> templatePathProducer) {
+        String content = """
+                {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+                {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+                """;
+        templatePathProducer.produce(TemplatePathBuildItem.builder()
+                .priority(1)
+                .path(OG_SEO_IMAGE_TAG)
+                .content(content)
+                .parserConfig(ParserConfig.DEFAULT)
+                .extensionInfo(RoqFrontMatterStep6BindProcessor.FEATURE)
+                .build());
+    }
 }
