@@ -7,7 +7,6 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoE
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
 
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -25,8 +24,8 @@ import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
 
 public class TemplateLink {
-    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:path:ext";
-    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug/";
+    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:dir/:slug:ext";
+    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:dir/:slug:ext";
     public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page/";
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
@@ -70,6 +69,19 @@ public class TemplateLink {
                         () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(MONTH_FORMAT)),
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
+                Map.entry(":dir", () -> {
+                    String path = removeExtension(data.pageSource().path());
+                    int lastSlash = path.lastIndexOf('/');
+                    if (lastSlash < 0) {
+                        return "";
+                    }
+                    String dir = path.substring(0, lastSlash);
+                    if (data.pageSource().isIndex()) {
+                        int parentSlash = dir.lastIndexOf('/');
+                        dir = parentSlash >= 0 ? dir.substring(0, parentSlash) : "";
+                    }
+                    return dir.isEmpty() ? "" : StringPaths.slugify(removeDate(dir), true, true).toLowerCase();
+                }),
                 Map.entry(":raw-path", () -> removeExtension(data.pageSource().path())),
                 Map.entry(":path",
                         () -> StringPaths.slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
@@ -91,8 +103,9 @@ public class TemplateLink {
     public static String resolveName(PageSource pageSource) {
         final String name;
         if (pageSource.isIndex()) {
-            final Path parent = Path.of(pageSource.path()).getParent();
-            name = parent != null ? parent.getFileName().toString() : "not-available";
+            String path = pageSource.path();
+            int lastSlash = path.lastIndexOf('/');
+            name = lastSlash >= 0 ? StringPaths.fileName(path.substring(0, lastSlash)) : "not-available";
         } else {
             name = pageSource.baseFileName();
         }
@@ -118,9 +131,28 @@ public class TemplateLink {
     }
 
     public static String pageLink(String basePath, String template, PageLinkData data) {
+        if (template == null && data.pageSource().isSiteIndex()) {
+            return addTrailingSlashIfNoExt(removeLeadingSlash(StringPaths.join(basePath, "")));
+        }
         return linkInternal(basePath, template,
                 data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE, data,
                 withBasePlaceHolders(data, null));
+    }
+
+    public static String nameBasedPageLink(String basePath, PageLinkData data) {
+        if (data.pageSource().isSiteIndex()) {
+            return null;
+        }
+        String slug = resolveSlug(data).toLowerCase();
+        String name = resolveName(data).toLowerCase();
+        if (slug.equals(name)) {
+            return null;
+        }
+        String defaultTemplate = data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE;
+        Map<String, Supplier<String>> mapping = withBasePlaceHolders(data, null);
+        mapping.put(":slug", () -> resolveName(data).toLowerCase());
+        mapping.put(":Slug", () -> resolveName(data));
+        return linkInternal(basePath, null, defaultTemplate, data, mapping);
     }
 
     public static String paginateLink(String basePath, String template, PaginateLinkData data) {
@@ -137,9 +169,11 @@ public class TemplateLink {
             LinkData data, Map<String, Supplier<String>> mapping) {
         String link = template != null ? template : defaultTemplate;
         link = resolvePlaceholders(link, mapping, template, data);
+        link = link.replaceAll("//+", "/");
 
-        if (link.endsWith("index") || link.endsWith("index.html")) {
-            link = link.replaceAll("index(\\.html)?", "");
+        if (link.endsWith("/index") || link.endsWith("/index.html")
+                || link.equals("index") || link.equals("index.html")) {
+            link = link.replaceFirst("index(\\.html)?$", "");
         }
         return addTrailingSlashIfNoExt(removeLeadingSlash(StringPaths.join(basePath, link)));
     }
