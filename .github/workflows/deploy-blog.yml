@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       ####
       # We need to build Roq first because we use 999-SNAPSHOT (it's not needed in your website)
