@@ -185,19 +185,21 @@ public class RoqDataReaderProcessor {
             }
         }
 
-        // Produce grouped RoqDataJsonBuildItem for untyped directories
-        for (Map.Entry<String, TreeMap<String, RoqDataBuildItem>> entry : allDirFiles.entrySet()) {
-            if (!producedJsonNames.contains(entry.getKey()) && !dirAnnotationNames.contains(entry.getKey())) {
-                TreeMap<String, Object> grouped = new TreeMap<>();
-                for (Map.Entry<String, RoqDataBuildItem> fileEntry : entry.getValue().entrySet()) {
-                    Object converted = convertedData.get(entry.getKey() + "/" + fileEntry.getKey());
-                    if (converted != null) {
-                        grouped.put(fileEntry.getKey(), converted);
-                    }
-                }
-                if (!grouped.isEmpty()) {
-                    dataJsonProducer.produce(new RoqDataJsonBuildItem(entry.getKey(), new JsonObject(grouped)));
-                }
+        // Produce grouped RoqDataJsonBuildItem for directories (including deeply nested)
+        Map<String, TreeMap<String, Object>> topDirs = new TreeMap<>();
+        for (Map.Entry<String, Object> e : convertedData.entrySet()) {
+            String name = e.getKey();
+            int firstSlash = name.indexOf('/');
+            if (firstSlash > 0) {
+                String topDir = name.substring(0, firstSlash);
+                String rest = name.substring(firstSlash + 1);
+                topDirs.computeIfAbsent(topDir, k -> new TreeMap<>()).put(rest, e.getValue());
+            }
+        }
+        for (Map.Entry<String, TreeMap<String, Object>> e : topDirs.entrySet()) {
+            String dirName = e.getKey();
+            if (!producedJsonNames.contains(dirName) && !dirAnnotationNames.contains(dirName)) {
+                dataJsonProducer.produce(new RoqDataJsonBuildItem(dirName, buildNestedJsonObject(e.getValue())));
             }
         }
 
@@ -349,6 +351,29 @@ public class RoqDataReaderProcessor {
         }
     }
 
+    private static JsonObject buildNestedJsonObject(Map<String, Object> flatMap) {
+        Map<String, Object> result = new TreeMap<>();
+        Map<String, TreeMap<String, Object>> subDirs = new TreeMap<>();
+
+        for (Map.Entry<String, Object> entry : flatMap.entrySet()) {
+            String key = entry.getKey();
+            int slashIdx = key.indexOf('/');
+            if (slashIdx > 0) {
+                String dir = key.substring(0, slashIdx);
+                String rest = key.substring(slashIdx + 1);
+                subDirs.computeIfAbsent(dir, k -> new TreeMap<>()).put(rest, entry.getValue());
+            } else {
+                result.put(key, entry.getValue());
+            }
+        }
+
+        for (Map.Entry<String, TreeMap<String, Object>> subDir : subDirs.entrySet()) {
+            result.put(subDir.getKey(), buildNestedJsonObject(subDir.getValue()));
+        }
+
+        return new JsonObject(result);
+    }
+
     private static Map<String, TreeMap<String, RoqDataBuildItem>> collectDirectoryFiles(
             List<RoqDataBuildItem> items) {
         Map<String, TreeMap<String, RoqDataBuildItem>> result = new HashMap<>();
@@ -360,8 +385,6 @@ public class RoqDataReaderProcessor {
                     String dirName = name.substring(0, slashIdx);
                     String fileKey = name.substring(slashIdx + 1);
                     result.computeIfAbsent(dirName, k -> new TreeMap<>()).put(fileKey, item);
-                } else {
-                    LOG.debugf("Deeply nested data files are not grouped: %s", name);
                 }
             }
         }
