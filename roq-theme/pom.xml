@@ -14,6 +14,7 @@
 
     <modules>
         <module>default</module>
+        <module>the-code</module>
         <module>resume</module>
     </modules>
 </project>

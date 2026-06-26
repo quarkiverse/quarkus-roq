@@ -1,0 +1,10 @@
+<div class="roq-feature{#if highlighted??} roq-feature-highlighted{/if}">
+  {#if icon??}<div class="roq-feature-icon"><span class="{icon}"></span></div>{/if}
+  <h3>{title}</h3>
+  {#if nested-content??}
+  <p>{nested-content}</p>
+  {/if}
+  {#if link??}
+  <a href="{link}">{link-text ?: 'Learn more'} &rarr;</a>
+  {/if}
+</div>
