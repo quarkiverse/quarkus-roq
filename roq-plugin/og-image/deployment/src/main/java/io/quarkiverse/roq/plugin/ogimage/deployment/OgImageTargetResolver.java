@@ -5,6 +5,12 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.IMAGE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.IMG;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PICTURE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeTrailingSlash;
+import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,10 +36,6 @@ final class OgImageTargetResolver {
             String siteName,
             List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
             List<RoqFrontMatterPublishNormalPageBuildItem> normalPages) {
-        if (!config.enabled()) {
-            return new ResolvedTargets(Map.of(), Map.of());
-        }
-
         List<String> collections = config.collections().orElse(List.of());
         List<String> includePaths = config.includePaths().orElse(List.of());
         if (collections.isEmpty() && includePaths.isEmpty()) {
@@ -52,7 +54,7 @@ final class OgImageTargetResolver {
                 continue;
             }
             addTarget(config, resolvedSiteName, byRelativePath, byPngPath,
-                    document.source().path().toString(),
+                    toUnixPath(document.source().path().toString()),
                     document.url().resourcePath(),
                     document.collection().id(),
                     slugFromSource(document.source().id()),
@@ -61,11 +63,11 @@ final class OgImageTargetResolver {
 
         for (RoqFrontMatterPublishNormalPageBuildItem page : normalPages) {
             String resourcePath = page.url().resourcePath();
-            if (!shouldIncludeNormalPage(config, resourcePath, page.source().isSiteIndex())) {
+            if (!shouldIncludeNormalPage(config, resourcePath, page.source().isSiteIndex(), includePaths)) {
                 continue;
             }
             addTarget(config, resolvedSiteName, byRelativePath, byPngPath,
-                    page.source().path().toString(),
+                    toUnixPath(page.source().path().toString()),
                     resourcePath,
                     null,
                     slugFromNormalPage(resourcePath, page.source().isSiteIndex()),
@@ -77,7 +79,7 @@ final class OgImageTargetResolver {
 
     static OgImageTarget targetFromSource(OgImageConfig config, SourceData source, String pagePath, String collectionId,
             String slug, boolean siteIndex) {
-        if (!config.enabled() || !source.isPage()) {
+        if (!source.isPage()) {
             return null;
         }
         if (config.skipIfImageSet() && hasImage(source.fm())) {
@@ -109,21 +111,22 @@ final class OgImageTargetResolver {
 
     static boolean matchesSource(OgImageConfig config, SourceData source, String pagePath, String collectionId,
             boolean siteIndex) {
-        if (!config.enabled() || !source.isPage()) {
+        if (!source.isPage()) {
             return false;
         }
         if (isExcluded(config, pagePath)) {
             return false;
         }
         List<String> collections = config.collections().orElse(List.of());
+        List<String> includePaths = config.includePaths().orElse(List.of());
         if (collectionId != null && collections.contains(collectionId)) {
             return true;
         }
-        return shouldIncludeNormalPage(config, pagePath, siteIndex);
+        return shouldIncludeNormalPage(config, pagePath, siteIndex, includePaths);
     }
 
     static PageContext pageContextFromSource(SourceData source) {
-        String relativePath = source.relativePath().replace('\\', '/');
+        String relativePath = toUnixPath(source.relativePath());
         String collectionId = source.collection() != null ? source.collection().id() : null;
         boolean siteIndex = relativePath.equals("index.md")
                 || relativePath.equals("index.html")
@@ -136,44 +139,36 @@ final class OgImageTargetResolver {
 
         if (collectionId != null) {
             String slug = slugFromRelativePath(relativePath);
-            return new PageContext("/" + collectionId + "/" + slug + "/", collectionId, slug, false);
+            return new PageContext(addTrailingSlash(prefixWithSlash(collectionId + "/" + slug)), collectionId, slug, false);
         }
 
         if (siteIndex) {
             String section = sectionFromRelativePath(relativePath);
-            return new PageContext("/" + section + "/", null, section, false);
+            return new PageContext(addTrailingSlash(prefixWithSlash(section)), null, section, false);
         }
 
         String slug = slugFromRelativePath(relativePath);
-        return new PageContext("/" + slug + "/", null, slug, false);
+        return new PageContext(addTrailingSlash(prefixWithSlash(slug)), null, slug, false);
     }
 
     record PageContext(String pagePath, String collectionId, String slug, boolean siteIndex) {
     }
 
     private static String slugFromRelativePath(String relativePath) {
-        String name = relativePath;
-        int slash = name.lastIndexOf('/');
-        if (slash >= 0) {
-            name = name.substring(slash + 1);
-        }
-        int dot = name.lastIndexOf('.');
-        if (dot > 0) {
-            name = name.substring(0, dot);
-        }
-        return name;
+        return removeExtension(fileName(toUnixPath(relativePath)));
     }
 
     private static String sectionFromRelativePath(String relativePath) {
-        int slash = relativePath.indexOf('/');
+        String unixPath = toUnixPath(relativePath);
+        int slash = unixPath.indexOf('/');
         if (slash <= 0) {
             return slugFromRelativePath(relativePath);
         }
-        return relativePath.substring(0, slash);
+        return unixPath.substring(0, slash);
     }
 
-    private static boolean shouldIncludeNormalPage(OgImageConfig config, String resourcePath, boolean siteIndex) {
-        List<String> includePaths = config.includePaths().orElse(List.of());
+    private static boolean shouldIncludeNormalPage(OgImageConfig config, String resourcePath, boolean siteIndex,
+            List<String> includePaths) {
         if (includePaths.isEmpty()) {
             return false;
         }
@@ -186,19 +181,19 @@ final class OgImageTargetResolver {
     }
 
     private static boolean matchesIncludePath(String resourcePath, String includePath, boolean siteIndex) {
-        String normalizedInclude = normalizePath(includePath);
-        String normalizedResource = normalizePath(resourcePath);
-        if (normalizedInclude.equals("/") || normalizedInclude.isEmpty()) {
+        String normalizedInclude = prefixWithSlash(includePath);
+        String normalizedResource = prefixWithSlash(resourcePath);
+        if (normalizedInclude.equals("/")) {
             return siteIndex || normalizedResource.equals("/");
         }
         return normalizedResource.equals(normalizedInclude)
-                || normalizedResource.equals(trimTrailingSlash(normalizedInclude));
+                || normalizedResource.equals(removeTrailingSlash(normalizedInclude));
     }
 
     private static boolean isExcluded(OgImageConfig config, String resourcePath) {
-        String normalizedResource = normalizePath(resourcePath);
+        String normalizedResource = prefixWithSlash(resourcePath);
         for (String exclude : config.excludePaths()) {
-            String normalizedExclude = normalizePath(exclude);
+            String normalizedExclude = prefixWithSlash(exclude);
             if (normalizedResource.startsWith(normalizedExclude)) {
                 return true;
             }
@@ -247,15 +242,12 @@ final class OgImageTargetResolver {
     }
 
     static String pngPath(OgImageConfig config, String pagePath, String collectionId, String slug) {
-        String prefix = trimTrailingSlash(config.outputPrefix());
+        String prefix = removeTrailingSlash(prefixWithSlash(config.outputPrefix()));
         if (prefix.isEmpty()) {
             prefix = "/og";
         }
-        if (!prefix.startsWith("/")) {
-            prefix = "/" + prefix;
-        }
 
-        String normalizedPagePath = normalizePath(pagePath);
+        String normalizedPagePath = prefixWithSlash(pagePath);
         if (normalizedPagePath.equals("/")) {
             return prefix + "/index.png";
         }
@@ -277,29 +269,18 @@ final class OgImageTargetResolver {
     }
 
     static String slugFromSource(String sourceId) {
-        String name = sourceId;
-        int slash = name.lastIndexOf('/');
-        if (slash >= 0) {
-            name = name.substring(slash + 1);
-        }
-        int dot = name.lastIndexOf('.');
-        if (dot > 0) {
-            name = name.substring(0, dot);
-        }
-        return name;
+        return removeExtension(fileName(toUnixPath(sourceId)));
     }
 
     private static String slugFromNormalPage(String resourcePath, boolean siteIndex) {
-        if (siteIndex || normalizePath(resourcePath).equals("/")) {
+        if (siteIndex || prefixWithSlash(resourcePath).equals("/")) {
             return "index";
         }
-        String trimmed = trimTrailingSlash(normalizePath(resourcePath));
-        int slash = trimmed.lastIndexOf('/');
-        return slash >= 0 ? trimmed.substring(slash + 1) : trimmed;
+        return fileName(removeTrailingSlash(prefixWithSlash(resourcePath)));
     }
 
     static String imageAlt(String siteName, String title, String pagePath) {
-        if (normalizePath(pagePath).equals("/") && title.length() <= 140) {
+        if (prefixWithSlash(pagePath).equals("/") && title.length() <= 140) {
             return title;
         }
         return siteName + " — " + truncate(title, 120);
@@ -327,26 +308,5 @@ final class OgImageTargetResolver {
             }
         }
         return "";
-    }
-
-    private static String normalizePath(String path) {
-        if (path == null || path.isBlank()) {
-            return "/";
-        }
-        String normalized = path.trim();
-        if (!normalized.startsWith("/")) {
-            normalized = "/" + normalized;
-        }
-        return normalized;
-    }
-
-    private static String trimTrailingSlash(String path) {
-        if (path == null || path.length() <= 1) {
-            return path;
-        }
-        while (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        return path.isEmpty() ? "/" : path;
     }
 }

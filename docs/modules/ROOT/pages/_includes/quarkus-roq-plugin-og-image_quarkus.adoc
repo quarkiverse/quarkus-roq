@@ -7,27 +7,6 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-enabled]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-enabled[`+++quarkus.enabled+++`]##
-ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.enabled+++[]
-endif::add-copy-button-to-config-props[]
-
-
-[.description]
---
-When false, the plugin is disabled.
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ENABLED+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ENABLED+++`
-endif::add-copy-button-to-env-var[]
---
-|boolean
-|`+++true+++`
-
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-collections]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-collections[`+++quarkus.collections+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.collections+++[]
@@ -47,7 +26,7 @@ Environment variable: `+++QUARKUS_COLLECTIONS+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|
+|required icon:exclamation-circle[title=Configuration property is required]
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-include-paths]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-include-paths[`+++quarkus.include-paths+++`]##
 ifdef::add-copy-button-to-config-props[]
@@ -68,7 +47,7 @@ Environment variable: `+++QUARKUS_INCLUDE_PATHS+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|
+|required icon:exclamation-circle[title=Configuration property is required]
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-exclude-paths]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-exclude-paths[`+++quarkus.exclude-paths+++`]##
 ifdef::add-copy-button-to-config-props[]
@@ -89,7 +68,7 @@ Environment variable: `+++QUARKUS_EXCLUDE_PATHS+++`
 endif::add-copy-button-to-env-var[]
 --
 |list of string
-|`+++/poster/tag/+++`
+|`+++/posts/tag/+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-output-prefix]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-output-prefix[`+++quarkus.output-prefix+++`]##
 ifdef::add-copy-button-to-config-props[]
@@ -196,6 +175,27 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++true+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-site-name]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-site-name[`+++quarkus.site-name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.site-name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Site name used in OG image alt text and card branding.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_SITE_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_SITE_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++Site+++`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-template]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-template[`+++quarkus.template+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.template+++[]
@@ -215,7 +215,7 @@ Environment variable: `+++QUARKUS_TEMPLATE+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`+++og-image/default-card+++`
+|`+++og-image/default-card.svg+++`
 
 |===
 

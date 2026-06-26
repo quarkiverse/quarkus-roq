@@ -8,7 +8,7 @@ author: ia3andy
 
 Social networks and chat apps use Open Graph metadata to build link previews. Roq already renders `\{#seo /}` tags from frontmatter — the OG Image plugin closes the loop by generating 1200×630 PNG cards at build time and injecting `og:image` metadata for pages you choose.
 
-No external Playwright scripts required: cards are rendered from Qute SVG templates via Apache Batik, served on `/og/*.png` routes in dev mode, and written to `target/roq/og/` during generator batch.
+No external Playwright scripts required: cards are rendered from Qute SVG templates via Apache Batik at build time and published as static PNG files under `/og/`.
 
 ## Installation
 
@@ -30,10 +30,9 @@ roq add plugin:og-image
 
 ## Configuration
 
-Enable the plugin and choose which pages get generated cards:
+Choose which pages get generated cards:
 
 ```properties
-quarkus.roq.plugin.og-image.enabled=true
 quarkus.roq.plugin.og-image.collections=posts
 quarkus.roq.plugin.og-image.include-paths=/about/
 quarkus.roq.plugin.og-image.template=og-image/default-card.svg

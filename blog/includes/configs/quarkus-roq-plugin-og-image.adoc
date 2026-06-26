@@ -7,27 +7,6 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-roq-plugin-og-image-enabled]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-roq-plugin-og-image-enabled[`+++quarkus.roq.plugin.og-image.enabled+++`]##
-ifdef::add-copy-button-to-config-props[]
-config_property_copy_button:+++quarkus.roq.plugin.og-image.enabled+++[]
-endif::add-copy-button-to-config-props[]
-
-
-[.description]
---
-When false, the plugin is disabled.
-
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_IMAGE_ENABLED+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_IMAGE_ENABLED+++`
-endif::add-copy-button-to-env-var[]
---
-|boolean
-|`+++true+++`
-
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-image_quarkus-roq-plugin-og-image-collections]] [.property-path]##link:#quarkus-roq-plugin-og-image_quarkus-roq-plugin-og-image-collections[`+++quarkus.roq.plugin.og-image.collections+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.plugin.og-image.collections+++[]

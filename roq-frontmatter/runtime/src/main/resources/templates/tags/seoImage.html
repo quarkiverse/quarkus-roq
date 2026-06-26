@@ -1,34 +1,11 @@
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 
-{#if page.data.og-image??}
-  <!-- SEO IMAGE (generated OG card) -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image:src" content="{site.url(page.data.getString('og-image'))}" />
-  <meta property="og:image" content="{site.url(page.data.getString('og-image'))}" />
-  {#if page.data.og-image-width??}
-  <meta property="og:image:width" content="{page.data.og-image-width}" />
-  {/if}
-  {#if page.data.og-image-height??}
-  <meta property="og:image:height" content="{page.data.og-image-height}" />
-  {/if}
-  {#if page.data.og-image-alt??}
-  <meta name="twitter:image:alt" content="{page.data.og-image-alt}" />
-  {/if}
-{#else if page.data.image?? && page.imageExists(page.data.image)}
+{#if page.image}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image:src" content="{page.image.absolute}" />
   <meta property="og:image" content="{page.image.absolute}" />
-  {#if page.data.og-image-width??}
-  <meta property="og:image:width" content="{page.data.og-image-width}" />
-  {/if}
-  {#if page.data.og-image-height??}
-  <meta property="og:image:height" content="{page.data.og-image-height}" />
-  {/if}
-  {#if page.data.og-image-alt??}
-  <meta name="twitter:image:alt" content="{page.data.og-image-alt}" />
-  {/if}
 {#else}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary">

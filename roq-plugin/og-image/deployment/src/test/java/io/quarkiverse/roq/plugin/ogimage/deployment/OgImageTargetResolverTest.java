@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.plugin.ogimage.runtime.OgImageConfig;
+import io.quarkiverse.roq.plugin.ogimage.runtime.model.OgImageTarget;
 import io.smallrye.config.SmallRyeConfig;
 import io.smallrye.config.SmallRyeConfigBuilder;
 
@@ -36,6 +38,23 @@ class OgImageTargetResolverTest {
     void truncateAddsEllipsis() {
         String longText = "a".repeat(250);
         assertThat(OgImageTargetResolver.truncate(longText, 200)).hasSize(200).endsWith("…");
+    }
+
+    @Test
+    void matchesAndInjectsForHomepage() {
+        OgImageConfig config = config("quarkus.roq.plugin.og-image.include-paths=/");
+        RoqFrontMatterDataModificationBuildItem.SourceData source = new RoqFrontMatterDataModificationBuildItem.SourceData(
+                null, "index.html", null, true,
+                new io.vertx.core.json.JsonObject().put("title", "Home").put("description", "Desc"));
+
+        OgImageTargetResolver.PageContext pageContext = OgImageTargetResolver.pageContextFromSource(source);
+        assertThat(OgImageTargetResolver.matchesSource(config, source, pageContext.pagePath(), pageContext.collectionId(),
+                pageContext.siteIndex())).isTrue();
+
+        OgImageTarget target = OgImageTargetResolver.targetFromSource(config, source, pageContext.pagePath(),
+                pageContext.collectionId(), pageContext.slug(), pageContext.siteIndex());
+        assertThat(target).isNotNull();
+        assertThat(target.pngPath()).isEqualTo("/og/index.png");
     }
 
     private static OgImageConfig config(String... keyValues) {

@@ -20,12 +20,10 @@ At build time the deployment processor:
 
 . Selects pages from configured collections and/or explicit include paths
 . Reads page frontmatter (`title`, `description`, and optional keys such as `kicker` and `eyebrow`) to build card data
+. Renders each card to PNG with Apache Batik and publishes the bytes as static files via `RoqFrontMatterStaticFileBuildItem`
 . Injects `og-image`, `og-image-width`, `og-image-height`, and `og-image-alt` into page frontmatter
-. Registers each PNG URL with the Roq Generator via `SelectedPathBuildItem`
 
-At runtime (dev mode or generator batch) a Vert.x route serves PNG bytes rendered from the configured Qute SVG template via Apache Batik.
-
-The extended `seoImage.html` tag in `roq-frontmatter` reads `page.data.og-image` and optional width/height/alt keys.
+The bundled `{#ogSeoImage /}` tag (from this plugin) reads `page.data.og-image` and optional width/height/alt keys. Sites without the plugin use a no-op stub in `roq-frontmatter`.
 
 == Configuration
 
@@ -33,7 +31,6 @@ All properties use the prefix `quarkus.roq.plugin.og-image` and are fixed at bui
 
 [source,properties]
 ----
-quarkus.roq.plugin.og-image.enabled=true
 quarkus.roq.plugin.og-image.collections=poster
 quarkus.roq.plugin.og-image.include-paths=/
 quarkus.roq.plugin.og-image.exclude-paths=/poster/tag/
@@ -50,16 +47,12 @@ quarkus.roq.plugin.og-image.template=og-image/default-card.svg
 |===
 | Property | Default | Purpose
 
-| `enabled`
-| `true`
-| Master switch for the plugin.
-
 | `collections`
-| *(none)*
+| *(empty)*
 | Roq collection ids for which OG images are generated (e.g. `poster` → `/og/posters/{slug}.png`). At least one of `collections` or `include-paths` must be set.
 
 | `include-paths`
-| *(none)*
+| *(empty)*
 | Explicit page paths to include (e.g. `/` → `/og/index.png`).
 
 | `exclude-paths`

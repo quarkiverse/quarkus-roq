@@ -29,7 +29,6 @@ Or add the Maven dependency:
 ## Configuration
 
 ```properties
-quarkus.roq.plugin.og-image.enabled=true
 quarkus.roq.plugin.og-image.include-paths=/about/
 quarkus.roq.plugin.og-image.collections=posts
 quarkus.roq.plugin.og-image.template=og-image/default-card.svg

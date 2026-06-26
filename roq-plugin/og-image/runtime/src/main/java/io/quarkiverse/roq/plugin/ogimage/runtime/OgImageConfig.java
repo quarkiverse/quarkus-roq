@@ -13,12 +13,6 @@ import io.smallrye.config.WithDefault;
 public interface OgImageConfig {
 
     /**
-     * When false, the plugin is disabled.
-     */
-    @WithDefault("true")
-    boolean enabled();
-
-    /**
      * Collection ids for which OG images are generated (e.g. {@code poster}).
      */
     Optional<List<String>> collections();

@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.plugin.ogimage.runtime.model;
 
+import java.util.Map;
+
 /**
  * Data passed to the OG card Qute template.
  */
@@ -21,6 +23,17 @@ public record OgCardData(
                 xmlEscape(target.eyebrow()),
                 target.width(),
                 target.height());
+    }
+
+    public Map<String, Object> asTemplateData() {
+        return Map.of(
+                "title", title,
+                "description", description,
+                "siteName", siteName,
+                "kicker", kicker,
+                "eyebrow", eyebrow,
+                "width", width,
+                "height", height);
     }
 
     private static String xmlEscape(String value) {

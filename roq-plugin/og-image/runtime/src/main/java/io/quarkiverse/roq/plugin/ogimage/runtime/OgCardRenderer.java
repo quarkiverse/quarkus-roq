@@ -5,9 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
@@ -16,13 +13,11 @@ import io.quarkiverse.roq.plugin.ogimage.runtime.model.OgCardData;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 
-@ApplicationScoped
 public class OgCardRenderer {
 
     private final OgImageConfig config;
     private final Engine engine;
 
-    @Inject
     public OgCardRenderer(OgImageConfig config, Engine engine) {
         this.config = config;
         this.engine = engine;
@@ -34,7 +29,7 @@ public class OgCardRenderer {
             throw new IllegalStateException("OG image template not found: " + config.template());
         }
         String svg = template
-                .data("card", card)
+                .data("card", card.asTemplateData())
                 .setAttribute("escape", false)
                 .render();
         return renderSvg(svg, card.width(), card.height());
