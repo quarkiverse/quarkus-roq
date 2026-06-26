@@ -100,14 +100,14 @@ public class RoqFrontMatterStep6BindProcessor {
                         .resolve(item.raw().templateSource().generatedQuteId());
                 createTemplateResource(generatedResourceProducer, nativeImageResourceProducer, filePath,
                         item.raw().generatedTemplate(), item.raw().templateSource().generatedQuteTemplateId());
-                templatePathProducer
-                        .produce(TemplatePathBuildItem.builder()
-                                .fullPath(filePath)
-                                .path(item.raw().templateSource().generatedQuteTemplateId())
-                                .content(item.raw().generatedTemplate())
-                                .parserConfig(item.raw().parserConfig())
-                                .extensionInfo(FEATURE)
-                                .build());
+                var pageTemplateBuilder = TemplatePathBuildItem.builder()
+                        .fullPath(filePath)
+                        .path(item.raw().templateSource().generatedQuteTemplateId())
+                        .content(item.raw().generatedTemplate())
+                        .parserConfig(item.raw().parserConfig())
+                        .extensionInfo(FEATURE);
+                setSourceIfLocal(pageTemplateBuilder, item.raw().templateSource().file());
+                templatePathProducer.produce(pageTemplateBuilder.build());
 
                 if (item.raw().collection() != null) {
                     docTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
@@ -122,13 +122,14 @@ public class RoqFrontMatterStep6BindProcessor {
                         .resolve(item.raw().templateSource().generatedQuteId());
                 createTemplateResource(generatedResourceProducer, nativeImageResourceProducer, filePath,
                         item.raw().generatedTemplate(), item.raw().templateSource().generatedQuteTemplateId());
-                templatePathProducer
-                        .produce(TemplatePathBuildItem.builder()
-                                .path(item.raw().templateSource().generatedQuteTemplateId())
-                                .fullPath(filePath)
-                                .parserConfig(item.raw().parserConfig())
-                                .extensionInfo(FEATURE)
-                                .content(item.raw().generatedTemplate()).build());
+                var layoutTemplateBuilder = TemplatePathBuildItem.builder()
+                        .path(item.raw().templateSource().generatedQuteTemplateId())
+                        .fullPath(filePath)
+                        .parserConfig(item.raw().parserConfig())
+                        .extensionInfo(FEATURE)
+                        .content(item.raw().generatedTemplate());
+                setSourceIfLocal(layoutTemplateBuilder, item.raw().templateSource().file());
+                templatePathProducer.produce(layoutTemplateBuilder.build());
                 layoutTemplates.add(item.raw().templateSource().generatedQuteTemplateId());
             }
 
@@ -156,6 +157,13 @@ public class RoqFrontMatterStep6BindProcessor {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private static void setSourceIfLocal(TemplatePathBuildItem.Builder builder, SourceFile file) {
+        Path sourcePath = Path.of(file.absolutePath());
+        if (sourcePath.isAbsolute()) {
+            builder.source(sourcePath.toUri());
+        }
     }
 
     private void createTemplateResource(BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,

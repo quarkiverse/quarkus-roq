@@ -8,7 +8,7 @@ import io.quarkus.runtime.annotations.Recorder;
 public class RoqGeneratorRecorder {
 
     public void setStaticFiles(Map<String, StaticFile> staticFiles) {
-        ConfiguredPathsProvider.setStaticFiles(staticFiles);
+        ConfiguredPathsProvider.addStaticFiles(staticFiles);
     }
 
     public void setOutputTarget(String outputDirectory) {

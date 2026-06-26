@@ -1,0 +1,26 @@
+---
+layout: page
+title: Image Test Page
+image: hero-landscape.jpg
+avatar-image: avatar-portrait.jpg
+---
+
+<section class="fm-hero">
+{#image src=page.image preset='hero' alt='FM hero'/}
+</section>
+
+<section class="fm-avatar">
+{#image src=page.image('avatar-portrait.jpg') preset='avatar' alt='Author'/}
+</section>
+
+<section class="fm-direct">
+{#image src=page.image preset='direct'/}
+</section>
+
+<section class="absolute">
+{#image '/images/hero-landscape.jpg' preset='post-card' alt='Absolute ref'/}
+</section>
+
+<section class="page-image">
+{#image 'gallery-food.jpg' preset='gallery-image' alt='Page image'/}
+</section>

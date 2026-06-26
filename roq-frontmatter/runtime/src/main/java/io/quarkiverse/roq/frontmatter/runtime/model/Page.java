@@ -216,8 +216,11 @@ public class Page {
         if (name == null) {
             return null;
         }
+        var customizer = Arc.container().select(PageImageCustomizer.class);
+        if (customizer.isResolvable()) {
+            return customizer.get().resolveImage(this, String.valueOf(name));
+        }
         if (source().usePublicFiles()) {
-            // Use site static files
             return site().image(name);
         }
         String path = String.valueOf(name);
