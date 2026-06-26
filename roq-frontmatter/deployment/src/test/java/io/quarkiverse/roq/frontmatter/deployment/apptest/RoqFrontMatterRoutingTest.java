@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.deployment.apptest;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -105,6 +106,34 @@ public class RoqFrontMatterRoutingTest {
     public void testDateInFrontmatter() {
         RestAssured.when().get("/bar/posts/dated-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.body.article.span", equalTo("2024-10-11T00:00Z[UTC]"));
+    }
+
+    // --- Frontmatter slug override ---
+
+    @Test
+    @DisplayName("Collection document with frontmatter slug is served at slug URL")
+    public void testCollectionDocSlugOverride() {
+        RestAssured.when().get("/bar/posts/awesome-post-1").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Test
+    @DisplayName("Collection document with frontmatter slug is NOT served at filename URL")
+    public void testCollectionDocFilenameNotUsedWhenSlugOverridden() {
+        RestAssured.when().get("/bar/posts/awesome-post").then().statusCode(404);
+    }
+
+    @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1009")
+    @Test
+    @DisplayName("Normal page with frontmatter slug is served at slug URL, not filename URL")
+    public void testNormalPageSlugOverride() {
+        RestAssured.when().get("/bar/pages/custom-slug").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1009")
+    @Test
+    @DisplayName("Normal page with frontmatter slug is NOT served at original filename URL")
+    public void testNormalPageFilenameNotUsedWhenSlugOverridden() {
+        RestAssured.when().get("/bar/pages/original-name").then().statusCode(404);
     }
 
 }
