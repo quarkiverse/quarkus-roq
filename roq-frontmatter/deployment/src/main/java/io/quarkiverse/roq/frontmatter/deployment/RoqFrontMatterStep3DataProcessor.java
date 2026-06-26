@@ -6,6 +6,8 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DATE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.SLUG;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -33,6 +35,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAt
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterFileNameAliasBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPaginatePageBuildItem;
@@ -60,6 +63,7 @@ public class RoqFrontMatterStep3DataProcessor {
             BuildProducer<RoqFrontMatterRootUrlBuildItem> rootUrlProducer,
             BuildProducer<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplateProducer,
             BuildProducer<RoqFrontMatterPageTemplateBuildItem> pageTemplatesProducer,
+            BuildProducer<RoqFrontMatterFileNameAliasBuildItem> aliasProducer,
             List<RoqFrontMatterRawLayoutBuildItem> rawLayouts,
             List<RoqFrontMatterRawPageBuildItem> rawPages) {
         if (rawLayouts.isEmpty() && rawPages.isEmpty()) {
@@ -141,6 +145,18 @@ public class RoqFrontMatterStep3DataProcessor {
             RoqUrl url = rootUrl.resolve(link);
 
             pageTemplatesProducer.produce(new RoqFrontMatterPageTemplateBuildItem(item, data, pageSource, url));
+
+            // If a title is registered, the slug-derived link will not match the old filename-derived links
+            // Preserve both behaviours for compatibility
+            if (data.getString(LINK) == null && data.getString(SLUG) == null && data.getString(TITLE) != null) {
+                TemplateLink.PageLinkData linkData = new TemplateLink.PageLinkData(pageSource, item.collectionId(), data);
+                String nameLink = TemplateLink.nameBasedPageLink(config.pathPrefixOrEmpty(), linkData);
+                if (nameLink != null) {
+                    RoqUrl aliasUrl = rootUrl.resolve(nameLink);
+                    aliasProducer.produce(
+                            new RoqFrontMatterFileNameAliasBuildItem(aliasUrl.resourcePath(), url.resourcePath()));
+                }
+            }
         }
     }
 

@@ -165,7 +165,7 @@ The layout template accesses data fields via `page.data`:
 
 **File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
 
-**Default URL resolution**: Page URLs are derived from the title (slugified), not from the filename. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post`. Standalone pages in `content/` use their filename as the path (e.g. `content/about.md` becomes `/about`).
+**Default URL resolution**: Page URLs are derived from the directory path and the slugified title. Both pages and collection documents use the default link template `/:dir/:slug:ext`, which preserves directory structure and honours frontmatter `slug` overrides. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post/`. A file in a subdirectory like `content/posts/guides/amqp.md` will be served at `/posts/guides/amqp/`, preserving the directory hierarchy. Standalone pages in `content/` also use their slug (e.g. `content/about.md` with no title becomes `/about/`). Available link placeholders include `:dir` (directory path without filename), `:slug` (from frontmatter slug/title/filename), `:path`, `:name`, `:collection`, `:year/:month/:day`, `:ext`, and `:page`.
 
 **Iterating**:
 ```html

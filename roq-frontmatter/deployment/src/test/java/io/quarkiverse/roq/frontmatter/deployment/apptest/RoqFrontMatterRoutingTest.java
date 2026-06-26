@@ -107,4 +107,90 @@ public class RoqFrontMatterRoutingTest {
                 .body("html.body.article.span", equalTo("2024-10-11T00:00Z[UTC]"));
     }
 
+    // --- Frontmatter slug override ---
+
+    @Test
+    @DisplayName("Collection document with frontmatter slug is served at slug URL")
+    public void testCollectionDocSlugOverride() {
+        RestAssured.when().get("/bar/posts/awesome-post-1").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Test
+    @DisplayName("Collection document with frontmatter slug is NOT served at filename URL")
+    public void testCollectionDocFilenameNotUsedWhenSlugOverridden() {
+        RestAssured.when().get("/bar/posts/awesome-post").then().statusCode(404);
+    }
+
+    @Test
+    @DisplayName("Normal page with frontmatter slug is served at slug URL, not filename URL")
+    public void testNormalPageSlugOverride() {
+        RestAssured.when().get("/bar/pages/custom-slug").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Test
+    @DisplayName("Normal page with frontmatter slug is NOT served at original filename URL")
+    public void testNormalPageFilenameNotUsedWhenSlugOverridden() {
+        RestAssured.when().get("/bar/pages/original-name").then().statusCode(404);
+    }
+
+    // --- Automatic alias when title differs from filename ---
+
+    @Test
+    @DisplayName("Page with title (no explicit slug) is served at title-based slug URL")
+    public void testTitleBasedSlugUrl() {
+        RestAssured.when().get("/bar/pages/getting-started-guide").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Getting Started Guide"));
+    }
+
+    @Test
+    @DisplayName("Page with title (no explicit slug) is also served at filename-based alias URL")
+    public void testFilenameAliasUrl() {
+        RestAssured.when().get("/bar/pages/my-doc").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Getting Started Guide"));
+    }
+
+    // --- Directory alias for index pages with title-based slug ---
+
+    @Test
+    @DisplayName("Index page with title is served at title-based slug URL")
+    public void testIndexPageTitleSlugUrl() {
+        RestAssured.when().get("/bar/pages/learning-resources").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Learning Resources"));
+    }
+
+    @Test
+    @DisplayName("Index page with title is also served at directory-based alias URL")
+    public void testIndexPageDirAliasUrl() {
+        RestAssured.when().get("/bar/pages/tutorials").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Learning Resources"));
+    }
+
+    @Test
+    @DisplayName("Sibling of index page is served at directory-based URL")
+    public void testSiblingAtDirBasedUrl() {
+        RestAssured.when().get("/bar/pages/tutorials/basics").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Basics"));
+    }
+
+    @Test
+    @DisplayName("Sibling of index page is also served at title-based alias URL")
+    public void testSiblingAtTitleBasedAliasUrl() {
+        RestAssured.when().get("/bar/pages/learning-resources/basics").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.h1", equalTo("Basics"));
+    }
+
+    // --- Subdirectory structure preservation (issue #1005) ---
+
+    @Test
+    @DisplayName("Collection document in subdirectory preserves directory structure in URL")
+    public void testNestedCollectionDocPreservesDir() {
+        RestAssured.when().get("/bar/posts/baz/nested-post").then().statusCode(200).log().ifValidationFails();
+    }
+
+    @Test
+    @DisplayName("Collection document in subdirectory is NOT served at flattened URL")
+    public void testNestedCollectionDocNotFlattened() {
+        RestAssured.when().get("/bar/posts/nested-post").then().statusCode(404);
+    }
+
 }

@@ -47,7 +47,8 @@ public abstract class AbstractRoqTest {
 
     @Test
     public void testCollectionSubIndex() {
-        RestAssured.given().when().get("/posts/sub-index/sub-file.txt").then().statusCode(200).log().ifValidationFails()
+        RestAssured.given().when().get("/posts/hello-world/sub-index/sub-file.txt").then().statusCode(200).log()
+                .ifValidationFails()
                 .body(is("Hello"));
     }
 

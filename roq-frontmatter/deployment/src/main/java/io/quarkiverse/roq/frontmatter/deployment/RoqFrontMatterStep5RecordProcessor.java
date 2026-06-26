@@ -16,6 +16,7 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictExcept
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterFileNameAliasBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDocumentPageBuildItem;
@@ -169,6 +170,7 @@ class RoqFrontMatterStep5RecordProcessor {
             List<RoqFrontMatterRecordedCollectionBuildItem> collectionItems,
             List<RoqFrontMatterRecordedPageBuildItem> pageItems,
             List<RoqFrontMatterRecordedNormalPageBuildItem> normalPageItems,
+            List<RoqFrontMatterFileNameAliasBuildItem> aliases,
             BuildProducer<SyntheticBeanBuildItem> beansProducer,
             RoqFrontMatterRecorder recorder) {
         if (rootUrlItem == null) {
@@ -227,6 +229,27 @@ class RoqFrontMatterStep5RecordProcessor {
                 }
             }
             allPagesByPath.put(i.url().resourcePath(), i.page());
+        }
+        Map<String, String> dirMappings = new HashMap<>();
+        for (RoqFrontMatterFileNameAliasBuildItem alias : aliases) {
+            Supplier<? extends Page> canonical = allPagesByPath.get(alias.canonicalResourcePath());
+            if (canonical != null && !allPagesByPath.containsKey(alias.aliasResourcePath())) {
+                allPagesByPath.put(alias.aliasResourcePath(), canonical);
+            }
+            dirMappings.put(alias.aliasResourcePath(), alias.canonicalResourcePath());
+        }
+        for (Map.Entry<String, String> mapping : dirMappings.entrySet()) {
+            String nameBasedDir = mapping.getKey();
+            String slugBasedDir = mapping.getValue();
+            for (Map.Entry<String, Supplier<? extends Page>> entry : new HashMap<>(allPagesByPath).entrySet()) {
+                String path = entry.getKey();
+                if (path.startsWith(nameBasedDir) && !path.equals(nameBasedDir)) {
+                    String remappedPath = slugBasedDir + path.substring(nameBasedDir.length());
+                    if (!allPagesByPath.containsKey(remappedPath)) {
+                        allPagesByPath.put(remappedPath, entry.getValue());
+                    }
+                }
+            }
         }
         return new RoqFrontMatterOutputBuildItem(allPagesByPath);
     }

@@ -1,9 +1,11 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
+import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.nameBasedPageLink;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.pageLink;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.paginateLink;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -153,6 +155,7 @@ class TemplateLinkTest {
         assertDoesNotThrow(() -> pageLink("", "/:year/:month/:day/:slug", data));
         assertDoesNotThrow(() -> pageLink("", "/:path:ext", data));
         assertDoesNotThrow(() -> pageLink("", "/:name/:Slug", data));
+        assertDoesNotThrow(() -> pageLink("", "/:dir/:slug", data));
     }
 
     @Test
@@ -209,6 +212,86 @@ class TemplateLinkTest {
         assertEquals("2024/08/27/my-first/", pageLink("", ":year/:month/:day/:name~2", data));
     }
 
+    // --- :dir placeholder tests ---
+
+    @Test
+    void testDirPlaceholderSimple() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Post");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("posts/my-post/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderNested() {
+        JsonObject frontMatter = new JsonObject().put("title", "AMQP Dev Services");
+        final PageSource templateSource = createPageSource("posts/v2/guides/amqp.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/v2/guides/amqp-dev-services/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderNoDirectory() {
+        JsonObject frontMatter = new JsonObject().put("title", "Root File");
+        final PageSource templateSource = createPageSource("myfile.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("root-file/", pageLink("", ":dir/:slug", data));
+    }
+
+    @Test
+    void testDirPlaceholderIndex() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Dir");
+        final PageSource templateSource = createPageSource("posts/my-dir/index.md", true, true);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/my-dir/", pageLink("", ":dir/:slug", data));
+    }
+
+    // --- Default template with :dir/:slug tests ---
+
+    @Test
+    void testDefaultDocLinkPreservesDirectory() {
+        JsonObject frontMatter = new JsonObject().put("title", "AMQP Dev Services");
+        final PageSource templateSource = createPageSource("posts/v2/guides/amqp.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        String link = pageLink("", null, data);
+        assertEquals("posts/v2/guides/amqp-dev-services/", link);
+    }
+
+    @Test
+    void testDefaultPageLinkUsesSlug() {
+        JsonObject frontMatter = new JsonObject().put("title", "About");
+        final PageSource templateSource = createPageSource("pages/about.html", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        String link = pageLink("", null, data);
+        assertEquals("pages/about/", link);
+    }
+
+    @Test
+    void testDefaultPageLinkWithSlugOverride() {
+        JsonObject frontMatter = new JsonObject().put("title", "Original Title").put("slug", "custom-slug");
+        final PageSource templateSource = createPageSource("pages/original-name.html", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        String link = pageLink("", null, data);
+        assertEquals("pages/custom-slug/", link);
+    }
+
+    @Test
+    void testDefaultDocLinkNonHtmlPreservesExtension() {
+        JsonObject frontMatter = new JsonObject();
+        final PageSource templateSource = createPageSource("data/config.json", false, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        String link = pageLink("", null, data);
+        assertEquals("data/config.json", link);
+    }
+
     @Test
     void testNoColonNoException() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");
@@ -221,7 +304,60 @@ class TemplateLinkTest {
         assertDoesNotThrow(() -> pageLink("", "/posts/blog.html", data));
     }
 
+    // --- nameBasedPageLink alias tests ---
+
+    @Test
+    void testNameBasedAlias_titleDiffersFromFilename() {
+        JsonObject frontMatter = new JsonObject().put("title", "Getting Started Guide");
+        final PageSource templateSource = createPageSource("pages/my-doc.html", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        String alias = nameBasedPageLink("", data);
+        assertEquals("pages/my-doc/", alias);
+    }
+
+    @Test
+    void testNameBasedAlias_titleMatchesFilename() {
+        JsonObject frontMatter = new JsonObject().put("title", "My Post");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertNull(nameBasedPageLink("", data));
+    }
+
+    @Test
+    void testNameBasedAlias_noTitle() {
+        JsonObject frontMatter = new JsonObject();
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertNull(nameBasedPageLink("", data));
+    }
+
+    @Test
+    void testNameBasedAlias_siteIndex() {
+        JsonObject frontMatter = new JsonObject().put("title", "Home");
+        final PageSource templateSource = createPageSource("index.html", true, false, true);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertNull(nameBasedPageLink("", data));
+    }
+
+    @Test
+    void testNameBasedAlias_withBasePath() {
+        JsonObject frontMatter = new JsonObject().put("title", "Getting Started Guide");
+        final PageSource templateSource = createPageSource("pages/my-doc.html", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        String alias = nameBasedPageLink("bar", data);
+        assertEquals("bar/pages/my-doc/", alias);
+    }
+
     private PageSource createPageSource(String path, boolean isTargetHtml, boolean isIndex) {
+        return createPageSource(path, isTargetHtml, isIndex, false);
+    }
+
+    private PageSource createPageSource(String path, boolean isTargetHtml, boolean isIndex, boolean isSiteIndex) {
         TemplateSource templateSource = TemplateSource.create(
                 path,
                 "markdown",
@@ -231,7 +367,7 @@ class TemplateLinkTest {
                 false,
                 isTargetHtml,
                 isIndex,
-                false);
+                isSiteIndex);
 
         return new PageSource(templateSource, false,
                 ZonedDateTime.parse("2024-08-27T10:15:30+01:00[Europe/Paris]").format(DateTimeFormatter.ISO_ZONED_DATE_TIME),

@@ -250,6 +250,11 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 | The raw file path of the page without the extension.
 | `My$`, `my car` or `été/2024`
 
+| All
+| `:dir`
+| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root.
+| `posts`, `posts/v2/guides`, or empty
+
 
 | All
 | `:slug`
@@ -263,12 +268,12 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 
 | All
 | `:name`
-| The slugified name of the file (or directory if index). If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| The slugified name of the file (or directory if index). If the filename contains a date (e.g., ‘2025-08-21-My-Blog-Post.md’), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
 | `my-blog-post`
 
 | All
 | `:Name`
-| The case-preserving slugified name of the file (or directory if index). If the filename contains a date (e.g., '2025-08-21-My-Blog-Post.md'), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
+| The case-preserving slugified name of the file (or directory if index). If the filename contains a date (e.g., ‘2025-08-21-My-Blog-Post.md’), the date portion will be stripped away. This behavior mimics that found in Jekyll builds, making any migrations simpler.
 | `My-Blog-Post`
 
 | All
@@ -312,9 +317,8 @@ NOTE: The slug derivation replaces all non-alphanumeric characters by `-` to mak
 
 Default link value:
 
-* for pages: `/:path:ext`.
-* for documents: `/:collection/:slug/`.
-* for paginated page: `/:collection/page:page/`.
+* for pages and documents in collections: `/:dir/:slug:ext`.
+* for paginated document: `/:collection/page:page/`.
 
 TIP: You can define `link` in a layout to affect all the pages using that layout.
 

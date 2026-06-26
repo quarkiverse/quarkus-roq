@@ -67,11 +67,16 @@ public final class RoqFrontMatterAssembleUtils {
         boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE, "false"));
         TransformedContent transformed = applyContentTransforms(content, escaped, metadata.markup(), layoutId, isPage);
 
+        String path = metadata.referencePath();
+        if (collection != null) {
+            path = path.replaceFirst("(?<=/)\\Q" + config.draftDirectory() + "\\E/(?=[^/]+$)", "");
+        }
+
         TemplateSource source = TemplateSource.create(
                 metadata.templateId(),
                 getMarkup(metadata.isHtml(), metadata.markup()),
                 metadata.sourceFile(),
-                metadata.referencePath(),
+                path,
                 metadata.outputPath(),
                 !isPage,
                 metadata.isHtml(),
