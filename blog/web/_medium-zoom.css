@@ -1,0 +1,11 @@
+/*
+ * medium-zoom sets the overlay/opened-image z-index inline (998/999), which is
+ * lower than some positioned page elements (e.g. the TIP admonition box).
+ */
+.medium-zoom-overlay {
+  z-index: 2147483646 !important;
+}
+
+.medium-zoom-image--opened {
+  z-index: 2147483647 !important;
+}
