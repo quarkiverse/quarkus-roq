@@ -17,7 +17,7 @@
     <description>Converts Jekyll/Liquid templates to Roq/Qute templates</description>
 
     <properties>
-        <picocli.version>4.7.5</picocli.version>
+        <picocli.version>4.7.7</picocli.version>
     </properties>
 
     <dependencies>
