@@ -58,6 +58,16 @@ theme-layout: main
 ```
 |}
 
+### Custom search trigger
+
+The `{#search-button /}` component renders a plain `<div id="search-button" class="search-button">`. You can replace it with your own HTML element as long as it has `id="search-button"` — the click handler binds to that ID.
+
+```html
+<button id="search-button" class="my-search-btn" aria-label="Search">⌘K</button>
+```
+
+The search overlay also responds to the **Cmd+K** (macOS) / **Ctrl+K** (Windows/Linux) keyboard shortcut out of the box.
+
 ### Controlling indexing
 
 You can prevent content from being indexed:
