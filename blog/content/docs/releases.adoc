@@ -7,6 +7,8 @@ include::../../includes/edit-contrib.adoc[]
 
 We aim to keep the API stable, but since Roq is still young, breaking changes may happen. The good news: almost all breakage will be caught during build or xref:advanced.adoc#test-site-generation[site generation tests].
 
+**Minimum Quarkus version required:** Quarkus ≥ 3.33.1.
+
 {description}
 
 == Roq 2.1
