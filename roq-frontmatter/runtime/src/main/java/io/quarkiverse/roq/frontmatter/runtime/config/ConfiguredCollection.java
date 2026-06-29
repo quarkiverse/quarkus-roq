@@ -10,6 +10,7 @@ public record ConfiguredCollection(
         boolean hidden,
         boolean future,
         String layout,
+        String link,
         Optional<CollectionFromData> fromData) {
 
     public ConfiguredCollection {

@@ -111,6 +111,7 @@ public class RoqPluginTaggingProcessor {
                         collection.hidden(),
                         collection.future(),
                         collection.layout(),
+                        collection.link(),
                         Optional.empty());
                 derivedCollectionProducer
                         .produce(new RoqFrontMatterPublishDerivedCollectionBuildItem(configuredCollection, e.getValue(), data));

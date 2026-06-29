@@ -25,8 +25,6 @@ import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
 
 public class TemplateLink {
-    public static final String DEFAULT_PAGE_LINK_TEMPLATE = "/:path:ext";
-    public static final String DEFAULT_DOC_LINK_TEMPLATE = "/:collection/:slug/";
     public static final String DEFAULT_PAGINATE_LINK_TEMPLATE = "/:collection/page:page/";
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
@@ -118,24 +116,25 @@ public class TemplateLink {
     }
 
     public static String pageLink(String basePath, String template, PageLinkData data) {
-        return linkInternal(basePath, template,
-                data.collection == null ? DEFAULT_PAGE_LINK_TEMPLATE : DEFAULT_DOC_LINK_TEMPLATE, data,
-                withBasePlaceHolders(data, null));
+        return linkInternal(basePath, template, data, withBasePlaceHolders(data, null));
     }
 
     public static String paginateLink(String basePath, String template, PaginateLinkData data) {
-        return linkInternal(basePath, template, DEFAULT_PAGINATE_LINK_TEMPLATE, data, withBasePlaceHolders(data, Map.of(
-                ":page", () -> Objects.requireNonNull(data.page(), "page index is required to build the link"))));
+        return linkInternal(basePath, template != null ? template : DEFAULT_PAGINATE_LINK_TEMPLATE, data,
+                withBasePlaceHolders(data, Map.of(
+                        ":page",
+                        () -> Objects.requireNonNull(data.page(), "page index is required to build the link"))));
     }
 
     public static String link(String basePath, String template, String defaultTemplate, LinkData data,
             Map<String, Supplier<String>> placeHolders) {
-        return linkInternal(basePath, template, defaultTemplate, data, withBasePlaceHolders(data, placeHolders));
+        return linkInternal(basePath, template != null ? template : defaultTemplate, data,
+                withBasePlaceHolders(data, placeHolders));
     }
 
-    private static String linkInternal(String basePath, String template, String defaultTemplate,
+    private static String linkInternal(String basePath, String template,
             LinkData data, Map<String, Supplier<String>> mapping) {
-        String link = template != null ? template : defaultTemplate;
+        String link = template;
         link = resolvePlaceholders(link, mapping, template, data);
 
         if (link.endsWith("index") || link.endsWith("index.html")) {

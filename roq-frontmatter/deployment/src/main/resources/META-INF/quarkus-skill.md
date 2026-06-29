@@ -165,7 +165,7 @@ The layout template accesses data fields via `page.data`:
 
 **File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
 
-**Default URL resolution**: Page URLs are derived from the title (slugified), not from the filename. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post`. Standalone pages in `content/` use their filename as the path (e.g. `content/about.md` becomes `/about`).
+**Default URL resolution**: Page URLs are derived from the title (slugified), not from the filename. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post`. Standalone pages in `content/` use their filename as the path (e.g. `content/about.md` becomes `/about`). Default link templates can be configured globally: `site.page-link` for non-collection pages (default `/:path:ext`) and `site.collections.<name>.link` for collection documents (default `/:collection/:slug/`). These are overridden by an explicit `link` in the page's frontmatter or layout.
 
 **Iterating**:
 ```html
