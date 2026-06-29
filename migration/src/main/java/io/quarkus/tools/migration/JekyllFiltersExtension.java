@@ -1,12 +1,14 @@
 package io.quarkus.tools.migration;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import io.quarkus.qute.RawString;
 import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @TemplateExtension
 public class JekyllFiltersExtension {
@@ -74,8 +76,10 @@ public class JekyllFiltersExtension {
      * Usage in Qute: {myString.truncate(280)}
      */
     static String truncate(String str, int length) {
-        if (str == null) return "";
-        if (str.length() <= length) return str;
+        if (str == null)
+            return "";
+        if (str.length() <= length)
+            return str;
         return str.substring(0, length) + "...";
     }
 
@@ -91,11 +95,111 @@ public class JekyllFiltersExtension {
         sorted.sort((a, b) -> {
             String va = extractProperty(a, property);
             String vb = extractProperty(b, property);
-            if (va == null) return vb == null ? 0 : 1;
-            if (vb == null) return -1;
+            if (va == null)
+                return vb == null ? 0 : 1;
+            if (vb == null)
+                return -1;
             return va.compareToIgnoreCase(vb);
         });
         return sorted;
+    }
+
+    @TemplateExtension(namespace = "list")
+    static Object whereExp(Iterable<?> items, String loopVar, Object conditionsObj) {
+        if (items == null) {
+            return new ArrayList<>();
+        }
+
+        List<String> conditions;
+        if (conditionsObj instanceof String s) {
+            conditions = List.of(s);
+        } else if (conditionsObj instanceof Iterable<?> iter) {
+            conditions = new ArrayList<>();
+            for (Object o : iter) {
+                conditions.add(o.toString());
+            }
+        } else {
+            conditions = List.of(conditionsObj.toString());
+        }
+
+        String prefix = loopVar + ".";
+        boolean isJsonArray = items instanceof JsonArray;
+        List<Object> result = isJsonArray ? new JsonArray().getList() : new ArrayList<>();
+
+        for (Object item : items) {
+            boolean matches = true;
+            for (String condition : conditions) {
+                if (!evaluateCondition(item, prefix, condition)) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                result.add(item);
+            }
+        }
+        return isJsonArray ? new JsonArray(result) : result;
+    }
+
+    private static boolean evaluateCondition(Object item, String prefix, String condition) {
+        String[] operators = { ">=", "<=", "!=", "==", ">", "<", "contains" };
+
+        for (String op : operators) {
+            int idx = condition.indexOf(" " + op + " ");
+            if (idx >= 0) {
+                String left = condition.substring(0, idx).trim();
+                String right = condition.substring(idx + op.length() + 2).trim();
+
+                String property = left.startsWith(prefix) ? left.substring(prefix.length()) : left;
+
+                if ((right.startsWith("'") && right.endsWith("'"))
+                        || (right.startsWith("\"") && right.endsWith("\""))) {
+                    right = right.substring(1, right.length() - 1);
+                }
+
+                Object propValue = getProperty(item, property);
+                String propStr = propValue != null ? propValue.toString() : null;
+
+                return compareValues(propStr, op, right);
+            }
+        }
+        return false;
+    }
+
+    private static boolean compareValues(String left, String op, String right) {
+        if (left == null)
+            return false;
+        int cmp = left.compareTo(right);
+        return switch (op) {
+            case "==" -> cmp == 0;
+            case "!=" -> cmp != 0;
+            case ">" -> cmp > 0;
+            case ">=" -> cmp >= 0;
+            case "<" -> cmp < 0;
+            case "<=" -> cmp <= 0;
+            case "contains" -> left.contains(right);
+            default -> false;
+        };
+    }
+
+    private static Object getProperty(Object obj, String property) {
+        if (obj instanceof JsonObject json) {
+            return json.getValue(property);
+        }
+        if (obj instanceof java.util.Map<?, ?> map) {
+            return map.get(property);
+        }
+        Class<?> clazz = obj.getClass();
+        for (String p : new String[] { "get", "is", "" }) {
+            String methodName = p.isEmpty() ? property
+                    : p + Character.toUpperCase(property.charAt(0)) + property.substring(1);
+            try {
+                Method m = clazz.getMethod(methodName);
+                return m.invoke(obj);
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     private static String extractProperty(Object obj, String property) {
@@ -126,7 +230,8 @@ public class JekyllFiltersExtension {
      * Usage in Qute: {=myString.raw}
      */
     static RawString raw(String str) {
-        if (str == null) return new RawString("");
+        if (str == null)
+            return new RawString("");
         return new RawString(str);
     }
 
