@@ -6,6 +6,8 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DATE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.tools.stringpaths.StringPaths.join;
+import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -191,7 +193,11 @@ public class RoqFrontMatterStep3DataProcessor {
             if (item.raw().attachments() != null) {
                 // Publish static assets
                 for (RoqFrontMatterAttachment attachment : item.raw().attachments()) {
-                    String resourcePath = item.url().resolve(attachment.name()).resourcePath();
+                    String urlResourcePath = item.url().resourcePath();
+                    if (urlResourcePath.endsWith(".html")) {
+                        urlResourcePath = removeExtension(urlResourcePath);
+                    }
+                    String resourcePath = join(urlResourcePath, attachment.name());
                     if (attachment.isFile()) {
                         staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(resourcePath, attachment.path()));
                     } else {
