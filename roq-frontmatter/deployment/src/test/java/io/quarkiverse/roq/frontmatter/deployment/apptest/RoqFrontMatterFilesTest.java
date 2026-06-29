@@ -129,6 +129,28 @@ public class RoqFrontMatterFilesTest {
         RestAssured.when().get("/posts/dir-post/diagram.svg").then().statusCode(200).log().ifValidationFails();
     }
 
+    @Test
+    @DisplayName("Directory post with :ext! link is served at flat .html URL")
+    public void testExtPostServed() {
+        RestAssured.when().get("/posts/ext-post.html").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'page-url' }.text()",
+                        endsWith("/posts/ext-post.html"));
+    }
+
+    @Test
+    @DisplayName("page.file resolves :ext! post attachment under the page directory")
+    public void testExtPostFileUrl() {
+        RestAssured.when().get("/posts/ext-post.html").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'attachment-url' }.text()",
+                        endsWith("/posts/ext-post/chart.svg"));
+    }
+
+    @Test
+    @DisplayName("Attachment of :ext! directory post is served under the page directory")
+    public void testExtPostAttachmentServed() {
+        RestAssured.when().get("/posts/ext-post/chart.svg").then().statusCode(200).log().ifValidationFails();
+    }
+
     // --- Images ---
 
     @Test

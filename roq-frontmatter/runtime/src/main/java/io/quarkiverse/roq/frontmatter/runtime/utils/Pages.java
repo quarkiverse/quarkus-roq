@@ -9,6 +9,7 @@ import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
 
 public final class Pages {
@@ -27,7 +28,12 @@ public final class Pages {
         }
         final String f = normaliseName(name, page.source().files().slugified());
         if (page.source().fileExists(f)) {
-            return page.url().resolve(f);
+            RoqUrl url = page.url();
+            if (url.resourcePath().endsWith(".html")) {
+                // pages using a `:ext!` link target an html file, attachments are served under the page directory
+                url = new RoqUrl(url.root(), StringPaths.removeExtension(url.resourcePath()));
+            }
+            return url.resolve(f);
         } else {
             throw new RoqStaticFileException(RoqException.builder("File not found")
                     .sourceInfo(page.source().template().file().toSourceInfo())
