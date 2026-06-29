@@ -27,7 +27,7 @@ public final class Pages {
         }
         final String f = normaliseName(name, page.source().files().slugified());
         if (page.source().fileExists(f)) {
-            return page.url().resolve(f);
+            return page.url().resolveAttachment(f);
         } else {
             throw new RoqStaticFileException(RoqException.builder("File not found")
                     .sourceInfo(page.source().template().file().toSourceInfo())

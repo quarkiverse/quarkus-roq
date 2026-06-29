@@ -191,7 +191,7 @@ public class RoqFrontMatterStep3DataProcessor {
             if (item.raw().attachments() != null) {
                 // Publish static assets
                 for (RoqFrontMatterAttachment attachment : item.raw().attachments()) {
-                    String resourcePath = item.url().resolve(attachment.name()).resourcePath();
+                    String resourcePath = item.url().resolveAttachment(attachment.name()).resourcePath();
                     if (attachment.isFile()) {
                         staticFileProducer.produce(new RoqFrontMatterStaticFileBuildItem(resourcePath, attachment.path()));
                     } else {
