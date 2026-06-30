@@ -140,6 +140,30 @@ public class RoqFrontMatterFilesTest {
     }
 
     @Test
+    @DisplayName("Directory page image with absolute path resolves from public images dir")
+    public void testDirPageImageWithAbsolutePath() {
+        RestAssured.when().get("/pages/gallery").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'images-dir-public-image' }.text()",
+                        containsString("images/logo.png"));
+    }
+
+    @Test
+    @DisplayName("Directory page imageExists returns true for existing absolute path")
+    public void testDirPageImageExistsAbsolutePathTrue() {
+        RestAssured.when().get("/pages/gallery").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'public-image-exists' }.text()",
+                        equalTo("true"));
+    }
+
+    @Test
+    @DisplayName("Directory page imageExists returns false for missing absolute path")
+    public void testDirPageImageExistsAbsolutePathFalse() {
+        RestAssured.when().get("/pages/gallery").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'public-image-missing' }.text()",
+                        equalTo("false"));
+    }
+
+    @Test
     @DisplayName("Non-directory page image falls back to public images")
     public void testPageImageFallbackToPublic() {
         RestAssured.when().get("/pages/simple-page").then().statusCode(200).log().ifValidationFails()
