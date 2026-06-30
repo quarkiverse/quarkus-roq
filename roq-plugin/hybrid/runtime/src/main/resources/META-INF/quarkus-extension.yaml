@@ -1,0 +1,19 @@
+name: Roq Plugin - Hybrid
+description: Enables hybrid mode for building Quarkus applications with Roq static content, adding runtime page caching, future page scheduling, and cache management.
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - roq
+    - ssg
+    - hybrid
+    - cache
+    - runtime
+    - plugin
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "site.hybrid"
+  status: "preview"

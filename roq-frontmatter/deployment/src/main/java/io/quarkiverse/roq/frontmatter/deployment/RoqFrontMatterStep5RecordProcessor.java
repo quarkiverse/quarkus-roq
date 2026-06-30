@@ -231,23 +231,25 @@ class RoqFrontMatterStep5RecordProcessor {
         return new RoqFrontMatterOutputBuildItem(allPagesByPath);
     }
 
-    // Register the Vert.x route handler that serves rendered pages at runtime.
-    // Runs at RUNTIME_INIT (after synthetic beans are available) so the handler
-    // can look up Page suppliers from the allPagesByPath map.
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
-    public RouteBuildItem produceRoute(RoqSiteConfig config, RoqFrontMatterRecorder recorder,
+    public List<RouteBuildItem> produceRoutes(RoqSiteConfig config, RoqFrontMatterRecorder recorder,
             HttpRootPathBuildItem httpRootPath, RoqFrontMatterOutputBuildItem roqFrontMatterOutput) {
         if (roqFrontMatterOutput == null || roqFrontMatterOutput.allPagesByPath().isEmpty()) {
-            // There are no templates to serve
-            return null;
+            return List.of();
         }
-        return httpRootPath.routeBuilder()
-                .routeFunction(httpRootPath.relativePath(StringPaths.join(config.pathPrefixOrEmpty(), "/*")),
-                        recorder.initializeRoute())
+        String routePath = httpRootPath.relativePath(StringPaths.join(config.pathPrefixOrEmpty(), "/*"));
+        RouteBuildItem resolverRoute = httpRootPath.routeBuilder()
+                .routeFunction(routePath, recorder.initializeResolverRoute())
                 .handlerType(HandlerType.BLOCKING)
-                .handler(recorder.handler(httpRootPath.getRootPath(), roqFrontMatterOutput.allPagesByPath()))
+                .handler(recorder.pageResolver(roqFrontMatterOutput.allPagesByPath()))
                 .build();
+        RouteBuildItem renderRoute = httpRootPath.routeBuilder()
+                .routeFunction(routePath, recorder.initializeRenderRoute())
+                .handlerType(HandlerType.BLOCKING)
+                .handler(recorder.renderHandler())
+                .build();
+        return List.of(resolverRoute, renderRoute);
     }
 }

@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
-import io.quarkus.runtime.LocalesBuildTimeConfig;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
@@ -24,12 +23,10 @@ public class RoqFrontMatterRecorder {
 
     private final VertxHttpBuildTimeConfig httpConfig;
     private final RoqSiteConfig config;
-    private final LocalesBuildTimeConfig locales;
 
-    public RoqFrontMatterRecorder(VertxHttpBuildTimeConfig httpConfig, RoqSiteConfig config, LocalesBuildTimeConfig locales) {
+    public RoqFrontMatterRecorder(VertxHttpBuildTimeConfig httpConfig, RoqSiteConfig config) {
         this.httpConfig = httpConfig;
         this.config = config;
-        this.locales = locales;
     }
 
     public Supplier<RoqCollections> createRoqCollections(
@@ -73,16 +70,26 @@ public class RoqFrontMatterRecorder {
         return () -> new Sources(list);
     }
 
-    public Consumer<Route> initializeRoute() {
+    public Consumer<Route> initializeResolverRoute() {
+        return r -> {
+            r.method(HttpMethod.GET);
+            r.order(config.routeOrder() - 10);
+        };
+    }
+
+    public Consumer<Route> initializeRenderRoute() {
         return r -> {
             r.method(HttpMethod.GET);
             r.order(config.routeOrder());
         };
     }
 
-    public Handler<RoutingContext> handler(String rootPath,
-            Map<String, Supplier<? extends Page>> pageSuppliers) {
-        return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers, config, locales);
+    public Handler<RoutingContext> pageResolver(Map<String, Supplier<? extends Page>> pageSuppliers) {
+        return new RoqPageResolverHandler(pageSuppliers);
+    }
+
+    public Handler<RoutingContext> renderHandler() {
+        return new RoqRouteHandler(httpConfig, config);
     }
 
     public Handler<RoutingContext> aliasRoute(String target) {
