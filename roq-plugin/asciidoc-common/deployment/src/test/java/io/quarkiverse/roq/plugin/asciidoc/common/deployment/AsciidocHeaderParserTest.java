@@ -59,6 +59,23 @@ class AsciidocHeaderParserTest {
     }
 
     @Test
+    void shouldParseHeaderWithFrontmatterAndNoConditionals() {
+        String content = """
+                ---
+                layout: post
+                ---
+                = My Title
+                :page-layout: post
+
+                Some content here.
+                """;
+
+        JsonObject result = parse(content);
+        assertThat(result.getString("title")).isEqualTo("My Title");
+        assertThat(result.getString("layout")).isEqualTo("post");
+    }
+
+    @Test
     void shouldParseHeaderWithIfdefContainingInclude() {
         String content = """
                 = My Title

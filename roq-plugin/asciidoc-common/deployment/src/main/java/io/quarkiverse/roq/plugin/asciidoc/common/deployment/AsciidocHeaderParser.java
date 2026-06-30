@@ -57,9 +57,9 @@ public class AsciidocHeaderParser {
     public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean qute, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             Parser parser = new Parser();
-            String content = templateContext.content();
+            String content = stripFrontMatter(templateContext.content());
             if (SIMPLE_CONDITIONAL.matcher(content).find()) {
-                content = stripConditionalDirectives(stripFrontMatter(content));
+                content = stripConditionalDirectives(content);
             }
 
             ContentResolver contentResolver = new PathContentResolver(templateContext.sourceFile().getParent());
