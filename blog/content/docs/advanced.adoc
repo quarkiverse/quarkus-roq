@@ -242,7 +242,7 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 
 | All
 | `:path`
-| The file path of the page, slugified (converted to a URL-friendly format) without the extension.
+| The file path of the page, slugified (converted to a URL-friendly format) without the extension. If a `slug` is set in frontmatter, it replaces the filename portion while preserving the directory structure.
 | `my-page`, `search` or `docs/my-doc`
 
 | All

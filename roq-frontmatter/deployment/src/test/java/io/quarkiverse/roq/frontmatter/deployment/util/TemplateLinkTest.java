@@ -209,6 +209,71 @@ class TemplateLinkTest {
         assertEquals("2024/08/27/my-first/", pageLink("", ":year/:month/:day/:name~2", data));
     }
 
+    // --- :path with explicit slug tests ---
+
+    @Test
+    void testPathHonoursExplicitSlug() {
+        JsonObject frontMatter = new JsonObject().put("title", "Some Title").put("slug", "custom-slug");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/custom-slug/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathIgnoresTitle() {
+        JsonObject frontMatter = new JsonObject().put("title", "A Different Title");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/my-post/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathExplicitSlugNoDirectory() {
+        JsonObject frontMatter = new JsonObject().put("slug", "custom-slug");
+        final PageSource templateSource = createPageSource("myfile.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, null, frontMatter);
+
+        assertEquals("custom-slug/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathExplicitSlugNestedDirectory() {
+        JsonObject frontMatter = new JsonObject().put("slug", "my-guide");
+        final PageSource templateSource = createPageSource("posts/v2/guides/getting-started.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/v2/guides/my-guide/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathWithoutSlugUnchanged() {
+        JsonObject frontMatter = new JsonObject().put("title", "Whatever");
+        final PageSource templateSource = createPageSource("posts/2024-03-02-My-First-Blog-Post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/2024-03-02-my-first-blog-post/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathExplicitSlugIsSlugified() {
+        JsonObject frontMatter = new JsonObject().put("slug", "My Custom Slug!");
+        final PageSource templateSource = createPageSource("posts/my-post.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/my-custom-slug/", pageLink("", ":path", data));
+    }
+
+    @Test
+    void testPathExplicitSlugIndexPage() {
+        JsonObject frontMatter = new JsonObject().put("slug", "custom-slug");
+        final PageSource templateSource = createPageSource("posts/my-dir/index.md", true, true);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/custom-slug/", pageLink("", ":path", data));
+    }
+
     @Test
     void testNoColonNoException() {
         JsonObject frontMatter = new JsonObject().put("title", "My First Blog Post");

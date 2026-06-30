@@ -69,8 +69,21 @@ public class TemplateLink {
                 Map.entry(":day",
                         () -> Optional.ofNullable(data.pageSource().date()).orElse(ZonedDateTime.now()).format(DAY_FORMAT)),
                 Map.entry(":raw-path", () -> removeExtension(data.pageSource().path())),
-                Map.entry(":path",
-                        () -> StringPaths.slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase()),
+                Map.entry(":path", () -> {
+                    String explicitSlug = data.data().getString(SLUG);
+                    if (explicitSlug != null && !explicitSlug.isBlank()) {
+                        String path = removeExtension(data.pageSource().path());
+                        int lastSlash = path.lastIndexOf('/');
+                        String dir = lastSlash >= 0 ? path.substring(0, lastSlash) : "";
+                        if (data.pageSource().isIndex()) {
+                            int parentSlash = dir.lastIndexOf('/');
+                            dir = parentSlash >= 0 ? dir.substring(0, parentSlash) : "";
+                        }
+                        dir = dir.isEmpty() ? "" : StringPaths.slugify(dir, true, false).toLowerCase();
+                        return StringPaths.join(dir, slugify(explicitSlug).toLowerCase());
+                    }
+                    return StringPaths.slugify(removeExtension(data.pageSource().path()), true, false).toLowerCase();
+                }),
                 Map.entry(":ext",
                         () -> data.pageSource().isTargetHtml() ? ""
                                 : "." + data.pageSource().extension()),
