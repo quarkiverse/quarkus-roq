@@ -135,8 +135,12 @@ public class RoqFrontMatterStep3DataProcessor {
                             config.slugifyFiles())
                     : null;
             final PageSource pageSource = new PageSource(item.templateSource(), draft, dateString, files, false);
+            String linkTemplate = data.getString(LINK);
+            if (linkTemplate == null) {
+                linkTemplate = item.collection() != null ? item.collection().link() : config.pageLink();
+            }
             final String link = TemplateLink.pageLink(config.pathPrefixOrEmpty(),
-                    data.getString(LINK),
+                    linkTemplate,
                     new TemplateLink.PageLinkData(pageSource, item.collectionId(), data));
             RoqUrl url = rootUrl.resolve(link);
 

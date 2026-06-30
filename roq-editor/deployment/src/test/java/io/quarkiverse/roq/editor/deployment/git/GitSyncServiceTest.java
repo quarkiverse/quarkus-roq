@@ -721,6 +721,11 @@ class GitSyncServiceTest {
             public Optional<String> pathPrefix() {
                 return Optional.empty();
             }
+
+            @Override
+            public String pageLink() {
+                return "/:path:ext";
+            }
         };
     }
 

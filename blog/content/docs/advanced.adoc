@@ -312,11 +312,27 @@ NOTE: The slug derivation replaces all non-alphanumeric characters by `-` to mak
 
 Default link value:
 
-* for pages: `/:path:ext`.
-* for documents: `/:collection/:slug/`.
+* for pages: `/:path:ext` (configurable via `site.page-link`).
+* for documents in collections: `/:collection/:slug/` (configurable via `site.collections.<name>.link`).
 * for paginated page: `/:collection/page:page/`.
 
-TIP: You can define `link` in a layout to affect all the pages using that layout.
+[#global-link-config]
+=== Global link template configuration
+
+Instead of setting `link` in the frontmatter of every page, you can configure default link templates globally in `application.properties`:
+
+[source,properties]
+----
+# Default link template for non-collection pages
+site.page-link=/:slug/
+
+# Default link template for a specific collection
+site.collections.posts.link=/:collection/:year/:month/:name/
+----
+
+These global defaults apply to all pages or collection documents that don't have an explicit `link` in their frontmatter or layout. A frontmatter `link` always takes precedence over the global configuration.
+
+TIP: You can also define `link` in a layout to affect all the pages using that layout.
 
 [#roq-url]
 === Creating links between your pages

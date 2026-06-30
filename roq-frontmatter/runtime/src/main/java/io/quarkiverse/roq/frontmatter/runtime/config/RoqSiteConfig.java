@@ -24,8 +24,12 @@ public interface RoqSiteConfig {
     String PUBLIC_DIR = "public";
     String IGNORED_FILES = "**/_**,_**";
 
+    String DEFAULT_PAGE_LINK = "/:path:ext";
+    String DEFAULT_COLLECTION_LINK = "/:collection/:slug/";
+
     List<ConfiguredCollection> DEFAULT_COLLECTIONS = List
-            .of(new ConfiguredCollection("posts", false, false, false, "post", Optional.empty()));
+            .of(new ConfiguredCollection("posts", false, false, false, "post", DEFAULT_COLLECTION_LINK,
+                    Optional.empty()));
 
     /**
      * the base hostname & protocol for your site, e.g. http://example.com
@@ -215,6 +219,7 @@ public interface RoqSiteConfig {
                                 e.getValue().hidden(),
                                 e.getValue().future(),
                                 e.getValue().layout().orElse(null),
+                                e.getValue().link(),
                                 e.getValue().fromData()
                                         .map(value -> new ConfiguredCollection.CollectionFromData(
                                                 value.idKey(),
@@ -236,6 +241,14 @@ public interface RoqSiteConfig {
     default String pathPrefixOrEmpty() {
         return pathPrefix().orElse("");
     }
+
+    /**
+     * Default link template for non-collection pages.
+     * Can be overridden per-page using the frontmatter {@code link} key.
+     * Supports placeholders: {@code :path}, {@code :slug}, {@code :name}, {@code :ext}, etc.
+     */
+    @WithDefault(DEFAULT_PAGE_LINK)
+    String pageLink();
 
     interface CollectionConfig {
         /**
@@ -264,6 +277,14 @@ public interface RoqSiteConfig {
          * Resolves local layout first, then theme layout as fallback.
          */
         Optional<String> layout();
+
+        /**
+         * Default link template for documents in this collection.
+         * Can be overridden per-page using the frontmatter {@code link} key.
+         * Supports placeholders: {@code :collection}, {@code :slug}, {@code :name}, {@code :ext}, etc.
+         */
+        @WithDefault(DEFAULT_COLLECTION_LINK)
+        String link();
 
         /**
          * If present, documents for this collection will be created for the data (array or dir) with the same name as the

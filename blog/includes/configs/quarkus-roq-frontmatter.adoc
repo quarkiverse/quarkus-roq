@@ -514,6 +514,27 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-link]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-link[`+++site.collections."collections-map".link+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.collections."collections-map".link+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Default link template for documents in this collection. Can be overridden per-page using the frontmatter `link` key. Supports placeholders: `:collection`, `:slug`, `:name`, `:ext`, etc.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_COLLECTIONS__COLLECTIONS_MAP__LINK+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_COLLECTIONS__COLLECTIONS_MAP__LINK+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++/:collection/:slug/+++`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-collections-collections-map-from-data-id-key]] [.property-path]##link:#quarkus-roq-frontmatter_site-collections-collections-map-from-data-id-key[`+++site.collections."collections-map".from-data.id-key+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.collections."collections-map".from-data.id-key+++[]
@@ -599,6 +620,27 @@ endif::add-copy-button-to-env-var[]
 --
 |string
 |
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-page-link]] [.property-path]##link:#quarkus-roq-frontmatter_site-page-link[`+++site.page-link+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.page-link+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Default link template for non-collection pages. Can be overridden per-page using the frontmatter `link` key. Supports placeholders: `:path`, `:slug`, `:name`, `:ext`, etc.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_PAGE_LINK+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_PAGE_LINK+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++/:path:ext+++`
 
 |===
 
