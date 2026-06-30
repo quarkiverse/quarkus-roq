@@ -7,3 +7,6 @@ image: photo1.png
 <span class="file-exists-photo">{page.fileExists("photo1.png")}</span>
 <span class="file-exists-deep">{page.fileExists("images/deep.png")}</span>
 <span class="file-exists-missing">{page.fileExists("nope.png")}</span>
+<span class="images-dir-public-image">{page.image("/logo.png").path}</span>
+<span class="public-image-exists">{page.imageExists("/logo.png")}</span>
+<span class="public-image-missing">{page.imageExists("/nope.png")}</span>

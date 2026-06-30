@@ -224,6 +224,11 @@ public class Page {
         if (RoqUrl.isFullPath(path)) {
             return RoqUrl.fromRoot(null, path);
         }
+        // An absolute path (starting with /) is a site-level image and should be
+        // resolved against the public image dir, not the page-local files.
+        if (path.startsWith("/")) {
+            return site().image(path.substring(1));
+        }
         path = normaliseName(path, source().files().slugified());
         return file(path);
     }
@@ -243,6 +248,9 @@ public class Page {
         if (source().usePublicFiles()) {
             // Use site static files
             return site().imageExists(path);
+        }
+        if (path.startsWith("/")) {
+            return site().imageExists(path.substring(1));
         }
         path = normaliseName(path, source().files().slugified());
         return fileExists(path);
