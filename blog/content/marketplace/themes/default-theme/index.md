@@ -138,7 +138,7 @@ Frontmatter keys available to control page behavior per layout.
 |-----|-------------|---------|
 | `body-class` | Custom CSS class on the body element | |
 | `page-class` | CSS class for page-specific styling | |
-| `robots` | Robots meta tag value | |
+| `robots` | Value rendered as `<meta name="robots">` via the built-in `\{#seo /}` tag. Use `noindex` to keep drafts/internal/staging pages out of search engines. | |
 
 #### Page / Post
 

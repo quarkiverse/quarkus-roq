@@ -492,7 +492,27 @@ Roq includes built-in SEO support with meta tags, Open Graph, and Twitter cards.
 
 It will automatically generate `<title>`, `<meta>` author/description, Open Graph and Twitter card tags from the FrontMatter data.
 
-Configure SEO data through the site index frontmatter:
+==== `robots` meta tag (per page)
+
+Set a `robots` value in a page's (or document's) FrontMatter to control how search engines index it. When the page is rendered, the `\{#seo page site /}` tag will emit a corresponding `<meta name="robots">` tag.
+
+[source,yaml]
+----
+---
+title: "Internal Draft"
+robots: noindex
+---
+----
+
+Common values:
+
+* `noindex` — exclude the page from search engine indexes (drafts, internal docs, staging content)
+* `nofollow` — don't follow links from this page
+* `noindex, nofollow` — combine both
+
+The `<meta name="robots">` tag is only rendered when the `robots` key is set on the page.
+
+Configure site-wide SEO defaults through the site index frontmatter:
 
 [cols="1,3"]
 |===
