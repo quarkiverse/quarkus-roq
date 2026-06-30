@@ -45,6 +45,7 @@ image: photo.jpg
 date: 2024-08-29 13:32:20 +0200
 tags: [blogging, quarkus]
 author: ia3andy
+robots: noindex
 draft: false
 paginate:
   collection: posts
@@ -63,6 +64,7 @@ Key fields:
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
 - **author** — Author identifier
+- **robots** — Value rendered as `<meta name="robots">` in the HTML head by the built-in `{#seo page site /}` tag (e.g. `noindex`, `nofollow`, `noindex, nofollow`). Use it to keep drafts, internal docs, or staging pages out of search engine indexes. The meta tag is only emitted when the key is set on the page
 - **draft** — `true` to mark as draft (hidden unless `site.draft=true`)
 - **paginate** — Enable pagination. Shorthand: `paginate: posts`. Full config: `collection`, `size`, `link`
 - **redirect_from** / **aliases** — Old URLs that redirect to this page (requires aliases plugin)
@@ -410,7 +412,7 @@ Add to root layout `<head>`:
 {#ga4 /}
 ```
 
-- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags
+- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags. Also emits `<meta name="robots">` when the page frontmatter defines a `robots:` value
 - `{#rss site /}` — adds the RSS `<link>` tag to the HTML head (does not generate the feed itself)
 - `{#favicon site /}` — auto-discovers favicon files from `public/` (favicon.svg, .ico, .png, apple-touch-icon.png)
 - `{#ga4 /}` — Google Analytics 4 (configure `analytics.ga4` in site index frontmatter)
