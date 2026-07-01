@@ -16,6 +16,8 @@
         <quarkus-roq.version>999-SNAPSHOT</quarkus-roq.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
+        <mvnpm.medium-zoom.version>1.1.0</mvnpm.medium-zoom.version>
+        <mvnpm.highlightjs.version>11.11.1</mvnpm.highlightjs.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -84,9 +86,20 @@
             <version>1.6.3</version>
         </dependency>-->
         <dependency>
+            <groupId>io.quarkiverse.chappie</groupId>
+            <artifactId>quarkus-chappie</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+        <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>
-            <version>11.11.1</version>
+            <version>${mvnpm.highlightjs.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mvnpm</groupId>
+            <artifactId>medium-zoom</artifactId>
+            <version>${mvnpm.medium-zoom.version}</version>
             <scope>provided</scope>
         </dependency>
 
