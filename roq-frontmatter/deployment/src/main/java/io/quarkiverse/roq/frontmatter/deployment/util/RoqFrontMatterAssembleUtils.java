@@ -1,7 +1,8 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.*;
-import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.resolveDefaultLayout;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.applyContentTransforms;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.getMarkup;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAYOUT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.THEME_LAYOUT;
