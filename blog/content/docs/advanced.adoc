@@ -6,6 +6,7 @@ include::../../includes/edit-contrib.adoc[]
 
 [#built-in-features]
 == Built-in features
+== Built-in features
 
 Roq and its themes include several built-in features for SEO, feeds, and discoverability. The link:/theme/base-theme/[base theme] provides the essential tags (SEO, favicon, Web Bundler), while the link:/theme/default-theme/[default theme] builds on top of it with a full layout, dark mode, sidebar, and more. If you are using either theme, most of these features are already enabled. Configure them through your site index frontmatter or by adding content files.
 
@@ -65,7 +66,7 @@ Just by doing so, Roq will generate a bunch of pages based on the pagination set
 NOTE: the first page uses the declaring page link.
 
 
-You can further customize your pagination by setting the page size and link format:
+You can further customize your pagination by setting direpage size and link format:
 
 [source,yaml]
 ----
@@ -252,7 +253,7 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 
 | All
 | `:dir`
-| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root. | The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root. | The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root. Use :dir[N] to skip the first N path segments — for example, :dir[2] drops the first two folders.
+| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root. Use :dir[N] to skip the first N path segments — for example, :dir[2] drops the first two folders.
 | `posts`, `posts/v2/guides`, or empty
 
 
