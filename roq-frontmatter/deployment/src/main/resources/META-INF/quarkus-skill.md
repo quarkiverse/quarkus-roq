@@ -41,6 +41,7 @@ Pages in `content/` use YAML frontmatter between `---` delimiters. Supported for
 title: "My Page Title"
 description: "Page description for SEO"
 layout: page
+slug: custom-url-slug
 image: photo.jpg
 date: 2024-08-29 13:32:20 +0200
 tags: [blogging, quarkus]
@@ -60,6 +61,7 @@ Key fields:
 - **title** — Page title (falls back to source path if missing)
 - **description** — Used for SEO meta tags
 - **layout** — Qute layout template to wrap this page. Resolves local first, then theme fallback (e.g. `page`, `post`). Use `theme-layout:` to explicitly target a theme layout
+- **slug** — Custom URL slug. Used by the `:slug` placeholder (used in the default collection link template `/:collection/:slug/`) and also by `:path` (used in the default page link template `/:path:ext`). If not set, `:slug` falls back to the title, then filename; `:path` uses the filename
 - **image** — Page image. Can be a full URL, a filename from `public/images/`, or an attached file name (for directory pages). Do NOT include the `images/` prefix, just use the filename (e.g. `image: photo.jpg`, not `image: images/photo.jpg`)
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
@@ -167,7 +169,7 @@ The layout template accesses data fields via `page.data`:
 
 **File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
 
-**Default URL resolution**: Page URLs are derived from the title (slugified), not from the filename. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post`. Standalone pages in `content/` use their filename as the path (e.g. `content/about.md` becomes `/about`). Default link templates can be configured globally: `site.page-link` for non-collection pages (default `/:path:ext`) and `site.collections.<name>.link` for collection documents (default `/:collection/:slug/`). These are overridden by an explicit `link` in the page's frontmatter or layout.
+**Default URL resolution**: For collection documents, URLs are derived from the `slug` frontmatter field (if set), then the `title` (slugified), then the filename. For example, a file `content/posts/2024-08-29-my-post.md` with `title: "My First Post"` will be served at `/posts/my-first-post`. Standalone pages in `content/` use their filename as the path (e.g. `content/about.md` becomes `/about`); if a `slug` is set in frontmatter, `:path` will use it in place of the filename while preserving the directory structure. Default link templates can be configured globally: `site.page-link` for non-collection pages (default `/:path:ext`) and `site.collections.<name>.link` for collection documents (default `/:collection/:slug/`). These are overridden by an explicit `link` in the page's frontmatter or layout.
 
 **Iterating**:
 ```html
