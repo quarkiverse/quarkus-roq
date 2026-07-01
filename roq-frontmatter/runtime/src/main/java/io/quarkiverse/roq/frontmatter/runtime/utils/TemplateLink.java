@@ -194,9 +194,9 @@ public class TemplateLink {
         Supplier<String> dirSupplier = mapping.get(":dir");
         if (dirSupplier != null) {
             Matcher dirSliceMatcher = DIR_SLICE_PATTERN.matcher(result);
+            String fullDir = dirSupplier.get();
             while (dirSliceMatcher.find()) {
                 int fromIndex = Integer.parseInt(dirSliceMatcher.group(1));
-                String fullDir = dirSupplier.get();
                 String[] segments = fullDir.isEmpty() ? new String[0] : fullDir.split("/");
                 String sliced = fromIndex >= segments.length ? ""
                         : String.join("/", java.util.Arrays.copyOfRange(segments, fromIndex, segments.length));
