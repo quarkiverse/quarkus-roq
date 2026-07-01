@@ -252,7 +252,7 @@ TIP: Those links are also available in the Qute data to allow <<roq-url>>.
 
 | All
 | `:dir`
-| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root.
+| The directory portion of the page’s file path, slugified. For index files (directory pages), this is the grandparent directory (since the slug already captures the directory name). Empty for files at the content root. Use :dir[N] to skip the first N path segments — for example, :dir[2] drops the first two folders, giving a link of `my-post/my-file` for content in `/content/posts/2025/my-post/my-file.md`.
 | `posts`, `posts/v2/guides`, or empty
 
 

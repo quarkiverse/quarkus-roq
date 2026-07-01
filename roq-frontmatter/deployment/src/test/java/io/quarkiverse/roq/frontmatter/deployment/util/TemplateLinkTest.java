@@ -154,6 +154,7 @@ class TemplateLinkTest {
         assertDoesNotThrow(() -> pageLink("", "/:path:ext", data));
         assertDoesNotThrow(() -> pageLink("", "/:name/:Slug", data));
         assertDoesNotThrow(() -> pageLink("", "/:dir/:slug", data));
+        assertDoesNotThrow(() -> pageLink("", "/:dir[1]/:slug", data));
     }
 
     @Test
@@ -246,6 +247,35 @@ class TemplateLinkTest {
         PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
 
         assertEquals("posts/my-dir/", pageLink("", ":dir/:slug", data));
+    }
+
+    // --- :dir[N] slice tests ---
+
+    @Test
+    void testDirSliceFromIndex1() {
+        JsonObject frontMatter = new JsonObject().put("title", "Getting Started");
+        final PageSource templateSource = createPageSource("versions/main/guides/getting-started.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "versions", frontMatter);
+
+        assertEquals("version/main/guides/getting-started/", pageLink("", "/version/:dir[1]/:slug", data));
+    }
+
+    @Test
+    void testDirSliceFromIndex0SameAsDir() {
+        JsonObject frontMatter = new JsonObject().put("title", "AMQP Dev Services");
+        final PageSource templateSource = createPageSource("posts/v2/guides/amqp.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "posts", frontMatter);
+
+        assertEquals("posts/v2/guides/amqp-dev-services/", pageLink("", ":dir[0]/:slug", data));
+    }
+
+    @Test
+    void testDirSliceBeyondBounds() {
+        JsonObject frontMatter = new JsonObject().put("title", "Getting Started");
+        final PageSource templateSource = createPageSource("versions/main/guides/getting-started.md", true, false);
+        PageLinkData data = new PageLinkData(templateSource, "versions", frontMatter);
+
+        assertEquals("getting-started/", pageLink("", ":dir[3]/:slug", data));
     }
 
     // --- :path with explicit slug tests ---

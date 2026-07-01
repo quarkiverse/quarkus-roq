@@ -28,9 +28,10 @@ public class TemplateLink {
     private static final DateTimeFormatter YEAR_FORMAT = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("MM");
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd");
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(":[a-zA-Z][a-zA-Z0-9-]*(~\\d+)?");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(":[a-zA-Z][a-zA-Z0-9-]*(~\\d+|\\[\\d+\\])?");
     private static final java.util.Set<String> TRUNCATABLE_PLACEHOLDERS = java.util.Set.of(":slug", ":Slug", ":name",
             ":Name");
+    private static final Pattern DIR_SLICE_PATTERN = Pattern.compile(":dir\\[(\\d+)\\]");
     private static final Pattern FILE_NAME_DATE_PATTERN = Pattern.compile("(\\d{4}-\\d{1,2}-\\d{1,2})-");
 
     public interface LinkData {
@@ -188,6 +189,22 @@ public class TemplateLink {
     private static String resolvePlaceholders(String template, Map<String, Supplier<String>> mapping,
             String templateForErrors, LinkData dataForErrors) {
         String result = template;
+
+        // Resolve :dir[N] slices before the main loop (so :dir replacement doesn't corrupt them)
+        Supplier<String> dirSupplier = mapping.get(":dir");
+        if (dirSupplier != null) {
+            Matcher dirSliceMatcher = DIR_SLICE_PATTERN.matcher(result);
+            String fullDir = dirSupplier.get();
+            while (dirSliceMatcher.find()) {
+                int fromIndex = Integer.parseInt(dirSliceMatcher.group(1));
+                String[] segments = fullDir.isEmpty() ? new String[0] : fullDir.split("/");
+                String sliced = fromIndex >= segments.length ? ""
+                        : String.join("/", java.util.Arrays.copyOfRange(segments, fromIndex, segments.length));
+                result = result.replace(dirSliceMatcher.group(), sliced);
+                dirSliceMatcher = DIR_SLICE_PATTERN.matcher(result);
+            }
+        }
+
         for (Map.Entry<String, Supplier<String>> entry : mapping.entrySet()) {
             String key = entry.getKey();
             Matcher truncMatcher = Pattern.compile(Pattern.quote(key) + "~(\\d+)").matcher(result);
