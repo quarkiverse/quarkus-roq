@@ -1,0 +1,23 @@
+name: Roq Plugin - Prism
+description: This plugin adds Prism.js syntax highlighting to your Roq website
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - jekyll
+    - hugo
+    - lume
+    - site
+    - generator
+    - web
+    - roq
+    - ssg
+    - prism
+    - syntax-highlighting
+    - plugin
+  guide: https://iamroq.dev/
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  status: "preview"
