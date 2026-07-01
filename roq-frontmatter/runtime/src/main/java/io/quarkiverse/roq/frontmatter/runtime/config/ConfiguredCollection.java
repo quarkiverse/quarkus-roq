@@ -14,15 +14,23 @@ public record ConfiguredCollection(
         Optional<CollectionFromData> fromData) {
 
     public ConfiguredCollection {
+        String effectiveLayout = (layout == null || layout.isEmpty())
+                ? defaultLayoutFromCollectionId(id)
+                : layout;
+
         fromData.ifPresent(item -> {
             if (item.idKey == null || item.idKey.isEmpty())
                 throw new RoqFrontMatterConfigException(RoqException.builder("idKey cannot be null or empty")
                         .hint("Your configuration is missing a `site.collection.%s.from-data.id-key` property".formatted(id)));
 
-            if (layout == null || layout.isEmpty())
+            if (effectiveLayout == null || effectiveLayout.isEmpty())
                 throw new RoqFrontMatterConfigException(RoqException.builder("layout cannot be null or empty")
                         .hint("Your configuration is missing a `site.collection.%s.layout` property".formatted(id)));
         });
+
+        if ((layout == null && effectiveLayout != null) || (layout != null && !layout.equals(effectiveLayout))) {
+            layout = effectiveLayout;
+        }
     }
 
     public String idKey() {
@@ -31,6 +39,13 @@ public record ConfiguredCollection(
 
     public String dataName() {
         return fromData.map(CollectionFromData::name).orElse(id);
+    }
+
+    private static String defaultLayoutFromCollectionId(String collectionId) {
+        if (collectionId != null && collectionId.endsWith("s") && collectionId.length() > 1) {
+            return collectionId.substring(0, collectionId.length() - 1);
+        }
+        return collectionId;
     }
 
     public record CollectionFromData(String idKey, String name) {
