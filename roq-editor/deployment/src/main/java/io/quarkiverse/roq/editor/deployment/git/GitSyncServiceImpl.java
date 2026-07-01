@@ -26,6 +26,7 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig;
+import io.quarkiverse.roq.editor.runtime.devui.RoqEditorConfig.SyncConfig.Mode;
 import io.quarkiverse.roq.editor.runtime.devui.git.GitStatusInfo;
 import io.quarkiverse.roq.editor.runtime.devui.git.GitSyncResult;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -46,8 +47,10 @@ public class GitSyncServiceImpl implements GitSyncService {
     private static final String MSG_NO_GIT_REPO = "no-git-repo";
 
     private final File rootDirectory;
+    private final RoqEditorConfig editorConfig;
     private final GitContentFilter contentFilter;
     private final GitOperationHelper operationHelper;
+    private final GitPrFlowPublisher prFlowPublisher;
     private final ReentrantLock lock = new ReentrantLock();
     private volatile Boolean cachedIsSsh;
     private volatile boolean lastAuthFailed;
@@ -63,9 +66,12 @@ public class GitSyncServiceImpl implements GitSyncService {
      */
     public GitSyncServiceImpl(RoqEditorConfig editorConfig, RoqSiteConfig siteConfig, File rootDirectory) {
         this.rootDirectory = rootDirectory;
+        this.editorConfig = editorConfig;
         this.contentFilter = new GitContentFilter(siteConfig, rootDirectory);
         this.operationHelper = new GitOperationHelper(editorConfig, contentFilter);
         this.configuredPassphrase = editorConfig.sync().sshPassphrase().filter(p -> !p.isEmpty()).orElse(null);
+        this.prFlowPublisher = new GitPrFlowPublisher(editorConfig, operationHelper, credentialHelper,
+                configuredPassphrase, this::performPull, this::doDirectPublish);
     }
 
     /**
@@ -259,14 +265,16 @@ public class GitSyncServiceImpl implements GitSyncService {
     }
 
     /**
-     * Publishes changes by staging, committing, and pushing to the remote repository.
+     * Publishes the given changes by staging, committing, and pushing to the remote.
+     * Routes to the direct flow or the PR flow based on the configured {@link Mode}.
      *
-     * @param commitMessage the commit message
-     * @param filePaths the file paths to publish
+     * @param commitMessage the commit message to use
+     * @param filePaths the file paths to stage
+     * @param branchNameOverride optional name for the content branch (PR flow only)
      * @return the result of the publish operation
      */
     @Override
-    public GitSyncResult publish(String commitMessage, List<String> filePaths) {
+    public GitSyncResult publish(String commitMessage, List<String> filePaths, String branchNameOverride) {
         lock.lock();
         try (Repository repository = openRepository()) {
             if (repository == null) {
@@ -274,33 +282,10 @@ public class GitSyncServiceImpl implements GitSyncService {
             }
 
             try (Git git = new Git(repository)) {
-                operationHelper.stageChanges(git, repository, filePaths);
-
-                GitSyncResult stateResult = operationHelper.finalizeState(git, repository, commitMessage);
-                if (stateResult != null) {
-                    return stateResult;
+                if (editorConfig.sync().mode() == Mode.DIRECT) {
+                    return doDirectPublish(git, repository, commitMessage, filePaths);
                 }
-
-                tryFetch(git, GitTransportHelper.isSsh(repository));
-
-                BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
-                if (trackingStatus != null && trackingStatus.getBehindCount() > 0
-                        && repository.getRepositoryState() == RepositoryState.SAFE) {
-                    LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
-                    GitSyncResult syncResult = doSync(git, repository);
-                    if (!syncResult.success()) {
-                        return syncResult;
-                    }
-                }
-
-                RepositoryState state = repository.getRepositoryState();
-                if (state != RepositoryState.SAFE) {
-                    return new GitSyncResult(true,
-                            "Partial resolution successful (State: " + state + "). Continue resolving/publishing.", false,
-                            Collections.emptyList(), false);
-                }
-
-                return doPush(git, repository);
+                return prFlowPublisher.publish(git, repository, commitMessage, filePaths, branchNameOverride);
             }
         } catch (Exception e) {
             return handlePublishFailure(e);
@@ -314,14 +299,55 @@ public class GitSyncServiceImpl implements GitSyncService {
      *
      * @param commitMessage the commit message
      * @param filePaths the file paths to publish
+     * @param branchNameOverride optional name for the content branch (PR flow only)
      * @return the result of the publish and sync operation
      */
     @Override
-    public GitSyncResult publishAndSync(String commitMessage, List<String> filePaths) {
-        GitSyncResult publishResult = publish(commitMessage, filePaths);
+    public GitSyncResult publishAndSync(String commitMessage, List<String> filePaths, String branchNameOverride) {
+        GitSyncResult publishResult = publish(commitMessage, filePaths, branchNameOverride);
         if (!publishResult.success())
             return publishResult;
         return sync();
+    }
+
+    /**
+     * Direct publish flow: stage, commit, optionally merge if behind, then push to the current branch.
+     *
+     * @param git the Git instance
+     * @param repository the JGit repository
+     * @param commitMessage the commit message to use
+     * @param filePaths the file paths to stage
+     * @return the result of the publish operation
+     */
+    private GitSyncResult doDirectPublish(Git git, Repository repository, String commitMessage, List<String> filePaths)
+            throws Exception {
+        operationHelper.stageChanges(git, repository, filePaths);
+
+        GitSyncResult stateResult = operationHelper.finalizeState(git, repository, commitMessage);
+        if (stateResult != null) {
+            return stateResult;
+        }
+
+        tryFetch(git, GitTransportHelper.isSsh(repository));
+
+        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(repository, repository.getBranch());
+        if (trackingStatus != null && trackingStatus.getBehindCount() > 0
+                && repository.getRepositoryState() == RepositoryState.SAFE) {
+            LOG.debug(MSG_AUTO_MERGE_DURING_PUBLISH);
+            GitSyncResult syncResult = doSync(git, repository);
+            if (!syncResult.success()) {
+                return syncResult;
+            }
+        }
+
+        RepositoryState state = repository.getRepositoryState();
+        if (state != RepositoryState.SAFE) {
+            return new GitSyncResult(true,
+                    "Partial resolution successful (State: " + state + "). Continue resolving/publishing.", false,
+                    Collections.emptyList(), false);
+        }
+
+        return doPush(git, repository);
     }
 
     /**
