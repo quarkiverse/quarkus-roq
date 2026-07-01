@@ -1,0 +1,11 @@
+@layer components {
+    .posts { @apply py-12 max-w-5xl mx-auto; }
+    .posts > h2 { @apply text-4xl font-bold mb-8; }
+    .posts-wrapper { @apply space-y-6; }
+    .article-item { @apply pb-6 border-b border-border; }
+    .article-title { @apply text-2xl font-semibold mt-2 mb-2; }
+    .article-title a { @apply text-primary hover:underline; }
+    .article-date { @apply text-sm text-tertiary; }
+    .article-description { @apply text-primary; }
+    .article-tag { @apply px-2 py-1 rounded text-xs bg-surface-3 text-secondary hover:opacity-80 transition-opacity no-underline; }
+}
