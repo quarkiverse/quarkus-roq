@@ -73,16 +73,26 @@ public class RoqFrontMatterRecorder {
         return () -> new Sources(list);
     }
 
-    public Consumer<Route> initializeRoute() {
+    public Consumer<Route> initializeResolverRoute() {
+        return r -> {
+            r.method(HttpMethod.GET);
+            r.order(config.routeOrder() - 10);
+        };
+    }
+
+    public Consumer<Route> initializeRenderRoute() {
         return r -> {
             r.method(HttpMethod.GET);
             r.order(config.routeOrder());
         };
     }
 
-    public Handler<RoutingContext> handler(String rootPath,
-            Map<String, Supplier<? extends Page>> pageSuppliers) {
-        return new RoqRouteHandler(rootPath, httpConfig, pageSuppliers, config, locales);
+    public Handler<RoutingContext> pageResolver(Map<String, Supplier<? extends Page>> pageSuppliers) {
+        return new RoqPageResolverHandler(pageSuppliers);
+    }
+
+    public Handler<RoutingContext> renderHandler() {
+        return new RoqRouteHandler(httpConfig, config, locales);
     }
 
     public Handler<RoutingContext> aliasRoute(String target) {

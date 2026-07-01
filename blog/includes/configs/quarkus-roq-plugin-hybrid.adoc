@@ -1,0 +1,180 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-store]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-store[`+++site.hybrid.cache-store+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-store+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Cache store backend.
+
+ - `filesystem`: rendered pages are written to disk (survives restarts, low memory usage)
+ - `memory`: rendered pages are kept in memory using Caffeine (faster, lost on restart)
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_STORE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_STORE+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`filesystem`, `memory`
+|`+++filesystem+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-dir]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-dir[`+++site.hybrid.cache-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Directory for filesystem cache storage. Only used when `cache-store=filesystem`.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-mode]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-mode[`+++site.hybrid.cache-mode+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-mode+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Default cache mode for pages. Can be overridden per-page via frontmatter `cached: lazy++\|++startup++\|++false`.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_MODE+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`false`, `startup`, `lazy`
+|`+++lazy+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-in-dev-mode]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-in-dev-mode[`+++site.hybrid.cache-in-dev-mode+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-in-dev-mode+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Enable caching in dev mode. By default, caching is disabled in dev and test mode so that template changes are always reflected immediately. Set to `true` to test caching behavior during development.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_IN_DEV_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_IN_DEV_MODE+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-max-size]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-max-size[`+++site.hybrid.cache-max-size+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-max-size+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Maximum number of pages to keep in the runtime cache. When the cache exceeds this size, the least recently used entries are evicted.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_MAX_SIZE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_MAX_SIZE+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++1000+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-ttl]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-ttl[`+++site.hybrid.cache-ttl+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-ttl+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Time-to-live for cached pages. When set, cached entries expire after this duration and will be re-rendered on the next request. Example values: 5m, 1h, 30s.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_TTL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_TTL+++`
+endif::add-copy-button-to-env-var[]
+--
+|link:https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Duration.html[Duration] link:#duration-note-anchor-quarkus-roq-plugin-hybrid_site-hybrid[icon:question-circle[title=More information about the Duration format]]
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-hybrid_site-hybrid-cache-build-id]] [.property-path]##link:#quarkus-roq-plugin-hybrid_site-hybrid-cache-build-id[`+++site.hybrid.cache-build-id+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++site.hybrid.cache-build-id+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Identifier used as a subdirectory in the filesystem cache to isolate builds. When not set, defaults to the Quarkus application UUID (changes on each restart). Set to a fixed value (e.g. git hash, app version) to persist the cache across restarts.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++SITE_HYBRID_CACHE_BUILD_ID+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++SITE_HYBRID_CACHE_BUILD_ID+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++${quarkus.uuid}+++`
+
+|===
+
+ifndef::no-duration-note[]
+[NOTE]
+[id=duration-note-anchor-quarkus-roq-plugin-hybrid_site-hybrid]
+.About the Duration format
+====
+To write duration values, use the standard `java.time.Duration` format.
+See the link:https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Duration.html#parse(java.lang.CharSequence)[Duration#parse() Java API documentation] for more information.
+
+You can also use a simplified format, starting with a number:
+
+* If the value is only a number, it represents time in seconds.
+* If the value is a number followed by `ms`, it represents time in milliseconds.
+
+In other cases, the simplified format is translated to the `java.time.Duration` format for parsing:
+
+* If the value is a number followed by `h`, `m`, or `s`, it is prefixed with `PT`.
+* If the value is a number followed by `d`, it is prefixed with `P`.
+====
+endif::no-duration-note[]
