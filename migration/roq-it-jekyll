@@ -1,0 +1,204 @@
+#! /bin/bash
+
+set -x
+
+command -v jbang >/dev/null 2>&1 || { echo "jbang required. Install: curl -Ls https://sh.jbang.dev | bash -s -"; exit 1; }
+
+export project_dir=$1
+export tools_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export tmp_dir=~/tmp
+export ROQ_VERSION=${ROQ_VERSION:-999-SNAPSHOT}
+
+## Build the converter
+mvn -f ${tools_dir}/pom.xml install -q
+
+## Ensure a clean state in the starting project
+
+# Clear directories with roq names
+rm -rf ${project_dir}/content/
+rm -rf ${project_dir}/data/
+rm -rf ${project_dir}/templates/
+
+rm -f ${project_dir}/application.properties
+
+## Generate Roq project skeleton via roq create
+mkdir -p ${project_dir}/config ${tmp_dir}
+
+cat > ${project_dir}/config/application.properties <<'PROPS'
+PROPS
+
+# Generate pom.xml via jbang + roq create in a temp directory
+roq_tmp="${tmp_dir}/roq-create-$$"
+rm -rf ${roq_tmp}
+(cd ${tmp_dir} && jbang roq@quarkiverse/quarkus-roq create "roq-create-$$" --no-code -x theme:base --roq-version ${ROQ_VERSION})
+cp ${roq_tmp}/pom.xml ${project_dir}/pom.xml
+rm -rf ${roq_tmp}
+
+# Add roq-testing for @RoqAndRoll test support
+(cd ${project_dir} && mvn -q quarkus:add-extension \
+    -Dextensions="io.quarkiverse.roq:quarkus-roq-testing:${ROQ_VERSION}")
+
+# Remove Jekyll-specific files
+rm ${project_dir}/Gemfile
+rm ${project_dir}/Gemfile.lock
+
+# Roq content lives in content
+mkdir -p ${project_dir}/content
+mv ${project_dir}/*md ${project_dir}/content/
+
+mkdir -p ${project_dir}/templates
+
+# Adjust folder names and locations
+mv ${project_dir}/_posts ${project_dir}/content/posts
+mv ${project_dir}/_data ${project_dir}/data
+# done with a liquid conversion step mv _layouts templates/layouts
+
+## Assets maps to public in roq
+mv ${project_dir}/assets ${project_dir}/public
+
+# Replace SCSS source with compiled CSS from _site (Jekyll compiled it)
+if [ -f "${project_dir}/_site/assets/css/main.css" ]; then
+    cp ${project_dir}/_site/assets/css/main.css ${project_dir}/public/css/main.css
+    rm -f ${project_dir}/public/css/main.scss
+fi
+
+mv ${project_dir}/_site/index.html ${project_dir}
+
+# Convert Liquid to Qute; this has the side effect of renaming directories to adjust the structure
+mkdir -p ${project_dir}/templates/partials
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_includes ${project_dir}/templates/partials"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts"
+
+# Data directories (subdirs of data/) can't be accessed as single CDI beans.
+# Revert cdi: prefix for these and leave a TODO comment in the templates.
+if [ -d "${project_dir}/data" ]; then
+    for dir in ${project_dir}/data/*/; do
+        dirname=$(basename "$dir")
+        find ${project_dir}/templates ${project_dir}/templates/partials -name '*.html' -exec \
+            sed -i '' "s/cdi:${dirname}/site.data.${dirname}/g" {} + 2>/dev/null
+    done
+fi
+
+# Copy Jekyll filter extensions (where, first, last, size for JsonArray)
+mkdir -p ${project_dir}/src/main/java/io/quarkus/tools/migration
+cp ${tools_dir}/src/main/resources/migration-helpers/JekyllFiltersExtension.java \
+   ${project_dir}/src/main/java/io/quarkus/tools/migration/
+
+# Enable the alternative expression syntax to reduce overhead of escaping braces
+echo quarkus.qute.alt-expr-syntax=true >> ${project_dir}/config/application.properties
+echo "site.date-format=yyyy-MM-dd['T'HH:mm:ss][X]" >> ${project_dir}/config/application.properties
+# Jekyll templates access arbitrary frontmatter fields that may not exist on every page
+echo "quarkus.qute.strict-rendering=false" >> ${project_dir}/config/application.properties
+# Exclude type checking for:
+# - Object.* (JsonArray iteration yields Object at build time)
+# - Page.paginator (only on NormalPage subclass, not visible at compile time)
+# - DocumentPage.* (post loop variables access custom frontmatter via data)
+echo "quarkus.qute.type-check-excludes=java.lang.Object.*,io.quarkiverse.roq.frontmatter.runtime.model.Page.paginator,io.quarkiverse.roq.frontmatter.runtime.model.Page.tags,io.quarkiverse.roq.frontmatter.runtime.model.Page.tagsCount,io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage.*" >> ${project_dir}/config/application.properties
+# Fix asset paths: Jekyll's assets/ dir was moved to public/ which is served at root.
+# Strip /assets/ prefix from all template and CSS references.
+find ${project_dir}/templates -name '*.html' -exec \
+    sed -i '' 's|/assets/|/|g' {} +
+find ${project_dir}/public -name '*.css' -exec \
+    sed -i '' 's|/assets/|/|g' {} +
+
+# TODO: Workaround for Jekyll→Qute variable scoping mismatch in includes.
+# Problem: Jekyll's {% assign %} creates page-scoped variables that are visible inside {% include %} blocks.
+# In Qute, {#let} variables are block-scoped and NOT visible inside {#include} templates. So a variable
+# like search_script assigned in base.html with {#let} is invisible inside {#include partials/head-csp.html /}.
+# This causes PropertyNotFoundThrowException at runtime even with strict-rendering=false.
+#
+# Current fix: Append ?? (or-empty) to all simple standalone variable references in partials, making them
+# resolve to empty string instead of throwing when the variable is missing.
+#
+# Better solutions to explore:
+#   1. Pass variables explicitly as include parameters: {#include partials/head-csp.html search_script=search_script /}
+#      This would require the converter to track which variables are used in each include and auto-generate params.
+#   2. Convert Jekyll assigns to Qute @TemplateData beans or CDI-injected values so they're globally accessible.
+#   3. Restructure templates to inline the partial content where scoped variables are needed.
+#   4. Add a Roq/Qute feature for "transparent includes" that inherit the parent's variable scope (like Jekyll).
+find ${project_dir}/templates/partials -name '*.html' -exec \
+    sed -i '' 's/{=\([a-z_][a-z_0-9]*\)}/{=\1??}/g' {} +
+
+# Comment out blocks using whereExp (no Qute equivalent)
+python3 -c "
+import re, glob, os
+for f in glob.glob(os.path.join('${project_dir}', 'templates', '**', '*.html'), recursive=True) + \
+         glob.glob(os.path.join('${project_dir}', 'includes', '**', '*.html'), recursive=True):
+    with open(f) as fh: content = fh.read()
+    if 'whereExp' not in content: continue
+    # Find the nearest enclosing {#if ...} ... {/if} around whereExp and comment it out
+    content = re.sub(
+        r'(\{#if [^}]*\}(?:(?!\{#if ).)*?whereExp.*?\{/if\})',
+        r'{! TODO: whereExp needs Roq reimplementation\n\1\n!}',
+        content, flags=re.DOTALL)
+    with open(f, 'w') as fh: fh.write(content)
+"
+
+# Extract site properties from _config.yml and create data/siteConfig.yml
+# This makes Jekyll's site.* properties available as cdi:siteConfig.* in Roq
+# Note: Can't use "site" as the name because Roq already has a Site object with that name
+if [ -f "${project_dir}/_config.yml" ]; then
+    mkdir -p ${project_dir}/data
+
+    # Extract CNAME (GitHub Pages custom domain, used by some templates)
+    cname=""
+    if [ -f "${project_dir}/CNAME" ]; then
+        cname=$(cat ${project_dir}/CNAME | tr -d '[:space:]')
+    fi
+
+    # Extract baseurl (default to empty string if not set)
+    baseurl=$(grep "^baseurl:" ${project_dir}/_config.yml | sed 's/^baseurl: *"\(.*\)".*/\1/' | sed "s/^baseurl: *'\(.*\)'.*/\1/" | sed 's/^baseurl: *\([^ #]*\).*/\1/')
+
+    # Extract language (default to en if not set)
+    language=$(grep "^language:" ${project_dir}/_config.yml | sed 's/^language: *\([^ #]*\).*/\1/')
+    language=${language:-en}
+
+    # Extract twitter_username
+    twitter_username=$(grep "^twitter_username:" ${project_dir}/_config.yml | sed 's/^twitter_username: *\([^ #]*\).*/\1/')
+
+    # Extract nested search config from _config.yml
+    # Note: This is a simplified extraction - complex YAML may need a proper parser
+    search_script_mode=$(grep -A10 "^search:" ${project_dir}/_config.yml | grep "script-mode:" | sed 's/.*script-mode: *"\(.*\)".*/\1/')
+    search_host=$(grep -A10 "^search:" ${project_dir}/_config.yml | grep "host:" | sed 's/.*host: *"\(.*\)".*/\1/')
+    search_script_path=$(grep -A10 "^search:" ${project_dir}/_config.yml | grep "script-path:" | sed 's/.*script-path: *"\(.*\)".*/\1/')
+    search_cached_script_file=$(grep -A10 "^search:" ${project_dir}/_config.yml | grep "cached-script-file:" | sed 's/.*cached-script-file: *"\(.*\)".*/\1/' | sed "s/.*cached-script-file: *\([^ ]*\).*/\1/")
+
+    # Create data/siteConfig.yml with extracted values
+    cat > ${project_dir}/data/siteConfig.yml <<SITEDATA
+cname: "${cname}"
+baseurl: "${baseurl}"
+language: "${language}"
+search:
+  script-mode: "${search_script_mode}"
+  host: "${search_host}"
+  script-path: "${search_script_path}"
+  cached-script-file: "${search_cached_script_file}"
+twitter_username: "${twitter_username}"
+tags: []
+SITEDATA
+fi
+
+# Detect Jekyll features and add corresponding Roq plugins
+
+# Check for tags usage (in posts or layouts)
+if grep -q "^tags:" ${project_dir}/content/posts/*.md 2>/dev/null || \
+   grep -q "site.tags" ${project_dir}/templates/layouts/*.html 2>/dev/null; then
+    echo "Detected tags usage - adding quarkus-roq-plugin-tagging"
+    (cd ${project_dir} && mvn -q quarkus:add-extension \
+        -Dextensions="io.quarkiverse.roq:quarkus-roq-plugin-tagging:${ROQ_VERSION}")
+fi
+
+# TODO need to add name and simple-name - global config?
+
+if [ "${BATCH_MODE}" != "true" ]; then
+    (
+        cd ${project_dir}
+        mvn quarkus:dev
+    )
+else
+    echo "Batch mode: running quarkus:build to check for errors..."
+    (
+        cd ${project_dir}
+        mvn quarkus:build 2>&1
+    )
+fi
