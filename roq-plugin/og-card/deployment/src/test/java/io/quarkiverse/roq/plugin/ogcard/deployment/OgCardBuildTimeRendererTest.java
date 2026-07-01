@@ -6,18 +6,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.roq.plugin.ogcard.runtime.OgCardConfig;
 import io.quarkiverse.roq.plugin.ogcard.runtime.model.OgCardData;
 import io.quarkiverse.roq.plugin.ogcard.runtime.model.OgCardTarget;
 import io.quarkus.qute.Engine;
-import io.smallrye.config.SmallRyeConfig;
-import io.smallrye.config.SmallRyeConfigBuilder;
 
 class OgCardBuildTimeRendererTest {
 
@@ -41,12 +37,6 @@ class OgCardBuildTimeRendererTest {
 
     @Test
     void rendersDefaultCardTemplateWithXmlEscapedTitle() throws IOException {
-        OgCardConfig config = config(
-                "quarkus.roq.plugin.og-card.template=og-card/default-card.svg",
-                "quarkus.roq.plugin.og-card.width=1200",
-                "quarkus.roq.plugin.og-card.height=630",
-                "quarkus.roq.plugin.og-card.site-name=Test & Co");
-
         Engine engine = Engine.builder().addDefaults().build();
         registerDefaultCardTemplate(engine);
 
@@ -65,15 +55,8 @@ class OgCardBuildTimeRendererTest {
         assertThat(card.title()).isEqualTo("Foo &amp; Bar");
         assertThat(card.description()).isEqualTo("Description with &lt;tags&gt;");
 
-        Map<String, Object> cardData = Map.of(
-                "title", card.title(),
-                "description", card.description(),
-                "siteName", card.siteName(),
-                "kicker", card.kicker(),
-                "eyebrow", card.eyebrow());
-
         String svg = engine.getTemplate("og-card/default-card.svg")
-                .data("card", cardData)
+                .data("card", card.asTemplateData())
                 .setAttribute("escape", false)
                 .render();
 
@@ -114,15 +97,4 @@ class OgCardBuildTimeRendererTest {
         assertThat(image.getHeight()).isEqualTo(height);
     }
 
-    private static OgCardConfig config(String... keyValues) {
-        SmallRyeConfigBuilder builder = new SmallRyeConfigBuilder()
-                .withMapping(OgCardConfig.class)
-                .withValidateUnknown(false);
-        for (String keyValue : keyValues) {
-            int idx = keyValue.indexOf('=');
-            builder.withDefaultValue(keyValue.substring(0, idx), keyValue.substring(idx + 1));
-        }
-        SmallRyeConfig smallRyeConfig = builder.build();
-        return smallRyeConfig.getConfigMapping(OgCardConfig.class);
-    }
 }

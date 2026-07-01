@@ -40,7 +40,7 @@ final class OgCardBuildTimeRenderer {
     }
 
     static byte[] render(OgCardConfig config, Engine engine, OgCardTarget target) {
-        OgCardData card = OgCardData.fromTarget(target);
+        OgCardData card = OgCardData.fromTarget(target, config.maxTextWidth());
         Template template = engine.getTemplate(config.template());
         if (template == null) {
             throw new IllegalStateException("OG card template not found: " + config.template());

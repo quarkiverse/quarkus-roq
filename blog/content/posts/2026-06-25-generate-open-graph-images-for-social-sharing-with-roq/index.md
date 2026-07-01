@@ -49,15 +49,23 @@ Pages with an existing `image:`, `img:`, or `picture:` frontmatter are skipped b
 
 ## Custom card template
 
-Create `templates/og-card/my-card.svg` with a fixed 1200×630 viewBox. The plugin passes a `card` data object:
+Create `templates/og-card/my-card.svg` with a fixed 1200×630 viewBox. The plugin passes a `card` data object with pre-wrapped line arrays for multi-line rendering:
 
 ```svg
-<text x="72" y="170">{card.title}</text>
-<text x="72" y="250">{card.description}</text>
+<text x="72" y="170" font-size="52">
+  {#for line in card.titleLines}
+  <tspan x="72" dy="{line_isFirst ? '0' : '62'}">{line}</tspan>
+  {/for}
+</text>
+<text x="72" y="260" font-size="28">
+  {#for line in card.descriptionLines}
+  <tspan x="72" dy="{line_isFirst ? '0' : '34'}">{line}</tspan>
+  {/for}
+</text>
 <text x="72" y="582">{card.siteName}</text>
 ```
 
-The Roq blog dogfoods a branded `roq-card.svg` that inlines the Roq mascot SVG paths (Batik cannot resolve external image URLs during render).
+Set `max-text-width` to limit how wide text can flow before wrapping — useful when graphics occupy part of the card. The Roq blog dogfoods a branded `roq-card.svg` that inlines the Roq mascot SVG paths and sets `max-text-width=700` to keep text clear of the mascot (Batik cannot resolve external image URLs during render).
 
 ## Viewing your cards
 

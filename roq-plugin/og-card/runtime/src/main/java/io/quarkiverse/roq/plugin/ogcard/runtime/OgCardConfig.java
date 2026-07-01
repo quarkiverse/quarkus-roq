@@ -71,4 +71,13 @@ public interface OgCardConfig {
      */
     @WithDefault("og-card/default-card.svg")
     String template();
+
+    /**
+     * Maximum horizontal width in pixels available for text in the card template.
+     * Used to compute line wrapping for title and description. Set to {@code -1}
+     * to auto-compute as {@code width - 144} (72px margin on each side).
+     * Reduce this when the template has graphics (e.g. a mascot) occupying the right side.
+     */
+    @WithDefault("-1")
+    int maxTextWidth();
 }
