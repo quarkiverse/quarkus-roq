@@ -31,6 +31,7 @@ public class RoqFrontMatterStep0SetupProcessor {
 
     // Data modifications are callbacks that transform front matter data during Step2 (assemble).
     // They run on every page/layout and can add/modify front matter keys.
+    private static final String DRAFT_DIRECTORY = "/";
 
     @BuildStep
     void registerEscapedTemplates(RoqSiteConfig config,
@@ -52,8 +53,10 @@ public class RoqFrontMatterStep0SetupProcessor {
         // Pages inside the draft directory are automatically marked as drafts
         // (unless they already have an explicit "draft" key in their front matter)
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
+            var relativePath = sourceData.relativePath();
             var isInDraftDirectory = sourceData.isPage() && sourceData.collection() != null
-                    && sourceData.relativePath().contains(config.draftDirectory() + "/");
+                    && (relativePath.startsWith(config.draftDirectory() + DRAFT_DIRECTORY)
+                            || relativePath.contains("/" + config.draftDirectory() + DRAFT_DIRECTORY));
 
             if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT)) {
                 sourceData.fm().put(DRAFT, true);
