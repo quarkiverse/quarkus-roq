@@ -86,11 +86,6 @@
             <version>1.6.3</version>
         </dependency>-->
         <dependency>
-            <groupId>io.quarkiverse.chappie</groupId>
-            <artifactId>quarkus-chappie</artifactId>
-            <version>1.6.3</version>
-        </dependency>
-        <dependency>
             <groupId>org.mvnpm</groupId>
             <artifactId>highlight.js</artifactId>
             <version>${mvnpm.highlightjs.version}</version>
