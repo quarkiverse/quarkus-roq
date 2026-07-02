@@ -25,6 +25,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
@@ -76,7 +77,7 @@ public class RoqEditorJsonRPCService {
     @Blocking
     public List<PageSource> getPosts() {
         return Optional.ofNullable(site.collections().get("posts")).stream()
-                .flatMap(s -> s.stream())
+                .flatMap(RoqCollection::stream)
                 .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
                         p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
