@@ -53,8 +53,10 @@ public class RoqFrontMatterStep0SetupProcessor {
         // Pages inside the draft directory are automatically marked as drafts
         // (unless they already have an explicit "draft" key in their front matter)
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
+            var relativePath = sourceData.relativePath();
+            var draftDir = config.draftDirectory().replaceAll("/+$", "");
             var isInDraftDirectory = sourceData.isPage() && sourceData.collection() != null
-                    && sourceData.relativePath().contains(config.draftDirectory() + "/");
+                    && (relativePath.startsWith(draftDir + "/") || relativePath.contains("/" + draftDir + "/"));
 
             if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT)) {
                 sourceData.fm().put(DRAFT, true);
