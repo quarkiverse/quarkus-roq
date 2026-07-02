@@ -1,0 +1,48 @@
+@layer components {
+
+    .content-prose details {
+        @apply my-4;
+
+        > summary {
+            @apply inline-flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none;
+            @apply px-3 py-1 rounded-full;
+            @apply bg-pop-100 text-pop-700 dark:bg-pop-900 dark:text-pop-300;
+            transition: background-color 0.2s, padding 0.2s, border-radius 0.2s;
+
+            &::-webkit-details-marker { @apply hidden; }
+
+            &::before {
+                content: "\276f";
+                font-size: 0.75em;
+                color: var(--color-neutral-400);
+                transition: transform 0.25s, color 0.25s;
+            }
+
+            &:hover {
+                @apply bg-pop-200 dark:bg-pop-800;
+                &::before { color: var(--color-pop-500); }
+            }
+        }
+
+        &[open] > summary {
+            @apply mb-2 px-4 py-1.5 rounded-md w-full;
+            @apply bg-pop-50 text-pop-800 dark:bg-pop-950 dark:text-pop-200;
+            &::before { transform: rotate(90deg); }
+        }
+
+        &[open] > :not(summary) {
+            @apply pl-4;
+            animation: detailsFadeIn 0.3s ease;
+        }
+
+        &[open] > :not(summary):first-of-type { @apply mt-0; }
+    }
+
+    .content-prose details + details { @apply mt-3; }
+
+    @keyframes detailsFadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+}

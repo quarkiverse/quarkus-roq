@@ -40,6 +40,7 @@
     if (!headings.length) return sidebar.parentNode.removeChild(sidebar)
 
     var lastActiveFragment
+    var clickedAt = 0
     var links = {}
     var list = headings.reduce(function (accum, heading) {
         var link = document.createElement('a')
@@ -73,52 +74,42 @@
         window.addEventListener('scroll', onScroll)
     })
 
+    function setActive (fragment) {
+        if (fragment === lastActiveFragment) return
+        if (lastActiveFragment) links[lastActiveFragment].classList.remove('is-active')
+        if (fragment && links[fragment]) {
+            links[fragment].classList.add('is-active')
+            if (list.scrollHeight > list.offsetHeight) {
+                list.scrollTop = Math.max(0, links[fragment].offsetTop + links[fragment].offsetHeight - list.offsetHeight)
+            }
+        }
+        lastActiveFragment = fragment
+    }
+
     function onScroll () {
-        var scrolledBy = window.pageYOffset
+        if (Date.now() - clickedAt < 500) return
         var buffer = getNumericStyleVal(document.documentElement, 'fontSize') * 1.15
         var ceil = article.offsetTop
-        if (scrolledBy && window.innerHeight + scrolledBy + 2 >= document.documentElement.scrollHeight) {
-            lastActiveFragment = Array.isArray(lastActiveFragment) ? lastActiveFragment : Array(lastActiveFragment || 0)
-            var activeFragments = []
-            var lastIdx = headings.length - 1
-            headings.forEach(function (heading, idx) {
-                var fragment = '#' + heading.id
-                if (idx === lastIdx || heading.getBoundingClientRect().top + getNumericStyleVal(heading, 'paddingTop') > ceil) {
-                    activeFragments.push(fragment)
-                    if (lastActiveFragment.indexOf(fragment) < 0) links[fragment].classList.add('is-active')
-                } else if (~lastActiveFragment.indexOf(fragment)) {
-                    links[lastActiveFragment.shift()].classList.remove('is-active')
-                }
-            })
-            list.scrollTop = list.scrollHeight - list.offsetHeight
-            lastActiveFragment = activeFragments.length > 1 ? activeFragments : activeFragments[0]
-            return
-        }
-        if (Array.isArray(lastActiveFragment)) {
-            lastActiveFragment.forEach(function (fragment) {
-                links[fragment].classList.remove('is-active')
-            })
-            lastActiveFragment = undefined
-        }
         var activeFragment
         headings.some(function (heading) {
             if (heading.getBoundingClientRect().top + getNumericStyleVal(heading, 'paddingTop') - buffer > ceil) return true
             activeFragment = '#' + heading.id
         })
-        if (activeFragment) {
-            if (activeFragment === lastActiveFragment) return
-            if (lastActiveFragment) links[lastActiveFragment].classList.remove('is-active')
-            var activeLink = links[activeFragment]
-            activeLink.classList.add('is-active')
-            if (list.scrollHeight > list.offsetHeight) {
-                list.scrollTop = Math.max(0, activeLink.offsetTop + activeLink.offsetHeight - list.offsetHeight)
-            }
-            lastActiveFragment = activeFragment
-        } else if (lastActiveFragment) {
-            links[lastActiveFragment].classList.remove('is-active')
-            lastActiveFragment = undefined
+        if (!activeFragment && headings.length) {
+            activeFragment = '#' + headings[headings.length - 1].id
         }
+        setActive(activeFragment)
     }
+
+    list.addEventListener('click', function (e) {
+        var link = e.target.closest('a')
+        if (!link) return
+        var fragment = link.getAttribute('href')
+        if (fragment) {
+            clickedAt = Date.now()
+            setActive(fragment)
+        }
+    })
 
     function find (selector, from) {
         return [].slice.call((from || document).querySelectorAll(selector))
