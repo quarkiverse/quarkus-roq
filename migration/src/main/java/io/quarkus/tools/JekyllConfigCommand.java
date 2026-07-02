@@ -12,8 +12,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "jekyll-config", mixinStandardHelpOptions = true, version = "1.0",
-        description = "Converts Jekyll _config.yml to Roq application.properties and data/siteConfig.yml")
+@Command(name = "jekyll-config", mixinStandardHelpOptions = true, version = "1.0", description = "Converts Jekyll _config.yml to Roq application.properties and data/siteConfig.yml")
 public class JekyllConfigCommand implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Jekyll project directory")
@@ -46,11 +45,11 @@ public class JekyllConfigCommand implements Callable<Integer> {
 
         try {
             converter.convertProject(projectDir);
-            
+
             System.out.println("✓ Jekyll config conversion complete:");
             System.out.println("  - Created/updated: config/application.properties");
             System.out.println("  - Created: data/siteConfig.yml");
-            
+
             return 0;
         } catch (Exception e) {
             System.err.println("✗ Error converting Jekyll config: " + e.getMessage());
