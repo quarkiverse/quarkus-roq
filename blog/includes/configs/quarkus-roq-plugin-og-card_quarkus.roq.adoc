@@ -1,0 +1,221 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-collections]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-collections[`+++quarkus.roq.plugin.og-card.collections+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.collections+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Collection ids for which OG images are generated (e.g. `posts`).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_COLLECTIONS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_COLLECTIONS+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-include-paths]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-include-paths[`+++quarkus.roq.plugin.og-card.include-paths+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.include-paths+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Explicit page paths to include (e.g. `/`, `/start/`).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_INCLUDE_PATHS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_INCLUDE_PATHS+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-exclude-paths]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-exclude-paths[`+++quarkus.roq.plugin.og-card.exclude-paths+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.exclude-paths+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+When using `collections`, page path prefixes to skip (e.g. `/posts/tag/` for auto-generated tag archives). Not applied to `include-paths`.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_EXCLUDE_PATHS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_EXCLUDE_PATHS+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-output-prefix]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-output-prefix[`+++quarkus.roq.plugin.og-card.output-prefix+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.output-prefix+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Base URL path for generated PNG files.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_OUTPUT_PREFIX+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_OUTPUT_PREFIX+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++/og+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-collection-output-segment]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-collection-output-segment[`+++quarkus.roq.plugin.og-card.collection-output-segment+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.collection-output-segment+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Output segment for collection documents. `:collection` is replaced with the collection id. The special value `:collections` appends `s` when the id does not already end with `s` (`guide` → `guides`).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_COLLECTION_OUTPUT_SEGMENT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_COLLECTION_OUTPUT_SEGMENT+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++:collections+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-width]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-width[`+++quarkus.roq.plugin.og-card.width+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.width+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Image width in pixels.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_WIDTH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_WIDTH+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++1200+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-height]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-height[`+++quarkus.roq.plugin.og-card.height+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.height+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Image height in pixels.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_HEIGHT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_HEIGHT+++`
+endif::add-copy-button-to-env-var[]
+--
+|int
+|`+++630+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-skip-if-image-set]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-skip-if-image-set[`+++quarkus.roq.plugin.og-card.skip-if-image-set+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.skip-if-image-set+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+When true, pages that already declare `image`, `img`, or `picture` are skipped.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_SKIP_IF_IMAGE_SET+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_SKIP_IF_IMAGE_SET+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-site-name]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-site-name[`+++quarkus.roq.plugin.og-card.site-name+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.site-name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Site name used in OG image alt text and card branding.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_SITE_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_SITE_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++Site+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-template]] [.property-path]##link:#quarkus-roq-plugin-og-card_quarkus-roq-plugin-og-card-template[`+++quarkus.roq.plugin.og-card.template+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.og-card.template+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Qute template id for the OG card (site templates override bundled defaults).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_OG_CARD_TEMPLATE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_OG_CARD_TEMPLATE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++og-card/default-card.svg+++`
+
+|===
+
