@@ -374,6 +374,7 @@ export class QwcRoqEditor extends LitElement {
             @page-open="${this._onPageOpen}"
             @page-delete="${this._onPageDelete}"
             @page-sync-path="${this._onPageSyncPath}"
+            @sync-all-names="${this._onSyncAllNames}"
             @sync-requested="${this._onSyncRequested}"
             @publish-requested="${this._onPublishRequested}"
             @show-conflicts="${(e) => showConflictDialog(e.detail.files)}"
@@ -390,6 +391,7 @@ export class QwcRoqEditor extends LitElement {
             .syncing="${this._syncing}"
             .publishing="${this._publishing}"
             @page-open="${this._onPageOpen}"
+            @sync-all-names="${this._onSyncAllNames}"
             @sync-requested="${this._onSyncRequested}"
             @publish-requested="${this._onPublishRequested}"
             @show-conflicts="${(e) => showConflictDialog(e.detail.files)}">
@@ -470,6 +472,43 @@ export class QwcRoqEditor extends LitElement {
             showNotification('Error syncing page path: ' + error.message);
             console.error(error);
         });
+    }
+
+    async _onSyncAllNames(e) {
+        e.stopPropagation();
+        const pages = (e.detail.pages || []).filter(p => p.suggestedPath);
+        if (pages.length === 0) return;
+
+        const listed = pages.map(p => `• ${p.title || p.path} → ${p.suggestedPath}`).join('\n');
+        const confirmed = await showConfirm(
+            `Sync the file name of ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}?\n\n${listed}`,
+            { title: 'Sync all file names', confirmText: 'Sync all', theme: 'primary' }
+        );
+        if (!confirmed) return;
+
+        let synced = 0;
+        const failures = [];
+        for (const page of pages) {
+            try {
+                const jsonRpcResponse = await this._writeCall('syncPath', {path: page.path});
+                const newPath = jsonRpcResponse.result?.newPath;
+                if (newPath) {
+                    this._applyPagePath(page, newPath);
+                    synced++;
+                }
+            } catch (error) {
+                failures.push({page, error});
+                showNotification('Error syncing "' + (page.title || page.path) + '": ' + error.message);
+                console.error(error);
+            }
+        }
+
+        if (synced > 0) {
+            showNotification(
+                `${synced} ${synced === 1 ? 'file name' : 'file names'} synced` + (failures.length > 0 ? ` (${failures.length} failed)` : ''),
+                'success'
+            );
+        }
     }
 
     _applyPagePath(page, newPath) {
