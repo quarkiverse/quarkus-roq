@@ -11,7 +11,7 @@ metadata:
     - "web"
   status: "preview"
   codestart:
-    name: "roq-site-codestart"
+    name: "roq-default-theme-codestart"
     extra-names:
     - "roq-project-codestart"
     languages:

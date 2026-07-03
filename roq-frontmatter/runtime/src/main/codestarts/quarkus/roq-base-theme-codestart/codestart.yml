@@ -1,10 +1,10 @@
-name: roq-site-codestart
-ref: roq-site
+name: roq-base-theme-codestart
+ref: roq-base-theme
 type: code
 tags: extension-codestart
 metadata:
-  title: Roq Site
-  description: Base site content for Roq (index page, CSS). Overridden by theme codestarts.
+  title: Roq Base Theme
+  description: Minimal base theme for Roq (index page, CSS).
   related-guide-section: https://iamroq.dev/docs/
 language:
   base:
