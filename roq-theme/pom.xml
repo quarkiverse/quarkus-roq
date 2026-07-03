@@ -15,5 +15,6 @@
     <modules>
         <module>default</module>
         <module>resume</module>
+        <module>linktree</module>
     </modules>
 </project>

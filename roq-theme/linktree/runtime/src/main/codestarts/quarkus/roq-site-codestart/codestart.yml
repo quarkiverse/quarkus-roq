@@ -1,0 +1,20 @@
+name: roq-site-codestart
+ref: roq-site
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq Linktree Theme
+  description: This codestart provides a starter Roq link-tree site.
+  related-guide-section: https://iamroq.dev/theme/linktree-theme/
+language:
+  base:
+    dependencies:
+      - "io.quarkiverse.roq:quarkus-roq:${project.version}"
+    data:
+      profile:
+        name: Ada Lovelace
+        handle: "@adalovelace"
+        title: Computational Pioneer
+      tree:
+        title: Ada's Links
+        description: Resources and writings by Ada Lovelace

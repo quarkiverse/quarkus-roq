@@ -1,0 +1,26 @@
+name: Roq Linktree Theme
+description: A personal link-tree theme for Roq. Share your links, social profiles, and QR codes.
+metadata:
+  keywords:
+    - website
+    - theme
+    - linktree
+    - links
+    - tailwind
+    - css
+    - roq
+  guide: https://iamroq.dev/theme/linktree-theme/
+  categories:
+    - "web"
+  config:
+    - "site"
+  status: "preview"
+  codestart:
+    name: "roq-site-codestart"
+    extra-names:
+      - "roq-project-codestart"
+    languages:
+      - "java"
+      - "kotlin"
+      - "scala"
+    artifact: "io.quarkiverse.roq:quarkus-roq-theme-linktree:codestarts:jar:${project.version}"
