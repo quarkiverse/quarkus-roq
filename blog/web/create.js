@@ -36,8 +36,12 @@
     params.set('ndf', 'true');
     params.set('nw', 'true');
     params.append('ec', 'roq-project-codestart');
+    const ids = extensionIds();
+    if (!ids.some(id => id.includes('roq-theme-'))) {
+      params.append('ec', 'roq-base-theme-codestart');
+    }
     params.append('cd', `site.title=${state.title}`);
-    for (const id of extensionIds()) params.append('e', id);
+    for (const id of ids) params.append('e', id);
     if (extra) for (const [k, v] of Object.entries(extra)) params.set(k, v);
     return params;
   }

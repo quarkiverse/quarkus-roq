@@ -101,6 +101,12 @@ public class RoqProjectCreator {
             allExtensions.add(withVersion(ROQ_PREFIX + "theme-default"));
         }
 
+        Set<String> extraCodestarts = new LinkedHashSet<>();
+        extraCodestarts.add("roq-project-codestart");
+        if (allExtensions.stream().noneMatch(e -> e.contains("roq-theme-"))) {
+            extraCodestarts.add("roq-base-theme-codestart");
+        }
+
         ExtensionCatalog catalog = QuarkusProjectHelper.resolveExtensionCatalog();
         catalog = CreateProjectHelper.completeCatalog(catalog, allExtensions, QuarkusProjectHelper.artifactResolver());
         QuarkusProject qp = QuarkusProjectHelper.getProject(projectDir, catalog, buildTool);
@@ -110,7 +116,7 @@ public class RoqProjectCreator {
                 .artifactId(artifactId)
                 .version(version)
                 .extensions(allExtensions)
-                .extraCodestarts(Set.of("roq-project-codestart"))
+                .extraCodestarts(extraCodestarts)
                 .noDockerfiles();
 
         if (noCode) {

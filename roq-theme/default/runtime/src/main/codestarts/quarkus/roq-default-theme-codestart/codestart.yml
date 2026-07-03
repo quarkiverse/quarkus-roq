@@ -1,5 +1,5 @@
-name: roq-site-codestart
-ref: roq-site
+name: roq-default-theme-codestart
+ref: roq-default-theme
 type: code
 tags: extension-codestart
 metadata:
