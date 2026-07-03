@@ -183,9 +183,29 @@ class JekyllFrontMatterConverterTest {
 
         String result = Files.readString(contentDir.resolve("about.md"));
         assertFalse(result.contains("permalink:"));
-        assertFalse(result.contains("aliases:"));
+        assertFalse(result.contains("link:"));
         assertTrue(result.contains("layout: page"));
         assertTrue(result.contains("title: \"About\""));
+    }
+
+    @Test
+    void testPermalinkInSubdirNotStrippedWhenDifferentFromRelativePath(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Path guidesDir = contentDir.resolve("guides");
+        Files.createDirectories(guidesDir);
+        Files.writeString(guidesDir.resolve("guides.md"), """
+                ---
+                layout: documentation
+                permalink: /guides/
+                ---
+                """);
+
+        converter.convertPermalinks(contentDir);
+
+        String result = Files.readString(guidesDir.resolve("guides.md"));
+        assertTrue(result.contains("link: /guides/"),
+                "permalink /guides/ should become link because relative path is guides/guides, not guides");
+        assertFalse(result.contains("permalink:"));
     }
 
     @Test
@@ -220,7 +240,7 @@ class JekyllFrontMatterConverterTest {
         converter.convertPermalinks(contentDir);
 
         String result = Files.readString(contentDir.resolve("events.md"));
-        assertTrue(result.contains("aliases: /community/events/"));
+        assertTrue(result.contains("link: /community/events/"));
         assertFalse(result.contains("permalink:"));
     }
 
@@ -255,7 +275,230 @@ class JekyllFrontMatterConverterTest {
 
         String result = Files.readString(contentDir.resolve("about.md"));
         assertFalse(result.contains("permalink:"));
-        assertFalse(result.contains("aliases:"));
+        assertFalse(result.contains("link:"));
+    }
+
+    // --- Redirect deduplication tests ---
+
+    @Test
+    void testMergeRedirectDuplicates(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Path redirectsDir = contentDir.resolve("redirects/guides");
+        Files.createDirectories(redirectsDir);
+
+        Files.writeString(redirectsDir.resolve("foo-guide.html"), """
+                ---
+                permalink: /guides/foo-guide.html
+                newUrl: /guides/foo
+                ---
+                """);
+        Files.writeString(redirectsDir.resolve("foo-guide.md"), """
+                ---
+                permalink: /guides/foo-guide/index.html
+                newUrl: /guides/foo
+                ---
+                """);
+
+        converter.mergeRedirectDuplicates(contentDir);
+
+        assertTrue(Files.exists(redirectsDir.resolve("foo-guide.html")));
+        assertFalse(Files.exists(redirectsDir.resolve("foo-guide.md")));
+
+        String result = Files.readString(redirectsDir.resolve("foo-guide.html"));
+        assertTrue(result.contains("/guides/foo-guide.html"));
+        assertTrue(result.contains("/guides/foo-guide/index.html"));
+        assertTrue(result.contains("newUrl: /guides/foo"));
+    }
+
+    @Test
+    void testMergeRedirectDuplicatesNoMatch(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Path redirectsDir = contentDir.resolve("redirects/guides");
+        Files.createDirectories(redirectsDir);
+
+        Files.writeString(redirectsDir.resolve("only-md.md"), """
+                ---
+                permalink: /guides/only-md/index.html
+                newUrl: /guides/something
+                ---
+                """);
+        Files.writeString(redirectsDir.resolve("only-html.html"), """
+                ---
+                permalink: /guides/only-html.html
+                newUrl: /guides/other
+                ---
+                """);
+
+        converter.mergeRedirectDuplicates(contentDir);
+
+        assertTrue(Files.exists(redirectsDir.resolve("only-md.md")));
+        assertTrue(Files.exists(redirectsDir.resolve("only-html.html")));
+    }
+
+    @Test
+    void testConvertProjectMergesRedirectsInCollectionDir(@TempDir Path tempDir) throws IOException {
+        Files.createDirectories(tempDir.resolve("content"));
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test\n");
+
+        Path redirectsDir = tempDir.resolve("_redirects/guides");
+        Files.createDirectories(redirectsDir);
+        Files.writeString(redirectsDir.resolve("bar-guide.html"), """
+                ---
+                permalink: /guides/bar-guide.html
+                newUrl: /guides/bar
+                ---
+                """);
+        Files.writeString(redirectsDir.resolve("bar-guide.md"), """
+                ---
+                permalink: /guides/bar-guide/index.html
+                newUrl: /guides/bar
+                ---
+                """);
+
+        converter.convertProject(tempDir);
+
+        assertTrue(Files.exists(redirectsDir.resolve("bar-guide.html")));
+        assertFalse(Files.exists(redirectsDir.resolve("bar-guide.md")));
+
+        String result = Files.readString(redirectsDir.resolve("bar-guide.html"));
+        assertTrue(result.contains("/guides/bar-guide.html"));
+        assertTrue(result.contains("/guides/bar-guide/index.html"));
+    }
+
+    @Test
+    void testConvertProjectConvertsPermalinksInCollectionDirs(@TempDir Path tempDir) throws IOException {
+        Files.createDirectories(tempDir.resolve("content"));
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test\n");
+
+        Path guidesDir = tempDir.resolve("_guides");
+        Files.createDirectories(guidesDir);
+        Files.writeString(guidesDir.resolve("guides.md"), """
+                ---
+                layout: documentation
+                permalink: /guides/
+                ---
+                """);
+
+        converter.convertProject(tempDir);
+
+        String result = Files.readString(guidesDir.resolve("guides.md"));
+        assertTrue(result.contains("link: /guides/"),
+                "permalink /guides/ in _guides/guides.md should become link because " +
+                        "post-move path guides/guides != guides");
+        assertFalse(result.contains("permalink:"));
+    }
+
+    @Test
+    void testConvertProjectStripsRedundantPermalinkInCollectionDir(@TempDir Path tempDir) throws IOException {
+        Files.createDirectories(tempDir.resolve("content"));
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test\n");
+
+        Path guidesDir = tempDir.resolve("_guides");
+        Files.createDirectories(guidesDir);
+        Files.writeString(guidesDir.resolve("foo.md"), """
+                ---
+                permalink: /guides/foo/
+                ---
+                """);
+
+        converter.convertProject(tempDir);
+
+        String result = Files.readString(guidesDir.resolve("foo.md"));
+        assertFalse(result.contains("permalink:"), "redundant permalink should be stripped");
+        assertFalse(result.contains("link:"), "redundant permalink should not become link");
+    }
+
+    // --- Include target prefix tests ---
+
+    @Test
+    void testPrefixIncludeTargetsRenamesFileAndUpdatesInclude(@TempDir Path tempDir) throws IOException {
+        Path postsDir = tempDir.resolve("content/posts");
+        Files.createDirectories(postsDir);
+
+        Files.writeString(postsDir.resolve("transcription.adoc"),
+                "Some content with no frontmatter\n");
+        Files.writeString(postsDir.resolve("2020-04-30-insights.adoc"), """
+                ---
+                title: Insights
+                ---
+                Here is the transcript:
+                include::transcription.adoc[]
+                """);
+
+        converter.prefixIncludeTargets(tempDir.resolve("content"));
+
+        assertFalse(Files.exists(postsDir.resolve("transcription.adoc")),
+                "Original file should be renamed");
+        assertTrue(Files.exists(postsDir.resolve("_transcription.adoc")),
+                "File should be prefixed with _");
+
+        String parentContent = Files.readString(postsDir.resolve("2020-04-30-insights.adoc"));
+        assertTrue(parentContent.contains("include::_transcription.adoc[]"),
+                "Include directive should reference the renamed file");
+        assertFalse(parentContent.contains("include::transcription.adoc[]"),
+                "Old include reference should be gone");
+    }
+
+    @Test
+    void testPrefixIncludeTargetsSkipsFilesWithFrontmatter(@TempDir Path tempDir) throws IOException {
+        Path postsDir = tempDir.resolve("content/posts");
+        Files.createDirectories(postsDir);
+
+        Files.writeString(postsDir.resolve("real-post.adoc"), """
+                ---
+                title: A real post
+                ---
+                Post content
+                """);
+
+        converter.prefixIncludeTargets(tempDir.resolve("content"));
+
+        assertTrue(Files.exists(postsDir.resolve("real-post.adoc")),
+                "File with frontmatter should not be renamed");
+        assertFalse(Files.exists(postsDir.resolve("_real-post.adoc")));
+    }
+
+    @Test
+    void testPrefixIncludeTargetsMultipleFiles(@TempDir Path tempDir) throws IOException {
+        Path postsDir = tempDir.resolve("content/posts");
+        Files.createDirectories(postsDir);
+
+        Files.writeString(postsDir.resolve("transcription_0.adoc"),
+                "First transcript\n");
+        Files.writeString(postsDir.resolve("transcription_1.adoc"),
+                "Second transcript\n");
+        Files.writeString(postsDir.resolve("2020-04-30-insights.adoc"), """
+                ---
+                title: Insights
+                ---
+                include::transcription_0.adoc[]
+                include::transcription_1.adoc[]
+                """);
+
+        converter.prefixIncludeTargets(tempDir.resolve("content"));
+
+        assertFalse(Files.exists(postsDir.resolve("transcription_0.adoc")));
+        assertFalse(Files.exists(postsDir.resolve("transcription_1.adoc")));
+        assertTrue(Files.exists(postsDir.resolve("_transcription_0.adoc")));
+        assertTrue(Files.exists(postsDir.resolve("_transcription_1.adoc")));
+
+        String parentContent = Files.readString(postsDir.resolve("2020-04-30-insights.adoc"));
+        assertTrue(parentContent.contains("include::_transcription_0.adoc[]"));
+        assertTrue(parentContent.contains("include::_transcription_1.adoc[]"));
+    }
+
+    @Test
+    void testPrefixIncludeTargetsSkipsAlreadyPrefixed(@TempDir Path tempDir) throws IOException {
+        Path postsDir = tempDir.resolve("content/posts");
+        Files.createDirectories(postsDir);
+
+        Files.writeString(postsDir.resolve("_already-prefixed.adoc"),
+                "Some content\n");
+
+        converter.prefixIncludeTargets(tempDir.resolve("content"));
+
+        assertTrue(Files.exists(postsDir.resolve("_already-prefixed.adoc")),
+                "Already-prefixed file should stay as-is");
     }
 
     // --- Integration test ---
