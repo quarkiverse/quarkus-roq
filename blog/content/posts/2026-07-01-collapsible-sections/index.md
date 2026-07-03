@@ -86,7 +86,7 @@ quarkus ext add rest-jackson
 quarkus dev
 ```
 
-Open [http://localhost:8080/hello](http://localhost:8080/hello) to see your endpoint.
+Open `http://localhost:8080/hello` to see your endpoint.
 
 </details>
 
