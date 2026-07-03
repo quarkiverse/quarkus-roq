@@ -27,6 +27,5 @@
         <module>lunr</module>
         <module>diagram</module>
         <module>faker</module>
-        <module>og-card</module>
     </modules>
 </project>

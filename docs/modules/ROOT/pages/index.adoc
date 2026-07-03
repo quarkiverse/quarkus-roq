@@ -11,7 +11,6 @@ Roq depends on a set of extensions which can also be used standalone:
 * xref:quarkus-roq-data.adoc[*Roq Data*]: Use json/yaml files content from your templates and articles with type safety.
 * xref:quarkus-roq-frontmatter.adoc[*Roq FrontMatter*]:  Create a website from your Markdown/Asciidoc/Html pages using FrontMatter headers (url, layout, seo, data).
 * xref:quarkus-roq-generator.adoc[*Roq Generator*]: Command to run any Quarkus web application and extract it in a directory as purely static files (html and assets).
-* xref:quarkus-roq-plugin-og-card.adoc[*Roq OG Card*]: Generate Open Graph social preview PNGs from Qute SVG templates and inject `og:image` SEO metadata.
 
 [[extension-configuration-reference]]
 == Extension Configuration Reference

@@ -98,22 +98,6 @@ public class RoqBlogTest {
     }
 
     @Test
-    void testOgCardAboutPage() {
-        RestAssured.when().get("/about/")
-                .then().statusCode(200)
-                .body(containsString("property=\"og:image\""))
-                .body(containsString("summary_large_image"))
-                .body(containsString("/og/about.png"));
-    }
-
-    @Test
-    void testOgCardPng() {
-        RestAssured.when().get("/og/about.png")
-                .then().statusCode(200)
-                .contentType("image/png");
-    }
-
-    @Test
     public void testLinks() {
         assertFalse(RoqLinks.collect().isEmpty(), "Should collect links from the generated site");
         assertTrue(RoqLinks.checkInternal().isEmpty(), "Should have no broken internal links");
