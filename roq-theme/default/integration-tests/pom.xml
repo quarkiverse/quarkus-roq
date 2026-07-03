@@ -74,7 +74,7 @@
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../runtime/src/main/codestarts/quarkus/roq-site-codestart/base</directory>
+                                    <directory>${project.basedir}/../runtime/src/main/codestarts/quarkus/roq-default-theme-codestart/base</directory>
                                     <filtering>false</filtering>
                                     <excludes>
                                         <exclude>**/*.tpl.qute.*</exclude>
