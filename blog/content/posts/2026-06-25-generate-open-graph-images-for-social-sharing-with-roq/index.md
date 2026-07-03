@@ -2,7 +2,7 @@
 title: "Generate Open Graph Images for Social Sharing with Roq"
 description: "Create 1200×630 PNG social preview cards from Qute SVG templates and inject og:image metadata automatically."
 tags: plugin, new-feature, cool-stuff, seo
-image: https://images.unsplash.com/photo-1611162617474-5b21e939e113?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3
+image: https://images.unsplash.com/photo-1675352161865-27816c76141a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 author: ia3andy
 ---
 
