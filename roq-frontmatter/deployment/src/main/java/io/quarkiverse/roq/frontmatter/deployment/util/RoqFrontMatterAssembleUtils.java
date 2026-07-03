@@ -5,6 +5,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTempl
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.getMarkup;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAYOUT;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.QUTE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.THEME_LAYOUT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR;
 
@@ -65,7 +66,8 @@ public final class RoqFrontMatterAssembleUtils {
                             metadata.filePath(), metadata.referencePath(), collection, isPage, data));
         }
 
-        boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE, "false"));
+        boolean escaped = Boolean.parseBoolean(data.getString(ESCAPE, "false"))
+                || "false".equals(data.getString(QUTE));
         TransformedContent transformed = applyContentTransforms(content, escaped, metadata.markup(), layoutId, isPage);
 
         TemplateSource source = TemplateSource.create(

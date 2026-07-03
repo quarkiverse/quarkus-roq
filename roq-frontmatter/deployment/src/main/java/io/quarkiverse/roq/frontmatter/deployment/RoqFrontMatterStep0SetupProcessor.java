@@ -5,6 +5,7 @@ import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConst
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.QUTE;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 
 import java.nio.file.Path;
@@ -38,7 +39,7 @@ public class RoqFrontMatterStep0SetupProcessor {
         // Mark pages matching the "escaped-pages" glob patterns so their Qute expressions
         // are wrapped in escape delimiters (useful for pages containing code samples with { })
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
-            if (sourceData.isPage() && !sourceData.fm().containsKey(ESCAPE)
+            if (sourceData.isPage() && !sourceData.fm().containsKey(ESCAPE) && !sourceData.fm().containsKey(QUTE)
                     && isPageEscaped(config).test(sourceData.relativePath())) {
                 sourceData.fm().put(ESCAPE, true);
             }

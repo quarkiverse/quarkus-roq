@@ -4,6 +4,8 @@ description: All Markdown content types to verify theme styling
 content-toc: true
 ---
 
+<i class="fa-brands fa-github"></i> [View source on GitHub](https://github.com/quarkiverse/quarkus-roq/blob/main/blog/content/markups/markdown.md)
+
 # Heading 1
 This is a paragraph under heading 1. It contains **strong text**, *emphasized text*, and `inline code`.
 
@@ -140,3 +142,27 @@ This heading has inline code: `variable = value`
 ### Code in Blockquotes
 
 > This blockquote contains `inline code` and shows how code is styled within quotes.
+
+## Collapsible Sections
+
+<details>
+<summary>Click to expand</summary>
+
+This is hidden content inside a collapsible section.
+
+It supports **bold**, *italic*, and `code`.
+
+</details>
+
+<details>
+<summary>With a code block</summary>
+
+```java
+public class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello!");
+    }
+}
+```
+
+</details>

@@ -163,4 +163,13 @@ public interface RoqFrontMatterKeys {
      * ▸ Access: {@code page.data.getBoolean("escape")}
      */
     String ESCAPE = "escape";
+
+    /**
+     * Enable/disable Qute processing — e.g. {@code qute: false} (reversed alias for {@code escape: true})
+     * <br>
+     * ▸ Scope: page / document
+     * <br>
+     * ▸ Access: {@code page.data.getBoolean("qute")}
+     */
+    String QUTE = "qute";
 }

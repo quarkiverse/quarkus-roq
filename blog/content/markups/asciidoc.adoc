@@ -4,6 +4,8 @@
 :page-content-toc-levels: 2
 :description: All AsciiDoc content types to verify theme styling
 
+pass:[<i class="fa-brands fa-github"></i>] https://github.com/quarkiverse/quarkus-roq/blob/main/blog/content/markups/asciidoc.adoc[View source on GitHub]
+
 This is a paragraph under heading 1. It contains *strong text*, _emphasized text_, and `inline code`.
 
 == Heading 2
@@ -234,6 +236,22 @@ Term 2:: Definition 2
 Term 3:: Definition 3
 +
 With additional paragraph.
+
+=== Collapsible Blocks
+
+.Click to expand
+[%collapsible]
+====
+This is hidden content inside a collapsible block.
+
+It supports *bold*, _italic_, and `code`.
+====
+
+.Show result
+[%collapsible.result]
+====
+This is a result block with a distinct background style.
+====
 
 === Checklist
 

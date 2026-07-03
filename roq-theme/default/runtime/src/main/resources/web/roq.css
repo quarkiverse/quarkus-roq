@@ -42,6 +42,7 @@
 /* Typography */
 @import "./_prose.css";
 @import "./_content-prose.css";
+@import "./_details.css";
 
 /* Responsive Styles */
 @import "./_responsive.css";

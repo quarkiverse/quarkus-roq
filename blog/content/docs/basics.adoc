@@ -141,7 +141,7 @@ bar: |
 If you don't need Markdown, you can disable it by excluding the Markdown plugin from the Roq extension in your `pom.xml`.
 ====
 
-
+TIP: See the link:/markups/markdown/[Markdown markup test] page for example usage of all supported Markdown features.
 
 ==== AsciiDoc
 
@@ -149,6 +149,8 @@ AsciiDoc is also fully supported in Roq via the link:/plugin/asciidoc/[AsciiDoc 
 Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
 
 TIP: When using Qute expressions as link targets in AsciiDoc, use the explicit `link:` macro. AsciiDoc only auto-detects links for known URL schemes (http, https, ...), so `\{page.url}[Click here]` won't render as a link. Use `link:\{page.url}[Click here]` instead.
+
+TIP: See the link:/markups/asciidoc/[AsciiDoc markup test] page for example usage of all supported AsciiDoc features.
 
 [#collections]
 === Collections

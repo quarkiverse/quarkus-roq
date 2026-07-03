@@ -1,7 +1,7 @@
 @layer components {
 
 .markdown-alert {
-@apply p-4 my-4 rounded-lg border-l-4;
+@apply p-4 my-4 rounded-r-lg border-l-4;
 }
 
 .markdown-alert-title {

@@ -55,6 +55,30 @@ AsciiDoc headers are parsed by Roq and used as page data:
 | `{page-path}` | The page path (e.g. `/blog/about`) |
 |}
 
+### Collapsible sections
+
+Use the `%collapsible` option on an example block to create collapsible content. The default theme styles them automatically.
+
+```asciidoc
+.Click to expand
+[%collapsible]
+====
+Hidden content here.
+====
+```
+
+Add the `.result` role for a distinct output/result look:
+
+```asciidoc
+.Show result
+[%collapsible.result]
+====
+Result content with a background.
+====
+```
+
+See the [AsciiDoc markup test](/markups/asciidoc/#_collapsible_blocks) for a live example.
+
 ### AsciiDoc attributes configuration
 
 Attributes can be configured globally:
