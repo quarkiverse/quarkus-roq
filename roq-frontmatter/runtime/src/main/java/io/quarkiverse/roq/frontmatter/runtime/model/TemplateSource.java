@@ -26,6 +26,7 @@ import io.quarkus.qute.TemplateData;
  * @param isTargetHtml true if the output type is html (html, md, adoc -> html)
  * @param isIndex true if this is an index file
  * @param isSiteIndex true if this is the site index (only one per site)
+ * @param targetExtension the output file extension without dot (e.g. "html", "xml", "txt")
  */
 @TemplateData
 @Vetoed
@@ -38,7 +39,8 @@ public record TemplateSource(
         boolean isLayout,
         boolean isTargetHtml,
         boolean isIndex,
-        boolean isSiteIndex) {
+        boolean isSiteIndex,
+        String targetExtension) {
 
     public static TemplateSource create(
             String id,
@@ -51,19 +53,19 @@ public record TemplateSource(
             boolean isIndex,
             boolean isSiteIndex) {
 
+        String targetExt = StringPaths.fileExtension(quteTemplateId);
         return new TemplateSource(id, markup, sourceFile, path, quteTemplateId, isLayout, isTargetHtml, isIndex,
-                isSiteIndex);
+                isSiteIndex, targetExt);
     }
 
     public TemplateSource changeId(String id) {
-        // We don't copy the site index files
         return new TemplateSource(id, markup(), file(), path(),
-                generatedQuteId(), isLayout(), isTargetHtml(), isIndex(), false);
+                generatedQuteId(), isLayout(), isTargetHtml(), isIndex(), false, targetExtension());
     }
 
     public TemplateSource changeIds(Function<String, String> function) {
         return new TemplateSource(function.apply(id()), markup(), file(), path(),
-                function.apply(generatedQuteId()), isLayout(), isTargetHtml(), isIndex(), false);
+                function.apply(generatedQuteId()), isLayout(), isTargetHtml(), isIndex(), false, targetExtension());
     }
 
     public String generatedQuteTemplateId() {

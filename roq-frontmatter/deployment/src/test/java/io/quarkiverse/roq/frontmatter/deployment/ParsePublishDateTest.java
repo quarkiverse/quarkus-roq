@@ -32,7 +32,7 @@ public class ParsePublishDateTest {
     private static final ZoneId GMT = ZoneId.of("GMT");
 
     private static TemplateSource testSource(String path) {
-        return new TemplateSource("test", null, new SourceFile("", path), path, null, false, true, false, false);
+        return TemplateSource.create("test", null, new SourceFile("", path), path, "test.html", false, true, false, false);
     }
 
     @Test

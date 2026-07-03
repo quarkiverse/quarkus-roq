@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
@@ -33,6 +34,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAt
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterIncludeFuturePagesBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPaginatePageBuildItem;
@@ -45,6 +47,7 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
+import io.quarkiverse.roq.frontmatter.runtime.utils.FuturePages;
 import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -61,7 +64,8 @@ public class RoqFrontMatterStep3DataProcessor {
             BuildProducer<RoqFrontMatterLayoutTemplateBuildItem> layoutTemplateProducer,
             BuildProducer<RoqFrontMatterPageTemplateBuildItem> pageTemplatesProducer,
             List<RoqFrontMatterRawLayoutBuildItem> rawLayouts,
-            List<RoqFrontMatterRawPageBuildItem> rawPages) {
+            List<RoqFrontMatterRawPageBuildItem> rawPages,
+            Optional<RoqFrontMatterIncludeFuturePagesBuildItem> includeFuturePages) {
         if (rawLayouts.isEmpty() && rawPages.isEmpty()) {
             return;
         }
@@ -115,14 +119,19 @@ public class RoqFrontMatterStep3DataProcessor {
                 date = ZonedDateTime.now(config.timeZoneOrDefault());
             }
 
-            final boolean noFuture = !config.future() && (item.collection() == null || !item.collection().future());
-            if (noFuture && date != null && date.isAfter(ZonedDateTime.now())) {
-                LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
-                        " To display future articles, use -Dsite.future=true%s.", item.templateSource().path(), date,
-                        ZonedDateTime.now(),
-                        item.collection() == null ? ""
-                                : " or -Dsite.collections.%s.future=true".formatted(item.collection().id()));
-                continue;
+            if (FuturePages.isFutureDateEnforced(config, item.collection(), date)) {
+                // Skip the build-time date filter when a plugin handles it at runtime
+                if (includeFuturePages.isPresent()) {
+                    LOGGER.infof("Including future page '%s' for runtime date checking (hybrid mode)",
+                            item.templateSource().path());
+                } else {
+                    LOGGER.warnf("Ignoring page '%s' because it's scheduled for later (%s > %s)." +
+                            " To display future articles, use -Dsite.future=true%s.", item.templateSource().path(), date,
+                            ZonedDateTime.now(),
+                            item.collection() == null ? ""
+                                    : " or -Dsite.collections.%s.future=true".formatted(item.collection().id()));
+                    continue;
+                }
             }
 
             String dateString = date != null ? date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME) : null;
