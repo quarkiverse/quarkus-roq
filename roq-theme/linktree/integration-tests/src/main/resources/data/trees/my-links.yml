@@ -1,0 +1,7 @@
+title: Test Links
+description: Test link tree
+links:
+  - name: Test Link
+    url: https://example.com
+    description: A test link
+    icon: link

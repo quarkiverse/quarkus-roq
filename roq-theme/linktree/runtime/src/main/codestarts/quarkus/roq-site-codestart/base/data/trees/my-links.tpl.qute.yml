@@ -1,0 +1,9 @@
+title: {tree.title}
+description: {tree.description}
+links:
+{#for link in tree.links}
+  - name: {link.name}
+    url: {link.url}
+    description: {link.description}
+    icon: {link.icon}
+{/for}

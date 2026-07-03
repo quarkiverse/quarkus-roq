@@ -1,0 +1,39 @@
+---
+layout: default
+title: All Trees
+---
+
+{|
+<div class="flex items-start justify-center pb-6 pt-12">
+  <div class="w-full max-w-md mx-auto space-y-8 px-4">
+
+    <div class="text-center space-y-2">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Link Trees</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.name}</p>
+    </div>
+
+    <div class="space-y-6">
+      {#for tree in site.collections.trees}
+      <div class="text-center space-y-4 p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">{tree.data.title}</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">{tree.data.description}</p>
+
+        <div class="inline-block p-3 bg-white rounded-xl qr-wrap" data-filename="qr-{tree.data.title.slugify}.png">
+          {#qrcode value=tree.url.absolute alt=tree.data.title foreground="#0e4a5c" background="#FFFFFF" width=200 height=200 /}
+        </div>
+
+        <div class="flex items-center justify-center gap-4">
+          <a href="{tree.url}" class="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors">
+            Open
+          </a>
+          <button onclick="downloadQR(this)" class="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors cursor-pointer">
+            Download QR
+          </button>
+        </div>
+      </div>
+      {/for}
+    </div>
+
+  </div>
+</div>
+|}

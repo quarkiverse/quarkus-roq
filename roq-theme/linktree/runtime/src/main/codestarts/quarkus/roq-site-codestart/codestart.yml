@@ -1,0 +1,37 @@
+name: roq-site-codestart
+ref: roq-site
+type: code
+tags: extension-codestart
+metadata:
+  title: Roq Linktree Theme
+  description: This codestart provides a starter Roq link-tree site.
+  related-guide-section: https://iamroq.dev/theme/linktree-theme/
+language:
+  base:
+    dependencies:
+      - "io.quarkiverse.roq:quarkus-roq:${project.version}"
+    data:
+      profile:
+        name: Ada Lovelace
+        handle: "@adalovelace"
+        title: Computational Pioneer
+      tree:
+        title: Ada's Links
+        description: Resources and writings by Ada Lovelace
+        links:
+          - name: The Analytical Engine
+            url: https://en.wikipedia.org/wiki/Analytical_engine
+            description: The machine that started it all
+            icon: gear
+          - name: Quarkus
+            url: https://quarkus.io
+            description: Supersonic Subatomic Java framework
+            icon: lightning
+          - name: Roq
+            url: https://iamroq.dev
+            description: Static site generator with a Java soul
+            icon: terminal
+          - name: Notes on the Engine
+            url: https://en.wikipedia.org/wiki/Ada_Lovelace#First_computer_program
+            description: The first published algorithm
+            icon: note-pencil

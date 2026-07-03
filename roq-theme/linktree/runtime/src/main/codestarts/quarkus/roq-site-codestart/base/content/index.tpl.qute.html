@@ -1,0 +1,67 @@
+---
+layout: default
+title: {site.title}
+---
+
+{|
+{#let defaultTree=cdi:trees.map.get(cdi:profile.tree)}
+<div class="flex items-start justify-center pb-6 pt-12 relative">
+  <a href="/trees" class="absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-sky-500 dark:hover:text-sky-400 transition-colors" title="All trees">
+    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
+  </a>
+  <div class="w-full max-w-md mx-auto space-y-8 px-4">
+
+    <!-- Profile -->
+    <div class="text-center space-y-3">
+      {#if cdi:profile.image}
+      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md">
+      {/if}
+      <h1 class="text-2xl font-bold tracking-tight">
+        {#if cdi:profile.name}<span class="text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
+        {#if cdi:profile.handle}<span class="text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.title}</p>
+    </div>
+
+    <!-- Social -->
+    <div class="text-center space-y-3">
+      <div class="flex items-center justify-center gap-5">
+        {#for s in cdi:profile.social}
+        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
+           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+          <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
+        </a>
+        {/for}
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div class="space-y-3">
+      {#for link in defaultTree.links}
+      <a href="{link.url}" target="_blank" rel="noopener noreferrer"
+         class="group flex items-center justify-between px-5 py-4 rounded-lg
+                border border-slate-200 dark:border-slate-700
+                bg-white dark:bg-slate-800
+                hover:border-sky-400 dark:hover:border-sky-500
+                hover:shadow-md
+                transition-all duration-200">
+        <span class="flex items-center gap-3">
+          {#if link.icon}
+          <i class="ph ph-{link.icon} text-sky-500 dark:text-sky-400" style="font-size: 20px;"></i>
+          {/if}
+          <span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-100">{link.name}</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">{link.description}</span>
+          </span>
+        </span>
+        <span class="text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+          <i class="ph ph-arrow-right" style="font-size: 16px;"></i>
+        </span>
+      </a>
+      {/for}
+    </div>
+
+  </div>
+</div>
+{/let}
+|}
