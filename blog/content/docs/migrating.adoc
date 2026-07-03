@@ -201,10 +201,89 @@ Defining any custom collection replaces Roq's defaults.
 If you define `site.collections.guides.layout=guide`, you must also explicitly add `site.collections.posts.layout=post` -- otherwise Roq's default `posts` collection is silently dropped.
 
 `quarkus.roq.data.dir`::
-Set this to `_data` to reuse Jekyll's data directory in place, avoiding the need to move data files.
+Set this to `_data` to reuse Jekyll's data directory in place, avoiding the need to move files (see <<file-dir-mappings>>).
 
 `site.slugify-files`::
 Set to `false` to preserve original filenames in URLs instead of slugifying them.
+
+[[file-dir-mappings]]
+=== File and directory mappings
+
+Jekyll and Roq use different directory conventions.
+The table below shows where each category of files lives after migration.
+Some directories have a configurable location -- where a config property is listed, you can point Roq at the original Jekyll path instead of moving files.
+
+[cols="1,1,1,1", options="header"]
+|===
+| Category
+| Jekyll
+| Roq default
+| Config property
+
+| Blog posts
+| `_posts/`
+| `content/posts/`
+| `site.content-dir` (default: `content`)
+
+| Custom collection
+| `_<name>/`
+| `content/<name>/`
+| `site.content-dir`
+
+| Root pages
+| `*.md`, `*.adoc` in project root
+| `content/`
+| `site.content-dir`
+
+| Layouts
+| `_layouts/`
+| `templates/layouts/`
+|
+
+| Includes / partials
+| `_includes/`
+| `templates/partials/`
+|
+
+| Data files
+| `_data/`
+| `data/`
+| `quarkus.roq.data.dir` (default: `data`)
+
+| Sass / SCSS partials
+| `_sass/`
+| `web/`
+|
+
+| CSS entry points
+| `assets/css/`
+| `web/`
+|
+
+| Static assets (images, fonts)
+| `assets/`
+| `public/`
+| `site.public-dir` (default: `public`)
+
+| Site configuration
+| `_config.yml`
+| `config/application.properties` + `data/siteConfig.yml`
+|
+
+| Ruby plugins
+| `_plugins/`
+| Removed (replaced by Roq plugins or custom Java code in `src/main/java/`)
+|
+
+| Gemfile / lockfile
+| `Gemfile`, `Gemfile.lock`
+| Removed (replaced by `pom.xml`)
+|===
+
+TIP: When moving files, use `git mv` instead of `cp` to preserve file history.
+If a target directory already exists, `git mv` moves the source directory _into_ it -- remove the target first if it was created during testing.
+
+NOTE: Jekyll site properties (`title`, `description`, custom keys from `_config.yml`) are split between `application.properties` (for Roq-specific settings like `site.url`) and `data/siteConfig.yml` (for everything else, accessed as `++{=cdi:siteConfig.myProp}++` in templates).
 
 === Validate the scaffold (Phase A gate)
 
@@ -281,6 +360,204 @@ If you used the link:{site-url}theme/base-theme/[base theme], you have a minimal
 |===
 
 NOTE: If you are migrating from Hugo rather than Jekyll, replace the Liquid syntax column with Go template equivalents (`+{{ .Title }}+`, `+{{ if .Params.image }}+`, `+{{ range .Pages }}+`, etc.) and include the Hugo equivalents in your prompt. The Qute (alt syntax) column stays the same.
+
+=== Variable and object mappings
+
+Beyond syntax, the template **object model** changes.
+Custom front matter fields, site properties, pagination, and loop metadata all have different access patterns in Roq.
+
+[cols="1,1,1", options="header"]
+|===
+| Category
+| Jekyll (Liquid)
+| Roq (Qute)
+
+| Custom front matter
+| `+page.myField+`
+| `+page.data.myField+`
+
+| Page path
+| `+page.path+`
+| `+page.sourcePath+`
+
+| Page tags
+| `+page.tags+`
+| `+page.data.tags.asStrings+`
+
+| Content (layouts)
+| `+{{ content }}+`
+| `+{#insert /}+`
+
+| Content (partials)
+| `+{{ content }}+`
+| `+{=page.content}+`
+
+| Include parameters
+| `+include.param+`
+| `+param+` (direct access)
+
+| Site posts
+| `+site.posts+`
+| `+site.collections.get('posts')+`
+
+| Site tags
+| `+site.tags+`
+| `+site.collections.get('posts').tagsCount+` (requires tagging plugin)
+
+| Site data files
+| `+site.data.books.items+`
+| `+cdi:books.items+`
+
+| Site config properties
+| `+site.myProp+`
+| `+cdi:siteConfig.myProp+` (via `data/siteConfig.yml`)
+
+| Site base URL
+| `+site.baseurl+`
+| Removed (Roq URLs are site-relative)
+
+| Site URL (as string)
+| `+site.url+`
+| `+site.url.root.url+` (Roq's `site.url` is a `RoqUrl` object)
+
+| Page URL (comparisons)
+| `+page.url == '/'+`
+| `+page.url.path == '/'+` (`RoqUrl` is not a `String`)
+
+| Build time
+| `+site.time+`
+| `+now+`
+
+| Paginator posts
+| `+paginator.posts+`
+| `+site.collections.get('posts').paginated(page.paginator)+`
+
+| Total pages
+| `+paginator.total_pages+`
+| `+page.paginator.total+`
+
+| Next page
+| `+paginator.next_page_path+`
+| `+page.paginator.next+`
+
+| Previous page
+| `+paginator.previous_page_path+`
+| `+page.paginator.previous+`
+
+| Loop index (1-based)
+| `+forloop.index+`
+| `+item_count+` (named after the loop variable)
+
+| Loop index (0-based)
+| `+forloop.index0+`
+| `+item_index+`
+
+| First iteration
+| `+forloop.first+`
+| `+item_count == 1+`
+
+| Last iteration
+| `+forloop.last+`
+| `+!item_hasNext+`
+|===
+
+=== Filter mappings
+
+Liquid filters become Qute method calls.
+Common conversions:
+
+[cols="1,1", options="header"]
+|===
+| Liquid filter
+| Qute equivalent
+
+| `+\| upcase+`
+| `+.toUpperCase+`
+
+| `+\| downcase+`
+| `+.toLowerCase+`
+
+| `+\| capitalize+`
+| `+.capitalize+`
+
+| `+\| strip_html+`
+| `+.stripHtml+`
+
+| `+\| size+`
+| `+.size+`
+
+| `+\| first+`
+| `+.first+`
+
+| `+\| last+`
+| `+.last+`
+
+| `+\| sort+`
+| `+.sort+` or `+.sort('property')+`
+
+| `+\| reverse+`
+| `+.reverse+`
+
+| `+\| uniq+`
+| `+.distinct+`
+
+| `+\| strip+`
+| `+.trim()+`
+
+| `+\| join+`
+| `+.join+`
+
+| `+\| default: value+`
+| `+?: value+`
+
+| `+\| append: str+`
+| `+.concat(str)+`
+
+| `+\| prepend: str+`
+| `+str.concat(expr)+`
+
+| `+\| replace: "a", "b"+`
+| `+.replace("a", "b")+`
+
+| `+\| split: ","+`
+| `+str:split(expr, ",")+`
+
+| `+\| where: "key", "val"+`
+| `+.where("key", "val")+`
+
+| `+\| where_exp: "v", expr+`
+| `+list:whereExp(coll, "v", expr)+`
+
+| `+\| group_by: prop+`
+| `+.groupBy(prop)+`
+
+| `+\| map: prop+`
+| `+.map(prop)+`
+
+| `+\| truncatewords: 50+`
+| `+.wordLimit(50)+`
+
+| `+\| date: "%B %d, %Y"+`
+| `+.format('MMMM dd, yyyy')+`
+
+| `+\| xml_escape+`
+| `+.escapeHtml+`
+
+| `+\| url_encode+`
+| `+.urlEncode+`
+
+| `+\| slugify+`
+| `+.slugify+`
+
+| `+\| markdownify+`
+| `+.markdownify+`
+
+| `+\| relative_url+`
+| Removed (or prepends `+/+`)
+
+| `+\| absolute_url+`
+| Removed
+|===
 
 === LLM prompt for layout conversion
 
@@ -361,7 +638,7 @@ Content files (blog posts, pages) usually need fewer changes than layouts.
 
 | Permalink
 | `permalink: /about/`
-| Use file path or `redirect_from` for old URLs
+| `link: /about/` (or removed if it matches the file path; see <<convert-config>>)
 
 | Categories
 | `categories: [blog, tech]`
@@ -447,8 +724,8 @@ Update any hardcoded image paths in templates and content to match the new locat
 
 === Data files
 
-Set `quarkus.roq.data.dir=_data` in `application.properties` to reuse Jekyll's data directory in place.
-Each YAML or JSON file in `_data/` automatically registers as a named CDI bean accessible in Qute templates.
+Roq's default data directory is `data/`, but you can point it at Jekyll's `_data/` instead to avoid moving files (see <<file-dir-mappings>>).
+Each YAML or JSON file in the data directory automatically registers as a named CDI bean accessible in Qute templates.
 For example, `_data/books.yaml` becomes accessible as `+{=cdi:books}+`, and nested fields via dot notation such as `+{=cdi:books.items}+`.
 
 The file format (YAML/JSON) stays the same.
@@ -472,9 +749,6 @@ Site configuration does not map cleanly between generators.
 | `url` / `baseurl`
 | `site.url=https://mysite.example.com`
 
-| `permalink: /:categories/:title/`
-| Roq uses file-path-based URLs by default
-
 | `plugins: [jekyll-sitemap]`
 | `roq add plugin:sitemap`
 
@@ -483,6 +757,78 @@ Site configuration does not map cleanly between generators.
 
 | `exclude: [vendor, node_modules]`
 | `site.ignored-files=vendor/++**++,node_modules/++**++`
+|===
+
+==== Permalink and link mappings
+
+Permalink handling depends on whether the permalink is in `_config.yml` (collection-level) or in a content file's front matter (per-page).
+
+**Per-page front matter:**
+
+[cols="1,1,1", options="header"]
+|===
+| Jekyll front matter
+| Roq front matter
+| Notes
+
+| `permalink: /about/`
+| `link: /about/`
+| If the permalink matches the file's natural path, it is removed as redundant
+
+| `permalink: /old/path/`
+| `aliases: [/old/path/]`
+| When the old URL should redirect to the new file-path-based URL (requires aliases plugin)
+|===
+
+**Collection-level permalink patterns** (from `_config.yml` defaults):
+
+[cols="1,1", options="header"]
+|===
+| Jekyll permalink placeholder
+| Roq link placeholder
+
+| `:path`
+| `:dir[1]/:name`
+
+| `:title`
+| `:name`
+
+| `:categories`
+| `:collection`
+|===
+
+For example, a Jekyll collection permalink `/:categories/:title/` becomes `site.collections.<name>.link=/:collection/:name/` in `application.properties`.
+
+==== Properties set by the migration tool
+
+If you use the automated `roq-it-jekyll` migration script, these properties are set automatically.
+If you are migrating manually, consider adding them to `config/application.properties`:
+
+[cols="1,2", options="header"]
+|===
+| Property
+| Purpose
+
+| `quarkus.qute.alt-expr-syntax=true`
+| Uses `++{=expr}++` for output so plain `++{...}++` is not parsed (safe for code samples)
+
+| `quarkus.qute.strict-rendering=false`
+| Allows missing template variables without failing the build
+
+| `quarkus.qute.property-not-found-strategy=NOOP`
+| Missing properties render as empty string (matches Liquid's silent null behavior)
+
+| `site.date-format=yyyy-MM-dd['T'HH:mm:ss][X]`
+| Flexible date parsing for Jekyll's mixed date formats
+
+| `site.escaped-pages=posts/++**++`
+| Wraps content in these paths with Qute escape markers (protects curly braces in code samples)
+
+| `quarkus.asciidoc.attributes."!showtitle"=true`
+| Prevents duplicate titles (Jekyll layouts render `page.title` as `<h1>` separately)
+
+| `quarkus.web-bundler.bundling.external=/assets/*`
+| Tells the CSS bundler not to resolve Jekyll-style `/assets/...` URL references
 |===
 
 === LLM prompt for configuration
@@ -605,7 +951,7 @@ After migration is complete and validated, remove Jekyll-specific files:
 * `Gemfile`, `Gemfile.lock`, `.bundle/`, `.ruby-version`
 * Any Jekyll serve scripts
 
-Keep files that Roq still uses:
+Keep files that Roq still uses (see <<file-dir-mappings>> for configurable directory locations):
 
 * `_data/` (if `quarkus.roq.data.dir=_data` is configured)
 
