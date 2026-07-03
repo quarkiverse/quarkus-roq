@@ -23,6 +23,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.runtime.exception.RoqStaticFileException;
 import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
@@ -125,6 +126,10 @@ public final class Site {
     public RoqUrl image(Object name) {
         if (name == null) {
             return null;
+        }
+        var customizer = Arc.container().select(PageImageCustomizer.class);
+        if (customizer.isResolvable()) {
+            return customizer.get().resolveImage(this, String.valueOf(name));
         }
         String path = String.valueOf(name);
         if (RoqUrl.isFullPath(path)) {
