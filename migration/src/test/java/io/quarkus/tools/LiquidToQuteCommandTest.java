@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -31,11 +30,10 @@ class LiquidToQuteCommandTest {
         assertTrue(Files.exists(outputFile), "Output file should exist");
 
         String outputContent = Files.readString(outputFile);
-        String expected = "{=page.title.trim()}";
+        String expected = "{=page.title.trim().raw}";
         assertEquals(expected, outputContent, "File content should be converted");
     }
 
-    @Disabled("Pre-existing failure: layout content conversion produces {=page.content} instead of {#insert /}")
     @Test
     void testDirectoryConversionViaCli(@TempDir Path tempDir) throws IOException {
         Path inputDir = tempDir.resolve("_layouts");
@@ -56,6 +54,6 @@ class LiquidToQuteCommandTest {
         assertEquals("<html>{#insert /}</html>", defaultContent);
 
         String postContent = Files.readString(outputDir.resolve("post.html"));
-        assertEquals("{#if page.title}<h1>{=page.title}</h1>{/if}", postContent);
+        assertEquals("{#if page.title}<h1>{=page.title.raw}</h1>{/if}", postContent);
     }
 }

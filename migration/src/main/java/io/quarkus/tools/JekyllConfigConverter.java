@@ -151,13 +151,12 @@ public class JekyllConfigConverter {
             copyNodeWithCamelCaseKeys(config.get(key), siteConfig, key);
         });
 
-        }
-
         // Add empty tags array (for Jekyll compatibility)
         siteConfig.put("tags", new Object[0]);
 
         // Convert to YAML
         return yamlMapper.writeValueAsString(siteConfig);
+
     }
 
     private void copyNodeWithCamelCaseKeys(JsonNode node, Map<String, Object> target, String key) {
