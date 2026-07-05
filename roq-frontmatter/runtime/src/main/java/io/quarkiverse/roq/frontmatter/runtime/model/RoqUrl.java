@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Set;
 
 import jakarta.enterprise.inject.Vetoed;
 
@@ -22,6 +23,17 @@ import io.quarkus.qute.TemplateData;
 public record RoqUrl(
         RootUrl root,
         String resourcePath) {
+
+    /**
+     * The accepted URI schemes (lowercase) considered as full/external paths. Any link with one of
+     * these schemes is preserved as-is instead of being resolved as a relative path against the site root.
+     * <p>
+     * To add support for an additional scheme, add it here.
+     */
+    private static final Set<String> ACCEPTED_URI_SCHEMES = Set.of(
+            "http", "https", "mailto", "tel", "data", "javascript", "ftp", "ftps",
+            "irc", "file", "git", "ssh", "sftp", "sms", "geo", "news", "nntp",
+            "magnet", "bitcoin", "ethereum", "skype", "facetime", "whatsapp");
 
     public RoqUrl(RootUrl root, String resourcePath) {
         this.resourcePath = resourcePath;
@@ -90,13 +102,17 @@ public record RoqUrl(
     }
 
     /**
-     * Check if this is a full path starting with http:// or https://
+     * Check if this is a full path starting with one of the {@link #ACCEPTED_URI_SCHEMES}.
      *
-     * @return true is it's a full path url
+     * @return true if it's a full path url
      */
     public static boolean isFullPath(String path) {
         Objects.requireNonNull(path, "path is required");
-        return path.startsWith("http://") || path.startsWith("https://");
+        int colonIndex = path.indexOf(':');
+        if (colonIndex <= 0) {
+            return false;
+        }
+        return ACCEPTED_URI_SCHEMES.contains(path.substring(0, colonIndex).toLowerCase());
     }
 
     /**
