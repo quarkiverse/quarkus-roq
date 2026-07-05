@@ -219,12 +219,12 @@ Now let's display comments and a submission form on every post.
 
 **››› CODING TIME**
 
-Add a comments section to your post layout: a list of existing comments (fetched via `cdi:comments.forPost(page.title.slugify)`) and a form that posts to `/api/comments`.
+Add a comments section to your post layout: a list of existing comments (fetched via `cdi:comments.forPost(page.slug)`) and a form that posts to `/api/comments`.
 
 <details>
 <summary>See hint</summary>
 
-Use `{#for comment in cdi:comments.forPost(page.title.slugify)}` to iterate over comments for the current post. The `page.title.slugify` gives you the post's slug from its URL. The form should use `method="POST"` with `action="/api/comments"` and include hidden field `postSlug` with the current page's slug. Fields: `author` (text), `content` (textarea).
+Use `{#for comment in cdi:comments.forPost(page.slug)}` to iterate over comments for the current post. The `page.slug` gives you the post's slug from its URL. The form should use `method="POST"` with `action="/api/comments"` and include hidden field `postSlug` with the current page's slug. Fields: `author` (text), `content` (textarea).
 
 </details>
 
@@ -244,12 +244,12 @@ cache: false
 <!-- Comments section -->
 <section class="mt-12 border-t border-slate-200 dark:border-slate-700 pt-8">
   <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6">
-    Comments ({cdi:comments.count(page.title.slugify)})
+    Comments ({cdi:comments.count(page.slug)})
   </h2>
 
   <!-- Comment list -->
   <div class="space-y-4 mb-8">
-    {#for comment in cdi:comments.forPost(page.title.slugify)}
+    {#for comment in cdi:comments.forPost(page.slug)}
     <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
       <div class="flex items-center justify-between mb-2">
         <span class="font-medium text-sm text-slate-800 dark:text-slate-200">{comment.author}</span>
@@ -264,7 +264,7 @@ cache: false
 
   <!-- Comment form -->
   <form method="POST" action="/api/comments" class="space-y-4">
-    <input type="hidden" name="postSlug" value="{page.title.slugify}">
+    <input type="hidden" name="postSlug" value="{page.slug}">
     <input type="hidden" name="redirectUrl" value="{page.url}">
     <div>
       <label for="author" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>

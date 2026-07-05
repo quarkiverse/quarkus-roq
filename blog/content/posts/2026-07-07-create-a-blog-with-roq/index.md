@@ -86,6 +86,7 @@ Here's the mental model:
 - **`data/`** feeds the sidebar and templates. The menu, authors, and any structured data you want.
 - **`web/`** is for styling. The theme provides the base CSS; `_custom.css` is your override layer.
 - **`public/`** holds static files served as-is (images, fonts, robots.txt).
+- **`templates/`** doesn't exist yet, but this is where you can create your own [layouts](/docs/basics/#layouts), [partials](/docs/basics/#partials), and [tags](/docs/basics/#tags) to override the theme.
 
 🚀🔑 This is one of the key things to remember: content goes in `content/`, looks go in `web/`, data goes in `data/`.
 
@@ -501,7 +502,7 @@ Your blog will be live at `https://your-username.github.io/my-blog/` within a co
 Here are a few ideas to keep going:
 
 - **Write more posts!** Just create new directories in `content/posts/` or use the Editor (`m`).
-- **Add an RSS feed**: create `content/rss.xml` with `{#include fm/rss.html /}` inside.
+- **Add an [RSS feed](/docs/basics/#rss)**: create `content/rss.xml` with `{#include fm/rss.html /}` inside.
 - **Add a sitemap**: `roq add plugin:sitemap` and it's done.
 - **Override theme templates**: create `templates/layouts/post.html` to customize the post layout. The theme is your base, not your cage.
 - **Explore the docs**: [Roq the basics](/docs/basics/) covers collections, custom data, templates, variables, and much more.

@@ -56,50 +56,42 @@ roq start
 
 🚀 Hit `w` or open [http://localhost:8080](http://localhost:8080). You should see a bare-bones page with no styling. That's expected, we'll fix that next.
 
+Here's what was generated:
 
-## 2. Create the base layout
-
-The base theme provides a minimal `default` layout, but we need our own with Tailwind classes for colors and dark mode.
-
-**››› CODING TIME**
-
-Create `templates/layouts/default.html` with a basic HTML skeleton. Use Tailwind's `slate` palette for a dark/light look, import the page title, and include the `{#bundle /}` tag in the head to pull in CSS and JS.
-
-<details>
-<summary>See hint</summary>
-
-Roq layouts use Qute templates. You need two type declarations at the top: `{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}` and `{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}`. Use `{page.title}` for the `<title>` tag. The `{#bundle /}` tag auto-includes all CSS/JS from the `web/` directory. `{#insert /}` is where page content gets injected.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Create `templates/layouts/default.html`:
-
-```html
-{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
-{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
-<!DOCTYPE html>
-<html lang="en" class="bg-slate-100 dark:bg-slate-900">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{page.title}</title>
-  {#bundle /}
-</head>
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans overscroll-none min-h-screen">
-  {#insert /}
-</body>
-</html>
+```
+my-linktree/
+├── content/              # Your pages
+│   └── index.html        # Home page
+├── data/                 # Data files (YAML/JSON)
+├── public/               # Static assets (images, favicon…)
+├── web/                  # CSS and JS (bundled automatically)
+│   └── app.css
+└── pom.xml
 ```
 
-</details>
+- **`content/`** is where you write your pages.
+- **`data/`** holds structured data (YAML/JSON) accessible from templates. We'll use this for profile and links.
+- **`web/`** is for CSS and JS, bundled automatically by Web Bundler.
+- **`public/`** holds static files served as-is (images, fonts).
+- **`templates/`** doesn't exist yet, but this is where you'll create your own [layouts](/docs/basics/#layouts), [partials](/docs/basics/#partials), and [tags](/docs/basics/#tags) to override or extend the theme.
 
-Now set up the CSS. Replace the contents of `web/app.css` with a Tailwind import:
+
+## 2. Set up Tailwind and base styles
+
+The base theme already provides a `default` layout with the HTML skeleton, SEO tags, favicon, and `{#bundle /}`. No need to override it. We just need to set up our CSS.
+
+Replace the contents of `web/app.css` with Tailwind and base styles:
 
 ```css
 @import "tailwindcss";
+
+html {
+  @apply bg-slate-100 dark:bg-slate-900;
+}
+
+body {
+  @apply bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans overscroll-none min-h-screen;
+}
 ```
 
 🚀 Refresh your browser. The page should now have a light gray background (slate-100) and sans-serif text. Dark mode works automatically based on your system preference.

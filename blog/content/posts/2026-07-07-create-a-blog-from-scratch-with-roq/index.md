@@ -50,6 +50,25 @@ roq start
 
 🚀 Hit `w` or open [http://localhost:8080](http://localhost:8080). You should see a basic page with minimal styling and some placeholder content. We'll replace all of it.
 
+Here's what was generated:
+
+```
+my-blog/
+├── content/              # Your pages
+│   └── index.html        # Home page
+├── data/                 # Data files (YAML/JSON)
+├── public/               # Static assets (images, favicon…)
+├── web/                  # CSS and JS (bundled automatically)
+│   └── app.css
+└── pom.xml
+```
+
+- **`content/`** is where you write. Markdown, AsciiDoc, or HTML.
+- **`data/`** holds structured data (YAML/JSON) accessible from templates.
+- **`web/`** is for CSS and JS, bundled automatically by Web Bundler.
+- **`public/`** holds static files served as-is (images, fonts, robots.txt).
+- **`templates/`** doesn't exist yet, but this is where you'll create your own [layouts](/docs/basics/#layouts), [partials](/docs/basics/#partials), and [tags](/docs/basics/#tags) to override or extend the theme.
+
 
 ## 2. 👀 Explore the base theme
 
@@ -506,7 +525,7 @@ In `templates/layouts/post.html`, replace the tags section:
 
 ## 11. Add an RSS feed
 
-RSS lets readers subscribe to your blog. Roq has built-in support.
+RSS lets readers subscribe to your blog. Roq has [built-in support](/docs/basics/#rss).
 
 **››› CODING TIME**
 
@@ -525,8 +544,6 @@ Create `content/rss.xml` with `{#include fm/rss.html /}` inside. Then add `{#rss
 Create `content/rss.xml`:
 
 ```html
----
----
 {#include fm/rss.html /}
 ```
 

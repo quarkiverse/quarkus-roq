@@ -12,40 +12,24 @@ qute: false
 
 Your Roq blog generates static pages. Fast, simple, easy to deploy. But what about comments? You could use a third-party widget, but why not build your own?
 
-In this tutorial, you'll create a **Lit web component** for comments backed by a **Quarkus REST API**, all running in the same app. The blog pages stay static. The comments are fully dynamic, loaded and posted via JavaScript, no page reload needed.
+In this tutorial, you'll create a **Lit web component** for comments backed by a **Quarkus REST API** in a separate microservice. The blog pages stay static. The comments are fully dynamic, loaded and posted via JavaScript from a dedicated comments server, no page reload needed.
 
-This is the "web component" approach (as opposed to the [hybrid mode approach](/posts/add-comments-hybrid/)). Same result, different architecture: here, the blog stays 100% static and the interactivity lives in a custom HTML element.
+This is the "web component" approach (as opposed to the [hybrid mode approach](/posts/add-comments-hybrid/)). Same result, different architecture: here, the blog stays 100% static and the interactivity lives in a custom HTML element served by a separate Quarkus app.
 
 > [!NOTE]
-> **Prerequisites:** A working Roq blog from the [blog tutorial](/posts/create-a-blog-with-roq/) or the [from-scratch tutorial](/posts/create-a-blog-from-scratch-with-roq/). You should have at least one blog post.
+> **Prerequisites:** A working Roq blog from the [blog tutorial](/posts/create-a-blog-with-roq/) or the [from-scratch tutorial](/posts/create-a-blog-from-scratch-with-roq/). You should have at least one blog post. Keep the blog running on port 8080.
 
 > [!TIP]
 > For the best development experience, install the [Quarkus IDE tooling](https://quarkus.io/guides/ide-tooling) for your editor (VS Code, IntelliJ, or Eclipse). You get config autocompletion, validation, and Qute template completion.
 
 
-## 1. Add the backend dependencies
+## 1. Create the comments project
 
-We need three things: a REST API for comments, a database to store them, and the Lit library for the web component.
+The comments service is a separate Quarkus app that runs alongside your blog. Generate it from [code.quarkus.io](https://code.quarkus.io/?a=comments&e=rest-jackson&e=hibernate-orm-panache&e=jdbc-h2&e=io.quarkiverse.web-bundler%3Aquarkus-web-bundler) with the extensions: REST Jackson, Hibernate ORM Panache, JDBC H2, and Web Bundler. Extract it next to your blog directory.
 
-Add these dependencies to your `pom.xml`:
+Then add the Lit dependency to `comments/pom.xml`:
 
 ```xml
-<!-- REST API with JSON -->
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-rest-jackson</artifactId>
-</dependency>
-
-<!-- Database: Hibernate ORM Panache + H2 -->
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-hibernate-orm-panache</artifactId>
-</dependency>
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-jdbc-h2</artifactId>
-</dependency>
-
 <!-- Lit web component library (bundled by Web Bundler) -->
 <dependency>
     <groupId>org.mvnpm</groupId>
@@ -55,14 +39,32 @@ Add these dependencies to your `pom.xml`:
 </dependency>
 ```
 
-Then configure the database in `config/application.properties` (or `src/main/resources/application.properties`):
+Then configure the app in `src/main/resources/application.properties`:
 
 ```properties
+quarkus.http.port=7070
 quarkus.datasource.db-kind=h2
 quarkus.hibernate-orm.database.generation=drop-and-create
+quarkus.http.cors=true
+quarkus.http.cors.origins=http://localhost:8080,http://localhost:7070
 ```
 
-🚀 Restart dev mode. The app should start with no errors.
+The comments app runs on port 7070 so it doesn't conflict with your blog. CORS is enabled so the blog (on port 8080) can load the web component script and call the API.
+
+If you don't have the Quarkus CLI yet, install it with JBang (same as Roq):
+
+```shell
+jbang app install --fresh --force quarkus@quarkusio
+```
+
+Start the comments app in dev mode:
+
+```shell
+cd comments
+quarkus dev
+```
+
+🚀 The app should start on port 7070 with no errors.
 
 > [!NOTE]
 > The Lit dependency has `scope: provided` because Web Bundler bundles the JavaScript at build time. The library isn't needed at runtime in the Java classpath, only during the bundling step. This is how [mvnpm](https://mvnpm.org) works: npm packages as Maven dependencies, bundled via esbuild.
@@ -178,7 +180,7 @@ public class CommentResource {
 🚀 Test the API with curl:
 
 ```shell
-curl -s http://localhost:8080/api/comments/hello-world | jq .
+curl -s http://localhost:7070/api/comments/hello-world | jq .
 ```
 
 You should get an empty JSON array `[]`. The API works!
@@ -200,7 +202,7 @@ Create `web/comments-section.js` as a Lit component. It should:
 <details>
 <summary>See hint</summary>
 
-Import `LitElement`, `html`, and `css` from `lit`. Define a class that extends `LitElement`. Use `static properties` to declare `postSlug` (attribute: `post-slug`) and `comments` (reactive state). In `connectedCallback()`, call `fetchComments()`. The `render()` method returns a template literal with `html\`...\``. Use `@click` for the submit button handler. After POST, set `this.comments` to the response to trigger a re-render.
+Import `LitElement`, `html`, and `css` from `lit`. Define a class that extends `LitElement`. Use `static properties` to declare `postSlug` (attribute: `post-slug`), `serverUrl` (attribute: `server-url`), and `comments` (reactive state). In `connectedCallback()`, call `fetchComments()`. Use `${this.serverUrl}/api/comments/...` in fetch calls so the component works cross-origin. The `render()` method returns a template literal with `html\`...\``. Use `@click` for the submit button handler. After POST, set `this.comments` to the response to trigger a re-render.
 
 </details>
 
@@ -216,6 +218,7 @@ class CommentsSection extends LitElement {
 
   static properties = {
     postSlug: { type: String, attribute: 'post-slug' },
+    serverUrl: { type: String, attribute: 'server-url' },
     comments: { state: true },
     _author: { state: true },
     _content: { state: true },
@@ -312,6 +315,7 @@ class CommentsSection extends LitElement {
 
   constructor() {
     super();
+    this.serverUrl = '';
     this.comments = [];
     this._author = '';
     this._content = '';
@@ -323,14 +327,14 @@ class CommentsSection extends LitElement {
   }
 
   fetchComments() {
-    fetch(`/api/comments/${this.postSlug}`)
+    fetch(`${this.serverUrl}/api/comments/${this.postSlug}`)
       .then(r => r.json())
       .then(data => this.comments = data);
   }
 
   postComment() {
     if (!this._author.trim() || !this._content.trim()) return;
-    fetch('/api/comments', {
+    fetch(`${this.serverUrl}/api/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -393,18 +397,18 @@ customElements.define('comments-section', CommentsSection);
 > The file lives in `web/` because Roq's Web Bundler automatically picks up all JS files there and bundles them via esbuild. The `{#bundle /}` tag in your layout includes the bundled output. No extra configuration needed.
 
 
-## 5. Embed the component in the post layout
+## 5. Embed the component in the blog
 
-The web component is ready. Now we need to use it in the post template.
+The web component is ready. Now we need to load it in the blog and use it in the post template. Since the comments app runs on port 7070, we load the bundled script cross-origin.
 
 **››› CODING TIME**
 
-Add `<comments-section post-slug="...">` to your post layout, passing the current post's slug.
+Add a `<script>` tag loading the component from the comments server, and a `<comments-section>` element to your post layout.
 
 <details>
 <summary>See hint</summary>
 
-If you used the default theme (Tutorial 1a), create `templates/layouts/post.html` to override the theme's post layout. Use `theme-layout: post` and add the component after `{#insert /}`. The post slug is available as `page.title.slugify`. If you built from scratch (Tutorial 1b), just add the component to your existing `templates/layouts/post.html`.
+If you used the default theme (Tutorial 1a), create `templates/layouts/post.html` to override the theme's post layout. Use `theme-layout: post`. If you built from scratch (Tutorial 1b), edit your existing `templates/layouts/post.html`. Add the script tag and the component after `{#insert /}`. The post slug is available as `page.slug`.
 
 </details>
 
@@ -420,9 +424,8 @@ theme-layout: post
 
 {#insert /}
 
-<section style="margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
-  <comments-section post-slug="{page.title.slugify}"></comments-section>
-</section>
+<script crossorigin src="http://localhost:7070/static/bundle/main.js" type="module"></script>
+<comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
 </details>
@@ -430,17 +433,16 @@ theme-layout: post
 <details>
 <summary>See solution (from-scratch theme)</summary>
 
-In your existing `templates/layouts/post.html`, add the comments section after the article content, before the closing tags:
+In your existing `templates/layouts/post.html`, add the script and component after the article content:
 
 ```html
-  <section class="mt-12 border-t border-slate-200 dark:border-slate-800 pt-8">
-    <comments-section post-slug="{page.title.slugify}"></comments-section>
-  </section>
+<script crossorigin src="http://localhost:7070/static/bundle/main.js" type="module"></script>
+<comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
 </details>
 
-🚀 Navigate to a blog post. You should see a "Comments (0)" section at the bottom with a form. Try posting a comment!
+🚀 Open the blog (on port 8080), navigate to a blog post. You should see the comments section at the bottom with a form. Try posting a comment!
 
 🤩 The comment appears instantly, no page reload. The Lit component posted to the API, got the updated list back, and re-rendered. The blog page itself is still static HTML, served by Roq. The interactivity is entirely in the web component.
 
@@ -512,26 +514,19 @@ public class SampleData {
 
 Take a step back and look at what you've built:
 
-```
-Static pages (Roq)          REST API (Quarkus)        Web Component (Lit)
-┌─────────────────┐        ┌──────────────────┐      ┌───────────────────┐
-│ blog post HTML  │        │ GET /api/comments │◄─────│ fetch on connect  │
-│ served as-is    │        │ POST /api/comments│◄─────│ POST on submit    │
-│                 │        │                   │─────►│ re-render list    │
-│ <comments-      │        │ Panache + H2      │      │                   │
-│  section/>      │────────│                   │      │ Shadow DOM styles │
-└─────────────────┘        └──────────────────┘      └───────────────────┘
-```
+![Architecture](https://kroki.io/d2/svg/eNplUU1PAjEQvfdXvKPG7Ee8QBpDIgZFA5GwJJy73QrFpV3bwsXw351tWRPjoe30vXnTN9NGOyWDtobD6d0-MFa3dscxpR0Z1vYLfFyOS9xYBx9E0PIW3wzorA8cfXIMMd8sFwQHQeIHaY9HZYLPfCpeTIjy0umONOmEdxJHoU1-8OzC2CDheLpGeD61LT0pP7HU0lmv3FlLBT4qR2X0IDrNsZ5VGzyuXiMC7BQ98TLboCC2GKpGKllevVf_yQutpiZSGCH3CneY3xNUn0zTKo6tqjGNsSP0QCavzmlECx1AlTprqNavBtkk5qWbT2Z7sKn7bvu55ddBEDg4yXtJa0Xj0TfsM0ufok1Kp9H-yY3df6gg90X8gbMWeKvYD6-WlXI=)
 
 - **Roq** generates static HTML pages with a `<comments-section>` custom element tag
-- **Web Bundler** bundles the Lit component JS and includes it via `{#bundle /}`
-- **The browser** loads the page, sees the custom element, and the component takes over
-- **Lit** fetches comments from the REST API, renders them, and handles form submission
+- The blog loads the **bundled Lit component** from the comments server via a `<script>` tag
+- **The browser** sees the custom element and the component takes over
+- **Lit** fetches comments from the REST API (cross-origin), renders them, and handles form submission
 - **Quarkus REST + Panache** serves the API and talks to H2
 
-No hybrid mode needed. The blog stays fully static. The dynamic part is a clean separation: a REST API + a web component.
+No hybrid mode needed. The blog stays fully static. The dynamic part is a clean separation: a REST API + a web component in a separate microservice.
 
-🤩 You've built a full-stack comment system with static pages, a REST API, and a reactive web component, all in one Quarkus app.
+In production, the blog would be generated with `roq build` and deployed as static files (GitHub Pages, Netlify, etc.), while the comments service runs as a standalone Quarkus app wherever you host it.
+
+🤩 You've built a full-stack comment system with two apps: a static blog and a comments microservice with a reactive web component.
 
 
 ## What's next?
