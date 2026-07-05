@@ -625,12 +625,18 @@ Here are a few ideas to keep going:
   <details>
   <summary>See hint</summary>
 
-  Add `{#search-script /}` in the `{#head}` slot, `{#search-overlay /}` at the top of the body, and `{#search-button /}` in your nav bar. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
+  Create `content/search-index.json` with `{#include fm/search-index.json /}` to generate the search index. Then add `{#search-script /}` in the `{#head}` slot, `{#search-overlay /}` at the top of the body, and `{#search-button /}` in your nav bar. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
 
   </details>
 
   <details>
   <summary>See solution</summary>
+
+  Create `content/search-index.json`:
+
+  ```
+  {#include fm/search-index.json /}
+  ```
 
   In `templates/layouts/default.html`, add:
 

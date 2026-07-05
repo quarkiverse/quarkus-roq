@@ -125,6 +125,7 @@ Edit the frontmatter in `content/index.html`:
 title: Jane's Dev Blog — Thoughts on code, coffee, and building things that work.
 description: Software developer, open source enthusiast, and occasional writer.
 name: Jane's Dev Blog
+simple-name: Jane's Blog
 image: avatar.png
 logo: avatar.png
 social-twitter: janecodes
@@ -140,6 +141,7 @@ Edit `data/authors.yml`:
 jane:
   name: Jane Doe
   nickname: janecodes
+  job: Software Developer
   avatar: https://i.pravatar.cc/300
   profile: https://github.com/janecodes
   bio: Software developer who loves Java, open source, and writing about what I learn.
@@ -425,12 +427,18 @@ Override the theme's `main.html` layout to add the search overlay and button.
 <details>
 <summary>See hint</summary>
 
-You need three Qute tags in your `templates/layouts/main.html`: `{#search-overlay /}` for the modal, `{#search-button-input /}` for the trigger in the sidebar, and `{#search-script /}` in the head. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
+You need two things: a `content/search-index.json` file that generates the search index, and a `templates/layouts/main.html` override with three Qute tags: `{#search-overlay /}` for the modal, `{#search-button-input /}` for the trigger in the sidebar, and `{#search-script /}` in the head. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
 
 </details>
 
 <details>
 <summary>See solution</summary>
+
+Create `content/search-index.json`:
+
+```
+{#include fm/search-index.json /}
+```
 
 Create or edit `templates/layouts/main.html`:
 
