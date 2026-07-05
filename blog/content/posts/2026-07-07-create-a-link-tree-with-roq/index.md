@@ -1,10 +1,12 @@
 ---
 title: "Create a Link-Tree with Roq (45min)"
+slug: create-a-link-tree-with-roq
 description: "Step-by-step tutorial: build a personal link-tree site from scratch with Roq."
 author: ia3andy
 qute: false
 tags: [tutorial]
-date: 2026-07-07
+series: roq-blog-lab
+date: 2026-07-05 12:00
 image: https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 ---
 
@@ -13,11 +15,14 @@ Link-tree sites are everywhere: a clean page with your photo, a few links, maybe
 In this tutorial you'll build a personal link-tree from scratch with [Roq](https://iamroq.dev) and [Tailwind CSS](https://tailwindcss.com). No pre-built theme, just you, a data file, and some templates. By the end you'll have a polished site with typed data, icon sets, auto-generated pages, and downloadable QR codes.
 
 > [!NOTE]
-> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](https://iamroq.dev/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
+> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
 > Verify your setup with:
 > ```
 > roq --version
 > ```
+
+> [!TIP]
+> For the best development experience, install the [Quarkus IDE tooling](https://quarkus.io/guides/ide-tooling) for your editor (VS Code, IntelliJ, or Eclipse). You get config autocompletion, validation, and Qute template completion.
 
 > [!TIP]
 > The finished project is available at [github.com/ia3andy/roq-linktree-tuto](https://github.com/ia3andy/roq-linktree-tuto) if you get stuck.
@@ -40,16 +45,16 @@ cd my-linktree
 Now add the Tailwind CSS extension:
 
 ```shell
-roq add web-bundler-tailwindcss
+roq add web:tailwindcss
 ```
 
 Start dev mode:
 
 ```shell
-roq dev
+roq start
 ```
 
-🚀 Open [http://localhost:8080](http://localhost:8080). You should see a bare-bones page with no styling. That's expected, we'll fix that next.
+🚀 Hit `w` or open [http://localhost:8080](http://localhost:8080). You should see a bare-bones page with no styling. That's expected, we'll fix that next.
 
 
 ## 2. Create the base layout
@@ -712,6 +717,6 @@ Here are a few ideas to keep going:
 - **Deploy to GitHub Pages**: your project already includes a `.github/workflows/deploy.yml`. Push to GitHub, enable Pages in Settings, and you're live.
 - **Add analytics**: set `analytics.ga4: G-XXXXX` in your site index frontmatter and add `{#ga4 /}` to the layout.
 - **Make it your own**: swap the color palette (try `indigo`/`rose`), change the card style, add animations. It's just Tailwind, go wild.
-- **Explore the docs**: [Roq the basics](https://iamroq.dev/docs/basics/) covers collections, custom data, templates, and much more.
+- **Explore the docs**: [Roq the basics](/docs/basics/) covers collections, custom data, templates, and much more.
 
 Happy linking!

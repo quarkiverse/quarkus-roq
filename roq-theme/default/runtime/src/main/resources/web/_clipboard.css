@@ -13,4 +13,12 @@
         @apply text-neutral-200;
     }
 
+    .code-copy-btn {
+        @apply absolute top-2 right-2 opacity-0 transition-opacity duration-200 text-base p-2;
+    }
+
+    pre:hover .code-copy-btn {
+        @apply opacity-100;
+    }
+
 }

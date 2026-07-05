@@ -1,9 +1,11 @@
 ---
 title: "Create your own Blog with Roq (30min)"
+slug: create-a-blog-with-roq
 description: "Step-by-step tutorial: create and customize a blog with Roq using the default theme."
 author: ia3andy
 tags: [tutorial]
-date: 2026-07-07
+series: roq-blog-lab
+date: 2026-07-05 10:00
 image: https://images.unsplash.com/photo-1461344577544-4e5dc9487184?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 qute: false
 ---
@@ -15,11 +17,14 @@ That's exactly what [Roq](https://iamroq.dev) is for. It's a static site generat
 In about 30 minutes, you'll go from nothing to a fully customized blog deployed on GitHub Pages. Let's go!
 
 > [!NOTE]
-> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](https://iamroq.dev/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
+> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
 > Verify your setup with:
 > ```
 > roq --version
 > ```
+
+> [!TIP]
+> For the best development experience, install the [Quarkus IDE tooling](https://quarkus.io/guides/ide-tooling) for your editor (VS Code, IntelliJ, or Eclipse). You get config autocompletion, validation, and Qute template completion.
 
 
 ## 1. Create your blog
@@ -36,16 +41,18 @@ Now start it:
 
 ```shell
 cd my-blog
-roq dev
+roq start
 ```
 
-🚀 Open [http://localhost:8080](http://localhost:8080) in your browser. You should see a hero page with a mascot, feature cards, and a sidebar with navigation. Not bad for two commands!
+🚀 Hit `w` or open [http://localhost:8080](http://localhost:8080) in your browser. You should see a hero page with a mascot, feature cards, and a sidebar with navigation. Not bad for two commands!
 
 > [!NOTE]
-> `roq dev` starts Quarkus in dev mode with **live-reload**. Every change you save is instantly reflected in the browser, no manual refresh needed.
+> `roq start` starts Quarkus in dev mode with **live-reload**. Every change you save is instantly reflected in the browser, no manual refresh needed.
 
 
 ## 2. 👀 Explore the generated structure
+
+Your project uses the [default theme](https://github.com/quarkiverse/quarkus-roq/tree/main/roq-theme/default/runtime/src/main/resources), a Maven dependency that provides layouts, partials, styles, and much more. You don't need to look at the theme source to use it, but it helps to know it's there.
 
 Before changing anything, take a minute to look at what was generated:
 
@@ -257,7 +264,7 @@ The theme includes all [Tailwind CSS colors](https://tailwindcss.com/docs/colors
 Replace the content of `web/_custom.css`:
 
 ```css
-/* Theme customization: https://iamroq.dev/theme/default/#css-customization */
+/* Theme customization: /theme/default/#css-customization */
 @theme inline {
     /* Accent: indigo (sidebar, headings, borders) */
     --color-accent-50: var(--color-indigo-50);
@@ -302,7 +309,7 @@ Time to actually write something. You have two ways to create a post.
 
 ### Option A: The Roq Editor (recommended)
 
-In the terminal where `roq dev` is running, press **`m`** (for *Manage*). This opens the Roq Editor in your browser, a rich-text editor with Markdown support, right inside the dev experience.
+In the terminal where `roq start` is running, press **`m`** (for *Manage*). This opens the Roq Editor in your browser, a rich-text editor with Markdown support, right inside the dev experience.
 
 From the editor, click **New Post**, give it a title, write your content, and save. The file is created for you in `content/posts/`.
 
@@ -410,7 +417,41 @@ For full-text search powered by [Lunr.js](https://lunrjs.com/), add the search p
 roq add plugin:lunr
 ```
 
-Search requires a few template overrides to inject the search overlay and button. See the [Lunr Search plugin docs](https://iamroq.dev/plugin/lunr/) for the full setup. Once configured, visitors can search your entire blog with **Cmd+K** (or **Ctrl+K**).
+**››› CODING TIME**
+
+Override the theme's `main.html` layout to add the search overlay and button.
+
+<details>
+<summary>See hint</summary>
+
+You need three Qute tags in your `templates/layouts/main.html`: `{#search-overlay /}` for the modal, `{#search-button-input /}` for the trigger in the sidebar, and `{#search-script /}` in the head. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
+
+</details>
+
+<details>
+<summary>See solution</summary>
+
+Create or edit `templates/layouts/main.html`:
+
+```html
+---
+theme-layout: main
+---
+
+{#head}{#search-script /}{/head}
+
+{#search-overlay /}
+{#insert /}
+
+{#menu}
+{#search-button-input /}
+{#include partials/roq-default/sidebar-menu menu=cdi:menu.items /}
+{/}
+```
+
+</details>
+
+🚀 Refresh your blog and press **Cmd+K** (or **Ctrl+K**). A search overlay should appear, letting you search across all your posts.
 
 
 ## 9. Deploy to GitHub Pages
@@ -450,7 +491,7 @@ Your blog will be live at `https://your-username.github.io/my-blog/` within a co
 
 </details>
 
-🚀 Wait for the GitHub Action to complete (check the **Actions** tab), then visit your live URL.
+🚀 The first run will likely fail because GitHub Pages is not yet enabled. Go to **Settings** > **Pages**, set Source to **GitHub Actions**, then re-run the workflow from the **Actions** tab. Once it passes, visit your live URL.
 
 🤩 Your blog is live on the internet. You built it from scratch, customized the theme, wrote your first post, and deployed it. All in about 30 minutes.
 
@@ -463,6 +504,6 @@ Here are a few ideas to keep going:
 - **Add an RSS feed**: create `content/rss.xml` with `{#include fm/rss.html /}` inside.
 - **Add a sitemap**: `roq add plugin:sitemap` and it's done.
 - **Override theme templates**: create `templates/layouts/post.html` to customize the post layout. The theme is your base, not your cage.
-- **Explore the docs**: [Roq the basics](https://iamroq.dev/docs/basics/) covers collections, custom data, templates, variables, and much more.
+- **Explore the docs**: [Roq the basics](/docs/basics/) covers collections, custom data, templates, variables, and much more.
 
 Happy blogging!

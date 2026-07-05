@@ -1,9 +1,11 @@
 ---
 title: "Add Comments to Your Blog with Hybrid Mode (30min)"
+slug: add-comments-hybrid
 description: "Step-by-step tutorial: add dynamic comments to your Roq blog using hybrid mode, Panache, and Qute templates."
 author: ia3andy
 tags: [tutorial]
-date: 2026-07-07
+series: roq-blog-lab
+date: 2026-07-05 13:00
 image: https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 qute: false
 ---
@@ -16,6 +18,9 @@ In about 30 minutes, you'll add a comment system to your blog with an H2 databas
 
 > [!NOTE]
 > **Prerequisites:** A working Roq blog from the [blog tutorial](/posts/create-a-blog-with-roq/) or the [from-scratch tutorial](/posts/create-a-blog-from-scratch-with-roq/). You should have at least one blog post.
+
+> [!TIP]
+> For the best development experience, install the [Quarkus IDE tooling](https://quarkus.io/guides/ide-tooling) for your editor (VS Code, IntelliJ, or Eclipse). You get config autocompletion, validation, and Qute template completion.
 
 
 ## 1. Add hybrid mode

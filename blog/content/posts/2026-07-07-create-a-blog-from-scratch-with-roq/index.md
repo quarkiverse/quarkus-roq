@@ -1,10 +1,12 @@
 ---
 title: "Create a Blog from Scratch with Roq (45min)"
+slug: create-a-blog-from-scratch-with-roq
 description: "Step-by-step tutorial: build a blog from scratch with Roq using the base theme. Learn layouts, collections, and Tailwind styling."
 author: ia3andy
 qute: false
 tags: [tutorial]
-date: 2026-07-07
+series: roq-blog-lab
+date: 2026-07-05 11:00
 image: https://images.unsplash.com/photo-1604716053460-3f66248bf8de?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 ---
 
@@ -13,11 +15,14 @@ The [first tutorial](/posts/create-a-blog-with-roq/) showed you how to create a 
 That's what this tutorial is about. You'll build a blog from scratch using Roq's **base theme**, which gives you the foundation (SEO, favicon, bundling) but zero styling. You'll create your own layouts, wire up collections, add pagination and tags, all while learning how Roq's template system works.
 
 > [!NOTE]
-> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](https://iamroq.dev/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
+> **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
 > Verify your setup with:
 > ```
 > roq --version
 > ```
+
+> [!TIP]
+> For the best development experience, install the [Quarkus IDE tooling](https://quarkus.io/guides/ide-tooling) for your editor (VS Code, IntelliJ, or Eclipse). You get config autocompletion, validation, and Qute template completion.
 
 
 ## 1. Create the project
@@ -34,21 +39,21 @@ Now add Tailwind CSS:
 
 ```shell
 cd my-blog
-roq add web-bundler-tailwindcss
+roq add web:tailwindcss
 ```
 
 Start dev mode:
 
 ```shell
-roq dev
+roq start
 ```
 
-🚀 Open [http://localhost:8080](http://localhost:8080). You should see a basic page with minimal styling and some placeholder content. We'll replace all of it.
+🚀 Hit `w` or open [http://localhost:8080](http://localhost:8080). You should see a basic page with minimal styling and some placeholder content. We'll replace all of it.
 
 
 ## 2. 👀 Explore the base theme
 
-Before writing code, let's understand what the base theme gives you. It provides three layouts you can extend:
+In Roq, a theme is a Maven dependency that provides layouts, partials, styles, and much more. Your project already includes the base theme as a dependency in `pom.xml`. You can browse its source on [GitHub](https://github.com/quarkiverse/quarkus-roq/tree/main/roq-frontmatter/runtime/src/main/resources/templates/theme-layouts/roq-base). It provides three layouts you can extend:
 
 - **`default`**: the HTML skeleton with `<head>` (SEO, favicon, bundle) and `<body>`. This is the root of the layout chain.
 - **`page`**: extends `default`, adds a simple `<main>` with an `<h1>` title. For generic pages.
@@ -57,9 +62,6 @@ Before writing code, let's understand what the base theme gives you. It provides
 These layouts are intentionally minimal. They use `{#insert /}` as a content slot. When your page says `layout: default`, Roq injects your page content into that slot.
 
 🚀🔑 The layout chain works like inheritance: your content page declares a `layout`, that layout can declare its own parent `layout`, all the way up to the base `default`. Each level wraps the previous one.
-
-> [!NOTE]
-> You can see the base theme layouts in the Roq source at `roq-frontmatter/runtime/src/main/resources/templates/theme-layouts/roq-base/`. They're just HTML with Qute template tags. Nothing magic.
 
 
 ## 3. Create your default layout
@@ -590,7 +592,7 @@ Your blog will be live at `https://your-username.github.io/my-blog/` within a co
 
 </details>
 
-🚀 Wait for the GitHub Action to complete, then visit your live URL.
+🚀 The first run will likely fail because GitHub Pages is not yet enabled. Go to **Settings** > **Pages**, set Source to **GitHub Actions**, then re-run the workflow from the **Actions** tab. Once it passes, visit your live URL.
 
 🤩 You built a blog from scratch. Custom layouts, a posts collection, pagination, tags, RSS, and deployment. All from a blank base theme, styled with Tailwind, and deployed in one push.
 
@@ -601,9 +603,41 @@ Here are a few ideas to keep going:
 
 - **Add more posts**: create new directories in `content/posts/` or use the Editor (press `m` in the dev terminal).
 - **Add a sitemap**: `roq add plugin:sitemap` and it's done.
-- **Add search**: `roq add plugin:lunr` for full-text search (see the [plugin docs](https://iamroq.dev/plugin/lunr/) for setup).
+- **Add search**: `roq add plugin:lunr` for full-text search. You'll need to add three tags to your `default.html` layout:
+
+  <details>
+  <summary>See hint</summary>
+
+  Add `{#search-script /}` in the `{#head}` slot, `{#search-overlay /}` at the top of the body, and `{#search-button /}` in your nav bar. See the [Lunr Search plugin docs](/plugin/lunr-search/) for details.
+
+  </details>
+
+  <details>
+  <summary>See solution</summary>
+
+  In `templates/layouts/default.html`, add:
+
+  ```html
+  {#head}{#search-script /}{/head}
+
+  {#search-overlay /}
+  ```
+
+  And in your `<nav>`:
+
+  ```html
+  <nav class="flex gap-4 text-sm items-center">
+    <a href="/" ...>Home</a>
+    <a href="/about" ...>About</a>
+    {#search-button /}
+  </nav>
+  ```
+
+  </details>
+
+  Press **Cmd+K** (or **Ctrl+K**) to try it out.
 - **Add images to posts**: drop an image in the post directory and set `image: photo.jpg` in frontmatter.
 - **Dark mode toggle**: the CSS classes are already in place (`dark:`), add a JavaScript toggle button.
-- **Explore the docs**: [Roq the basics](https://iamroq.dev/docs/basics/) covers collections, custom data, templates, and much more.
+- **Explore the docs**: [Roq the basics](/docs/basics/) covers collections, custom data, templates, and much more.
 
 Happy building!
