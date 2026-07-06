@@ -1,9 +1,11 @@
 package io.quarkiverse.roq.testing;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import org.jboss.logging.Logger;
 
@@ -34,7 +36,9 @@ import io.mvnpm.raclette.types.Uri;
 public final class RoqLinks {
 
     private static final Logger LOG = Logger.getLogger(RoqLinks.class);
-    private static final String DEFAULT_EXCLUDES = ".*/q/dev-ui/.*|http://localhost:.*";
+    private static final String DEFAULT_EXCLUDES = ".*/q/dev-ui/.*";
+    private static final Pattern LOCALHOST_PATTERN = Pattern.compile(
+            "^https?://(localhost|127\\.0\\.0\\.1|\\[::1\\])(:\\d+)?/");
 
     private static volatile Path outputDir;
 
@@ -110,11 +114,21 @@ public final class RoqLinks {
                 .path(outputDir)
                 .excludes(DEFAULT_EXCLUDES)
                 .build()) {
-            Map<Uri, Status> broken = checker.check();
+            Map<Uri, Status> broken = excludeLocalhost(checker.check());
             long ms = (System.nanoTime() - start) / 1_000_000;
             logBrokenLinks("internal", broken, ms);
             return broken;
         }
+    }
+
+    private static Map<Uri, Status> excludeLocalhost(Map<Uri, Status> results) {
+        Map<Uri, Status> filtered = new LinkedHashMap<>();
+        for (var entry : results.entrySet()) {
+            if (!LOCALHOST_PATTERN.matcher(entry.getKey().url()).find()) {
+                filtered.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return filtered;
     }
 
     private static void logBrokenLinks(String scope, Map<Uri, Status> broken, long ms) {
