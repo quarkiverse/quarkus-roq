@@ -3,6 +3,7 @@ title: "Create your own Blog with Roq (30min)"
 slug: create-a-blog-with-roq
 description: "Step-by-step tutorial: create and customize a blog with Roq using the default theme."
 author: ia3andy
+aliases: [lab]
 tags: [tutorial]
 series: roq-blog-lab
 date: 2026-07-05 10:00
