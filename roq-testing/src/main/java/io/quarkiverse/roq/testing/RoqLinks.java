@@ -34,7 +34,7 @@ import io.mvnpm.raclette.types.Uri;
 public final class RoqLinks {
 
     private static final Logger LOG = Logger.getLogger(RoqLinks.class);
-    private static final String DEFAULT_EXCLUDES = ".*/q/dev-ui/.*";
+    private static final String DEFAULT_EXCLUDES = ".*/q/dev-ui/.*|http://localhost:.*";
 
     private static volatile Path outputDir;
 

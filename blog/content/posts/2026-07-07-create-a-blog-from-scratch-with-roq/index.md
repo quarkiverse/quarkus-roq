@@ -292,34 +292,7 @@ layout: default
 🚀🔑 The `{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}` declaration is important. A `DocumentPage` is a page that belongs to a collection (like `posts`). It has extra fields: `date`, `next`, `previous`, `collectionId`. A regular `Page` doesn't have these.
 
 
-## 7. Configure the posts collection
-
-Roq needs to know that `content/posts/` is a collection of blog posts. This is configured in `application.properties`.
-
-**››› CODING TIME**
-
-Open `config/application.properties` and add the posts collection configuration.
-
-<details>
-<summary>See hint</summary>
-
-Use `site.collections.posts.layout=post` to tell Roq that files in `content/posts/` should use the `post` layout. The collection name (`posts`) matches the directory name by convention.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Edit `config/application.properties`:
-
-```properties
-site.collections.posts.layout=post
-```
-
-</details>
-
-
-## 8. Write your first post
+## 7. Write your first post
 
 Time to create some content. Blog posts live in `content/posts/` and follow a date-based naming convention.
 
@@ -379,10 +352,10 @@ This is how you get consistent headers, navs, and footers across your entire sit
 
 Save this as `content/posts/2026-07-02-learning-roq-layouts/index.md`.
 
-🚀 Navigate to `/hello-world/` and `/learning-roq-layouts/`. You should see your posts rendered with the title, date, tags, and prose-styled content. The previous/next links at the bottom should connect them.
+🚀 Navigate to [/posts/hello-world/](http://localhost:8080/posts/hello-world/) and [/posts/learning-roq-layouts/](http://localhost:8080/posts/learning-roq-layouts/). You should see your posts rendered with the title, date, tags, and prose-styled content. The previous/next links at the bottom should connect them.
 
 
-## 9. Add the blog listing
+## 8. Add the blog listing
 
 Now let's update the home page to list your posts with pagination.
 
@@ -441,7 +414,7 @@ paginate:
 🤩 You've built a working blog from scratch. Posts, layouts, a listing page with pagination. All with Tailwind and zero pre-built theme code.
 
 
-## 10. Add tag support
+## 9. Add tag support
 
 Tags let readers browse posts by topic. The tagging plugin auto-generates a page for each tag.
 
@@ -523,7 +496,7 @@ In `templates/layouts/post.html`, replace the tags section:
 🚀 Click on a tag in a blog post. You should land on a page like `/posts/tag/roq/` listing all posts with that tag.
 
 
-## 11. Add an RSS feed
+## 10. Add an RSS feed
 
 RSS lets readers subscribe to your blog. Roq has [built-in support](/docs/basics/#rss).
 
@@ -576,7 +549,7 @@ theme-layout: default
 🚀 Navigate to `/rss.xml` in your browser. You should see a valid RSS feed with your blog posts.
 
 
-## 12. Deploy to GitHub Pages
+## 11. Deploy to GitHub Pages
 
 Your project already includes a `.github/workflows/deploy.yml` file that handles deployment.
 

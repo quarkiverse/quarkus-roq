@@ -321,12 +321,12 @@ From the editor, click **New Post**, give it a title, write your content, and sa
 Create a new directory in `content/posts/` following the naming pattern `YYYY-MM-DD-slug/`:
 
 ```shell
-mkdir -p content/posts/2026-07-07-my-first-post
+mkdir -p content/posts/2026-07-05-my-first-post
 ```
 
 **››› CODING TIME**
 
-Create `content/posts/2026-07-07-my-first-post/index.md` with YAML frontmatter and some Markdown content. Include at least a title, description, tags, and author.
+Create `content/posts/2026-07-05-my-first-post/index.md` with YAML frontmatter and some Markdown content. Include at least a title, description, tags, and author.
 
 <details>
 <summary>See hint</summary>
@@ -344,14 +344,14 @@ Every post starts with YAML frontmatter between `---` markers. The key fields ar
 <details>
 <summary>See solution</summary>
 
-Create `content/posts/2026-07-07-my-first-post/index.md`:
+Create `content/posts/2026-07-05-my-first-post/index.md`:
 
 ```markdown
 ---
 title: "My First Blog Post"
 description: "Hello world! This is my very first post on my brand new blog."
 tags: hello, blogging
-date: 2026-07-07
+date: 2026-07-05
 author: jane
 ---
 

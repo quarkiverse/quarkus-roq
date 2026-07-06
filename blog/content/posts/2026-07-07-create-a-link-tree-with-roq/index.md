@@ -6,6 +6,7 @@ author: ia3andy
 qute: false
 tags: [tutorial]
 series: roq-blog-lab
+draft: true
 date: 2026-07-05 12:00
 image: https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 ---
@@ -487,12 +488,12 @@ This tells Roq: "create a `trees` collection, generate one page per data entry, 
 
 **››› CODING TIME**
 
-Create `templates/layouts/tree.html` that extends `default` and renders a tree page. It's very similar to the home page, but uses `page.data.links` instead of `defaultTree.links` since the links come directly from the page data.
+Create `templates/layouts/tree.html` that extends `default` and renders a tree page. Show the tree's title and description at the top, then the links from `page.data.links`, and the profile info at the bottom with a separator.
 
 <details>
 <summary>See hint</summary>
 
-Start with `layout: default` in the frontmatter to inherit the base layout. Copy the profile and social sections from `index.html`. For the links, use `{#for link in page.data.links}` since each tree YAML file becomes the page's data. The `page.data` object contains `title`, `description`, and `links` from the YAML.
+Start with `layout: default` in the frontmatter to inherit the base layout. Use `page.data.title` and `page.data.description` at the top. For the links, use `{#for link in page.data.links}` since each tree YAML file becomes the page's data. Move the profile and social sections to the bottom with a `border-t` separator.
 
 </details>
 
@@ -511,28 +512,12 @@ layout: default
 <div class="flex items-start justify-center pb-6 pt-12">
   <div class="w-full max-w-md mx-auto space-y-8 px-4">
 
-    <!-- Profile -->
-    <div class="text-center space-y-3">
-      {#if cdi:profile.image}
-      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md">
+    <!-- Title & Description -->
+    <div class="text-center space-y-2">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{page.title}</h1>
+      {#if page.description}
+      <p class="text-sm text-slate-500 dark:text-slate-400">{page.description}</p>
       {/if}
-      <h1 class="text-2xl font-bold tracking-tight">
-        {#if cdi:profile.name}<span class="text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
-        {#if cdi:profile.handle}<span class="text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
-      </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.title}</p>
-    </div>
-
-    <!-- Social -->
-    <div class="text-center space-y-3">
-      <div class="flex items-center justify-center gap-5">
-        {#for s in cdi:profile.social}
-        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
-           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-          <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
-        </a>
-        {/for}
-      </div>
     </div>
 
     <!-- Links -->
@@ -559,6 +544,25 @@ layout: default
         </span>
       </a>
       {/for}
+    </div>
+
+    <!-- Profile -->
+    <div class="border-t border-slate-200 dark:border-slate-700 pt-8 text-center space-y-3">
+      {#if cdi:profile.image}
+      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-20 h-20 mx-auto rounded-full bg-white dark:bg-slate-800 p-1.5 shadow-md">
+      {/if}
+      <div>
+        {#if cdi:profile.name}<span class="text-sm font-medium text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
+        {#if cdi:profile.handle}<span class="text-sm text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
+      </div>
+      <div class="flex items-center justify-center gap-4">
+        {#for s in cdi:profile.social}
+        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
+           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+          <i class="ph-fill ph-{s.icon}" style="font-size: 20px;"></i>
+        </a>
+        {/for}
+      </div>
     </div>
 
   </div>
