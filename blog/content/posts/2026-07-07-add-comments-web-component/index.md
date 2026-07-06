@@ -5,7 +5,6 @@ description: "Step-by-step tutorial: build a Lit web component for comments back
 author: ia3andy
 tags: [tutorial]
 series: roq-blog-lab
-draft: true
 date: 2026-07-05 14:00
 image: https://images.unsplash.com/photo-1555421689-491a97ff2040?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 qute: false
@@ -44,13 +43,14 @@ Then configure the app in `src/main/resources/application.properties`:
 
 ```properties
 quarkus.http.port=7070
+quarkus.web-bundler.bundle-redirect=true
 quarkus.datasource.db-kind=h2
 quarkus.hibernate-orm.database.generation=drop-and-create
-quarkus.http.cors=true
+quarkus.http.cors.enabled=true
 quarkus.http.cors.origins=http://localhost:8080,http://localhost:7070
 ```
 
-The comments app runs on port 7070 so it doesn't conflict with your blog. CORS is enabled so the blog (on port 8080) can load the web component script and call the API.
+The comments app runs on port 7070 so it doesn't conflict with your blog. CORS is enabled so the blog can load the web component script and call the API. If your blog runs on a different port, adjust the `cors.origins` accordingly.
 
 If you don't have the Quarkus CLI yet, install it with JBang (same as Roq):
 
@@ -77,7 +77,7 @@ Just like in the hybrid tutorial, we need a database model for comments. Panache
 
 **››› CODING TIME**
 
-Create `src/main/java/io/acme/Comment.java` as a Panache entity with `author`, `content`, `createdAt`, and `postSlug` fields. Add a query method to find comments by post slug, and a method that persists a new comment and returns the updated list.
+Create `src/main/java/org/acme/Comment.java` as a Panache entity with `author`, `content`, `createdAt`, and `postSlug` fields. Add a query method to find comments by post slug, and a method that persists a new comment and returns the updated list.
 
 <details>
 <summary>See hint</summary>
@@ -89,10 +89,10 @@ Extend `PanacheEntity` for a free `id` field and CRUD methods. Use `@Entity` fro
 <details>
 <summary>See solution</summary>
 
-Create `src/main/java/io/acme/Comment.java`:
+Create `src/main/java/org/acme/Comment.java`:
 
 ```java
-package io.acme;
+package org.acme;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -125,7 +125,7 @@ The web component will talk to a REST API. We need two endpoints: GET to fetch c
 
 **››› CODING TIME**
 
-Create `src/main/java/io/acme/CommentResource.java` with a GET endpoint at `/api/comments/{postSlug}` and a POST endpoint at `/api/comments`. The POST should return the updated list of comments so the web component can refresh immediately.
+Create `src/main/java/org/acme/CommentResource.java` with a GET endpoint at `/api/comments/{postSlug}` and a POST endpoint at `/api/comments`. The POST should return the updated list of comments so the web component can refresh immediately.
 
 <details>
 <summary>See hint</summary>
@@ -137,10 +137,10 @@ Use `@Path("/api/comments")`, `@GET` with `@Path("{postSlug}")` for fetching, an
 <details>
 <summary>See solution</summary>
 
-Create `src/main/java/io/acme/CommentResource.java`:
+Create `src/main/java/org/acme/CommentResource.java`:
 
 ```java
-package io.acme;
+package org.acme;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -193,7 +193,7 @@ This is where it gets fun. We'll create a custom HTML element `<comments-section
 
 **››› CODING TIME**
 
-Create `web/comments-section.js` as a Lit component. It should:
+Create `src/main/resources/web/comments-section.js` as a Lit component. It should:
 - Accept a `post-slug` attribute to know which post's comments to load
 - Fetch comments from `/api/comments/{postSlug}` when connected to the DOM
 - Render a list of existing comments (author, date, content)
@@ -210,7 +210,7 @@ Import `LitElement`, `html`, and `css` from `lit`. Define a class that extends `
 <details>
 <summary>See solution</summary>
 
-Create `web/comments-section.js`:
+Create `src/main/resources/web/comments-section.js`:
 
 ```javascript
 import { LitElement, html, css } from 'lit';
@@ -363,7 +363,7 @@ class CommentsSection extends LitElement {
             <div class="comment-card">
               <div class="comment-meta">
                 <strong>${c.author}</strong>
-                <span>${c.createdAt}</span>
+                <span>${new Date(c.createdAt).toLocaleString()}</span>
               </div>
               <div class="comment-body">${c.content}</div>
             </div>
@@ -395,7 +395,7 @@ customElements.define('comments-section', CommentsSection);
 🚀🔑 This is a **web component**. It's a custom HTML element (`<comments-section>`) that encapsulates its own rendering, styles, and behavior. The styles inside `static styles` are scoped to the component (Shadow DOM), so they won't leak into the rest of your page. Lit makes reactive updates automatic: change `this.comments` and the list re-renders.
 
 > [!NOTE]
-> The file lives in `web/` because Roq's Web Bundler automatically picks up all JS files there and bundles them via esbuild. The `{#bundle /}` tag in your layout includes the bundled output. No extra configuration needed.
+> The file lives in `src/main/resources/web/` because Web Bundler automatically picks up all JS files there and bundles them via esbuild. No extra configuration needed.
 
 
 ## 5. Embed the component in the blog
@@ -425,7 +425,7 @@ theme-layout: post
 
 {#insert /}
 
-<script crossorigin src="http://localhost:7070/static/bundle/main.js" type="module"></script>
+<script crossorigin src="http://localhost:7070/static/bundle/app.js" type="module"></script>
 <comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
@@ -437,7 +437,7 @@ theme-layout: post
 In your existing `templates/layouts/post.html`, add the script and component after the article content:
 
 ```html
-<script crossorigin src="http://localhost:7070/static/bundle/main.js" type="module"></script>
+<script crossorigin src="http://localhost:7070/static/bundle/app.js" type="module"></script>
 <comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
@@ -466,10 +466,10 @@ Use a CDI bean with `@Observes StartupEvent`, check `LaunchMode.DEVELOPMENT`, an
 <details>
 <summary>See solution</summary>
 
-Create `src/main/java/io/acme/SampleData.java`:
+Create `src/main/java/org/acme/SampleData.java`:
 
 ```java
-package io.acme;
+package org.acme;
 
 import java.time.LocalDateTime;
 
