@@ -17,9 +17,9 @@ If you are using a theme that supports it (includes a tagging layout), you shoul
 
 To enable tagging without a theme, create a layout template and add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`:
 
+**templates/layouts/tag.html**:
 {|
 ```html
-<!-- templates/layouts/tag.html -->
 ---
 layout: main
 tagging: posts
@@ -33,6 +33,7 @@ tagging: posts
 
 This also supports pagination. Since tagging already specifies the target collection, pagination can be enabled with `paginate: true` in FM:
 
+**templates/layouts/tag.html**:
 {|
 ```html
 ---
