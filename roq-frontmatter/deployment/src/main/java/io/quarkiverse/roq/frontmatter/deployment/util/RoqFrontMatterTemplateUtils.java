@@ -1,6 +1,9 @@
 package io.quarkiverse.roq.frontmatter.deployment.util;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.ASCIIDOC_CODE_BLOCK;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.FRONTMATTER_PATTERN;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.MARKDOWN_CODE_BLOCK;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.MISPLACED_FRONTMATTER_PATTERN;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
@@ -32,6 +35,39 @@ public final class RoqFrontMatterTemplateUtils {
 
     public static boolean hasFrontMatter(String content) {
         return FRONTMATTER_PATTERN.matcher(content).find();
+    }
+
+    /**
+     * Check if the content contains a frontmatter-shaped block (--- ... ---) that
+     * is not at the very start of the file (some content - a comment, a blank
+     * line, or any other line - precedes the opening {@code ---}).
+     * <p>
+     * Before scanning, fenced code blocks are stripped so that {@code ---}
+     * blocks shown as examples inside AsciiDoc ({@code ----}) or Markdown
+     * ({@code ```} / {@code ~~~}) code blocks are not flagged as misplaced
+     * frontmatter. This keeps the check conservative against false positives
+     * from documentation that demonstrates frontmatter usage.
+     * <p>
+     * When misplaced frontmatter is detected, a helpful error is produced
+     * instead of silently rendering the frontmatter as content.
+     */
+    public static boolean hasMisplacedFrontMatter(String content) {
+        if (hasFrontMatter(content)) {
+            return false;
+        }
+        String stripped = stripCodeBlocks(content);
+        return MISPLACED_FRONTMATTER_PATTERN.matcher(stripped).find();
+    }
+
+    /**
+     * Strip fenced code blocks (AsciiDoc {@code ----} and Markdown {@code ```} /
+     * {@code ~~~}) from the content so that examples shown inside them are not
+     * mistaken for frontmatter.
+     */
+    private static String stripCodeBlocks(String content) {
+        String stripped = ASCIIDOC_CODE_BLOCK.matcher(content).replaceAll("");
+        stripped = MARKDOWN_CODE_BLOCK.matcher(stripped).replaceAll("");
+        return stripped;
     }
 
     public static String getFrontMatter(String content) {

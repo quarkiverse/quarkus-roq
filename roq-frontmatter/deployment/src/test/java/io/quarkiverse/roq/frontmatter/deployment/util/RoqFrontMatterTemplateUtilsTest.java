@@ -130,6 +130,97 @@ public class RoqFrontMatterTemplateUtilsTest {
         assertTrue(RoqFrontMatterTemplateUtils.hasFrontMatter("---\n---\nContent"));
     }
 
+    // ── hasMisplacedFrontMatter ──────────────────────────────────────────
+
+    @Test
+    @DisplayName("Front matter at start of file is not misplaced")
+    void hasMisplacedFrontMatterFalseWhenAtStart() {
+        assertFalse(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter("---\ntitle: Hello\n---\nContent"));
+    }
+
+    @Test
+    @DisplayName("Content without front matter is not misplaced")
+    void hasMisplacedFrontMatterFalseWhenNone() {
+        assertFalse(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter("<div>No front matter</div>"));
+    }
+
+    @Test
+    @DisplayName("Front matter preceded by an HTML comment is detected as misplaced")
+    void hasMisplacedFrontMatterAfterHtmlComment() {
+        assertTrue(RoqFrontMatterTemplateUtils
+                .hasMisplacedFrontMatter("<!-- a comment -->\n---\ntitle: Hello\n---\nContent"));
+    }
+
+    @Test
+    @DisplayName("Front matter preceded by a Qute comment is detected as misplaced")
+    void hasMisplacedFrontMatterAfterQuteComment() {
+        assertTrue(RoqFrontMatterTemplateUtils
+                .hasMisplacedFrontMatter("{!-- a comment --}\n---\ntitle: Hello\n---\nContent"));
+    }
+
+    @Test
+    @DisplayName("Multiple HTML comments before front matter are detected as misplaced")
+    void hasMisplacedFrontMatterAfterMultipleComments() {
+        assertTrue(RoqFrontMatterTemplateUtils
+                .hasMisplacedFrontMatter("<!-- one -->\n<!-- two -->\n---\ntitle: Hello\n---\nContent"));
+    }
+
+    @Test
+    @DisplayName("AsciiDoc code block showing frontmatter example is not flagged")
+    void hasMisplacedFrontMatterFalseForAsciiDocCodeBlock() {
+        // A --- ... --- block inside an AsciiDoc ---- code block is legitimate
+        // content (e.g. documentation showing frontmatter examples) and must
+        // not be flagged as misplaced frontmatter.
+        assertFalse(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter(
+                "= Title\n\n[source,html]\n----\n---\ntheme-layout: main\n---\n\nContent\n----\n"));
+    }
+
+    @Test
+    @DisplayName("A single AsciiDoc thematic break (---) alone is not flagged as misplaced frontmatter")
+    void hasMisplacedFrontMatterFalseForThematicBreak() {
+        // A single --- used as an AsciiDoc thematic break (horizontal rule)
+        // does not form a --- ... --- block, so it must not be flagged.
+        assertFalse(RoqFrontMatterTemplateUtils
+                .hasMisplacedFrontMatter("= Title\n\n---\n\nSome text after the rule."));
+    }
+
+    @Test
+    @DisplayName("Front matter preceded by any text is detected as misplaced")
+    void hasMisplacedFrontMatterAfterText() {
+        // The opening --- must be on line 1: any preceding line is misplaced.
+        // This reproduces the example from the bug report (a stray line "tutu"
+        // before the frontmatter block).
+        assertTrue(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter("""
+                tutu
+                ---
+                title: "Welcome to Roq!"
+                date: 2024-08-29 13:32:20 +0200
+                description: This is the first article ever made with Quarkus Roq
+                tags: blogging
+                author: ia3andy
+                redirect_from: [first-roq-article-ever]
+                ---
+
+                Content here"""));
+    }
+
+    @Test
+    @DisplayName("Front matter preceded by a blank line is detected as misplaced")
+    void hasMisplacedFrontMatterAfterBlankLine() {
+        // The opening --- must be on line 1: even a blank line before it is misplaced.
+        assertTrue(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter("\n---\ntitle: Hello\n---\nContent"));
+    }
+
+    @Test
+    @DisplayName("Markdown code block showing frontmatter example is not flagged")
+    void hasMisplacedFrontMatterFalseForMarkdownCodeBlock() {
+        // A --- ... --- block inside a Markdown ``` fence is legitimate content
+        // (e.g. documentation showing frontmatter examples) and must not be
+        // flagged as misplaced frontmatter.
+        assertFalse(RoqFrontMatterTemplateUtils.hasMisplacedFrontMatter(
+                "# Title\n\n```yaml\n---\ntitle: x\n---\n```\nText"));
+    }
+
     // ── getFrontMatter ──────────────────────────────────────────────────
 
     @Test

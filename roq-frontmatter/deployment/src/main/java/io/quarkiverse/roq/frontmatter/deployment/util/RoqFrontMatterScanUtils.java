@@ -22,6 +22,8 @@ import java.util.function.Predicate;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
+import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.FrontMatterTemplateMetadata;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
@@ -296,6 +298,13 @@ public final class RoqFrontMatterScanUtils {
         SourceFile sourceFile = new SourceFile(siteDirPath != null ? siteDirPath : "", relativePath);
 
         TemplateContext templateContext = new TemplateContext(file.file(), referencePath, fullContent);
+        if (hasMisplacedFrontMatter(fullContent)) {
+            throw new RoqFrontMatterReadingException(
+                    RoqException.builder("Front matter must start at the first line of the file")
+                            .sourceFilePath(referencePath)
+                            .detail("A front matter block (enclosed by '---') was found, but it is not at the very start of the file: some content (a comment, a blank line, or any other line) precedes it.")
+                            .hint("Move the '---' opening delimiter so it is the very first line of the file (line 1, column 1)."));
+        }
         RoqFrontMatterQuteMarkupBuildItem markup = RoqFrontMatterQuteMarkupBuildItem.findMarkupFilter(markupList,
                 templateContext);
         List<RoqFrontMatterHeaderParserBuildItem> headerParsers = RoqFrontMatterHeaderParserBuildItem
