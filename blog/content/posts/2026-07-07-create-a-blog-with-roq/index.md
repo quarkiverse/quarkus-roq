@@ -163,7 +163,7 @@ The sidebar menu on the left comes from `data/menu.yml`. Right now it has two en
 
 **››› CODING TIME**
 
-Open `data/menu.yml` and add a "Projects" link that points to an external URL, and a "Contact" link for an email `mailto:`.
+Open `data/menu.yml` and add a "Projects" link that points to an external URL.
 
 <details>
 <summary>See hint</summary>
@@ -189,9 +189,6 @@ items:
   - title: About
     path: /about
     icon: fa-solid fa-user
-  - title: Contact
-    path: mailto:you@example.com
-    icon: fa-solid fa-envelope
 ```
 
 </details>
