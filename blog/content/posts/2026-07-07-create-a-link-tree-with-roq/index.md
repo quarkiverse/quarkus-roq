@@ -6,7 +6,6 @@ author: ia3andy
 qute: false
 tags: [tutorial]
 series: roq-blog-lab
-draft: true
 date: 2026-07-05 12:00
 image: https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 ---
@@ -571,7 +570,7 @@ layout: default
 
 </details>
 
-🚀 Navigate to [http://localhost:8080/my-links/](http://localhost:8080/my-links/). You should see the same link-tree as the home page, but this page was auto-generated from `data/trees/my-links.yml`.
+🚀 Navigate to [http://localhost:8080/trees/groot-s-links/](http://localhost:8080/trees/groot-s-links/). You should see the same link-tree as the home page, but this page was auto-generated from `data/trees/my-links.yml`. The URL is derived from the tree's title.
 
 🚀🔑 This is the key insight: drop a new YAML file in `data/trees/` (e.g. `work-links.yml`) and Roq generates a new page at `/work-links/` automatically. No new templates, no config changes.
 
@@ -580,13 +579,10 @@ layout: default
 
 Let's build a "gallery" page that lists all your link-trees with downloadable QR codes. This is great for sharing at events or printing on business cards.
 
-First, add the QR code plugin to your `pom.xml`:
+First, add the QR code plugin:
 
-```xml
-<dependency>
-    <groupId>io.quarkiverse.roq</groupId>
-    <artifactId>quarkus-roq-plugin-qrcode</artifactId>
-</dependency>
+```shell
+roq add plugin:qrcode
 ```
 
 **››› CODING TIME**
@@ -625,7 +621,7 @@ title: All Trees
         <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">{tree.data.title}</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400">{tree.data.description}</p>
 
-        <div class="inline-block p-3 bg-white rounded-xl qr-wrap" data-filename="qr-{tree.data.title.slugify}.png">
+        <div class="inline-block p-3 bg-white rounded-xl qr-wrap" data-filename="qr-{tree.data.title.slugify}.svg">
           {#qrcode value=tree.url.absolute alt=tree.data.title foreground="#0e4a5c" background="#FFFFFF" width=200 height=200 /}
         </div>
 
@@ -654,22 +650,23 @@ window.downloadQR = function(btn) {
   var wrap = btn.closest('.text-center').querySelector('.qr-wrap');
   var img = wrap.querySelector('img');
   if (!img) return;
-  var filename = (wrap.dataset.filename || 'qr-code.png').toLowerCase();
-  var canvas = document.createElement('canvas');
-  canvas.width = 200;
-  canvas.height = 200;
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, 200, 200);
-  ctx.drawImage(img, 0, 0, 200, 200);
+  var filename = (wrap.dataset.filename || 'qr-code.svg').toLowerCase();
+  var svgText = atob(img.src.split(',')[1]);
+  var doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  var svg = doc.querySelector('svg');
+  svg.setAttribute('viewBox', '0 0 ' + svg.getAttribute('width') + ' ' + svg.getAttribute('height'));
+  svg.setAttribute('width', '400');
+  svg.setAttribute('height', '400');
+  var blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' });
   var a = document.createElement('a');
   a.download = filename;
-  a.href = canvas.toDataURL('image/png');
+  a.href = URL.createObjectURL(blob);
   a.click();
+  URL.revokeObjectURL(a.href);
 };
 ```
 
-🚀 Navigate to [http://localhost:8080/trees](http://localhost:8080/trees). You should see your link-tree with a QR code. Click "Download QR" to save it as a PNG.
+🚀 Navigate to [http://localhost:8080/trees](http://localhost:8080/trees). You should see your link-tree with a QR code. Click "Download QR" to save it as an SVG.
 
 
 ## 12. Add navigation
