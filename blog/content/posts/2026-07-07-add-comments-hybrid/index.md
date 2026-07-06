@@ -27,15 +27,15 @@ In about 30 minutes, you'll add a comment system to your blog with an H2 databas
 
 Roq's hybrid plugin makes pages render dynamically per request instead of being pre-generated at build time. Each page can choose its caching strategy via frontmatter.
 
-Add these dependencies to your `pom.xml`:
+Add the hybrid plugin:
+
+```shell
+roq add plugin:hybrid
+```
+
+Then add the backend dependencies to your `pom.xml`:
 
 ```xml
-<!-- Hybrid mode: dynamic page rendering -->
-<dependency>
-    <groupId>io.quarkiverse.roq</groupId>
-    <artifactId>quarkus-roq-plugin-hybrid</artifactId>
-</dependency>
-
 <!-- Database: Hibernate ORM Panache + H2 -->
 <dependency>
     <groupId>io.quarkus</groupId>
@@ -62,7 +62,7 @@ quarkus.hibernate-orm.database.generation=drop-and-create
 
 🚀 Restart dev mode. The app should start with no errors.
 
-🚀🔑 With the hybrid plugin active, every page is now served dynamically. By default, pages use `cache: lazy` caching (rendered on first request, cached for subsequent ones). We'll set `cache: false` on the post layout so comments are always fresh.
+🚀🔑 With the hybrid plugin active, every page is now served dynamically. By default, pages use `cache: lazy` caching (rendered on first request, cached for subsequent ones). We'll set `cache: lazy` with a short TTL on the post layout so comments stay fresh.
 
 
 ## 2. Create the Comment entity
@@ -162,16 +162,16 @@ public class CommentService {
 
 ## 4. Set post pages to dynamic rendering
 
-For comments to show up in real time, the post layout must render on every request instead of serving a cached version.
+For comments to show up, the post layout must render dynamically instead of being pre-generated at build time. We'll use `cache: lazy` with a short TTL so pages are cached but refresh every 30 seconds. This is a good balance: most visitors see a fast cached page, and new comments appear within half a minute.
 
 **››› CODING TIME**
 
-Edit your post layout and add `cache: false` to the frontmatter.
+Edit your post layout and add `cache: lazy` with `cache-ttl: 30s` to the frontmatter.
 
 <details>
 <summary>See hint</summary>
 
-If you used the default theme (Tutorial 1a), you need to override the post layout by creating `templates/layouts/post.html` with `theme-layout: post` and `cache: false`. If you built from scratch (Tutorial 1b), just add `cache: false` to your existing `templates/layouts/post.html`.
+If you used the default theme (Tutorial 1a), you need to override the post layout by creating `templates/layouts/post.html` with `theme-layout: post`, `cache: lazy`, and `cache-ttl: 30s`. If you built from scratch (Tutorial 1b), just add those fields to your existing `templates/layouts/post.html`.
 
 </details>
 
@@ -183,64 +183,57 @@ Create `templates/layouts/post.html` to override the theme:
 ```html
 ---
 theme-layout: post
-cache: false
+cache: lazy
+cache-ttl: 30s
 ---
 
 {#insert /}
 ```
-
-This extends the default theme's post layout but disables caching so comments are live.
 
 </details>
 
 <details>
 <summary>See solution (from-scratch theme)</summary>
 
-Edit `templates/layouts/post.html` and add `cache: false` to the frontmatter:
+Edit `templates/layouts/post.html` and add caching to the frontmatter:
 
 ```yaml
 ---
 layout: default
-cache: false
+cache: lazy
+cache-ttl: 30s
 ---
 ```
 
 </details>
 
-🚀🔑 `cache: false` means this page renders fresh on every request. Qute re-evaluates all expressions, including our `cdi:comments` bean, so new comments appear immediately without a rebuild or cache flush.
+🚀🔑 `cache: lazy` renders the page on first request, then caches it for the duration of `cache-ttl`. After 30 seconds, the next request gets a fresh render with the latest comments. For development, you can use `cache: false` to see changes instantly.
 
 > [!NOTE]
-> Other cache options: `cache: lazy` (render once, cache until TTL expires) and `cache: startup` (pre-render at startup, cache forever). Use `lazy` with a `cache-ttl: 30s` for pages that can tolerate slightly stale data.
+> Other cache options: `cache: false` (render fresh on every request, good for development) and `cache: startup` (pre-render at startup, cache forever, good for pages that never change).
 
 
 ## 5. Add the comment form and list
 
-Now let's display comments and a submission form on every post.
+Now let's display comments and a submission form on every post. We'll create a reusable partial so the comments section can be included in any layout.
 
 **››› CODING TIME**
 
-Add a comments section to your post layout: a list of existing comments (fetched via `cdi:comments.forPost(page.slug)`) and a form that posts to `/api/comments`.
+Create a `templates/partials/comments.html` partial with a list of existing comments and a form that posts to `/api/comments`. Then include it in your post layout.
 
 <details>
 <summary>See hint</summary>
 
-Use `{#for comment in cdi:comments.forPost(page.slug)}` to iterate over comments for the current post. The `page.slug` gives you the post's slug from its URL. The form should use `method="POST"` with `action="/api/comments"` and include hidden field `postSlug` with the current page's slug. Fields: `author` (text), `content` (textarea).
+Use `{#for comment in cdi:comments.forPost(page.slug)}` to iterate over comments for the current post. The form should use `method="POST"` with `action="/api/comments"` and include hidden fields `postSlug` and `redirectUrl`. Then include the partial in `post.html` with `{#include partials/comments /}`.
 
 </details>
 
 <details>
-<summary>See solution (default theme)</summary>
+<summary>See solution</summary>
 
-Replace `templates/layouts/post.html`:
+Create `templates/partials/comments.html`:
 
 ```html
----
-theme-layout: post
-cache: false
----
-
-{#insert /}
-
 <!-- Comments section -->
 <section class="mt-12 border-t border-slate-200 dark:border-slate-700 pt-8">
   <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6">
@@ -253,7 +246,7 @@ cache: false
     <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
       <div class="flex items-center justify-between mb-2">
         <span class="font-medium text-sm text-slate-800 dark:text-slate-200">{comment.author}</span>
-        <time class="text-xs text-slate-500 dark:text-slate-400">{comment.createdAt}</time>
+        <time class="text-xs text-slate-500 dark:text-slate-400">{comment.createdAt.format('MMM d, yyyy HH:mm')}</time>
       </div>
       <p class="text-sm text-slate-700 dark:text-slate-300">{comment.content}</p>
     </div>
@@ -283,6 +276,21 @@ cache: false
   </form>
 </section>
 ```
+
+Then update `templates/layouts/post.html` (default theme):
+
+```html
+---
+theme-layout: post
+cache: lazy
+cache-ttl: 30s
+---
+
+{#insert /}
+{#include partials/comments /}
+```
+
+Or for the from-scratch theme, add `{#include partials/comments /}` after your post content in `templates/layouts/post.html`.
 
 </details>
 
@@ -348,7 +356,7 @@ public class CommentResource {
 
 🚀 Go to a blog post, fill in the form, and click "Post comment". The page should reload and show your comment!
 
-🤩 You just added dynamic comments to a static site generator. The post page renders on every request (`cache: false`), queries the database for comments, and displays them. The form saves to H2 via Panache, and the redirect brings you right back to the post.
+🤩 You just added dynamic comments to a static site generator. The post page renders dynamically with `cache: lazy`, queries the database for comments, and displays them. The form saves to H2 via Panache, and the redirect brings you right back to the post.
 
 
 ## 7. Add sample data for development
@@ -417,7 +425,7 @@ public class SampleData {
 ## What you've learned
 
 - **Hybrid mode** turns Roq from a static site generator into a dynamic server with smart caching
-- **`cache: false`** makes a page render fresh on every request, with full CDI access
+- **`cache: lazy`** with `cache-ttl` renders pages dynamically with smart caching
 - **Panache entities** give you a database model with zero boilerplate
 - **`@Named` beans** make Java services available in Qute templates via `cdi:` prefix
 - **POST/redirect/GET** is the standard pattern for form handling in server-rendered apps
@@ -428,4 +436,4 @@ public class SampleData {
 - **Add HTMX**: replace the full page reload with `hx-post` for instant comment submission (see the [Quarkus Web Lab](https://github.com/quarkusio/quarkus-web-lab) for HTMX patterns)
 - **Switch to PostgreSQL**: replace H2 with `quarkus-jdbc-postgresql` for production
 - **Add moderation**: add an `approved` boolean field and only show approved comments
-- **Use `cache: lazy` with TTL**: for better performance, try `cache-ttl: 30s` instead of `cache: false`
+- **Try `cache: false`**: for instant comment visibility during development, switch to `cache: false` (renders fresh on every request)
