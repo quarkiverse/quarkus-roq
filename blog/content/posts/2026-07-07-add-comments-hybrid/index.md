@@ -432,6 +432,8 @@ public class SampleData {
 
 ## What's next?
 
+**Next in the series:** [Add Comments with a Web Component](/posts/add-comments-web-component/) for an alternative approach using a Lit web component and a separate microservice.
+
 - **Add validation**: use `@NotBlank` on form fields and show error messages
 - **Add HTMX**: replace the full page reload with `hx-post` for instant comment submission (see the [Quarkus Web Lab](https://github.com/quarkusio/quarkus-web-lab) for HTMX patterns)
 - **Switch to PostgreSQL**: replace H2 with `quarkus-jdbc-postgresql` for production

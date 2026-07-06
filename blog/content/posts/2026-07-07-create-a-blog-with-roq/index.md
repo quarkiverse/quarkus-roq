@@ -505,6 +505,8 @@ Your blog will be live at `https://your-username.github.io/my-blog/` within a co
 
 ## What's next?
 
+**Next in the series:** [Create a Link-Tree with Roq](/posts/create-a-link-tree-with-roq/) or go deeper with [Create a Blog from Scratch](/posts/create-a-blog-from-scratch-with-roq/) to learn how layouts, collections, and templates work under the hood.
+
 Here are a few ideas to keep going:
 
 - **Write more posts!** Just create new directories in `content/posts/` or use the Editor (`m`).

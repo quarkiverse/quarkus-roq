@@ -704,6 +704,8 @@ In `content/index.html`, add the `relative` class to the outer flex div (if not 
 
 ## What's next?
 
+**Next in the series:** [Add Comments with Hybrid Mode](/posts/add-comments-hybrid/) to add dynamic features to your Roq blog with a database and server-rendered templates.
+
 Here are a few ideas to keep going:
 
 - **Add more trees**: drop a new YAML file in `data/trees/` (e.g. `work-links.yml`) and it's instantly available at `/work-links/` with its own QR code.

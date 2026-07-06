@@ -589,6 +589,8 @@ Your blog will be live at `https://your-username.github.io/my-blog/` within a co
 
 ## What's next?
 
+**Next in the series:** [Create a Link-Tree with Roq](/posts/create-a-link-tree-with-roq/) to build a different kind of site with typed data and auto-generated pages.
+
 Here are a few ideas to keep going:
 
 - **Add more posts**: create new directories in `content/posts/` or use the Editor (press `m` in the dev terminal).
