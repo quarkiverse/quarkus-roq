@@ -76,7 +76,24 @@ public class RoqFrontMatterBasicTest {
                 .body("html.body.article.span.find { it.@class == 'date-long' }.text()", containsString("12:00:00"))
                 .body("html.body.article.span.find { it.@class == 'date-long' }.text()", containsString("UTC"))
                 .body("html.body.article.span.find { it.@class == 'date-rfc822' }.text()",
-                        equalTo("Wed, 09 Oct 2024 00:00:00 +0000"));
+                        equalTo("Wed, 09 Oct 2024 00:00:00 +0000"))
+                .body("html.body.article.span.find { it.@class == 'date-style-short' }.text()", equalTo("10/9/24"))
+                .body("html.body.article.span.find { it.@class == 'date-style-medium' }.text()", equalTo("Oct 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-style-long' }.text()", equalTo("October 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-style-full' }.text()",
+                        equalTo("Wednesday, October 9, 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-style-custom' }.text()",
+                        equalTo("2024, Oct 09"));
+    }
+
+    @Test
+    @DisplayName("Post with FM locale renders localized dates")
+    public void testDateFormatsWithFmLocale() {
+        RestAssured.when().get("/the-posts/french-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'date-style-medium' }.text()", equalTo("8 oct. 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-style-long' }.text()", equalTo("8 octobre 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-short-date' }.text()", equalTo("8 oct. 2024"))
+                .body("html.body.article.span.find { it.@class == 'date-long-date' }.text()", equalTo("8 octobre 2024"));
     }
 
     @Test
