@@ -169,6 +169,9 @@ Edit `web/app.css`:
 
 </details>
 
+> [!NOTE]
+> Replacing the CSS will break the look of the initial content from the codestart. That's expected: we build our own design in the following steps.
+
 🚀 Save and verify the page still loads with Tailwind classes applied.
 
 

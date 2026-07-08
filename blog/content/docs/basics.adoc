@@ -625,6 +625,65 @@ To exclude a specific page, set `llmstxt: false` in its frontmatter.
 
 You can give your AI coding assistant full context about Roq by pointing it to https://iamroq.dev/llms.txt (or `/llms-full.txt` for complete content). This provides the project structure, quick start instructions, template syntax, and links to detailed skill files.
 
+=== Locale and date formatting
+
+Roq uses the site locale to format dates in templates. Set the default locale in your `config/application.properties`:
+
+[source,properties]
+----
+site.default-locale=fr
+----
+
+This affects all locale-aware date extensions such as `shortDate`, `longDate`, and `dateStyle`. For example, with `site.default-locale=fr`, `{page.date.longDate}` renders "9 octobre 2024" instead of "October 9, 2024".
+
+You can also override the locale per page using frontmatter:
+
+[source,yaml]
+----
+---
+locale: fr
+---
+----
+
+The locale is resolved in this order: page frontmatter `locale`, browser `Accept-Language` header (in dev mode), then `site.default-locale` (defaults to `en`).
+
+==== Date format style
+
+Date extensions use Java's `FormatStyle` for locale-aware formatting. The available extensions on `page.date` are:
+
+[cols="2,2,2"]
+|===
+| Extension | Style | Example (en)
+
+| `shortDate`
+| MEDIUM
+| Oct 9, 2024
+
+| `longDate`
+| LONG
+| October 9, 2024
+
+| `style('short')`
+| SHORT
+| 10/9/24
+
+| `style('medium')`
+| MEDIUM
+| Oct 9, 2024
+
+| `style('long')`
+| LONG
+| October 9, 2024
+
+| `style('full')`
+| FULL
+| Wednesday, October 9, 2024
+|===
+
+The `style` extension also accepts a custom date pattern: `\{page.date.style('yyyy, MMM dd')}`.
+
+NOTE: Roq does not yet support i18n collections (generating the same content in multiple languages with locale-specific URLs). The locale setting only affects date and number formatting in templates.
+
 [#variables]
 == Variables
 
@@ -766,6 +825,8 @@ You can use Qute to access site and pages data. For this use the `site` and `pag
 == Data
 
 Place JSON or YAML files in the `data/` directory. Each file becomes a named CDI bean, accessible in any Qute template.
+
+Data is enough to display a list of items in an existing page (e.g. a list of team members in your about page). If you need Roq to generate a dedicated page for each item in the data (e.g. one page per team member), use a xref:advanced.adoc#_collections_from_data[data collection] instead.
 
 NOTE: Supported extensions: `.json`, `.yml`, `.yaml`.
 

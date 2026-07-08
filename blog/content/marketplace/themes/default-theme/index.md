@@ -147,6 +147,7 @@ Frontmatter keys available to control page behavior per layout.
 | `show-header` | Show the page header | `true` |
 | `show-header-date` | Show the date in the header | `true` |
 | `show-header-intro` | Show the description in the header | `true` |
+| `post-date-style` | Date format style: `short`, `medium`, `long`, or `full` (uses Java's `FormatStyle`, locale-aware) | `medium` |
 | `content-toc` | Enable table of contents | `false` |
 | `content-toc-title` | TOC section title | `Contents` |
 | `content-toc-levels` | Heading levels to include in TOC | `2` |

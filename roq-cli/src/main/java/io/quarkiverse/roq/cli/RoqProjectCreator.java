@@ -116,8 +116,11 @@ public class RoqProjectCreator {
                 .artifactId(artifactId)
                 .version(version)
                 .extensions(allExtensions)
-                .extraCodestarts(extraCodestarts)
-                .noDockerfiles();
+                .extraCodestarts(extraCodestarts);
+
+        if (allExtensions.stream().noneMatch(e -> e.contains("roq-plugin-hybrid"))) {
+            createProject.noDockerfiles();
+        }
 
         if (noCode) {
             createProject.noCode();
@@ -177,7 +180,7 @@ public class RoqProjectCreator {
         if (value.startsWith("web:")) {
             return "io.quarkiverse.web-bundler:quarkus-web-bundler-" + value.substring(4);
         }
-        return ROQ_PREFIX + value;
+        return value;
     }
 
     private static void deleteDirIfNoFiles(Path dir) throws IOException {

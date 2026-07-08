@@ -532,7 +532,9 @@ public record HeroMap(Map<String, Hero> map) {
 
 === Collections from data
 
-Generate collection pages from data files instead of writing individual content files. Each entry in the data produces a page rendered with the specified layout.
+While plain xref:basics.adoc#_data[data files] let you display a list of items in an existing page, a data collection goes further: it generates a dedicated page for each entry in the data, rendered with a specified layout.
+
+This is useful when each item deserves its own URL (e.g. one page per event, per team member, or per link-tree).
 
 .From a single data file (`data/events.yml`)
 [source,yaml]
@@ -698,6 +700,101 @@ public class QuteWebSiteTest {
 ----
 
 In this case the RestAssured port will automatically use the Quarkus dynamic test server, running on port 8081 by default.
+
+== Roq CLI
+
+The Roq CLI wraps common Quarkus commands with Roq-specific defaults. See the xref:getting-started.adoc#install[Getting Started guide] for installation instructions.
+
+=== `roq create`
+
+Create a new Roq site:
+
+[source,shell]
+----
+roq create my-site
+roq create my-site -x theme:base
+roq create my-site -x plugin:tagging,plugin:sitemap
+----
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-x`, `--extension`
+| Extensions to add, comma-separated. Prefixes: `theme:`, `plugin:`, `web:` for Roq/Web Bundler extensions, or any Quarkus extension name (e.g. `rest-jackson`) or full GAV.
+
+| `-g`, `--group-id`
+| Maven group ID (default: `io.acme`)
+
+| `--no-code`
+| Skip example content from codestarts
+
+| `--gradle`
+| Use Gradle instead of Maven
+
+| `--roq-version`
+| Pin a specific Roq version
+|===
+
+=== `roq start`
+
+Start dev mode with live reload:
+
+[source,shell]
+----
+roq start
+roq start -p 8081
+----
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-p`, `--port`
+| HTTP port (default: 8080, use `-p` without a value for a random port)
+|===
+
+Press `w` to open the browser, `s` to force a restart, `m` to open the editor.
+
+=== `roq add`
+
+Add extensions to an existing project:
+
+[source,shell]
+----
+roq add plugin:tagging plugin:sitemap
+roq add theme:resume
+roq add web:tailwindcss
+roq add rest-jackson
+----
+
+Extension prefixes:
+
+[cols="1,3"]
+|===
+| Prefix | Description
+
+| `plugin:<name>`
+| Roq plugin (e.g. `tagging`, `sitemap`, `aliases`, `series`)
+
+| `theme:<name>`
+| Roq theme (e.g. `default`, `resume`, `base`)
+
+| `web:<name>`
+| Web Bundler extension (e.g. `tailwindcss`)
+
+| `<name>`
+| Any Quarkus extension (e.g. `rest-jackson`, `hibernate-orm`)
+
+| `<group:artifact>`
+| Full GAV coordinate
+|===
+
+=== Other commands
+
+* `roq generate` -- Generate the static site output.
+* `roq serve` -- Serve a previously generated static site directory.
+* `roq update` -- Update the Quarkus and Roq versions. See <<Updating Roq>>.
 
 == Updating Roq
 

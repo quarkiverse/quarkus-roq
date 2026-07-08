@@ -37,12 +37,6 @@
         @apply font-heading text-sidebar-heading;
     }
 
-    .about .site-name::after {
-        @apply content-[''] absolute left-1/2 -translate-x-1/2 bottom-0;
-        @apply block w-2 h-2 rounded-full;
-        background: var(--dot-gradient);
-    }
-
     .about p {
         @apply text-sm m-0 mb-2.5 leading-relaxed text-sidebar-muted;
     }

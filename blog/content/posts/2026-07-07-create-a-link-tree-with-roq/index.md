@@ -94,6 +94,9 @@ body {
 }
 ```
 
+> [!NOTE]
+> Replacing the CSS will break the look of the initial content from the codestart. That's expected: we build our own design in the following steps.
+
 🚀 Refresh your browser. The page should now have a light gray background (slate-100) and sans-serif text. Dark mode works automatically based on your system preference.
 
 🚀🔑 The `{#bundle /}` tag is the magic glue. It tells Roq's Web Bundler to compile everything in `web/` (CSS, JS, npm packages) and inject it into the page. Tailwind is processed at build time, so only the classes you actually use end up in the final CSS.
@@ -296,7 +299,7 @@ Add this block after the profile `</div>` and before the closing `</div>` tags i
 
 ## 7. Create the links data
 
-Now for the main event: the links. We'll store them in a YAML file inside a `data/trees/` directory. This structure lets you have multiple link-trees later.
+Now for the main event: the links. We'll store them in a YAML file inside a `data/trees/` directory. Why a directory instead of a single file? Because you might want multiple link-trees: one for personal links, one for work, one for a specific event or conference. Each YAML file in `data/trees/` becomes its own page with its own QR code (we'll set that up in steps 10 and 11).
 
 **››› CODING TIME**
 

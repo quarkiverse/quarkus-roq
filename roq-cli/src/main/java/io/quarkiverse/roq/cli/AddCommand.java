@@ -19,9 +19,19 @@ public class AddCommand extends BuildToolDelegatingCommand {
         List<String> params = context.getParams();
         if (params.isEmpty()) {
             System.err.println("Usage: roq add <extension> [extension...]");
-            System.err.println("  e.g. roq add tagging sitemap");
-            System.err.println("  e.g. roq add theme:resume");
-            System.err.println("  e.g. roq add web:sass");
+            System.err.println("");
+            System.err.println("  Prefixes:");
+            System.err.println("    plugin:<name>   Roq plugin (e.g. tagging, sitemap, aliases, series)");
+            System.err.println("    theme:<name>    Roq theme (e.g. default, resume, base)");
+            System.err.println("    web:<name>      Web Bundler extension (e.g. tailwindcss)");
+            System.err.println("    <name>          Any Quarkus extension (e.g. rest-jackson, hibernate-orm)");
+            System.err.println("    <group:artifact> Full GAV coordinate");
+            System.err.println("");
+            System.err.println("  Examples:");
+            System.err.println("    roq add plugin:tagging plugin:sitemap");
+            System.err.println("    roq add theme:resume");
+            System.err.println("    roq add web:tailwindcss");
+            System.err.println("    roq add rest-jackson");
             System.exit(CommandLine.ExitCode.USAGE);
         }
         String resolved = params.stream()
