@@ -94,6 +94,9 @@ body {
 }
 ```
 
+> [!NOTE]
+> Replacing the CSS will break the look of the initial content from the codestart. That's expected: we build our own design in the following steps.
+
 🚀 Refresh your browser. The page should now have a light gray background (slate-100) and sans-serif text. Dark mode works automatically based on your system preference.
 
 🚀🔑 The `{#bundle /}` tag is the magic glue. It tells Roq's Web Bundler to compile everything in `web/` (CSS, JS, npm packages) and inject it into the page. Tailwind is processed at build time, so only the classes you actually use end up in the final CSS.
