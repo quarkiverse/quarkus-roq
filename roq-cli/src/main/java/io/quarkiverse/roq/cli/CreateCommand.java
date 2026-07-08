@@ -28,7 +28,7 @@ public class CreateCommand implements Callable<Integer> {
     private String version;
 
     @Option(names = { "-x",
-            "--extension" }, split = ",", description = "Extensions to add (e.g. theme-default, plugin-tagging, or full GAV)")
+            "--extension" }, split = ",", description = "Extensions to add (e.g. theme:default, plugin:tagging, web:sass, rest-jackson, or full GAV)")
     private List<String> extra;
 
     @Option(names = { "--roq-version" }, description = "Roq version (default: latest)")

@@ -19,9 +19,10 @@ public class AddCommand extends BuildToolDelegatingCommand {
         List<String> params = context.getParams();
         if (params.isEmpty()) {
             System.err.println("Usage: roq add <extension> [extension...]");
-            System.err.println("  e.g. roq add tagging sitemap");
+            System.err.println("  e.g. roq add plugin:tagging plugin:sitemap");
             System.err.println("  e.g. roq add theme:resume");
             System.err.println("  e.g. roq add web:sass");
+            System.err.println("  e.g. roq add rest-jackson");
             System.exit(CommandLine.ExitCode.USAGE);
         }
         String resolved = params.stream()

@@ -701,6 +701,97 @@ public class QuteWebSiteTest {
 
 In this case the RestAssured port will automatically use the Quarkus dynamic test server, running on port 8081 by default.
 
+== CLI Reference
+
+The Roq CLI wraps common Quarkus commands with Roq-specific defaults. See the xref:getting-started.adoc#install[Getting Started guide] for installation instructions.
+
+=== `roq create`
+
+Create a new Roq site:
+
+[source,shell]
+----
+roq create my-site
+roq create my-site -x theme:base
+roq create my-site -x plugin:tagging,plugin:sitemap
+----
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-x`, `--extension`
+| Extensions to add, comma-separated. Prefixes: `theme:`, `plugin:`, `web:` for Roq/Web Bundler extensions, or any Quarkus extension name (e.g. `rest-jackson`) or full GAV.
+
+| `-g`, `--group-id`
+| Maven group ID (default: `io.acme`)
+
+| `--no-code`
+| Skip example content from codestarts
+
+| `--gradle`
+| Use Gradle instead of Maven
+
+| `--roq-version`
+| Pin a specific Roq version
+|===
+
+=== `roq start`
+
+Start dev mode with live reload:
+
+[source,shell]
+----
+roq start
+roq start -p 8081
+----
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-p`, `--port`
+| HTTP port (default: 8080, use `-p` without a value for a random port)
+|===
+
+Press `w` to open the browser, `s` to force a restart, `m` to open the editor.
+
+=== `roq add`
+
+Add extensions to an existing project:
+
+[source,shell]
+----
+roq add plugin:tagging plugin:sitemap
+roq add theme:resume
+roq add web:sass
+roq add rest-jackson
+----
+
+Extension prefixes: `plugin:` for Roq plugins, `theme:` for Roq themes, `web:` for Web Bundler extensions. Any other value is passed through as a Quarkus extension name.
+
+=== `roq generate`
+
+Generate the static site output:
+
+[source,shell]
+----
+roq generate
+----
+
+=== `roq serve`
+
+Serve a previously generated static site directory:
+
+[source,shell]
+----
+roq serve
+----
+
+=== `roq update`
+
+Update the Quarkus and Roq versions. See <<Updating Roq>>.
+
 == Updating Roq
 
 Run the update command from your project directory:
