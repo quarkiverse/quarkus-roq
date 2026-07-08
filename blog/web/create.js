@@ -33,8 +33,10 @@
   function projectParams(extra) {
     const params = new URLSearchParams();
     params.set('a', state.name);
-    params.set('ndf', 'true');
-    params.set('nw', 'true');
+    if (!state.plugins.includes('hybrid')) {
+      params.set('ndf', 'true');
+    }
+    params.set('nw', 'false');
     params.append('ec', 'roq-project-codestart');
     const ids = extensionIds();
     if (!ids.some(id => id.includes('roq-theme-'))) {

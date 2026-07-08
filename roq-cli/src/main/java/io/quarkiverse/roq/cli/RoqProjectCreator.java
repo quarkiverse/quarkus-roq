@@ -116,8 +116,11 @@ public class RoqProjectCreator {
                 .artifactId(artifactId)
                 .version(version)
                 .extensions(allExtensions)
-                .extraCodestarts(extraCodestarts)
-                .noDockerfiles();
+                .extraCodestarts(extraCodestarts);
+
+        if (allExtensions.stream().noneMatch(e -> e.contains("roq-plugin-hybrid"))) {
+            createProject.noDockerfiles();
+        }
 
         if (noCode) {
             createProject.noCode();
