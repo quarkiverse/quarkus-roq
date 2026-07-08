@@ -389,19 +389,21 @@ public class RoqTemplateExtension {
 
     /**
      * Returns a formatted date string. Accepts either a {@link FormatStyle} name (short, medium, long, full)
-     * for locale-aware formatting, or a custom pattern (e.g. "yyyy-MM-dd").<br>
+     * for locale-aware formatting, or a custom pattern (e.g. "yyyy-MM-dd"). When {@code null},
+     * defaults to "medium".<br>
      * Examples: "{page.date.style('long')}", "{page.date.style('yyyy, MMM dd')}".
      */
     @TemplateExtension(matchName = "style")
     public static String dateStyle(ZonedDateTime date, String styleOrFormat,
             @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
         Locale loc = resolveLocale(locale);
-        return switch (styleOrFormat.toLowerCase()) {
+        String style = styleOrFormat == null || styleOrFormat.isEmpty() ? "medium" : styleOrFormat;
+        return switch (style.toLowerCase()) {
             case "short" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(loc));
             case "medium" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(loc));
             case "long" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(loc));
             case "full" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(loc));
-            default -> date.format(DateTimeFormatter.ofPattern(styleOrFormat, loc));
+            default -> date.format(DateTimeFormatter.ofPattern(style, loc));
         };
     }
 
