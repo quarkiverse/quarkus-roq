@@ -299,7 +299,7 @@ Add this block after the profile `</div>` and before the closing `</div>` tags i
 
 ## 7. Create the links data
 
-Now for the main event: the links. We'll store them in a YAML file inside a `data/trees/` directory. This structure lets you have multiple link-trees later.
+Now for the main event: the links. We'll store them in a YAML file inside a `data/trees/` directory. Why a directory instead of a single file? Because you might want multiple link-trees: one for personal links, one for work, one for a specific event or conference. Each YAML file in `data/trees/` becomes its own page with its own QR code (we'll set that up in steps 10 and 11).
 
 **››› CODING TIME**
 

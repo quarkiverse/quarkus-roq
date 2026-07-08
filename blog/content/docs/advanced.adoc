@@ -532,7 +532,9 @@ public record HeroMap(Map<String, Hero> map) {
 
 === Collections from data
 
-Generate collection pages from data files instead of writing individual content files. Each entry in the data produces a page rendered with the specified layout.
+While plain xref:basics.adoc#_data[data files] let you display a list of items in an existing page, a data collection goes further: it generates a dedicated page for each entry in the data, rendered with a specified layout.
+
+This is useful when each item deserves its own URL (e.g. one page per event, per team member, or per link-tree).
 
 .From a single data file (`data/events.yml`)
 [source,yaml]
