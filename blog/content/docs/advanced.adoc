@@ -701,7 +701,7 @@ public class QuteWebSiteTest {
 
 In this case the RestAssured port will automatically use the Quarkus dynamic test server, running on port 8081 by default.
 
-== CLI Reference
+== Roq CLI
 
 The Roq CLI wraps common Quarkus commands with Roq-specific defaults. See the xref:getting-started.adoc#install[Getting Started guide] for installation instructions.
 
@@ -790,27 +790,11 @@ Extension prefixes:
 | Full GAV coordinate
 |===
 
-=== `roq generate`
+=== Other commands
 
-Generate the static site output:
-
-[source,shell]
-----
-roq generate
-----
-
-=== `roq serve`
-
-Serve a previously generated static site directory:
-
-[source,shell]
-----
-roq serve
-----
-
-=== `roq update`
-
-Update the Quarkus and Roq versions. See <<Updating Roq>>.
+* `roq generate` -- Generate the static site output.
+* `roq serve` -- Serve a previously generated static site directory.
+* `roq update` -- Update the Quarkus and Roq versions. See <<Updating Roq>>.
 
 == Updating Roq
 
