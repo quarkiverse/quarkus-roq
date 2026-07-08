@@ -764,11 +764,31 @@ Add extensions to an existing project:
 ----
 roq add plugin:tagging plugin:sitemap
 roq add theme:resume
-roq add web:sass
+roq add web:tailwindcss
 roq add rest-jackson
 ----
 
-Extension prefixes: `plugin:` for Roq plugins, `theme:` for Roq themes, `web:` for Web Bundler extensions. Any other value is passed through as a Quarkus extension name.
+Extension prefixes:
+
+[cols="1,3"]
+|===
+| Prefix | Description
+
+| `plugin:<name>`
+| Roq plugin (e.g. `tagging`, `sitemap`, `aliases`, `series`)
+
+| `theme:<name>`
+| Roq theme (e.g. `default`, `resume`, `base`)
+
+| `web:<name>`
+| Web Bundler extension (e.g. `tailwindcss`)
+
+| `<name>`
+| Any Quarkus extension (e.g. `rest-jackson`, `hibernate-orm`)
+
+| `<group:artifact>`
+| Full GAV coordinate
+|===
 
 === `roq generate`
 
