@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.isInDraftDirectory;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
@@ -54,7 +55,7 @@ public class RoqFrontMatterStep0SetupProcessor {
         // (unless they already have an explicit "draft" key in their front matter)
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
             var isInDraftDirectory = sourceData.isPage() && sourceData.collection() != null
-                    && sourceData.relativePath().contains(config.draftDirectory() + "/");
+                    && isInDraftDirectory(sourceData.relativePath(), config.draftDirectory());
 
             if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT)) {
                 sourceData.fm().put(DRAFT, true);

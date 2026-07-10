@@ -158,6 +158,7 @@ public interface RoqSiteConfig {
      * Frontmatter `draft` takes precedence over this directory-based fallback.
      */
     @WithDefault("drafts")
+    @Pattern(regexp = DIR_NAME_PATTERN)
     String draftDirectory();
 
     /**
