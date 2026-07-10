@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
+import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
@@ -136,6 +137,11 @@ public final class RoqFrontMatterScanUtils {
                     "Cannot derive site dir: relative path has more segments than file path");
         }
         return toUnixPath(resolved.toString());
+    }
+
+    public static boolean isInDraftDirectory(String relativePath, String draftDirectory) {
+        var draftDir = addTrailingSlash(draftDirectory);
+        return relativePath.startsWith(draftDir) || relativePath.contains("/" + draftDir);
     }
 
     static String replaceWhitespaceChars(String sourcePath) {

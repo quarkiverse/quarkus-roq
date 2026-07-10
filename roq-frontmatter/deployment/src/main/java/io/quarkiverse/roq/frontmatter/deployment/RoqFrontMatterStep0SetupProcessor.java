@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem.FRONTMATTER_HEADER_PARSER_PRIORITY;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterScanUtils.isInDraftDirectory;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
@@ -53,10 +54,8 @@ public class RoqFrontMatterStep0SetupProcessor {
         // Pages inside the draft directory are automatically marked as drafts
         // (unless they already have an explicit "draft" key in their front matter)
         dataModificationProducer.produce(new RoqFrontMatterDataModificationBuildItem(sourceData -> {
-            var relativePath = sourceData.relativePath();
-            var draftDir = config.draftDirectory().replaceAll("/+$", "");
             var isInDraftDirectory = sourceData.isPage() && sourceData.collection() != null
-                    && (relativePath.startsWith(draftDir + "/") || relativePath.contains("/" + draftDir + "/"));
+                    && isInDraftDirectory(sourceData.relativePath(), config.draftDirectory());
 
             if (isInDraftDirectory && !sourceData.fm().containsKey(DRAFT)) {
                 sourceData.fm().put(DRAFT, true);
