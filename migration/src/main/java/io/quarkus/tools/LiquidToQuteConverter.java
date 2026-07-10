@@ -3,6 +3,8 @@ package io.quarkus.tools;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,18 +13,17 @@ import java.util.regex.Pattern;
 
 public class LiquidToQuteConverter {
 
-    public static final String DATA_NAME = "siteConfig";
-    private static final String CDI_REFERENCE = "cdi:" + DATA_NAME;
     private final boolean useExtensionSyntax;
     private final String exprOpen;
     private final List<String> conversionsApplied = new ArrayList<>();
+    private final Map<String, String> splitDelimHoists = new HashMap<>();
     private boolean convertingPartials;
 
-    LiquidToQuteConverter() {
+    public LiquidToQuteConverter() {
         this(true);
     }
 
-    LiquidToQuteConverter(boolean useExtensionSyntax) {
+    public LiquidToQuteConverter(boolean useExtensionSyntax) {
         this.useExtensionSyntax = useExtensionSyntax;
         this.exprOpen = useExtensionSyntax ? "{=" : "{";
     }
@@ -31,8 +32,10 @@ public class LiquidToQuteConverter {
         this.convertingPartials = convertingPartials;
     }
 
-    String convert(String content) {
+    public String convert(String content) {
         String original = content;
+        splitDelimCounter = 0;
+        splitDelimHoists.clear();
 
         // Strip Liquid whitespace-trimming markers before any conversion
         content = content.replaceAll("\\{%-", "{%");
@@ -45,6 +48,8 @@ public class LiquidToQuteConverter {
         // Convert in order of complexity
         content = convertComments(content);
         content = convertVariables(content);
+        content = convertFindFirstPattern(content);
+        content = collapseWhereExpAccumulatorLoop(content);
         content = convertFilters(content);
         content = convertLoops(content);
         content = convertConditionals(content);
@@ -52,8 +57,18 @@ public class LiquidToQuteConverter {
         content = convertIncludes(content);
         content = convertIncludeParamAccess(content);
 
+        // Merge consecutive {#if COND}...{/if}{#if !COND}...{/if} into if/else
+        // (from Liquid's {% if %}...{% unless %} pattern, must run before convertIfElseAssigns)
+        content = mergeComplementaryIfBlocks(content);
+
         // Convert if/else blocks with assigns to ternary expressions (must run before convertAssignments)
         content = convertIfElseAssignsToTernary(content);
+
+        // Detect variables that escape their {#let} scope (assigned inside a block
+        // but read outside, or assigned more than once) and route them through a
+        // MutableMap instead of block-scoped {#let}.  Must run after the ternary
+        // pass (which resolves some multi-assigns) and before convertAssignments.
+        content = convertMutableAssigns(content);
 
         content = convertAssignments(content);
 
@@ -67,6 +82,10 @@ public class LiquidToQuteConverter {
 
         content = convertBracketNotation(content);
 
+        // Collapse "init empty list + push in nested hash loop + sort" into mergeTypes()
+        // Must run after convertBracketNotation (which creates .get() calls from bracket notation)
+        content = collapsePushInNestedLoopToMergeTypes(content);
+
         // Final cleanup steps - ORDER MATTERS!
         // Remove spaces first so ternary wrapping can match properly
         content = removeSpacesBeforeMethods(content);
@@ -75,17 +94,28 @@ public class LiquidToQuteConverter {
         // Convert site.data.X references to cdi:X (Roq data file access)
         content = convertSiteDataReferences(content);
 
+        // Roq has no baseurl concept — URLs are already site-relative
+        content = content.replaceAll("\\bsite\\.baseurl\\b", "''");
+
         // Convert site properties that come from data/site.yml to CDI references
         content = convertSiteDataProperties(content);
 
         // Convert custom page frontmatter fields to page.data.*
         content = convertCustomPageFields(content);
 
+        // Convert Jekyll autopages variables to Roq from-data equivalents
+        content = convertAutopagesVariables(content);
+
         // Make page.data.* references lenient — custom frontmatter may not exist on every page
         content = makePageDataLenient(content);
 
         // Convert URL concatenation to RoqUrl methods
         content = convertUrlConcatenation(content);
+
+        // Jekyll's site.url is a plain string (e.g. "https://quarkus.io").
+        // Roq's site.url is a RoqUrl whose toString() returns the relative path.
+        // Convert remaining standalone site.url to site.url.root.url for equivalence.
+        content = convertStandaloneSiteUrl(content);
 
         // Convert page.url equality comparisons to use .path (RoqUrl is not a String)
         content = convertPageUrlComparisons(content);
@@ -96,9 +126,16 @@ public class LiquidToQuteConverter {
         // Make site.tags lenient (not available in Roq by default)
         content = makeSiteTagsLenient(content);
 
-        // Append .raw to output expressions containing .replace() calls.
-        // Jekyll never escapes output, but Qute auto-escapes in HTML templates.
-        content = appendRawToReplaceOutputs(content);
+        // Liquid {{ }} never HTML-escapes; Qute {= } does. Append .raw for fidelity.
+        content = appendRawToOutputExpressions(content);
+
+        // Wrap any remaining hoisted split delimiter references in {#let}
+        content = wrapHoistedSplitDelimiters(content);
+
+        // Clean up empty-string concatenation from baseurl removal
+        content = content.replaceAll("'' \\+ ", "");
+        content = content.replaceAll(" \\+ ''", "");
+        content = content.replaceAll("''\\.concat\\(([^)]+)\\)", "$1");
 
         // Restore raw blocks with Qute verbatim delimiters
         content = restoreRawBlocks(content, rawBlocks);
@@ -187,8 +224,8 @@ public class LiquidToQuteConverter {
 
     private String convertFilters(String content) {
         Pattern blockPattern = useExtensionSyntax
-                ? Pattern.compile("\\{=[^}]*\\}|\\{%[^%]*%\\}")
-                : Pattern.compile("\\{(?![%#/!|])[^}]*\\}|\\{%[^%]*%\\}");
+                ? Pattern.compile("\\{=[^}]*\\}|\\{%(?:[^%]|%(?!\\}))*%\\}")
+                : Pattern.compile("\\{(?![%#/!|])[^}]*\\}|\\{%(?:[^%]|%(?!\\}))*%\\}");
         Matcher matcher = blockPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
 
@@ -204,6 +241,7 @@ public class LiquidToQuteConverter {
     private String convertFiltersInBlock(String block) {
         // Convert method-call filters first so concatenation filters see clean expressions
         block = convertTwoArgFilters(block);
+        block = convertWhereExpFilter(block);
         block = convertTableDrivenFilters(block);
         block = convertDateFilter(block);
         block = stripDefaultBeforeSplit(block);
@@ -218,19 +256,20 @@ public class LiquidToQuteConverter {
     }
 
     private String convertUrlFilters(String content) {
-        // Jekyll's | relative_url prepends site.baseurl to a path.
-        // Rewrite as | prepend: so the concatenation filter handles the expression walk.
-        content = content.replaceAll("\\|\\s*relative_url", "| prepend: " + CDI_REFERENCE + ".baseurl");
-        // TODO: absolute_url should prepend site.url + site.baseurl, but chaining two prepends
-        // interacts badly with convertUrlConcatenation's site.url.resolve() transform.
-        // For now, treat same as relative_url (sufficient when site.url is not needed).
-        content = content.replaceAll("\\|\\s*absolute_url", "| prepend: " + CDI_REFERENCE + ".baseurl");
+        // relative_url on a string literal starting with '/' is a no-op in Roq (already absolute)
+        // relative_url on a variable needs to prepend '/' since the value may be a bare path
+        content = content.replaceAll(
+                "'(/[^']*)'\\s*\\|\\s*relative_url", "'$1'");
+        content = content.replaceAll(
+                "([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\|\\s*relative_url", "'/'.concat($1)");
+        content = content.replaceAll("\\s*\\|\\s*absolute_url", "");
         return content;
     }
 
     private String convertConcatenationFilters(String content) {
-        // Append filter: "text" | append: variable | append: "more" -> "text" + variable + "more"
-        Pattern appendPattern = Pattern.compile("([^|{]+?)((?:\\s*\\|\\s*append:\\s*[^|]+)+)");
+        // Append filter: "text" | append: variable | append: "more" -> "text".concat(variable).concat("more")
+        // Uses .concat() instead of + because Qute's {#let} doesn't support the + operator.
+        Pattern appendPattern = Pattern.compile("([^|{]+?)((?:\\s*\\|\\s*append:\\s*[^|}%]+)+)");
         Matcher appendMatcher = appendPattern.matcher(content);
         StringBuilder appendSb = new StringBuilder();
 
@@ -238,12 +277,12 @@ public class LiquidToQuteConverter {
             String base = appendMatcher.group(1).trim();
             String appends = appendMatcher.group(2);
 
-            Pattern appendValuePattern = Pattern.compile("\\|\\s*append:\\s*([^|]+?)(?=\\s*\\||$)");
+            Pattern appendValuePattern = Pattern.compile("\\|\\s*append:\\s*([^|}%]+?)(?=\\s*\\||$)");
             Matcher appendValueMatcher = appendValuePattern.matcher(appends);
             StringBuilder concatenation = new StringBuilder(base);
 
             while (appendValueMatcher.find()) {
-                concatenation.append(" + ").append(appendValueMatcher.group(1).trim());
+                concatenation.append(".concat(").append(appendValueMatcher.group(1).trim()).append(")");
             }
 
             String remaining = appends.replaceAll("\\|\\s*append:\\s*[^|]+", "").trim();
@@ -260,7 +299,7 @@ public class LiquidToQuteConverter {
 
         String result = appendSb.toString();
         if (!result.equals(content)) {
-            conversionsApplied.add("Converted append filter to string concatenation");
+            conversionsApplied.add("Converted append filter to .concat()");
             content = result;
         }
 
@@ -312,7 +351,7 @@ public class LiquidToQuteConverter {
                     if (baseStart > 0) {
                         baseStart--; // include the opening quote
                     }
-                } else if (Character.isLetterOrDigit(c) || c == '.' || c == '_') {
+                } else if (Character.isLetterOrDigit(c) || c == '.' || c == '_' || c == '-' || c == ':') {
                     baseStart--;
                 } else {
                     break;
@@ -324,8 +363,8 @@ public class LiquidToQuteConverter {
             }
 
             String base = content.substring(baseStart, baseEnd);
-            content = content.substring(0, baseStart) + value + " + " + base + content.substring(m.end());
-            conversionsApplied.add("Converted prepend filter to string concatenation");
+            content = content.substring(0, baseStart) + value + ".concat(" + base + ")" + content.substring(m.end());
+            conversionsApplied.add("Converted prepend filter to .concat()");
         }
 
         return content;
@@ -334,20 +373,19 @@ public class LiquidToQuteConverter {
     private String convertTableDrivenFilters(String content) {
         // Filters with a single argument: | filter: arg -> .method(arg)
         String[][] filterWithArgMap = {
+                { "group_by", "groupBy" },
                 { "sort", "sort" },
                 { "startswith", "startsWith" },
                 { "endswith", "endsWith" },
                 { "contains", "contains" },
                 { "equals", "equals" },
                 { "map", "map" },
-                { "group_by", "groupBy" },
                 { "slice", "slice" },
                 { "add", "add" },
                 { "minus", "minus" },
                 { "times", "times" },
                 { "truncate", "truncate" },
                 { "remove_first", "removeFirst" },
-                { "where_exp", "whereExp" },
         };
 
         for (String[] mapping : filterWithArgMap) {
@@ -388,9 +426,12 @@ public class LiquidToQuteConverter {
                 { "strip", "trim()" },
                 { "lstrip", "trimStart" },
                 { "rstrip", "trimEnd" },
+                { "xml_escape", "escapeHtml" },
                 { "escape", "escapeHtml" },
+                { "date_to_rfc822", "rfc822" },
                 { "url_encode", "urlEncode" },
-                { "slugify", "slugify" }
+                { "slugify", "slugify" },
+                { "markdownify", "markdownify" }
         };
 
         for (String[] mapping : filterMap) {
@@ -405,6 +446,29 @@ public class LiquidToQuteConverter {
             }
         }
 
+        return content;
+    }
+
+    private String convertWhereExpFilter(String content) {
+        // Convert: base | where_exp: "loopVar", expr -> list:whereExp(base, "loopVar", expr)
+        Pattern whereExpPattern = Pattern.compile(
+                "([a-zA-Z0-9_\\.\\[\\]()]+)\\s*\\|\\s*where_exp:\\s*(\"[^\"]*\"|'[^']*')\\s*,\\s*([^|}%]+)");
+        Matcher m = whereExpPattern.matcher(content);
+        StringBuilder sb = new StringBuilder();
+        boolean found = false;
+        while (m.find()) {
+            String base = m.group(1).trim();
+            String loopVar = m.group(2).trim();
+            String expr = m.group(3).trim();
+            m.appendReplacement(sb, Matcher.quoteReplacement(
+                    "list:whereExp(" + base + ", " + loopVar + ", " + expr + ")"));
+            found = true;
+        }
+        m.appendTail(sb);
+        if (found) {
+            conversionsApplied.add("Converted where_exp to list:whereExp namespace form");
+            return sb.toString();
+        }
         return content;
     }
 
@@ -445,7 +509,7 @@ public class LiquidToQuteConverter {
                 javaFormat = javaFormat + " /* TODO: unsupported strftime specifiers */";
             }
 
-            dateMatcher.appendReplacement(sb, ".format('" + javaFormat + "')");
+            dateMatcher.appendReplacement(sb, ".format('" + javaFormat + "').or('')");
         }
         dateMatcher.appendTail(sb);
 
@@ -454,6 +518,10 @@ public class LiquidToQuteConverter {
             conversionsApplied.add("Converted date filters");
             content = result;
         }
+
+        // Jekyll treats 'now' as a magic date value meaning "current time".
+        // In Qute/Roq, this is the `now` global variable (unquoted).
+        content = content.replace("'now'.format(", "now.format(");
 
         return content;
     }
@@ -565,24 +633,69 @@ public class LiquidToQuteConverter {
         return content;
     }
 
+    private int splitDelimCounter = 0;
+
     private String convertSplitFilter(String content) {
         // Use namespace form str:split(base, delim) instead of base.split(delim).
         // Namespace extensions receive null as a regular parameter, so they handle
         // null base objects that instance extensions can't dispatch on.
-        Pattern splitPattern = Pattern.compile("([a-zA-Z0-9_\\.\"'\\[\\]()]+)\\s*\\|\\s*split:\\s*(['\"][^'\"]*['\"])");
+        // Delimiter regex: match 'content' or "content" where content can include the opposite quote
+        Pattern splitPattern = Pattern.compile(
+                "([a-zA-Z0-9_\\.\"'\\[\\]()]+)\\s*\\|\\s*split:\\s*('[^']*'|\"[^\"]*\")");
         Matcher m = splitPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
         boolean found = false;
         while (m.find()) {
             String base = m.group(1);
             String delim = m.group(2);
-            m.appendReplacement(sb, Matcher.quoteReplacement("str:split(" + base + ", " + delim + ")"));
+            String delimInner = delim.substring(1, delim.length() - 1);
+            if (delimInner.contains(")") || delimInner.contains("\"")) {
+                // Qute's parser treats ) and " inside method arguments as special,
+                // even when inside a single-quoted string literal.
+                // Hoist the delimiter to a variable name — the actual {#let} is
+                // emitted by convertAssignments or the expression context.
+                String varName = "__delim" + (splitDelimCounter++ == 0 ? "" : String.valueOf(splitDelimCounter));
+                splitDelimHoists.put(varName, delim);
+                m.appendReplacement(sb, Matcher.quoteReplacement("str:split(" + base + ", " + varName + ")"));
+            } else {
+                m.appendReplacement(sb, Matcher.quoteReplacement("str:split(" + base + ", " + delim + ")"));
+            }
             found = true;
         }
         m.appendTail(sb);
         if (found) {
             conversionsApplied.add("Converted split filter");
             return sb.toString();
+        }
+        return content;
+    }
+
+    private String wrapHoistedSplitDelimiters(String content) {
+        // Find output expressions referencing hoisted delimiters that weren't
+        // already handled by convertAssignments (i.e. bare {{ x | split: ... }})
+        for (Map.Entry<String, String> entry : splitDelimHoists.entrySet()) {
+            String varName = entry.getKey();
+            String delim = entry.getValue();
+            // Match {= ... __delim ... } that is NOT already inside a {#let __delim=...}
+            String marker = varName;
+            int idx = content.indexOf(marker);
+            while (idx >= 0) {
+                // Check if this occurrence is already inside a {#let __delim=...} declaration
+                String before = content.substring(Math.max(0, idx - 200), idx);
+                if (!before.contains("{#let " + varName + "=")) {
+                    // Find the enclosing {= ... } expression
+                    int exprStart = content.lastIndexOf("{=", idx);
+                    int exprEnd = content.indexOf("}", idx);
+                    if (exprStart >= 0 && exprEnd >= 0) {
+                        content = content.substring(0, exprStart)
+                                + "{#let " + varName + "=" + delim + "}"
+                                + content.substring(exprStart, exprEnd + 1)
+                                + "{/let}"
+                                + content.substring(exprEnd + 1);
+                    }
+                }
+                idx = content.indexOf(marker, idx + marker.length() + 100);
+            }
         }
         return content;
     }
@@ -611,6 +724,7 @@ public class LiquidToQuteConverter {
             String suffix = ifMatcher.group(3);
 
             condition = replaceOperatorsOutsideStrings(condition);
+            condition = replaceNilWithNull(condition);
 
             ifMatcher.appendReplacement(sb, Matcher.quoteReplacement(prefix + condition + suffix));
         }
@@ -681,6 +795,18 @@ public class LiquidToQuteConverter {
         }
         if (cond.contains("==")) {
             return cond.replace("==", " != ");
+        }
+        if (cond.contains(" >= ")) {
+            return cond.replace(" >= ", " < ");
+        }
+        if (cond.contains(" <= ")) {
+            return cond.replace(" <= ", " > ");
+        }
+        if (cond.contains(" > ")) {
+            return cond.replace(" > ", " <= ");
+        }
+        if (cond.contains(" < ")) {
+            return cond.replace(" < ", " >= ");
         }
         // Simple variable — prefix with !
         return "!" + cond;
@@ -768,6 +894,10 @@ public class LiquidToQuteConverter {
         return result.toString();
     }
 
+    private String replaceNilWithNull(String condition) {
+        return condition.replaceAll("\\bnil\\b", "null");
+    }
+
     private static boolean matchesWord(String s, int pos, String word) {
         if (pos + word.length() > s.length()) {
             return false;
@@ -784,12 +914,104 @@ public class LiquidToQuteConverter {
         return true;
     }
 
+    private String convertFindFirstPattern(String content) {
+        // Detect the Liquid "find first" idiom:
+        //   {% assign X = nil %}
+        //   {% for item in list %}{% unless item.prop %}{% unless X %}
+        //     {% assign X = item.field %}
+        //   {% endunless %}{% endunless %}{% endfor %}
+        //
+        // Qute's {#let} is block-scoped, so assigns inside a loop are invisible outside.
+        // Convert to: {#let __firstMatch=list:whereNot(list, 'prop').first}
+        //             {#let X=__firstMatch.field}
+        String original = content;
+
+        Pattern pattern = Pattern.compile(
+                "\\{%\\s*assign\\s+(\\w+)\\s*=\\s*nil\\s*%\\}" + // 1: guard var = nil
+                        "\\s*\\{%\\s*for\\s+(\\w+)\\s+in\\s+(.+?)\\s*%\\}" + // 2: loop var, 3: list
+                        "\\s*\\{%\\s*unless\\s+\\2\\.(\\w+)\\s*%\\}" + // 4: filter property
+                        "\\s*\\{%\\s*unless\\s+\\1\\s*%\\}" + // guard check
+                        "((?:\\s*\\{%\\s*assign\\s+\\w+\\s*=\\s*.+?\\s*%\\})+)" + // 5: assign block
+                        "\\s*\\{%\\s*endunless\\s*%\\}" +
+                        "\\s*\\{%\\s*endunless\\s*%\\}" +
+                        "\\s*\\{%\\s*endfor\\s*%\\}",
+                Pattern.DOTALL);
+
+        Matcher m = pattern.matcher(content);
+        if (m.find()) {
+            String guardVar = m.group(1);
+            String loopVar = m.group(2);
+            String list = m.group(3);
+            String filterProp = m.group(4);
+            String assignBlock = m.group(5);
+
+            // Extract individual assigns and replace loop-var references with __firstMatch
+            Pattern assignPat = Pattern.compile("\\{%\\s*assign\\s+(\\w+)\\s*=\\s*(.+?)\\s*%\\}");
+            Matcher am = assignPat.matcher(assignBlock);
+            StringBuilder lets = new StringBuilder();
+            while (am.find()) {
+                String var = am.group(1);
+                String expr = am.group(2).replaceAll("\\b" + Pattern.quote(loopVar) + "\\b", "__firstMatch");
+                lets.append("{% assign ").append(var).append(" = ").append(expr).append(" %}");
+            }
+
+            String replacement = "{#let __firstMatch=list:whereNot(" + list
+                    + ", '" + filterProp + "').first}"
+                    + lets;
+
+            content = content.substring(0, m.start()) + replacement + content.substring(m.end());
+        }
+
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted find-first loop to list:whereNot");
+        }
+        return content;
+    }
+
+    private String collapseWhereExpAccumulatorLoop(String content) {
+        // Detect iterative where_exp filtering inside a for-loop:
+        //   {% for query in QUERIES %}
+        //     {% assign VAR = VAR | where_exp: "LOOPVAR", query %}
+        //   {% endfor %}
+        // Collapse to: {% assign VAR = list:whereExp(VAR, "LOOPVAR", QUERIES) %}
+        Pattern pattern = Pattern.compile(
+                "\\{%\\s*for\\s+(\\w+)\\s+in\\s+(.+?)\\s*%\\}" + // 1: loop var, 2: queries list
+                        "\\s*\\{%\\s*assign\\s+(\\w+)\\s*=\\s*\\3\\s*\\|\\s*" + // 3: accumulator var (same on both sides)
+                        "where_exp:\\s*(\"[^\"]*\"|'[^']*')\\s*,\\s*\\1\\s*%\\}" + // 4: loopVar name, then loop var ref as expr
+                        "\\s*\\{%\\s*endfor\\s*%\\}",
+                Pattern.DOTALL);
+
+        Matcher m = pattern.matcher(content);
+        if (m.find()) {
+            String queriesList = m.group(2).trim();
+            String accumulatorVar = m.group(3);
+            String loopVarName = m.group(4);
+
+            String replacement = "{% assign " + accumulatorVar + " = list:whereExp("
+                    + accumulatorVar + ", " + loopVarName + ", " + queriesList + ") %}";
+
+            content = content.substring(0, m.start()) + replacement + content.substring(m.end());
+            conversionsApplied.add("Collapsed where_exp accumulator loop");
+        }
+        return content;
+    }
+
     private String convertPaginator(String content) {
         String original = content;
 
-        // Jekyll's paginator.posts -> Roq's collection access
-        content = content.replaceAll("\\bpaginator\\.posts\\b",
-                "site.collections.get('posts').paginated(page.paginator)");
+        // Jekyll autopages (paginate-v2) inject page.pagination.{entity} — detect this
+        // BEFORE converting paginator refs, since convertCustomPageFields hasn't run yet.
+        // Autopages paginator.posts is pre-filtered by entity; Roq from-data pages have
+        // no paginator, so use .filter() on the collection instead.
+        String autopagesEntity = detectAutopagesEntity(content);
+        if (autopagesEntity != null) {
+            content = content.replaceAll("\\bpaginator\\.posts\\b",
+                    "site.collections.get('posts').filter('" + autopagesEntity
+                            + "', page.pagination." + autopagesEntity + ")");
+        } else {
+            content = content.replaceAll("\\bpaginator\\.posts\\b",
+                    "site.collections.get('posts').paginated(page.paginator)");
+        }
 
         // Jekyll field names -> Roq Paginator field names
         content = content.replaceAll("\\bpaginator\\.total_pages\\b", "page.paginator.total");
@@ -805,10 +1027,25 @@ public class LiquidToQuteConverter {
         Pattern pattern = Pattern.compile("(\\{#(?:if|else if) )(?!page\\.paginator &&)(page\\.paginator\\.[^}]+\\})");
         content = pattern.matcher(content).replaceAll("$1page.paginator && $2");
 
+        // Also guard conditionals using paginated(page.paginator) — e.g. .size > 0 comparisons
+        Pattern paginatedGuard = Pattern.compile(
+                "(\\{#(?:if|else if) )(?!page\\.paginator &&)(.*?paginated\\(page\\.paginator\\).*?\\})");
+        content = paginatedGuard.matcher(content).replaceAll("$1page.paginator && $2");
+
         if (!content.equals(original)) {
             conversionsApplied.add("Converted Jekyll paginator to Roq pagination");
         }
         return content;
+    }
+
+    private String detectAutopagesEntity(String content) {
+        Matcher m = Pattern.compile("page\\.pagination\\.(\\w+)\\b").matcher(content);
+        while (m.find()) {
+            if (!m.group(1).endsWith("_data")) {
+                return m.group(1);
+            }
+        }
+        return null;
     }
 
     private String convertLoops(String content) {
@@ -825,18 +1062,38 @@ public class LiquidToQuteConverter {
         // We find each {#for VAR in ...} and replace forloop.* references with VAR_* in the loop body.
         content = replaceLoopVariables(content);
 
-        // Handle limit and offset
+        // Handle limit and offset: wrap loop body with a count guard
+        // since Roq collections don't have .limit()/.skip() methods.
+        // {#for x in list limit: N} → {#for x in list}{#if x_count <= N}...{/if}{/for}
         Pattern limitPattern = Pattern
-                .compile("\\{#for\\s+(\\w+)\\s+in\\s+([^}]+?)\\s+limit:(\\d+)(?:\\s+offset:(\\d+))?\\s*\\}");
+                .compile("\\{#for\\s+(\\w+)\\s+in\\s+([^}]+?)\\s+limit:\\s*(\\w+)(?:\\s+offset:\\s*(\\w+))?\\s*\\}");
         Matcher limitMatcher = limitPattern.matcher(content);
-        StringBuilder sb = new StringBuilder();
-
         while (limitMatcher.find()) {
-            String replacement = buildLimitedForLoop(limitMatcher);
-            limitMatcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+            String var = limitMatcher.group(1);
+            String collection = limitMatcher.group(2);
+            String limit = limitMatcher.group(3);
+            String offset = limitMatcher.group(4);
+
+            int forEnd = limitMatcher.end();
+            int endForPos = findMatchingEndFor(content, forEnd);
+            if (endForPos < 0)
+                continue;
+
+            String loopBody = content.substring(forEnd, endForPos);
+            String forOpen;
+            if (offset != null && !offset.equals("0")) {
+                forOpen = "{#for " + var + " in " + collection + "}"
+                        + "{#if " + var + "_count > " + offset + " && " + var + "_count <= " + offset + " + " + limit + "}";
+            } else {
+                forOpen = "{#for " + var + " in " + collection + "}"
+                        + "{#if " + var + "_count <= " + limit + "}";
+            }
+
+            content = content.substring(0, limitMatcher.start())
+                    + forOpen + loopBody + "{/if}{/for}"
+                    + content.substring(endForPos + "{/for}".length());
+            limitMatcher = limitPattern.matcher(content);
         }
-        limitMatcher.appendTail(sb);
-        content = sb.toString();
 
         if (!content.equals(original)) {
             conversionsApplied.add("Converted loops");
@@ -919,19 +1176,6 @@ public class LiquidToQuteConverter {
         return content.length();
     }
 
-    private static String buildLimitedForLoop(Matcher limitMatcher) {
-        String var = limitMatcher.group(1);
-        String collection = limitMatcher.group(2);
-        String limit = limitMatcher.group(3);
-        String offset = limitMatcher.group(4);
-
-        if (offset != null && !offset.equals("0")) {
-            return "{#for " + var + " in " + collection + ".skip(" + offset + ").limit(" + limit + ")}";
-        } else {
-            return "{#for " + var + " in " + collection + ".limit(" + limit + ")}";
-        }
-    }
-
     private String convertIncludes(String content) {
         // Liquid: {% include "file.html" %}
         // Qute: {#include file.html /}
@@ -977,23 +1221,168 @@ public class LiquidToQuteConverter {
         return result;
     }
 
+    private record IfElseBlock(int start, int end, String condition, String ifBranch, String elseBranch) {
+    }
+
+    private record IfBlock(int start, int end, String condition, String body) {
+    }
+
+    private List<IfElseBlock> findIfElseBlocks(String content) {
+        List<IfElseBlock> blocks = new ArrayList<>();
+        Pattern ifOpenPattern = Pattern.compile("\\{#if\\s+([^}]+?)\\}");
+        Matcher ifMatcher = ifOpenPattern.matcher(content);
+
+        while (ifMatcher.find()) {
+            int blockStart = ifMatcher.start();
+            String condition = ifMatcher.group(1);
+            int pos = ifMatcher.end();
+            int depth = 0;
+            int elsePos = -1;
+
+            Pattern innerTag = Pattern.compile("\\{#if\\b[^}]*\\}|\\{#else\\}|\\{/if\\}");
+            Matcher inner = innerTag.matcher(content);
+            inner.region(pos, content.length());
+
+            while (inner.find()) {
+                String t = inner.group();
+                if (t.startsWith("{#if")) {
+                    depth++;
+                } else if (t.equals("{#else}") && depth == 0) {
+                    elsePos = inner.start();
+                } else if (t.equals("{/if}")) {
+                    if (depth == 0) {
+                        if (elsePos >= 0) {
+                            String ifBranch = content.substring(pos, elsePos);
+                            String elseBranch = content.substring(elsePos + "{#else}".length(), inner.start());
+                            blocks.add(new IfElseBlock(blockStart, inner.end(), condition, ifBranch, elseBranch));
+                        }
+                        break;
+                    }
+                    depth--;
+                }
+            }
+        }
+        return blocks;
+    }
+
+    private String mergeComplementaryIfBlocks(String content) {
+        // Liquid's {% assign %} is template-scoped: a variable assigned inside an
+        // {% if %} block is visible after {% endif %}. Qute's {#let} is block-scoped:
+        // the variable dies at {/let}, which convertAssignments places at the enclosing
+        // {/if}. So {% if X %}{% assign V = A %}{% endif %}{% unless X %}{% assign V = B %}
+        // {% endunless %}{{ V }} works in Liquid but breaks in Qute — V is unset by the
+        // time we reach the output expression.
+        //
+        // Fix: detect consecutive {#if COND}...{/if}{#if !COND}...{/if} pairs and merge
+        // them into {#if COND}...{#else}...{/if} so convertIfElseAssignsToTernary can
+        // hoist the assign out of the conditional entirely.
+        String original = content;
+        List<IfBlock> blocks = collectIfWithoutElseBlocks(content);
+
+        // Find consecutive pairs where the second condition negates the first.
+        // After each merge, positions shift, so break and re-scan from scratch.
+        boolean merged = true;
+        while (merged) {
+            merged = false;
+            for (int i = 0; i < blocks.size() - 1; i++) {
+                IfBlock first = blocks.get(i);
+                IfBlock second = blocks.get(i + 1);
+
+                String between = content.substring(first.end(), second.start());
+                if (!between.trim().isEmpty()) {
+                    continue;
+                }
+
+                if (areComplementary(first.condition(), second.condition())) {
+                    content = content.substring(0, first.end() - "{/if}".length())
+                            + "{#else}"
+                            + second.body()
+                            + "{/if}"
+                            + content.substring(second.end());
+                    merged = true;
+                    break; // re-scan with fresh positions
+                }
+            }
+            if (merged) {
+                // Re-collect blocks from the modified content
+                blocks = collectIfWithoutElseBlocks(content);
+            }
+        }
+
+        if (!content.equals(original)) {
+            conversionsApplied.add("Merged complementary if/unless blocks");
+        }
+        return content;
+    }
+
+    private boolean areComplementary(String condA, String condB) {
+        condA = condA.trim();
+        condB = condB.trim();
+        // {#if X} + {#if !X}
+        if (condB.equals("!" + condA))
+            return true;
+        if (condA.equals("!" + condB))
+            return true;
+        return false;
+    }
+
+    private List<IfBlock> collectIfWithoutElseBlocks(String content) {
+        List<IfBlock> blocks = new ArrayList<>();
+        Pattern ifOpenPattern = Pattern.compile("\\{#if\\s+([^}]+?)\\}");
+        Matcher ifMatcher = ifOpenPattern.matcher(content);
+
+        while (ifMatcher.find()) {
+            int blockStart = ifMatcher.start();
+            String condition = ifMatcher.group(1);
+            int pos = ifMatcher.end();
+            int depth = 0;
+            boolean hasElse = false;
+            int blockEnd = -1;
+
+            Pattern innerTag = Pattern.compile("\\{#if\\b[^}]*\\}|\\{#else\\}|\\{/if\\}");
+            Matcher inner = innerTag.matcher(content);
+            inner.region(pos, content.length());
+
+            while (inner.find()) {
+                String t = inner.group();
+                if (t.startsWith("{#if")) {
+                    depth++;
+                } else if (t.equals("{#else}") && depth == 0) {
+                    hasElse = true;
+                } else if (t.equals("{/if}")) {
+                    if (depth == 0) {
+                        blockEnd = inner.end();
+                        if (!hasElse) {
+                            String body = content.substring(pos, inner.start());
+                            blocks.add(new IfBlock(blockStart, blockEnd, condition, body));
+                        }
+                        break;
+                    }
+                    depth--;
+                }
+            }
+            // Skip past this block to avoid collecting nested {#if} tags
+            if (blockEnd > 0) {
+                ifMatcher.region(blockEnd, content.length());
+            }
+        }
+        return blocks;
+    }
+
     private String convertIfElseAssignsToTernary(String content) {
         // Detect if/else blocks where the same variable is assigned in both branches.
         // Replace both assigns with a single ternary assign BEFORE the if block.
         // The result is still a {% assign %} tag, so convertAssignments handles scoping.
 
-        Pattern ifElsePattern = Pattern.compile(
-                "\\{#if\\s+([^}]+?)\\}(.*?)\\{#else\\}(.*?)\\{/if\\}",
-                Pattern.DOTALL);
-
-        Matcher matcher = ifElsePattern.matcher(content);
-        StringBuilder sb = new StringBuilder();
+        List<IfElseBlock> blocks = findIfElseBlocks(content);
         boolean changed = false;
 
-        while (matcher.find()) {
-            String condition = matcher.group(1);
-            String ifBranch = matcher.group(2);
-            String elseBranch = matcher.group(3);
+        // Process from last to first so positions stay valid
+        for (int bi = blocks.size() - 1; bi >= 0; bi--) {
+            IfElseBlock block = blocks.get(bi);
+            String condition = block.condition();
+            String ifBranch = block.ifBranch();
+            String elseBranch = block.elseBranch();
 
             Pattern assignPattern = Pattern.compile("\\{%\\s*assign\\s+(\\w+)\\s*=\\s*([^%]+?)\\s*%\\}");
             Matcher ifAssigns = assignPattern.matcher(ifBranch);
@@ -1021,55 +1410,60 @@ public class LiquidToQuteConverter {
                     String ifExpr = ifVars.get(var);
                     String elseExpr = elseVars.get(var);
 
-                    // Qute doesn't support ternary (? :), so use alternative constructs.
-                    // 'contains' is only valid as an operator in {#if} sections —
-                    // convert to method call for use in {#let} expressions.
-                    String exprCondition = condition.replaceAll(
-                            "(\\S+)\\s+contains\\s+('[^']*'|\"[^\"]*\")",
-                            "$1.contains($2)");
-
                     String combinedExpr;
-                    if (condition.trim().equals(ifExpr.trim())) {
-                        // condition ? condition : fallback  →  condition ?: fallback
-                        combinedExpr = ifExpr + " ?: " + elseExpr;
+                    String condTrimmed = condition.trim();
+                    String ifTrimmed = ifExpr.trim();
+                    String elseTrimmed = elseExpr.trim();
+
+                    if (condTrimmed.equals(ifTrimmed)
+                            && (elseTrimmed.equals("false") || elseTrimmed.equals("nil"))) {
+                        // if X → assign V = X | else → assign V = false
+                        // Just use the condition directly; null is falsy like false.
+                        combinedExpr = ifTrimmed;
+                    } else if ((elseTrimmed.equals("false") || elseTrimmed.equals("nil"))
+                            && ifTrimmed.startsWith(condTrimmed + ".")) {
+                        // if X → assign V = X.method() | else → assign V = false
+                        // Use the direct method call; Qute non-strict mode handles null.
+                        combinedExpr = ifTrimmed;
                     } else {
-                        // General case: find trailing content that uses this variable
-                        // and duplicate it into each branch so {#let} scope covers it
-                        int afterIfElse = matcher.end();
-                        String trailing = content.substring(afterIfElse);
-                        int useEnd = findTrailingUsageEnd(trailing, var);
-                        if (useEnd > 0) {
-                            String trailingContent = trailing.substring(0, useEnd);
-                            String ifAssign = "{% assign " + var + " = " + ifExpr + " %}";
-                            String elseAssign = "{% assign " + var + " = " + elseExpr + " %}";
-                            String before = content.substring(0, matcher.start());
-                            String after = trailing.substring(useEnd);
-                            String result = before
-                                    + "{#if " + condition + "}"
-                                    + ifAssign + trailingContent
-                                    + "{#else}"
-                                    + elseAssign + trailingContent
-                                    + "{/if}" + after;
-                            conversionsApplied.add("Inlined trailing content into if/else branches for variable scope");
-                            return result;
-                        }
-                        continue;
+                        // General case: Qute does NOT support ternary (? :) in {#let} parameters.
+                        // Keep the if/else structure and pull ALL remaining content into both
+                        // branches so the scoped {#let} variable is visible where it's used.
+                        combinedExpr = null;
                     }
 
-                    ternaryAssigns.append("{% assign ").append(var).append(" = ")
-                            .append(combinedExpr).append(" %}\n");
+                    if (combinedExpr != null) {
+                        ternaryAssigns.append("{% assign ").append(var).append(" = ")
+                                .append(combinedExpr).append(" %}\n");
 
-                    modifiedIfBranch = modifiedIfBranch.replaceFirst(
-                            "\\{%\\s*assign\\s+" + var + "\\s*=\\s*" + Pattern.quote(ifExpr) + "\\s*%\\}",
-                            "");
-                    modifiedElseBranch = modifiedElseBranch.replaceFirst(
-                            "\\{%\\s*assign\\s+" + var + "\\s*=\\s*" + Pattern.quote(elseExpr) + "\\s*%\\}",
-                            "");
+                        modifiedIfBranch = modifiedIfBranch.replaceFirst(
+                                "\\{%\\s*assign\\s+" + var + "\\s*=\\s*" + Pattern.quote(ifExpr) + "\\s*%\\}",
+                                "");
+                        modifiedElseBranch = modifiedElseBranch.replaceFirst(
+                                "\\{%\\s*assign\\s+" + var + "\\s*=\\s*" + Pattern.quote(elseExpr) + "\\s*%\\}",
+                                "");
+                    } else {
+                        String trailing = content.substring(block.end());
+                        int scopeEnd = findEnclosingScopeEnd(trailing);
+                        String trailingInScope = trailing.substring(0, scopeEnd);
+                        String afterScope = trailing.substring(scopeEnd);
+
+                        if (!trailingInScope.trim().isEmpty()) {
+                            String replacement = "{#if " + condition + "}"
+                                    + ifBranch + trailingInScope
+                                    + "{#else}"
+                                    + elseBranch + trailingInScope
+                                    + "{/if}"
+                                    + afterScope;
+
+                            content = content.substring(0, block.start()) + replacement;
+                            changed = true;
+                            break; // Re-parse since positions shifted
+                        }
+                    }
                 }
 
                 if (ternaryAssigns.length() == 0) {
-                    // No variables could be converted, leave unchanged
-                    matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(0)));
                     continue;
                 }
 
@@ -1079,7 +1473,6 @@ public class LiquidToQuteConverter {
 
                 String replacement;
                 if (ifEmpty && elseEmpty) {
-                    // Both branches are empty after removing assigns — drop the if/else entirely
                     replacement = ternaryAssigns.toString();
                 } else {
                     replacement = ternaryAssigns.toString()
@@ -1090,40 +1483,193 @@ public class LiquidToQuteConverter {
                             + "{/if}";
                 }
 
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+                content = content.substring(0, block.start())
+                        + replacement
+                        + content.substring(block.end());
                 changed = true;
-            } else {
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(0)));
             }
         }
-        matcher.appendTail(sb);
 
         if (changed) {
-            conversionsApplied.add("Converted if/else assigns to ternary expressions");
-            return sb.toString();
+            conversionsApplied.add("Converted if/else assigns");
         }
 
         return content;
     }
 
-    private int findTrailingUsageEnd(String trailing, String varName) {
-        // Find the end of the first line that uses the variable.
-        // Only inline a small amount of trailing content to avoid duplicating
-        // large template blocks.
-        Pattern usePattern = Pattern.compile("\\b" + Pattern.quote(varName) + "\\b");
-        Matcher useMatcher = usePattern.matcher(trailing);
-        if (!useMatcher.find()) {
-            return 0;
+    private int findEnclosingScopeEnd(String text) {
+        // Find the end of the enclosing scope — the position of the first unmatched
+        // closing tag ({/if}, {/for}, {/let}, etc.) or end of text.
+        // This ensures we only duplicate content within the same structural block.
+        Pattern tag = Pattern.compile("\\{#(?:if|for|let|set)\\b[^}]*\\}|\\{/(?:if|for|let|set)\\}|\\{#else\\}");
+        Matcher m = tag.matcher(text);
+        int depth = 0;
+        while (m.find()) {
+            String t = m.group();
+            if (t.startsWith("{#if") || t.startsWith("{#for") || t.startsWith("{#let") || t.startsWith("{#set")) {
+                depth++;
+            } else if (t.startsWith("{/")) {
+                if (depth == 0) {
+                    return m.start();
+                }
+                depth--;
+            } else if (t.equals("{#else}") && depth == 0) {
+                return m.start();
+            }
         }
-        // Only inline if the first usage is within the first few lines
-        int firstUse = useMatcher.start();
-        long newlinesBefore = trailing.substring(0, firstUse).chars().filter(c -> c == '\n').count();
-        if (newlinesBefore > 3) {
-            return 0;
+        return text.length();
+    }
+
+    private String convertMutableAssigns(String content) {
+        String original = content;
+
+        Pattern assignPattern = Pattern.compile("\\{%\\s*assign\\s+(\\w+)\\s*=\\s*([^%]+?)\\s*%\\}");
+        Matcher m = assignPattern.matcher(content);
+
+        List<int[]> positions = new ArrayList<>();
+        List<String> varNames = new ArrayList<>();
+        List<String> expressions = new ArrayList<>();
+
+        while (m.find()) {
+            positions.add(new int[] { m.start(), m.end() });
+            varNames.add(m.group(1));
+            expressions.add(m.group(2).trim());
         }
-        // Extend to the end of the line containing the last usage on consecutive lines
-        int lineEnd = trailing.indexOf('\n', useMatcher.end());
-        return lineEnd >= 0 ? lineEnd + 1 : trailing.length();
+
+        if (positions.isEmpty()) {
+            return content;
+        }
+
+        // Group assigns by variable name
+        Map<String, List<Integer>> assignsByVar = new LinkedHashMap<>();
+        for (int i = 0; i < varNames.size(); i++) {
+            assignsByVar.computeIfAbsent(varNames.get(i), k -> new ArrayList<>()).add(i);
+        }
+
+        // A variable needs mutable treatment when it would escape its {#let} scope.
+        // Exclude patterns already handled by dedicated passes:
+        //  - self-referencing assigns (push/accumulation → collapsePushInLoopPattern)
+        //  - if/else complementary assigns (→ convertIfElseAssignsToTernary)
+        Set<String> mutableVars = new LinkedHashSet<>();
+
+        for (var entry : assignsByVar.entrySet()) {
+            String var = entry.getKey();
+            List<Integer> indices = entry.getValue();
+
+            // Skip self-referencing assigns (e.g. values = values | push: item).
+            // These are accumulation patterns handled by collapsePushInLoop / mergeTypes.
+            boolean selfRef = false;
+            for (int idx : indices) {
+                if (expressions.get(idx).matches(".*\\b" + Pattern.quote(var) + "\\b.*")) {
+                    selfRef = true;
+                    break;
+                }
+            }
+            if (selfRef) {
+                continue;
+            }
+
+            if (indices.size() > 1) {
+                // Flag when assigns are at different nesting depths — that's
+                // the "default + conditional override" pattern (e.g. assign false at
+                // loop level, assign true inside nested if).
+                Set<Integer> depths = new HashSet<>();
+                for (int idx : indices) {
+                    depths.add(nestingDepth(content, positions.get(idx)[0]));
+                }
+                if (depths.size() > 1) {
+                    mutableVars.add(var);
+                    continue;
+                }
+                // Same-depth assigns are typically if/else alternatives handled by
+                // convertIfElseAssignsToTernary — but still need mutable treatment
+                // if the variable is used outside the enclosing block.
+                int lastAssignEnd = positions.get(indices.get(indices.size() - 1))[1];
+                int scopeEnd = findEnclosingBlockEnd(content, lastAssignEnd);
+                if (scopeEnd < content.length()) {
+                    String afterScope = content.substring(scopeEnd);
+                    Pattern varRef = Pattern.compile("(?<![.\\w'\"])" + Pattern.quote(var) + "\\b");
+                    if (varRef.matcher(afterScope).find()) {
+                        mutableVars.add(var);
+                    }
+                }
+            } else {
+                // Single assign: check if the variable is used after its scope boundary
+                int assignEnd = positions.get(indices.get(0))[1];
+                int scopeEnd = findScopeBoundary(content, assignEnd);
+                if (scopeEnd < content.length()) {
+                    String afterScope = content.substring(scopeEnd);
+                    // If a {#for VAR in ...} appears after the scope boundary, it
+                    // rebinds the variable name as a loop variable — all references
+                    // from that point on are the loop var, not the assigned one.
+                    // Strip from the first rebinding to end before checking for refs.
+                    Pattern forRebind = Pattern.compile("\\{#for\\s+" + Pattern.quote(var) + "\\s+in\\b.*", Pattern.DOTALL);
+                    String withoutForRebinds = forRebind.matcher(afterScope).replaceAll("");
+                    Pattern varRef = Pattern.compile("(?<![.\\w'\"])" + Pattern.quote(var) + "\\b");
+                    if (varRef.matcher(withoutForRebinds).find()) {
+                        mutableVars.add(var);
+                    }
+                }
+            }
+        }
+
+        if (mutableVars.isEmpty()) {
+            return content;
+        }
+
+        // Step 1: Replace {% assign VAR = EXPR %} for mutable vars with {=_m.assign('VAR', EXPR)}
+        for (String var : mutableVars) {
+            Pattern p = Pattern.compile("\\{%\\s*assign\\s+" + Pattern.quote(var) + "\\s*=\\s*([^%]+?)\\s*%\\}");
+            Matcher matcher = p.matcher(content);
+            StringBuilder sb = new StringBuilder();
+            while (matcher.find()) {
+                String expr = matcher.group(1).trim();
+                String converted = convertTernaryToOrChain(expr);
+                if (converted.equals("nil")) {
+                    converted = "null";
+                }
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(
+                        exprOpen + "_m.assign('" + var + "', " + converted + ")}"));
+            }
+            matcher.appendTail(sb);
+            content = sb.toString();
+        }
+
+        // Step 2: Replace standalone references to mutable vars with _m.read('VAR')
+        for (String var : mutableVars) {
+            content = content.replaceAll(
+                    "(?<![.\\w'\"])" + Pattern.quote(var) + "\\b(?!['\"])",
+                    "_m.read('" + var + "')");
+        }
+
+        // Step 3: Wrap with mutable-map initialisation (after front matter if present)
+        Pattern fmPattern = Pattern.compile("^(---\\n.*?\\n---\\n)", Pattern.DOTALL);
+        Matcher fmMatcher = fmPattern.matcher(content);
+        if (fmMatcher.find()) {
+            content = fmMatcher.group(1) + "{#let _m=mut:map()}" + content.substring(fmMatcher.end()) + "{/let}";
+        } else {
+            content = "{#let _m=mut:map()}" + content + "{/let}";
+        }
+
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted mutable assigns to mut:map()");
+        }
+        return content;
+    }
+
+    private int nestingDepth(String content, int position) {
+        Pattern tag = Pattern.compile("\\{#(if|for|let)\\b|\\{/(if|for|let)\\}");
+        Matcher m = tag.matcher(content);
+        m.region(0, position);
+        int depth = 0;
+        while (m.find()) {
+            if (m.group().startsWith("{#")) {
+                depth++;
+            } else {
+                depth--;
+            }
+        }
+        return depth;
     }
 
     private String convertAssignments(String content) {
@@ -1152,10 +1698,28 @@ public class LiquidToQuteConverter {
             String expr = expressions.get(i);
 
             int scopeEnd = findScopeBoundary(content, assignEnd);
+            // Qute's {#let} parser intercepts ?: — it cannot appear inside a
+            // {#let} expression. Convert ?: chains to .or() method calls, which
+            // preserve the fallback semantics and are valid in {#let}.
+            String letExpr = convertTernaryToOrChain(expr);
+
+            // If the expression references hoisted split delimiters, emit their
+            // {#let} declarations as an outer wrapper so the variable is in scope.
+            StringBuilder delimPrefix = new StringBuilder();
+            StringBuilder delimSuffix = new StringBuilder();
+            for (Map.Entry<String, String> entry : splitDelimHoists.entrySet()) {
+                if (letExpr.contains(entry.getKey())) {
+                    delimPrefix.append("{#let ").append(entry.getKey()).append("=").append(entry.getValue()).append("}");
+                    delimSuffix.append("{/let}");
+                }
+            }
+
             content = content.substring(0, assignStart)
-                    + "{#let " + var + "=" + expr + "}"
+                    + delimPrefix
+                    + "{#let " + var + "=" + letExpr + "}"
                     + content.substring(assignEnd, scopeEnd)
                     + "{/let}"
+                    + delimSuffix
                     + content.substring(scopeEnd);
         }
 
@@ -1167,6 +1731,18 @@ public class LiquidToQuteConverter {
             conversionsApplied.add("Converted assignments");
         }
         return content;
+    }
+
+    private static String convertTernaryToOrChain(String expr) {
+        String[] parts = expr.split("\\s*\\?:\\s*");
+        if (parts.length <= 1) {
+            return expr;
+        }
+        StringBuilder sb = new StringBuilder(parts[0].trim());
+        for (int i = 1; i < parts.length; i++) {
+            sb.append(".or(").append(parts[i].trim()).append(")");
+        }
+        return sb.toString();
     }
 
     private String collapsePushInLoopPattern(String content) {
@@ -1234,15 +1810,141 @@ public class LiquidToQuteConverter {
                     "{#for " + iterVar + " in str:splitTrimmed(" + splitExpr + ").orEmpty}" +
                     iterBody + "{/for}";
 
-            // Remove the trailing {/let}{/let} that closed rawVar and cleanVar
+            // Remove the {/let}{/let} that closed rawVar and cleanVar.
+            // Track {#let}/{/let} depth to skip nested let blocks (e.g. inside
+            // an {#if} further down the template).
             String afterFor = content.substring(iterForEnd + "{/for}".length());
-            afterFor = afterFor.replaceFirst("\\{/let\\}\\{/let\\}", "");
+            int letDepth = 0;
+            int closerStart = -1;
+            int closersNeeded = 2;
+            Pattern letTag = Pattern.compile("\\{#let\\b|\\{/let\\}");
+            Matcher letMatcher = letTag.matcher(afterFor);
+            while (letMatcher.find()) {
+                if (letMatcher.group().startsWith("{#let")) {
+                    letDepth++;
+                } else {
+                    letDepth--;
+                    if (letDepth < 0) {
+                        if (closerStart < 0)
+                            closerStart = letMatcher.start();
+                        closersNeeded--;
+                        if (closersNeeded == 0) {
+                            afterFor = afterFor.substring(0, closerStart) + afterFor.substring(letMatcher.end());
+                            break;
+                        }
+                    }
+                }
+            }
 
             content = content.substring(0, initStart) + replacement + afterFor;
         }
 
         if (!content.equals(original)) {
             conversionsApplied.add("Collapsed push-in-loop pattern to str:splitTrimmed");
+        }
+        return content;
+    }
+
+    /**
+     * Collapses the pattern where a partial iterates over hash entries (source.get(1)),
+     * collects nested typed items via push-in-loop, and sorts. This pattern is broken in
+     * Qute because {#let} is block-scoped (push results are discarded in loops).
+     *
+     * Detects:
+     * {#let ACCUM=str:split("", ",")}
+     * {#for OUTER in SOURCE.orEmpty}
+     * {#for ITEM in OUTER.get(1).PATH.get(TYPE_VAR...).orEmpty}
+     * {#let ACCUM=ACCUM.push(ITEM)}
+     * {/let}{/for}
+     * {/for}
+     * {#let ACCUM=ACCUM.sort('KEY')}
+     *
+     * Replaces with:
+     * {#let ACCUM=SOURCE.mergeTypes(TYPE_EXPR)}
+     */
+    private String collapsePushInNestedLoopToMergeTypes(String content) {
+        String original = content;
+
+        // Match: {#let ACCUM=str:split("", ",")} or {#let ACCUM=str:split("", "")}
+        Pattern initPattern = Pattern.compile(
+                "\\{#let (\\w+)=str:split\\(\"\"\\s*,\\s*\"[,\"]\"\\)\\}");
+        Matcher initMatcher = initPattern.matcher(content);
+        while (initMatcher.find()) {
+            String accumVar = initMatcher.group(1);
+            int initStart = initMatcher.start();
+            int afterInit = initMatcher.end();
+
+            // Look for outer loop: {#for OUTER in SOURCE.orEmpty}
+            String afterInitContent = content.substring(afterInit);
+            Pattern outerLoopPattern = Pattern.compile(
+                    "^\\s*\\{#for (\\w+) in (\\w[\\w.]*)\\.orEmpty\\}");
+            Matcher outerMatcher = outerLoopPattern.matcher(afterInitContent);
+            if (!outerMatcher.find())
+                continue;
+
+            String outerVar = outerMatcher.group(1);
+            String source = outerMatcher.group(2);
+            int outerBodyStart = afterInit + outerMatcher.end();
+
+            // Look for inner loop: {#for ITEM in OUTER.get(1).SOMETHING.orEmpty}
+            // Allow {! ... !} comments (e.g. TODO notes) between outer and inner loops
+            String outerBody = content.substring(outerBodyStart);
+            Pattern innerLoopPattern = Pattern.compile(
+                    "^\\s*(?:\\{!.*?!\\}\\s*)*\\{#for (\\w+) in " + Pattern.quote(outerVar) +
+                            "\\.get\\(1\\)\\.\\w+\\.get\\(([^)]+?)(?:\\.or\\(''\\))?\\)\\.orEmpty\\}",
+                    Pattern.DOTALL);
+            Matcher innerMatcher = innerLoopPattern.matcher(outerBody);
+            if (!innerMatcher.find())
+                continue;
+
+            String typeExpr = innerMatcher.group(2);
+
+            // Check that the inner loop body contains ACCUM.push
+            int innerBodyStart = outerBodyStart + innerMatcher.end();
+            int innerForEnd = findMatchingEndFor(content, innerBodyStart);
+            String innerBody = content.substring(innerBodyStart, innerForEnd);
+            if (!innerBody.contains(accumVar + ".push("))
+                continue;
+
+            // Find the outer loop end
+            int afterInnerFor = innerForEnd + "{/for}".length();
+            String afterInner = content.substring(afterInnerFor);
+            Pattern outerEndPattern = Pattern.compile("^\\s*\\{/for\\}");
+            Matcher outerEndMatcher = outerEndPattern.matcher(afterInner);
+            if (!outerEndMatcher.find())
+                continue;
+            int outerForEnd = afterInnerFor + outerEndMatcher.end();
+
+            // Look for sort: {#let ACCUM=ACCUM.sort('KEY')}
+            String afterOuterLoop = content.substring(outerForEnd);
+            Pattern sortPattern = Pattern.compile(
+                    "^\\s*\\{#let " + Pattern.quote(accumVar) + "=" +
+                            Pattern.quote(accumVar) + "\\.sort\\('[^']*'\\)\\}");
+            Matcher sortMatcher = sortPattern.matcher(afterOuterLoop);
+            int replaceEnd;
+            if (sortMatcher.find()) {
+                replaceEnd = outerForEnd + sortMatcher.end();
+            } else {
+                replaceEnd = outerForEnd;
+            }
+
+            // Remove the extra {/let} closings for the init and sort scopes
+            String afterReplace = content.substring(replaceEnd);
+            int letsToRemove = sortMatcher.find(0) ? 2 : 1;
+            for (int i = 0; i < letsToRemove; i++) {
+                afterReplace = afterReplace.replaceFirst("\\{/let\\}", "");
+            }
+
+            // Build replacement
+            String replacement = "{#let " + accumVar + "=" + source + ".mergeTypes(" + typeExpr + ")}";
+            content = content.substring(0, initStart) + replacement + afterReplace;
+
+            // Reset matcher since content changed
+            initMatcher = initPattern.matcher(content);
+        }
+
+        if (!content.equals(original)) {
+            conversionsApplied.add("Collapsed push-in-nested-loop to mergeTypes()");
         }
         return content;
     }
@@ -1273,6 +1975,27 @@ public class LiquidToQuteConverter {
             }
         }
 
+        return content.length();
+    }
+
+    private int findEnclosingBlockEnd(String content, int startPos) {
+        // Find the closing tag of the nearest enclosing block (skips past {#else}).
+        // Unlike findScopeBoundary, this goes UP one nesting level to find where
+        // the entire if/else block ends.
+        int depth = 0;
+        Pattern tagPattern = Pattern.compile("\\{#(for|if|let)\\b|\\{/(for|if|let)\\}");
+        Matcher matcher = tagPattern.matcher(content);
+        matcher.region(startPos, content.length());
+        while (matcher.find()) {
+            if (matcher.group().startsWith("{#")) {
+                depth++;
+            } else {
+                depth--;
+                if (depth < 0) {
+                    return matcher.end();
+                }
+            }
+        }
         return content.length();
     }
 
@@ -1331,12 +2054,20 @@ public class LiquidToQuteConverter {
         content = content.replaceAll("\\{%\\s*endprepend\\s*%\\}", "{/prepend}");
 
         // Jekyll's {{ content }} renders child content.
-        // In layouts: Qute uses {#insert /}
+        // In layouts: Qute uses {#insert /} for standalone output.
+        //   When content is used as a variable (e.g. content | split), use site.pageContent(page)
+        //   which renders the page's inner content as a string.
         // In partials: use {page.content} since {#insert /} causes infinite recursion
         if (convertingPartials) {
             content = content.replaceAll("\\{=content\\}", exprOpen + "page.content}");
         } else {
             content = content.replaceAll("\\{=content\\}", "{#insert /}");
+            // Replace remaining content variable references (used as function args, etc.)
+            // with site.pageContent(page) — matches content when used as a variable in Qute
+            // expressions (after ( or , or =) but not as plain text
+            content = content.replaceAll("(?<=[=(,])content(?=[,)\\s}])", "site.pageContent(page)");
+            // Page content is pre-rendered HTML — use splitRaw to prevent Qute auto-escaping
+            content = content.replace("str:split(site.pageContent(page)", "str:splitRaw(site.pageContent(page)");
         }
 
         if (!content.equals(original)) {
@@ -1398,8 +2129,12 @@ public class LiquidToQuteConverter {
     }
 
     private String wrapTernaryInExpression(String expr) {
+        // Match ?: where the default value is followed by a method/property call:
+        //   expr ?: "val".method  →  expr.or("val").method
+        // Qute doesn't support method chaining on parenthesized ternary expressions,
+        // so we use .or() which returns the value or the fallback and supports chaining.
         Pattern pattern = Pattern.compile(
-                "([a-zA-Z0-9_\\.\\[\\]]+)\\s*\\?:\\s*([\"'][^\"']*[\"']|[a-zA-Z0-9_\\.\\[\\]]+)\\.([a-zA-Z0-9_]+)\\s*\\(");
+                "([a-zA-Z0-9_\\.\\[\\]]+)\\s*\\?:\\s*([\"'][^\"']*[\"']|[a-zA-Z0-9_\\.\\[\\]]+)\\.([a-zA-Z0-9_]+)(\\s*\\()?");
         Matcher matcher = pattern.matcher(expr);
         StringBuilder sb = new StringBuilder();
 
@@ -1407,7 +2142,8 @@ public class LiquidToQuteConverter {
             String variable = matcher.group(1);
             String defaultVal = matcher.group(2);
             String method = matcher.group(3);
-            String replacement = "(" + variable + " ?: " + defaultVal + ")." + method + "(";
+            String paren = matcher.group(4) != null ? matcher.group(4) : "";
+            String replacement = variable + ".or(" + defaultVal + ")." + method + paren;
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(sb);
@@ -1488,11 +2224,22 @@ public class LiquidToQuteConverter {
         // Note: Using "siteConfig" instead of "site" to avoid conflict with Roq's built-in Site object
         String knownSiteProps = "url|title|description|image|imageExists|data|pages|allPages|collections|" +
                 "index|files|file|fileExists|page|normalPage|document|imagesDirUrl|pageContent|" +
-                "posts|tags";
+                "posts|tags|time";
 
+        // Match site.prop and optionally .sub-prop chains (YAML keys may contain hyphens)
         Pattern pattern = Pattern.compile(
-                "\\bsite\\.((?!(?:" + knownSiteProps + ")\\b)[a-zA-Z_][a-zA-Z0-9_]*)\\b");
-        String result = pattern.matcher(content).replaceAll(CDI_REFERENCE + ".$1");
+                "\\bsite\\.((?!(?:" + knownSiteProps
+                        + ")\\b)[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*)*)");
+        StringBuffer sb = new StringBuffer();
+        Matcher m = pattern.matcher(content);
+        while (m.find()) {
+            String propChain = m.group(1);
+            // CamelCase any hyphenated segments so Qute dot notation works
+            String camelCased = camelCasePropertyChain(propChain);
+            m.appendReplacement(sb, "cdi:siteConfig." + camelCased);
+        }
+        m.appendTail(sb);
+        String result = sb.toString();
 
         if (!result.equals(content)) {
             conversionsApplied.add("Converted site data properties to CDI references");
@@ -1501,7 +2248,42 @@ public class LiquidToQuteConverter {
         return result;
     }
 
+    private static String camelCasePropertyChain(String chain) {
+        String[] segments = chain.split("\\.");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < segments.length; i++) {
+            if (i > 0)
+                sb.append('.');
+            sb.append(JekyllConfigConverter.hyphenToCamelCase(segments[i]));
+        }
+        return sb.toString();
+    }
+
+    private String convertAutopagesVariables(String content) {
+        String original = content;
+        // Jekyll paginate-v2 autopages injects page.pagination.{entity}_data (the entity's
+        // data hash) and page.pagination.{entity} (the entity key) for each autopage type
+        // (author, tag, category, collection). After convertCustomPageFields these become
+        // page.data.pagination.{entity}_data and page.data.pagination.{entity}.
+        // In Roq, from-data pages put the data fields directly on page.data, and the
+        // YAML map key is available as page.data._key (when id-key=_key).
+        // Replace _data variant first (longer match) to avoid partial substitution.
+        content = content.replaceAll("page\\.data\\.pagination\\.(\\w+)_data", "page.data");
+        content = content.replaceAll("page\\.data\\.pagination\\.(\\w+)", "page.data._key");
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted Jekyll autopages variables to Roq from-data");
+        }
+        return content;
+    }
+
     private String convertCustomPageFields(String content) {
+        // Map Jekyll built-in properties to their Roq equivalents
+        String result = content.replaceAll("\\b(page|post)\\.path\\b", "$1.sourcePath");
+        if (!result.equals(content)) {
+            conversionsApplied.add("Mapped page.path to page.sourcePath");
+            content = result;
+        }
+
         // Roq's Page model has specific built-in properties. Custom frontmatter must use page.data.*
         // This applies to 'page' and page-like loop variables like 'post'
         String knownPageProps = "url|title|description|image|imageExists|date|data|content|contentAbstract|" +
@@ -1513,7 +2295,7 @@ public class LiquidToQuteConverter {
         // and convert to *.data.customField
         Pattern pattern = Pattern.compile(
                 "(?<!-)\\b(page|post)\\.((?!(?:" + knownPageProps + ")\\b|data\\.|url\\.)[a-zA-Z_][a-zA-Z0-9_]*)\\b");
-        String result = pattern.matcher(content).replaceAll("$1.data.$2");
+        result = pattern.matcher(content).replaceAll("$1.data.$2");
 
         if (!result.equals(content)) {
             conversionsApplied.add("Converted custom page frontmatter fields to page.data.*");
@@ -1523,48 +2305,108 @@ public class LiquidToQuteConverter {
     }
 
     private String makePageDataLenient(String content) {
-        // page.data.* and post.data.* access a JsonObject — fields may not exist on every page.
-        // Append ?? to make them lenient (resolve to null instead of throwing).
-        // Skip if already lenient (??) or has a default (?:).
-        Pattern pattern = Pattern.compile("((?<!-)(?:page|post)\\.data\\.[a-zA-Z0-9_.]+)(\\?\\?| \\?:)?");
-        Matcher matcher = pattern.matcher(content);
-        StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            if (matcher.group(2) != null) {
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(0)));
-            } else {
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(1) + "??"));
-            }
-        }
-        matcher.appendTail(sb);
-        String result = sb.toString();
+        // page.data.* and post.data.* access a JsonObject.
+        // Do NOT add ?? — Qute passes "property??" as the literal key name to
+        // JsonObject.getValue(), which fails because the key is "property".
+        //
+        // BUT: when a .data.* property is used as an argument to str:split/str:splitTrimmed,
+        // a missing key returns Results$NotFound which can't be cast to String → ClassCastException.
+        // Add .or('') to those arguments so the split receives an empty string instead.
+        String result = content.replaceAll(
+                "(str:split(?:Trimmed)?\\()((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)(,)",
+                "$1$2.or('')$4");
         if (!result.equals(content)) {
-            conversionsApplied.add("Made page.data.* references lenient");
+            conversionsApplied.add("Added .or('') to .data.* properties in split arguments");
+            content = result;
         }
+
+        // Same for .get() arguments — JsonObjectValueResolver.get(param) casts param
+        // to String, so Results$NotFound → ClassCastException.
+        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version —
+        //       JsonObjectValueResolver will handle NotFound gracefully in 3.38.
+        result = content.replaceAll(
+                "(\\.get\\()((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)(\\))",
+                "$1$2.or('')$4");
+        if (!result.equals(content)) {
+            conversionsApplied.add("Added .or('') to .data.* properties in .get() arguments");
+            content = result;
+        }
+
+        // Also protect plain variable arguments in .get() calls — a variable from a
+        // prior {#let} may hold Results$NotFound if the source expression was missing.
+        // Skip string/number literals and .data.* args (already handled above).
+        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version.
+        result = addOrEmptyToGetArgs(content);
+        if (!result.equals(content)) {
+            conversionsApplied.add("Added .or('') to variable arguments in .get() calls");
+            content = result;
+        }
+
+        // Guard {=page.data.FIELD} output — Liquid outputs empty string for missing
+        // keys, but Qute renders NOT_FOUND.  Add .or('') so the output is blank.
+        // (.raw is appended later by appendRawToOutputExpressions)
+        result = content.replaceAll(
+                "\\{=((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)\\}",
+                "{=$1.or('')}");
+        if (!result.equals(content)) {
+            conversionsApplied.add("Added .or('') to .data.*.raw output expressions");
+            content = result;
+        }
+
+        // Guard {=*.data.* | tocify_asciidoc} — the filter crashes when the property
+        // is missing (e.g. non-AsciiDoc pages using a layout that expects AsciiDoc)
+        result = content.replaceAll(
+                "\\{=((?:page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*) \\| tocify_asciidoc\\}",
+                "{#if $1}{=$1 | tocify_asciidoc}{/if}");
+        if (!result.equals(content)) {
+            conversionsApplied.add("Guarded tocify_asciidoc filter on .data.* properties");
+        }
+
         return result;
     }
 
-    private String convertUrlConcatenation(String content) {
-        // RoqUrl doesn't support + operator. Convert url + something to url.resolve(something)
-        // Patterns:
-        // - site.url + page.url -> site.url.resolve(page.url)
-        // - page.url + "/path" -> page.url.resolve("/path")
+    private String addOrEmptyToGetArgs(String content) {
+        String[] lines = content.split("\n", -1);
+        Pattern pattern = Pattern.compile("\\.get\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)");
+        boolean changed = false;
+        StringBuilder result = new StringBuilder();
 
-        // Match: (site.url or page.url) + (something)
-        // We need to handle the full expression inside {=...}
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            Matcher m = pattern.matcher(line);
+            if (m.find()) {
+                String cleanVersion = line.trim();
+                line = pattern.matcher(line).replaceAll(".get($1.or(''))");
+                String indent = line.substring(0, line.indexOf(line.trim()));
+                result.append(indent)
+                        .append("{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: ")
+                        .append(cleanVersion).append(" !}\n");
+                changed = true;
+            }
+            result.append(line);
+            if (i < lines.length - 1) {
+                result.append('\n');
+            }
+        }
+
+        return changed ? result.toString() : content;
+    }
+
+    private String convertUrlConcatenation(String content) {
+        // RoqUrl needs .resolve() for URL concatenation, not .concat().
+        // Patterns:
+        // - site.url.concat(page.url) -> site.url.resolve(page.url)
+        // - page.url.concat("/path") -> page.url.resolve("/path")
         Pattern pattern = Pattern.compile(
-                "(\\{=)([^}]*?)((?:site|page)\\.url)\\s*\\+\\s*([^}]+?)(\\})");
+                "((?:site|page)\\.url)\\.concat\\(([^)]+?)\\)");
         Matcher matcher = pattern.matcher(content);
         StringBuilder sb = new StringBuilder();
 
         while (matcher.find()) {
-            String prefix = matcher.group(1); // {=
-            String before = matcher.group(2); // anything before site.url
-            String urlExpr = matcher.group(3); // site.url or page.url
-            String arg = matcher.group(4).trim(); // what's being concatenated
-            String suffix = matcher.group(5); // }
+            String urlExpr = matcher.group(1); // site.url or page.url
+            String arg = matcher.group(2).trim();
 
-            String replacement = prefix + before + urlExpr + ".resolve(" + arg + ")" + suffix;
+            String replacement = urlExpr + ".resolve(" + arg + ")";
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(sb);
@@ -1575,6 +2417,16 @@ public class LiquidToQuteConverter {
         }
 
         return result;
+    }
+
+    private String convertStandaloneSiteUrl(String content) {
+        String original = content;
+        // Match site.url NOT followed by a dot (method call / property access)
+        content = content.replaceAll("\\bsite\\.url\\b(?!\\.)", "site.url.root.url");
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted standalone site.url to site.url.root.url (Jekyll site.url is a base URL string)");
+        }
+        return content;
     }
 
     private String convertPageUrlComparisons(String content) {
@@ -1592,8 +2444,20 @@ public class LiquidToQuteConverter {
 
         if (found) {
             conversionsApplied.add("Converted page.url comparisons to page.url.path (RoqUrl is not a String)");
-            return sb.toString();
+            content = sb.toString();
         }
+
+        // RoqUrl.replaceAll() and .replace() return RoqUrl, not String.
+        // When the result is used as a String (e.g. as a JsonObject key),
+        // this causes a ClassCastException. Use page.url.path instead.
+        String original = content;
+        content = content.replaceAll("\\bpage\\.url\\.replaceAll\\(", "page.url.path.replaceAll(");
+        content = content.replaceAll("\\bpage\\.url\\.replace\\(", "page.url.path.replace(");
+        if (!content.equals(original)) {
+            conversionsApplied.add(
+                    "Converted page.url.replaceAll/replace to page.url.path.replaceAll/replace (RoqUrl methods return RoqUrl, not String)");
+        }
+
         return content;
     }
 
@@ -1604,24 +2468,60 @@ public class LiquidToQuteConverter {
         if (!content.equals(original)) {
             conversionsApplied.add("Converted site.posts to site.collections.get('posts')");
         }
+
+        // Jekyll's site.time is the build time (not config). Convert to Roq's now global.
+        // The rfc822 extension in JekyllFiltersExtension handles LocalDateTime (assumes UTC).
+        original = content;
+        content = content.replaceAll("\\bsite\\.time\\.rfc822\\b", "now.rfc822");
+        content = content.replaceAll("\\bsite\\.time\\b", "now");
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted site.time to now (Roq build-time global)");
+        }
+
         return content;
     }
 
-    private String appendRawToReplaceOutputs(String content) {
-        // Jekyll never escapes HTML in output tags, but Qute auto-escapes in .html templates.
-        // Append .raw to output expressions containing .replace() so HTML content renders correctly.
-        Pattern pattern = Pattern.compile("(\\{=([^}]*\\.replace(?:All)?\\([^)]*\\)))\\}");
+    private String appendRawToOutputExpressions(String content) {
+        // Liquid {{ var }} never HTML-escapes, but Qute {=var} auto-escapes in .html templates.
+        // Many Jekyll data files (YAML) contain embedded HTML (links, formatting, etc.) that
+        // must render as markup, not as escaped text. Since the converter can't know which
+        // fields contain HTML, we append .raw to ALL output expressions for Liquid fidelity.
+        Pattern pattern = useExtensionSyntax
+                ? Pattern.compile("\\{=([^}]+)\\}")
+                : Pattern.compile("\\{(?![#/!|%])([^}]+)\\}");
         Matcher matcher = pattern.matcher(content);
         StringBuilder sb = new StringBuilder();
         boolean found = false;
         while (matcher.find()) {
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(1) + ".raw}"));
+            String expr = matcher.group(1);
+            // Skip if already ends with .raw (possibly followed by ??)
+            if (expr.matches(".*\\.raw(\\?\\?)?\\s*$")) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
+                continue;
+            }
+            // Skip pure string literals (but not string.concat(...) chains)
+            if (expr.trim().matches("^['\"][^'\"]*['\"]\\s*$")) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
+                continue;
+            }
+            // Skip elvis operator expressions — .raw can't wrap the whole ternary result
+            if (expr.contains("?:")) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
+                continue;
+            }
+            // Insert .raw before ?? if present, otherwise append at end
+            if (expr.endsWith("??")) {
+                String base = expr.substring(0, expr.length() - 2);
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(exprOpen + base + ".raw??" + "}"));
+            } else {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(exprOpen + expr + ".raw}"));
+            }
             found = true;
         }
         matcher.appendTail(sb);
 
         if (found) {
-            conversionsApplied.add("Appended .raw to replace() outputs (Jekyll never escapes HTML)");
+            conversionsApplied.add("Appended .raw to output expressions (Liquid never escapes HTML)");
             return sb.toString();
         }
         return content;
@@ -1651,19 +2551,19 @@ public class LiquidToQuteConverter {
 
         // Add a warning comment at the start of the body
         String warning = "\n{! TODO: site.tags not available in Roq by default.\n" +
-                "   The tag listing feature is currently disabled (replaced with " + CDI_REFERENCE + ".tags=[]).\n" +
+                "   The tag listing feature is currently disabled (replaced with cdi:siteConfig.tags=[]).\n" +
                 "   Options to restore functionality:\n" +
                 "   (1) Use collection.tagsCount() for a specific collection,\n" +
                 "   (2) Add a site.tags extension method, or\n" +
                 "   (3) Remove the tag listing feature entirely.\n" +
                 "   See migration implementation notes for details. !}\n";
 
-        // Replace all site.tags with " + CDI_REFERENCE + ".tags (which is an empty list)
-        body = pattern.matcher(body).replaceAll(CDI_REFERENCE + ".tags");
+        // Replace all site.tags with cdi:siteConfig.tags (which is an empty list)
+        body = pattern.matcher(body).replaceAll("cdi:siteConfig.tags");
 
         String result = frontmatter + warning + body;
 
-        conversionsApplied.add("Replaced site.tags with " + CDI_REFERENCE + ".tags (needs manual implementation)");
+        conversionsApplied.add("Replaced site.tags with cdi:siteConfig.tags (needs manual implementation)");
 
         return result;
     }

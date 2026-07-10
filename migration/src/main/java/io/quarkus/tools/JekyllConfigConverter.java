@@ -62,6 +62,8 @@ public class JekyllConfigConverter {
         properties.setProperty("quarkus.qute.alt-expr-syntax", "true");
         // Set a date format with a sensible default for Jekyll.
         properties.setProperty("site.date-format", "yyyy-MM-dd['T'HH:mm:ss][X]");
+        // Jekyll templates access arbitrary frontmatter fields that may not exist on every page
+        // echo "quarkus.qute.strict-rendering=false" >> ${project_dir}/config/application.properties
         properties.setProperty("quarkus.qute.strict-rendering", "false");
         if (!strictProperties) {
             // Liquid silently swallows missing properties (outputs nothing).
@@ -154,6 +156,7 @@ public class JekyllConfigConverter {
 
         // Convert to YAML
         return yamlMapper.writeValueAsString(siteConfig);
+
     }
 
     private void copyNodeWithCamelCaseKeys(JsonNode node, Map<String, Object> target, String key) {
