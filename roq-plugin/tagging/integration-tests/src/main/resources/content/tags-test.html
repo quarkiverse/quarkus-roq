@@ -1,0 +1,18 @@
+---
+title: Tags Test Page
+---
+<h1>All Tags</h1>
+<ul id="all-tags">
+{#for entry in site.tags}
+  <li data-tag="{entry.key}" data-count="{entry.value.size}">{entry.key}: {entry.value.size} posts</li>
+{/for}
+</ul>
+
+<h2>Java Tag Pages</h2>
+<ul id="java-pages">
+{#if site.tags.get('java')}
+  {#for page in site.tags.get('java')}
+  <li>{page.title}</li>
+  {/for}
+{/if}
+</ul>

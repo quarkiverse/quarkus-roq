@@ -123,7 +123,7 @@ public class LiquidToQuteConverter {
         // Convert Jekyll site.posts to Roq collections access
         content = convertSiteCollections(content);
 
-        // Make site.tags lenient (not available in Roq by default)
+        // Make site.tags lenient (needed until  (https://github.com/quarkiverse/quarkus-roq/issues/964 is fixed in a release)
         content = makeSiteTagsLenient(content);
 
         // Liquid {{ }} never HTML-escapes; Qute {= } does. Append .raw for fidelity.
