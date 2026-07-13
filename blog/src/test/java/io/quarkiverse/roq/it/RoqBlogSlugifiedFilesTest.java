@@ -66,7 +66,7 @@ public class RoqBlogSlugifiedFilesTest {
     @Test
     public void testAlias() {
         RestAssured.when().get("/first-roq-article-ever/").then().statusCode(200)
-                .body(containsString("url=\"/posts/welcome-to-roq/\""));
+                .body(containsString("url='/posts/welcome-to-roq/'"));
     }
 
     @Test
