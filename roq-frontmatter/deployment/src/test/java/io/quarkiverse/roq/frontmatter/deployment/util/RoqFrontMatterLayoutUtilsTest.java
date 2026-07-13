@@ -2,6 +2,9 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.reflect.Proxy;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,9 +15,14 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqThemeConfigurationException;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.FrontMatterTemplateMetadata;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterAvailableLayoutsBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.LayoutRef;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.ParsedHeaders;
+import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.vertx.core.json.JsonObject;
 
@@ -364,6 +372,108 @@ public class RoqFrontMatterLayoutUtilsTest {
         void nonThemePath() {
             assertEquals("layouts/default",
                     RoqFrontMatterLayoutUtils.removeThemePrefix("layouts/default"));
+        }
+    }
+
+    // ── processTemplate: data population ──────────────────────────────
+
+    @Nested
+    @DisplayName("processTemplate: layout key in data")
+    class ProcessTemplateLayoutData {
+
+        private static RoqSiteConfig minimalConfig(Optional<String> theme, Optional<String> pageLayout) {
+            return (RoqSiteConfig) Proxy.newProxyInstance(
+                    RoqSiteConfig.class.getClassLoader(),
+                    new Class<?>[] { RoqSiteConfig.class },
+                    (proxy, method, args) -> switch (method.getName()) {
+                        case "theme" -> theme;
+                        case "pageLayout" -> pageLayout;
+                        default -> null;
+                    });
+        }
+
+        private static FrontMatterTemplateMetadata metadata(JsonObject data, String content) {
+            return new FrontMatterTemplateMetadata(
+                    Path.of("content/guides/test.html"),
+                    "content/guides/test.html",
+                    new SourceFile(".", "content/guides/test.html"),
+                    null, // no markup transform
+                    new ParsedHeaders(data, content),
+                    "content/guides/test",
+                    "guides/test",
+                    true, // isHtml
+                    true, // isPartial (so layout is resolved)
+                    null);
+        }
+
+        @Test
+        @DisplayName("Collection default layout populates data.layout")
+        void collectionDefaultPopulatesData() {
+            var layouts = availableLayouts("layouts/guide");
+            var config = minimalConfig(NO_THEME, Optional.of("page"));
+            var collection = new ConfiguredCollection("guides", false, false, false, "guide",
+                    "/:collection/:slug/", Optional.empty());
+            JsonObject data = new JsonObject().put("title", "Test Guide");
+
+            ProcessedTemplate result = RoqFrontMatterAssembleUtils.processTemplate(
+                    metadata(data, "<p>content</p>"), true, false,
+                    collection, false, false, config, layouts, Collections.emptyList());
+
+            assertEquals("layouts/guide", result.layout());
+            assertEquals("guide", result.data().getString("layout"),
+                    "data.layout should be populated from collection default");
+        }
+
+        @Test
+        @DisplayName("Explicit frontmatter layout is preserved in data")
+        void explicitLayoutPreserved() {
+            var layouts = availableLayouts("layouts/guide");
+            var config = minimalConfig(NO_THEME, Optional.of("page"));
+            var collection = new ConfiguredCollection("guides", false, false, false, "guide",
+                    "/:collection/:slug/", Optional.empty());
+            JsonObject data = new JsonObject().put("title", "Test Guide").put("layout", "guide");
+
+            ProcessedTemplate result = RoqFrontMatterAssembleUtils.processTemplate(
+                    metadata(data, "<p>content</p>"), true, false,
+                    collection, false, false, config, layouts, Collections.emptyList());
+
+            assertEquals("layouts/guide", result.layout());
+            assertEquals("guide", result.data().getString("layout"),
+                    "data.layout should retain the explicit frontmatter value");
+        }
+
+        @Test
+        @DisplayName("Page default layout populates data.layout when no collection default")
+        void pageDefaultPopulatesData() {
+            var layouts = availableLayouts("layouts/page");
+            var config = minimalConfig(NO_THEME, Optional.of("page"));
+            JsonObject data = new JsonObject().put("title", "Test Page");
+
+            ProcessedTemplate result = RoqFrontMatterAssembleUtils.processTemplate(
+                    metadata(data, "<p>content</p>"), true, false,
+                    null, false, false, config, layouts, Collections.emptyList());
+
+            assertEquals("layouts/page", result.layout());
+            assertEquals("page", result.data().getString("layout"),
+                    "data.layout should be populated from page default");
+        }
+
+        @Test
+        @DisplayName("Theme layout populates data with user-facing key")
+        void themeLayoutPopulatesData() {
+            var layouts = availableLayouts("theme-layouts/my-theme/post");
+            var config = minimalConfig(MY_THEME, Optional.empty());
+            var collection = new ConfiguredCollection("posts", false, false, false, "post",
+                    "/:collection/:slug/", Optional.empty());
+            JsonObject data = new JsonObject().put("title", "Test Post");
+
+            ProcessedTemplate result = RoqFrontMatterAssembleUtils.processTemplate(
+                    metadata(data, "<p>content</p>"), true, false,
+                    collection, false, false, config, layouts, Collections.emptyList());
+
+            assertEquals("theme-layouts/my-theme/post", result.layout());
+            assertEquals("post", result.data().getString("layout"),
+                    "data.layout should be the user-facing key, not the internal ID");
         }
     }
 

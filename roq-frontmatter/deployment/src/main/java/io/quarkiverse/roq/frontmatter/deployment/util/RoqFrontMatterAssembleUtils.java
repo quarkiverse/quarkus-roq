@@ -60,6 +60,10 @@ public final class RoqFrontMatterAssembleUtils {
         Optional<String> sourceTheme = extractSourceTheme(isThemeLayout, metadata.templateId());
         String layoutId = availableLayouts.resolveLayoutId(config.theme(), sourceTheme, layoutRef);
 
+        if (layoutId != null && !data.containsKey(LAYOUT) && !data.containsKey(THEME_LAYOUT)) {
+            data.put(LAYOUT, RoqFrontMatterLayoutUtils.getLayoutKey(config.theme(), layoutId));
+        }
+
         for (RoqFrontMatterDataModificationBuildItem modification : dataModifications) {
             data = modification.modifier()
                     .modify(new RoqFrontMatterDataModificationBuildItem.SourceData(
