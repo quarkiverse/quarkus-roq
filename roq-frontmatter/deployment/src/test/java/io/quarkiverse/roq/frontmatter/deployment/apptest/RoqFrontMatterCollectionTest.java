@@ -42,10 +42,10 @@ public class RoqFrontMatterCollectionTest {
     }
 
     @Test
-    @DisplayName("Guides collection has 2 documents")
+    @DisplayName("Guides collection has 3 documents")
     public void testGuidesCollectionSize() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.span.find { it.@class == 'guides-count' }.text()", equalTo("2"));
+                .body("html.body.span.find { it.@class == 'guides-count' }.text()", equalTo("3"));
     }
 
     @Test
@@ -93,6 +93,22 @@ public class RoqFrontMatterCollectionTest {
     public void testPrevFromMiddle() {
         RestAssured.when().get("/2024/02/second-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.body.article.span.find { it.@class == 'prev-title' }.text()", equalTo("Third Post"));
+    }
+
+    // --- Collection-level defaults in page.data ---
+
+    @Test
+    @DisplayName("page.data.layout is populated from collection default when not in frontmatter")
+    public void testCollectionDefaultLayoutInPageData() {
+        RestAssured.when().get("/guides/no-layout-guide").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'data-layout' }.text()", equalTo("guide"));
+    }
+
+    @Test
+    @DisplayName("page.data.layout is populated when explicitly set in frontmatter")
+    public void testExplicitLayoutInPageData() {
+        RestAssured.when().get("/guides/getting-started").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.article.span.find { it.@class == 'data-layout' }.text()", equalTo("guide"));
     }
 
     // --- Custom link patterns ---
@@ -198,10 +214,10 @@ public class RoqFrontMatterCollectionTest {
     }
 
     @Test
-    @DisplayName("Guide collection size includes both sources")
+    @DisplayName("Guide collection size includes all sources")
     public void testGuideCollectionSizeIncludesBothSources() {
         RestAssured.when().get("/guides/getting-started").then().statusCode(200).log().ifValidationFails()
-                .body("html.body.article.span.find { it.@class == 'collection-size' }.text()", equalTo("2"));
+                .body("html.body.article.span.find { it.@class == 'collection-size' }.text()", equalTo("3"));
     }
 
     // --- Multi-origin directory page attachments ---
