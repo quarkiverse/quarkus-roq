@@ -7,6 +7,7 @@ import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolvePublicFile;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -325,14 +326,15 @@ public final class Site {
                 .toString();
     }
 
-    private static Collection<Page> getAllPages(List<NormalPage> pages, RoqCollections collections) {
+    private static List<Page> getAllPages(List<NormalPage> pages, RoqCollections collections) {
         final Map<String, Page> allPages = pages.stream().collect(Collectors.toMap(Page::id, page -> page, (a, b) -> b));
         for (RoqCollection value : collections.collections().values()) {
             for (Page page : value) {
                 allPages.put(page.id(), page);
             }
         }
-        return allPages.values();
+        List<Page> list = allPages.values().stream().sorted(Comparator.comparing(Page::id)).toList();
+        return list;
     }
 
 }

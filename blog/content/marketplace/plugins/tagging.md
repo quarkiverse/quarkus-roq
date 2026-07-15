@@ -17,7 +17,7 @@ If you are using a theme that supports it (includes a tagging layout), you shoul
 
 To enable tagging without a theme, create a layout template and add `tagging: [collection id]` in FM. As a result you will have access to a new derived collection named `tagCollection`:
 
-**templates/layouts/tag.html**:
+templates/layouts/tag.html:
 {|
 ```html
 ---
@@ -33,7 +33,7 @@ tagging: posts
 
 This also supports pagination. Since tagging already specifies the target collection, pagination can be enabled with `paginate: true` in FM:
 
-**templates/layouts/tag.html**:
+templates/layouts/tag.html:
 {|
 ```html
 ---
@@ -48,9 +48,41 @@ paginate: true
 ```
 |}
 
+### Accessing tags
+
+     
+There is also a `site.tags` property, which enables this syntax in templates:
+
+{|
+```html
+{#for entry in site.tags}
+    {#for entry in site.tags}
+        Tag: {entry.key} has {entry.value.size} pages
+    {/for} 
+{/for}
+
+```
+|}
+
+Or with sorting:
+
+     {|
+```html
+{#let tag_words=site.tags.entrySet.sort('key')}
+    {#for entry in tag_words}
+        <a href="/blog/tag/{entry.key}">{entry.key}</a> ({entry.value.size})
+    {/for}
+{/let}
+```
+|}
+
+
+     
+
 ### Template Extensions
 
-| Usage | Description |
-|---|---|
-| `collection.allTags` | Returns a list of all tags from the collection, each tag slugified |
+| Usage                  | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| `collection.allTags`   | Returns a list of all tags from the collection, each tag slugified                     |
 | `collection.tagsCount` | Returns a list of all tags slugified (name) with their count (count) in the collection |
+| `site.tags`            | Returns a map of all tags in the site and pages with that tag, each tag slugified      |

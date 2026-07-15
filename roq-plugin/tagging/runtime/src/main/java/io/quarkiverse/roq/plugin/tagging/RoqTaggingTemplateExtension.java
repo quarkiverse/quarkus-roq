@@ -48,22 +48,9 @@ public class RoqTaggingTemplateExtension {
     }
 
     /**
-     * Support for site.tags aggregation across all collections.
+     * Support for site.tags aggregation across all collections, allowing site.tags to be used in templates.
      * Returns a Map<String, List<Page>> where keys are tag names (slugified)
      * and values are lists of pages tagged with that tag.
-     *
-     * This enables this syntax in templates:
-     * {#for entry in site.tags}
-     * Tag: {entry.key} has {entry.value.size} pages
-     * {/for}
-     *
-     * Or with sorting:
-     * {#let tag_words=site.tags.entrySet.sort('key')}
-     * {#for entry in tag_words}
-     * <a href="/blog/tag/{entry.key}">{entry.key}</a> ({entry.value.size})
-     * {/for}
-     * {/let}
-     *
      *
      * @param site the Roq site
      * @return a map of tag names to lists of pages with that tag
