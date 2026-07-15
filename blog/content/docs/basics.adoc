@@ -48,6 +48,8 @@ Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or u
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
+TIP: Prefer writing in your browser? Roq includes a *block editor* in Dev UI (dev mode) with live preview, FrontMatter editing, images, and Git publishing; see xref:advanced.adoc#editor[Editor].
+
 [#site-index]
 === Site index
 

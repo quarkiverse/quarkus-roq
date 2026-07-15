@@ -796,6 +796,119 @@ Extension prefixes:
 * `roq serve` -- Serve a previously generated static site directory.
 * `roq update` -- Update the Quarkus and Roq versions. See <<Updating Roq>>.
 
+[#editor]
+== Editor
+
+WARNING: Preview feature, configuration and behavior may change in future releases.
+
+Roq ships a browser-based content editor in Quarkus Dev UI, available in dev mode. Create and edit pages, posts, and docs, including FrontMatter, with a live preview, no IDE required.
+
+=== Availability
+
+Included in the core `quarkus-roq` extension, no extra dependency needed. Dev mode only, never part of the generated site or a production build.
+
+=== Opening the editor
+
+Start dev mode (`roq start` or `mvn quarkus:dev`), then:
+
+* Click the *Roq Editor* card in the Dev UI (`/q/dev-ui`).
+* Press `m` in the dev console ("Manage content").
+
+=== The editors
+
+Roq picks the right editor per file:
+
+Visual editor:: Block (WYSIWYG) editor for Markdown: slash commands, bubble menu, tables, images. Default for supported files.
+Simple editor:: Plain source editor with syntax highlighting, for AsciiDoc, HTML, and anything the visual editor can't handle.
+
+Safe mode (default) opens Markdown files with Qute or HTML blocks in the simple editor, so existing content is never altered. Configure:
+
+[source,properties]
+----
+# Always use the simple editor
+editor.visual-editor.enabled=false
+
+# Keep the visual editor even on files with Qute/HTML blocks (advanced)
+editor.visual-editor.safe=false
+----
+
+=== FrontMatter, images, and tags
+
+A FrontMatter panel lets you edit title, date, layout, tags, and other keys alongside the content. An image picker manages page and site images; a tag manager handles xref:basics.adoc#collections[tagged] collections.
+
+=== AI content generation
+
+With the *Quarkus Assistant* configured, a prompt widget generates content straight into the current document. Steer tone and topic with a custom context:
+
+[source,properties]
+----
+editor.ai.context=This is a tech blog about Quarkus. Write in a friendly, concise tone.
+----
+
+NOTE: Requires the Quarkus Assistant; otherwise the prompt widget is hidden.
+
+=== Default markup for new files
+
+New pages and docs default to Markdown. Change the default per content type:
+
+[source,properties]
+----
+editor.page-markup=asciidoc
+editor.doc-markup=markdown
+----
+
+Supported values: `markdown`, `asciidoc`, `html`.
+
+=== File naming conventions
+
+New file names are derived from a link-style pattern per collection. Default for posts and docs: `:date-:slug~7` (date + first seven slug words). Placeholders: `:date`, `:slug`, `:Slug`, `:name`, `:Name`, `:year`, `:month`, `:day`; `~W` truncates to `W` words.
+
+[source,properties]
+----
+# Custom file name pattern for the "posts" collection
+editor.collections.posts.name=:year/:month/:slug~5
+
+# Keep the file name in sync when the title or date changes (default: true)
+editor.collections.posts.sync-name=true
+----
+
+[#editor-git-sync]
+=== Git sync (commit, push, pull)
+
+Commit, push, and pull content from the UI. Disabled by default; enable:
+
+[source,properties]
+----
+editor.sync.enabled=true
+----
+
+Then configure auto-sync and the default commit message:
+
+[source,properties]
+----
+# Automatically pull from the remote on an interval (seconds)
+editor.sync.auto-sync.enabled=true
+editor.sync.auto-sync.interval-seconds=60
+
+# Automatically commit + push content changes on an interval (seconds)
+editor.sync.auto-publish.enabled=true
+editor.sync.auto-publish.interval-seconds=300
+
+# Default commit message
+editor.sync.commit-message.template=Update content via Roq Editor
+----
+
+Push/pull use your existing SSH key. If it's passphrase-protected and no SSH agent is running, provide the passphrase via the `EDITOR_SYNC_SSH_PASSPHRASE` environment variable.
+
+[WARNING]
+====
+Never put an SSH passphrase in `application.properties`. Provide it via the `EDITOR_SYNC_SSH_PASSPHRASE` environment variable or another non-version-controlled source (e.g. `.env`).
+====
+
+=== Editor configuration reference
+
+include::../../includes/configs/quarkus-roq-editor_editor.adoc[]
+
 == Updating Roq
 
 Run the update command from your project directory:
