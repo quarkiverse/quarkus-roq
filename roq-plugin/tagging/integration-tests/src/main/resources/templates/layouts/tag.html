@@ -1,0 +1,8 @@
+---
+tagging: posts
+---
+
+{#for post in site.collections.get(page.data.tagCollection)}
+<h2>This is a page for a tag</h2>
+<div>{post.title}</div>
+{/for}

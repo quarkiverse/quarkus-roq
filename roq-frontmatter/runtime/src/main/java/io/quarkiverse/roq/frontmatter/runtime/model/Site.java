@@ -6,7 +6,6 @@ import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolvePublicFile;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ public final class Site {
     private final LazyValue<Map<String, DocumentPage>> documentsById;
     private final NormalPage page;
     private final Map<Page, String> pageContentCache = new ConcurrentHashMap<>();
-    private final List<Page> allPages;
+    private final Collection<Page> allPages;
 
     /**
      * @param url the Roq site url to the index page
@@ -71,7 +70,7 @@ public final class Site {
     /**
      * @return The full list of pages for this site
      */
-    public List<Page> allPages() {
+    public Collection<Page> allPages() {
         return allPages;
     }
 
@@ -326,12 +325,14 @@ public final class Site {
                 .toString();
     }
 
-    private static ArrayList<Page> getAllPages(List<NormalPage> pages, RoqCollections collections) {
-        final ArrayList<Page> allPages = new ArrayList<>(pages);
+    private static Collection<Page> getAllPages(List<NormalPage> pages, RoqCollections collections) {
+        final Map<String, Page> allPages = pages.stream().collect(Collectors.toMap(Page::id, page -> page, (a, b) -> b));
         for (RoqCollection value : collections.collections().values()) {
-            allPages.addAll(value);
+            for (Page page : value) {
+                allPages.put(page.id(), page);
+            }
         }
-        return allPages;
+        return allPages.values();
     }
 
 }

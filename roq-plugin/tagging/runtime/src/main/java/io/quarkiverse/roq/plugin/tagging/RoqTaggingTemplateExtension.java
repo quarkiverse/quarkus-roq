@@ -3,9 +3,14 @@ package io.quarkiverse.roq.plugin.tagging;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkus.qute.TemplateExtension;
 
 @TemplateExtension
@@ -40,6 +45,43 @@ public class RoqTaggingTemplateExtension {
      * @param count the count of the tag
      */
     public record TagCount(String name, Long count) {
+    }
+
+    /**
+     * Support for site.tags aggregation across all collections.
+     * Returns a Map<String, List<Page>> where keys are tag names (slugified)
+     * and values are lists of pages tagged with that tag.
+     *
+     * This enables this syntax in templates:
+     * {#for entry in site.tags}
+     * Tag: {entry.key} has {entry.value.size} pages
+     * {/for}
+     *
+     * Or with sorting:
+     * {#let tag_words=site.tags.entrySet.sort('key')}
+     * {#for entry in tag_words}
+     * <a href="/blog/tag/{entry.key}">{entry.key}</a> ({entry.value.size})
+     * {/for}
+     * {/let}
+     *
+     *
+     * @param site the Roq site
+     * @return a map of tag names to lists of pages with that tag
+     */
+    public static Map<String, List<Page>> tags(Site site) {
+        if (site == null) {
+            return Map.of();
+        }
+
+        Map<String, List<Page>> tagMap = new LinkedHashMap<>();
+
+        for (Page page : site.allPages()) {
+            for (String tag : RoqTaggingUtils.slugifiedTagStrings(page.data())) {
+                tagMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(page);
+            }
+        }
+
+        return tagMap;
     }
 
 }
