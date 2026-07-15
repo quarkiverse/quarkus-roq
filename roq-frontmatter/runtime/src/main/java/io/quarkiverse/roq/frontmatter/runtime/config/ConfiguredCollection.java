@@ -14,15 +14,12 @@ public record ConfiguredCollection(
         Optional<CollectionFromData> fromData) {
 
     public ConfiguredCollection {
-        fromData.ifPresent(item -> {
-            if (item.idKey == null || item.idKey.isEmpty())
-                throw new RoqFrontMatterConfigException(RoqException.builder("idKey cannot be null or empty")
-                        .hint("Your configuration is missing a `site.collection.%s.from-data.id-key` property".formatted(id)));
+        requireNonEmpty(id, "id");
 
-            if (layout == null || layout.isEmpty())
-                throw new RoqFrontMatterConfigException(RoqException.builder("layout cannot be null or empty")
-                        .hint("Your configuration is missing a `site.collection.%s.layout` property".formatted(id)));
-        });
+        layout = (layout == null || layout.isEmpty()) ? defaultLayoutFromCollectionId(id) : layout;
+
+        fromData.ifPresent(item -> requireNonEmpty(item.idKey,
+                "idKey (your configuration is missing a `site.collection.%s.from-data.id-key` property)".formatted(id)));
     }
 
     public String idKey() {
@@ -31,6 +28,19 @@ public record ConfiguredCollection(
 
     public String dataName() {
         return fromData.map(CollectionFromData::name).orElse(id);
+    }
+
+    private void requireNonEmpty(String value, String name) {
+        if (value == null || value.isEmpty())
+            throw new RoqFrontMatterConfigException(
+                    RoqException.builder("%s cannot be null or empty".formatted(name)));
+    }
+
+    private String defaultLayoutFromCollectionId(String collectionId) {
+        if (collectionId.endsWith("s") && collectionId.length() > 1) {
+            return collectionId.substring(0, collectionId.length() - 1);
+        }
+        return collectionId;
     }
 
     public record CollectionFromData(String idKey, String name) {
