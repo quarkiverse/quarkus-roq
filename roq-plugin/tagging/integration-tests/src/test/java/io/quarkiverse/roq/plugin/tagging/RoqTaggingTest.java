@@ -4,7 +4,6 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +66,6 @@ public class RoqTaggingTest {
                     .body(containsString("data-tag=\"static-site\""));
         }
 
-        @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1086. When a tagging template is present, a page gets n extra copies in Site.allPages, where n is the number of tags it has.")
         @Test
         public void testSiteTagsCountsPagesCorrectly() {
             // Verify page counts for each tag
