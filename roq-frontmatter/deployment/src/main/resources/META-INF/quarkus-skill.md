@@ -415,7 +415,7 @@ Add to root layout `<head>`:
 ```
 
 - `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags. Also emits `<meta name="robots">` when the page frontmatter defines a `robots:` value
-- `{#rss site /}` — adds the RSS `<link>` tag to the HTML head (does not generate the feed itself)
+- `{#rss site /}` — adds the RSS `<link>` tag to the HTML head (does not generate the feed itself). Included by the base theme layout and all built-in themes
 - `{#favicon site /}` — auto-discovers favicon files from `public/` (favicon.svg, .ico, .png, apple-touch-icon.png)
 - `{#ga4 /}` — Google Analytics 4 (configure `analytics.ga4` in site index frontmatter)
 

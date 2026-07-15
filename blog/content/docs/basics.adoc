@@ -571,7 +571,7 @@ If you use a custom layout, add the `\{#ga4 /}` tag to your HTML head.
 [[rss]]
 === RSS
 
-The `\{#rss site /}` tag is automatically included by the default theme. If you use a custom layout, add it to your HTML head:
+The `\{#rss site /}` tag is automatically included by the base theme layout and all built-in themes (default, resume). If you use a custom layout that overrides `\{#head-meta}`, add it to your HTML head:
 
 [source,html]
 ----
