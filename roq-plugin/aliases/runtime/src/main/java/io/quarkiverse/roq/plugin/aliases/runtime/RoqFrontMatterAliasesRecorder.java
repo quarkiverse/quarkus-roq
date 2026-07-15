@@ -20,7 +20,7 @@ public class RoqFrontMatterAliasesRecorder {
                                   <meta charset="utf-8">
                                   <title>Redirecting&hellip;</title>
                                   <link rel="canonical" href="{url}">
-                                  <meta http-equiv="refresh" content="0; url="{url}">
+                                  <meta http-equiv="refresh" content="0; url='{url}'">
                                   <meta name="robots" content="noindex">
                               </head>
                               <body>

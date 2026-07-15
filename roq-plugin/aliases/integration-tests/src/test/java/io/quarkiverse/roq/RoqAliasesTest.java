@@ -45,4 +45,32 @@ public class RoqAliasesTest {
         RestAssured.when().get("/another-alias").then().statusCode(200).log().ifValidationFails()
                 .body(containsString("Redirecting"));
     }
+
+    @Test
+    public void testMetaRefreshTagHasCorrectQuoting() {
+        // Regression test: meta refresh URL must not use double quotes (causes unbalanced quotes)
+        // Bug was: content="0; url="{url}"
+        //   After substitution: content="0; url="https://..." - second " prematurely closes content attribute
+        // Fix is: content="0; url='{url}'"
+        //   After substitution: content="0; url='https://...'" - properly balanced
+        String body = RestAssured.when().get("/old-post-url/").then().statusCode(200).extract().asString();
+
+        // Verify meta refresh tag exists
+        org.junit.jupiter.api.Assertions.assertTrue(
+                body.contains("http-equiv=\"refresh\""),
+                "Should have meta refresh tag");
+
+        // Extract the meta refresh line
+        String metaRefreshLine = body.lines()
+                .filter(line -> line.contains("http-equiv=\"refresh\""))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Meta refresh tag not found"));
+
+        // Regression check: ensure URL is not wrapped in double quotes (the bug pattern)
+        // Bug pattern: url="..." causes unbalanced quotes (second " closes the content attribute early)
+        // Correct pattern: url='...' (single quotes, properly balanced)
+        org.junit.jupiter.api.Assertions.assertFalse(
+                metaRefreshLine.matches(".*url=\"[^>]*\".*"),
+                "URL should NOT be wrapped in double quotes (causes unbalanced quotes). Actual line: " + metaRefreshLine);
+    }
 }
