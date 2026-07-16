@@ -5,7 +5,7 @@ layout: marketplace-web
 icon: fa-brands fa-npm
 tags: [npm, dependencies]
 source: https://github.com/quarkiverse/quarkus-web-bundler/tree/main/mvnpm
-search-boost: 20
+search-boost: 1.2
 ---
 
 Add [mvnpm](https://mvnpm.org) support to your Roq project. Import npm packages directly through Maven coordinates, with no Node.js or npm installation required.

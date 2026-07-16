@@ -6,7 +6,7 @@ icon: fa-solid fa-bolt
 install-name: hybrid
 tags: [performance, caching, dynamic]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/hybrid
-search-boost: 20
+search-boost: 1.2
 ---
 
 Build Quarkus applications with Roq static content. Pages are rendered once and cached (in memory or on disk), making subsequent requests as fast as serving static files while still supporting dynamic CDI content.

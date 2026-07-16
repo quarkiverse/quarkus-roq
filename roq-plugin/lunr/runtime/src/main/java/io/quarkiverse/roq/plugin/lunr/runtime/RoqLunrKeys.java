@@ -14,11 +14,11 @@ public interface RoqLunrKeys {
     String SEARCH = "search";
 
     /**
-     * Search result boost — e.g. {@code search-boost: 2} (higher = more prominent)
+     * Search result boost — e.g. {@code search-boost: 1.5} (default: 1, recommended range: 0-2)
      * <br>
      * ▸ Scope: page / document
      * <br>
-     * ▸ Access: {@code page.data.getInteger("search-boost")}
+     * ▸ Access: {@code page.data.getDouble("search-boost")}
      */
     String SEARCH_BOOST = "search-boost";
 }

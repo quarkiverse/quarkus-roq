@@ -12,6 +12,7 @@
   --search-result-title: #02060c;
   --search-placeholder-color: #aaa;
   --search-border-color: #ddd;
+  --search-result-url-color: #888;
   --search-close-color: #000;
   --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
   --search-icon-size: 20px;
@@ -28,6 +29,7 @@
   --search-result-title: rgb(243 244 246); /* gray-100 */
   --search-placeholder-color: rgb(156 163 175); /* gray-400 */
   --search-border-color: rgb(55 65 81); /* gray-700 */
+  --search-result-url-color: rgb(156 163 175); /* gray-400 */
   --search-close-color: rgb(243 244 246); /* gray-100 */
   --search-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%23f3f4f6"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>');
 }
@@ -130,7 +132,6 @@
     color: var(--search-placeholder-color);
   }
 
-  // Hide native browser clear button
   &::-webkit-search-cancel-button {
     display: none;
   }
@@ -170,6 +171,14 @@
   color: var(--search-result-title);
 }
 
+.search-result-url {
+  font-size: 0.8em;
+  color: var(--search-result-url-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .search-result-document-hit {
 }
 
@@ -194,7 +203,7 @@
   line-height: 1;
   display: flex;
   align-items: center;
-  height: calc(16px * 1.5); // Match input line-height
+  height: calc(16px * 1.5);
 }
 
 @media screen and (max-width: 768px) {

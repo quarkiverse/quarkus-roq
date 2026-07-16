@@ -1,5 +1,5 @@
 import lunr from 'lunr';
-import './search.scss';
+import './search.css';
 import debounce from 'lodash/debounce';
 
 const setupSearch = function (options = {}) {
@@ -83,11 +83,11 @@ const setupSearch = function (options = {}) {
         documents = data;
         idx = lunr(function () {
             this.ref('id')
-            this.field('fragment', {boost: 5})
-            this.field('title', {boost: 10})
+            this.field('fragment', {boost: 1.2})
+            this.field('title', {boost: 2})
             this.field('summary')
-            this.field('tags', {boost: 50})
-            this.field('content', {boost: 100})
+            this.field('tags', {boost: 1.5})
+            this.field('content')
 
 
             for (const [key, entry] of Object.entries(documents)) {
@@ -161,10 +161,19 @@ const setupSearch = function (options = {}) {
             documentHitContent.appendChild(documentKeywords)
         }
 
+        const documentUrl = document.createElement('div')
+        documentUrl.classList.add('search-result-url')
+        try {
+            documentUrl.textContent = new URL(doc.url).pathname
+        } catch (e) {
+            documentUrl.textContent = doc.url
+        }
+
         const searchResultItem = document.createElement('a')
         searchResultItem.href = doc.url
         searchResultItem.classList.add('search-result-item')
         searchResultItem.appendChild(documentTitle)
+        searchResultItem.appendChild(documentUrl)
         searchResultItem.appendChild(documentHit)
         searchResultItem.addEventListener('mousedown', function (e) {
             e.preventDefault();

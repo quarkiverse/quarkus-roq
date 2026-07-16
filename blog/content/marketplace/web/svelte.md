@@ -6,7 +6,7 @@ icon: fa-brands fa-js
 install-name: svelte
 tags: [components, javascript]
 source: https://github.com/quarkiverse/quarkus-web-bundler/tree/main/svelte
-search-boost: 20
+search-boost: 1.2
 ---
 
 Add Svelte component support to your Roq project. Build interactive UI components with Svelte's reactive framework and embed them in your static pages.

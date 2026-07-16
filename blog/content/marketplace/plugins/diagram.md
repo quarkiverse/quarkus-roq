@@ -6,7 +6,7 @@ icon: fa-solid fa-diagram-project
 install-name: diagram
 tags: [content, media]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/diagram
-search-boost: 20
+search-boost: 1.2
 ---
 
 Diagram-as-code support by leveraging [Kroki.io](https://kroki.io/). It delegates image rendering to Kroki either by using a provided server or by popping a dev service.
