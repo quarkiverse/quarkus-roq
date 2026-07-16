@@ -1,17 +1,18 @@
 window.downloadQR = function(btn) {
-  var wrap = btn.closest('.text-center').querySelector('.qr-wrap');
+  var wrap = btn.closest('.lt-tree-card').querySelector('.qr-wrap');
   var img = wrap.querySelector('img');
   if (!img) return;
-  var filename = (wrap.dataset.filename || 'qr-code.png').toLowerCase();
-  var canvas = document.createElement('canvas');
-  canvas.width = 200;
-  canvas.height = 200;
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, 200, 200);
-  ctx.drawImage(img, 0, 0, 200, 200);
+  var filename = (wrap.dataset.filename || 'qr-code.svg').toLowerCase();
+  var svgText = atob(img.src.split(',')[1]);
+  var doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  var svg = doc.querySelector('svg');
+  svg.setAttribute('viewBox', '0 0 ' + svg.getAttribute('width') + ' ' + svg.getAttribute('height'));
+  svg.setAttribute('width', '400');
+  svg.setAttribute('height', '400');
+  var blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' });
   var a = document.createElement('a');
   a.download = filename;
-  a.href = canvas.toDataURL('image/png');
+  a.href = URL.createObjectURL(blob);
   a.click();
+  URL.revokeObjectURL(a.href);
 };

@@ -1,0 +1,26 @@
+---
+layout: default
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<div class="lt-page-relative">
+  <a href="/trees" class="lt-nav-trees" title="All trees">
+    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
+  </a>
+  <div class="lt-container">
+
+    {#include partials/roq-linktree/profile /}
+
+    {#if cdi:profile.links??}
+    <div class="lt-links">
+      {#for link in cdi:profile.links}
+      {#roq-linktree/linkCard link=link /}
+      {/for}
+    </div>
+    {/if}
+
+    {#insert /}
+
+  </div>
+</div>

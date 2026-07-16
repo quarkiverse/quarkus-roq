@@ -1,0 +1,22 @@
+<div class="lt-profile">
+  {#if cdi:profile.image}
+  <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="lt-avatar">
+  {/if}
+  <h1 class="lt-name">
+    {#if cdi:profile.name}<span class="lt-name-text">{cdi:profile.name}</span>{/if}
+    {#if cdi:profile.handle}<span class="lt-handle">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
+  </h1>
+  <p class="lt-title">{cdi:profile.title}</p>
+</div>
+
+{#if cdi:profile.social??}
+<div class="lt-social">
+  <div class="lt-social-icons">
+    {#for s in cdi:profile.social}
+    <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}" class="lt-social-link">
+      <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
+    </a>
+    {/for}
+  </div>
+</div>
+{/if}

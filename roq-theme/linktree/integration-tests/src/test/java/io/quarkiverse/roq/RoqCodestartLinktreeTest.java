@@ -25,8 +25,9 @@ public class RoqCodestartLinktreeTest {
     void testContent(QuarkusCodestartCatalog.Language language) throws Throwable {
         codestartTest.assertThatGeneratedFile(language, "data/profile.yml")
                 .content()
-                .contains("Ada Lovelace");
-        codestartTest.assertThatGeneratedFile(language, "data/trees/my-links.yml")
+                .contains("Ada Lovelace")
+                .contains("description: The machine that started it all");
+        codestartTest.assertThatGeneratedFile(language, "data/trees/research.yml")
                 .content()
                 .contains("Analytical Engine");
     }

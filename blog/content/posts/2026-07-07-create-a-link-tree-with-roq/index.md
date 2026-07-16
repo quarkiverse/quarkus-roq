@@ -12,7 +12,7 @@ image: https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?q=80&w=1200&
 
 Link-tree sites are everywhere: a clean page with your photo, a few links, maybe some social icons. Simple enough that you could build one in plain HTML, but what if you want multiple link pages, QR codes, and zero-effort deployment?
 
-In this tutorial you'll build a personal link-tree from scratch with [Roq](https://iamroq.dev) and [Tailwind CSS](https://tailwindcss.com). No pre-built theme, just you, a data file, and some templates. By the end you'll have a polished site with typed data, icon sets, auto-generated pages, and downloadable QR codes.
+In this tutorial you'll build a personal link-tree from scratch with [Roq](https://iamroq.dev) and [Tailwind CSS](https://tailwindcss.com). No pre-built theme, just you, data files, layouts, and reusable template components. By the end you'll have a polished site with typed data, icon sets, auto-generated pages, and downloadable QR codes.
 
 > [!NOTE]
 > **Prerequisites:** Install the Roq CLI by following the [Getting Started guide](/docs/getting-started/). Roq uses JBang, so no JDK installation is needed.
@@ -76,44 +76,204 @@ my-linktree/
 - **`templates/`** doesn't exist yet, but this is where you'll create your own [layouts](/docs/basics/#layouts), [partials](/docs/basics/#partials), and [tags](/docs/basics/#tags) to override or extend the theme.
 
 
-## 2. Set up Tailwind and base styles
+## 2. Set up Tailwind and component styles
 
-The base theme already provides a `default` layout with the HTML skeleton, SEO tags, favicon, and `{#bundle /}`. No need to override it. We just need to set up our CSS.
+The base theme already provides a `default` layout with the HTML skeleton, SEO tags, favicon, and `{#bundle /}`. We need to set up our CSS with Tailwind, icon imports, and reusable component classes.
 
-Replace the contents of `web/app.css` with Tailwind and base styles:
+First, add the [Phosphor Icons](https://phosphoricons.com/) npm dependency to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>org.mvnpm.at.phosphor-icons</groupId>
+    <artifactId>web</artifactId>
+    <version>2.1.2</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+Then replace the contents of `web/app.css` with Tailwind, icon imports, and all the component styles we'll use throughout the tutorial. Instead of writing Tailwind utility classes directly in the HTML, we define semantic class names using `@apply` to keep our templates clean and maintainable:
+
+<details>
+<summary>See the full CSS</summary>
 
 ```css
 @import "tailwindcss";
+@import "@phosphor-icons/web/regular";
+@import "@phosphor-icons/web/fill";
 
-html {
-  @apply bg-slate-100 dark:bg-slate-900;
+/* Layout */
+.lt-page {
+  @apply flex items-start justify-center pb-6 pt-12;
 }
 
-body {
-  @apply bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans overscroll-none min-h-screen;
+.lt-page-relative {
+  @apply flex items-start justify-center pb-6 pt-12 relative;
+}
+
+.lt-container {
+  @apply w-full max-w-md mx-auto space-y-8 px-4;
+}
+
+/* Profile */
+.lt-profile {
+  @apply text-center space-y-3;
+}
+
+.lt-avatar {
+  @apply w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md;
+}
+
+.lt-name {
+  @apply text-2xl font-bold tracking-tight;
+}
+
+.lt-name-text {
+  @apply text-slate-900 dark:text-white;
+}
+
+.lt-handle {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+.lt-title {
+  @apply text-sm text-slate-500 dark:text-slate-400;
+}
+
+/* Social */
+.lt-social {
+  @apply text-center space-y-3;
+}
+
+.lt-social-icons {
+  @apply flex items-center justify-center gap-5;
+}
+
+.lt-social-link {
+  @apply text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Link cards */
+.lt-links {
+  @apply space-y-3;
+}
+
+.lt-link-card {
+  @apply flex items-center justify-between px-5 py-4 rounded-lg
+         border border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-800
+         hover:border-sky-400 dark:hover:border-sky-500
+         hover:shadow-md
+         transition-all duration-200;
+}
+
+.lt-link-content {
+  @apply flex items-center gap-3;
+}
+
+.lt-link-icon {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+.lt-link-name {
+  @apply text-sm font-medium text-slate-800 dark:text-slate-100;
+}
+
+.lt-link-desc {
+  @apply block text-xs text-slate-500 dark:text-slate-400;
+}
+
+.lt-link-arrow {
+  @apply text-slate-300 dark:text-slate-600 transition-colors;
+}
+
+.group:hover .lt-link-arrow {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+/* Profile links separator */
+.lt-profile-links {
+  @apply pt-2 pb-10 space-y-3;
+}
+
+.lt-separator {
+  @apply text-center text-slate-300 dark:text-slate-600;
+}
+
+/* Trees gallery */
+.lt-trees {
+  @apply space-y-6;
+}
+
+.lt-tree-card {
+  @apply text-center space-y-4 p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800;
+}
+
+.lt-tree-title {
+  @apply text-lg font-bold text-slate-800 dark:text-slate-100;
+}
+
+.lt-tree-desc {
+  @apply text-xs text-slate-500 dark:text-slate-400;
+}
+
+.lt-qr-wrap {
+  @apply inline-block p-3 bg-white rounded-xl;
+}
+
+.lt-tree-actions {
+  @apply flex items-center justify-center gap-4;
+}
+
+.lt-tree-action {
+  @apply text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors;
+}
+
+.lt-tree-action-btn {
+  @apply text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors cursor-pointer;
+}
+
+/* Home link */
+.lt-home-link {
+  @apply flex items-center justify-center gap-2 text-base text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Navigation */
+.lt-nav-trees {
+  @apply absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-sky-500 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Section heading */
+.lt-heading {
+  @apply text-center space-y-2;
+}
+
+.lt-heading-title {
+  @apply text-2xl font-bold tracking-tight text-slate-900 dark:text-white;
 }
 ```
+
+</details>
 
 > [!NOTE]
 > Replacing the CSS will break the look of the initial content from the codestart. That's expected: we build our own design in the following steps.
 
-🚀 Refresh your browser. The page should now have a light gray background (slate-100) and sans-serif text. Dark mode works automatically based on your system preference.
+🚀 Refresh your browser to make sure the CSS compiles without errors.
 
-🚀🔑 The `{#bundle /}` tag is the magic glue. It tells Roq's Web Bundler to compile everything in `web/` (CSS, JS, npm packages) and inject it into the page. Tailwind is processed at build time, so only the classes you actually use end up in the final CSS.
+🚀🔑 The `{#bundle /}` tag is the magic glue. It tells Roq's Web Bundler to compile everything in `web/` (CSS, JS, npm packages) and inject it into the page. Tailwind is processed at build time, so only the classes you actually use end up in the final CSS. The `@apply` directives let us define semantic class names (`lt-avatar`, `lt-link-card`, etc.) that map to Tailwind utilities, keeping our templates clean.
 
 
 ## 3. Create the profile data
 
-Link-tree sites are all about *you*. Let's define your profile as structured data that templates can access.
+Link-tree sites are all about *you*. Let's define your profile as structured data that templates can access. The profile includes your info, social links, and your main set of links.
 
 **››› CODING TIME**
 
-Create `data/profile.yml` with your name, handle, title, bio, profile image, and a list of social links. Each social entry should have a `name`, `url`, and `icon`.
+Create `data/profile.yml` with your name, handle, title, bio, profile image, a list of social links, and a list of links. Each social entry should have a `name`, `url`, and `icon`. Each link should have a `name`, `url`, `description`, and `icon`.
 
 <details>
 <summary>See hint</summary>
 
-YAML files in `data/` are automatically available in templates via `cdi:` prefix. For the icon field, we'll use [Phosphor Icons](https://phosphoricons.com/) names later. For now, just pick names like `github-logo`, `linkedin-logo`, `butterfly` (for Bluesky).
+YAML files in `data/` are automatically available in templates via `cdi:` prefix. For the icon fields, we'll use [Phosphor Icons](https://phosphoricons.com/) names. Pick names like `github-logo`, `linkedin-logo`, `butterfly` (for Bluesky), `lightning`, `terminal`, etc.
 
 </details>
 
@@ -128,7 +288,6 @@ handle: "@iamgroot"
 title: I am Groot.
 image: groot.png
 bio: I am Groot. I am Groot. I am Groot!
-tree: my-links
 social:
   - name: GitHub
     url: https://github.com/iamgroot
@@ -139,187 +298,6 @@ social:
   - name: Bluesky
     url: https://bsky.app/profile/iamgroot.bsky.social
     icon: butterfly
-```
-
-Drop a profile image as `public/images/groot.png` (or any image you like).
-
-</details>
-
-The `tree: my-links` field will come in handy later to specify which link-tree to show on the home page.
-
-
-## 4. Map the profile data to Java
-
-Raw YAML data works in templates, but Roq can do better. With `@DataMapping`, you map your YAML to a typed Java record. This gives you compile-time safety and auto-completion.
-
-**››› CODING TIME**
-
-Create `src/main/java/io/acme/Profile.java` as a Java record annotated with `@DataMapping("profile")`. Include fields for `name`, `handle`, `title`, `bio`, `image`, `tree`, and a `List<Social>` where `Social` is a nested record with `name`, `url`, `icon`.
-
-<details>
-<summary>See hint</summary>
-
-`@DataMapping("profile")` tells Roq to map `data/profile.yml` to this record. The field names must match the YAML keys. For nested lists, use a nested record type. Import from `io.quarkiverse.roq.data.runtime.annotations.DataMapping`.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Create `src/main/java/io/acme/Profile.java`:
-
-```java
-package io.acme;
-
-import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
-import java.util.List;
-
-@DataMapping("profile")
-public record Profile(String name, String handle, String title, String bio,
-                       String image, String tree, List<Social> social) {
-
-    public record Social(String name, String url, String icon) {}
-}
-```
-
-</details>
-
-🚀🔑 The `@DataMapping` annotation is the bridge between your YAML data and your templates. Once mapped, you access the profile in templates with `cdi:profile.name`, `cdi:profile.handle`, etc. The `cdi:` prefix means it's a CDI bean, which is how Quarkus manages dependency injection.
-
-
-## 5. Build the home page
-
-Time to turn that blank page into a link-tree. The home page will show your profile (avatar, name, handle, title) and your default set of links.
-
-**››› CODING TIME**
-
-Edit `content/index.html` to display the profile card: avatar image, name, handle, and title. Use Tailwind classes for centering, spacing, and the avatar circle. For now, skip the links, we'll add those next.
-
-<details>
-<summary>See hint</summary>
-
-Use `cdi:profile` to access your data. For the avatar, Roq provides `site.image()` to resolve images from `public/images/`. So `{site.image(cdi:profile.image)}` gives you the correct URL. Wrap the profile in a centered container with `max-w-md mx-auto`. Use `{#if}` to handle optional fields gracefully.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Replace the content of `content/index.html`:
-
-```html
----
-layout: default
-title: Groot
----
-
-<div class="flex items-start justify-center pb-6 pt-12">
-  <div class="w-full max-w-md mx-auto space-y-8 px-4">
-
-    <!-- Profile -->
-    <div class="text-center space-y-3">
-      {#if cdi:profile.image}
-      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md">
-      {/if}
-      <h1 class="text-2xl font-bold tracking-tight">
-        {#if cdi:profile.name}<span class="text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
-        {#if cdi:profile.handle}<span class="text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
-      </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.title}</p>
-    </div>
-
-  </div>
-</div>
-```
-
-</details>
-
-🚀 Refresh your browser. You should see your avatar in a circle, your name in dark text, your handle in sky blue, and your title below. Clean and centered.
-
-
-## 6. Add social icons
-
-Those social links in your profile need icons. We'll use [Phosphor Icons](https://phosphoricons.com/), a flexible icon family available as an npm package through [mvnpm](https://mvnpm.org).
-
-First, add the Phosphor Icons dependency to your `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>org.mvnpm.at.phosphor-icons</groupId>
-    <artifactId>web</artifactId>
-    <version>2.1.2</version>
-    <scope>provided</scope>
-</dependency>
-```
-
-Then import the icon styles in `web/app.css`:
-
-```css
-@import "tailwindcss";
-@import "@phosphor-icons/web/regular";
-@import "@phosphor-icons/web/fill";
-```
-
-**››› CODING TIME**
-
-Now add a social icons row below the profile in `content/index.html`. Loop through `cdi:profile.social` and render each as an icon link.
-
-<details>
-<summary>See hint</summary>
-
-Phosphor icon classes follow the pattern `ph ph-{icon-name}` for regular and `ph-fill ph-{icon-name}` for filled variants. Use `style="font-size: 24px;"` to size them. Loop with `{#for s in cdi:profile.social}`.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Add this block after the profile `</div>` and before the closing `</div>` tags in `content/index.html`:
-
-```html
-    <!-- Social -->
-    <div class="text-center space-y-3">
-      <div class="flex items-center justify-center gap-5">
-        {#for s in cdi:profile.social}
-        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
-           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-          <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
-        </a>
-        {/for}
-      </div>
-    </div>
-```
-
-</details>
-
-🚀 You should now see GitHub, LinkedIn, and Bluesky icons below your name. Hover over them to see the sky-blue highlight.
-
-🤩 The icons come from an npm package, managed through Maven, bundled automatically. No CDN, no manual downloads.
-
-
-## 7. Create the links data
-
-Now for the main event: the links. We'll store them in a YAML file inside a `data/trees/` directory. Why a directory instead of a single file? Because you might want multiple link-trees: one for personal links, one for work, one for a specific event or conference. Each YAML file in `data/trees/` becomes its own page with its own QR code (we'll set that up in steps 10 and 11).
-
-**››› CODING TIME**
-
-Create `data/trees/my-links.yml` with a title, description, and a list of links. Each link should have a `name`, `url`, `description`, and `icon` (Phosphor icon name).
-
-<details>
-<summary>See hint</summary>
-
-Pick any links you want. For icons, browse [phosphoricons.com](https://phosphoricons.com/) and use the icon name (e.g. `lightning`, `terminal`, `tree`, `shield-star`). The file name `my-links` matches the `tree: my-links` value in your profile data.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Create `data/trees/my-links.yml`:
-
-```yaml
-title: Groot's Links
-description: I am Groot's link tree
 links:
   - name: Guardians HQ
     url: https://marvel.com/guardians
@@ -339,6 +317,236 @@ links:
     icon: tree
 ```
 
+Drop a profile image as `public/images/groot.png` (or any image you like).
+
+</details>
+
+
+## 4. Map the profile data to Java
+
+Raw YAML data works in templates, but Roq can do better. With `@DataMapping`, you map your YAML to a typed Java record. This gives you compile-time safety and auto-completion.
+
+**››› CODING TIME**
+
+Create `src/main/java/io/acme/Profile.java` as a Java record annotated with `@DataMapping("profile")`. Include fields for `name`, `handle`, `title`, `bio`, `image`, a `List<Social>` and a `List<Link>`.
+
+<details>
+<summary>See hint</summary>
+
+`@DataMapping("profile")` tells Roq to map `data/profile.yml` to this record. The field names must match the YAML keys. For nested lists, use nested record types. Import from `io.quarkiverse.roq.data.runtime.annotations.DataMapping`.
+
+</details>
+
+<details>
+<summary>See solution</summary>
+
+Create `src/main/java/io/acme/Profile.java`:
+
+```java
+package io.acme;
+
+import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
+import java.util.List;
+
+@DataMapping("profile")
+public record Profile(String name, String handle, String title, String bio,
+                       String image, List<Social> social, List<Link> links) {
+
+    public record Social(String name, String url, String icon) {}
+
+    public record Link(String name, String url, String description, String icon) {}
+}
+```
+
+</details>
+
+🚀🔑 The `@DataMapping` annotation is the bridge between your YAML data and your templates. Once mapped, you access the profile in templates with `cdi:profile.name`, `cdi:profile.handle`, etc. The `cdi:` prefix means it's a CDI bean, which is how Quarkus manages dependency injection.
+
+
+## 5. Create reusable template components
+
+Before building the full page, let's create two reusable components: a **profile partial** (avatar, name, social icons) and a **linkCard tag** (a single link card). We'll reuse these across all our layouts.
+
+**››› CODING TIME**
+
+Create `templates/partials/profile.html` that displays the avatar, name, handle, title, and social icons from `cdi:profile`. Use the `lt-*` CSS classes from step 2.
+
+<details>
+<summary>See hint</summary>
+
+Partials are included with `{#include partials/profile /}` and share the parent template's context. Use `site.image(cdi:profile.image)` for the avatar URL. Loop through `cdi:profile.social` for the social icons with `ph-fill ph-{s.icon}` classes.
+
+</details>
+
+<details>
+<summary>See solution</summary>
+
+Create `templates/partials/profile.html`:
+
+```html
+<div class="lt-profile">
+  {#if cdi:profile.image}
+  <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="lt-avatar">
+  {/if}
+  <h1 class="lt-name">
+    {#if cdi:profile.name}<span class="lt-name-text">{cdi:profile.name}</span>{/if}
+    {#if cdi:profile.handle}<span class="lt-handle">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
+  </h1>
+  <p class="lt-title">{cdi:profile.title}</p>
+</div>
+
+{#if cdi:profile.social??}
+<div class="lt-social">
+  <div class="lt-social-icons">
+    {#for s in cdi:profile.social}
+    <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}" class="lt-social-link">
+      <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
+    </a>
+    {/for}
+  </div>
+</div>
+{/if}
+```
+
+</details>
+
+Now create the link card tag.
+
+**››› CODING TIME**
+
+Create `templates/tags/linkCard.html` that renders a single link as a styled card with an icon, name, description, and arrow.
+
+<details>
+<summary>See hint</summary>
+
+Tags are called with `{#linkCard link=myLink /}`. The `link` variable is passed as a parameter. Use the `group` class on the `<a>` element alongside `lt-link-card` for the hover effect on the arrow.
+
+</details>
+
+<details>
+<summary>See solution</summary>
+
+Create `templates/tags/linkCard.html`:
+
+```html
+<a href="{link.url}" target="_blank" rel="noopener noreferrer" class="group lt-link-card">
+  <span class="lt-link-content">
+    {#if link.icon}
+    <i class="ph ph-{link.icon} lt-link-icon" style="font-size: 20px;"></i>
+    {/if}
+    <span>
+      <span class="lt-link-name">{link.name}</span>
+      <span class="lt-link-desc">{link.description}</span>
+    </span>
+  </span>
+  <span class="lt-link-arrow">
+    <i class="ph ph-arrow-right" style="font-size: 16px;"></i>
+  </span>
+</a>
+```
+
+</details>
+
+🚀🔑 Partials share the calling template's context (they can access `site`, `page`, etc.), while tags receive data explicitly through parameters. Use partials for sections that always render the same way, and tags for components you call multiple times with different data.
+
+
+## 6. Build the home page
+
+Now let's create a layout for the home page. The `linktree-home` layout shows your profile, social icons, and your links from the profile data. It also adds a navigation icon to the trees gallery.
+
+**››› CODING TIME**
+
+Create `templates/layouts/linktree-home.html` that extends `default`. It should display the profile partial, loop through `cdi:profile.links` using the linkCard tag, and include a navigation icon to `/trees`.
+
+<details>
+<summary>See hint</summary>
+
+Use `layout: default` in the frontmatter to extend the base layout. Include the profile with `{#include partials/profile /}` and loop through links with `{#for link in cdi:profile.links}{#linkCard link=link /}{/for}`. Use `lt-page-relative` and `lt-nav-trees` for the trees icon. The `{#insert /}` slot lets content pages add extra content.
+
+</details>
+
+<details>
+<summary>See solution</summary>
+
+Create `templates/layouts/linktree-home.html`:
+
+```html
+---
+layout: default
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<div class="lt-page-relative">
+  <a href="/trees" class="lt-nav-trees" title="All trees">
+    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
+  </a>
+  <div class="lt-container">
+
+    {#include partials/profile /}
+
+    {#if cdi:profile.links??}
+    <div class="lt-links">
+      {#for link in cdi:profile.links}
+      {#linkCard link=link /}
+      {/for}
+    </div>
+    {/if}
+
+    {#insert /}
+
+  </div>
+</div>
+```
+
+</details>
+
+Now update your home page to use this layout. Replace the content of `content/index.html`:
+
+```html
+---
+layout: linktree-home
+title: Groot
+---
+```
+
+🚀 Refresh your browser. You should see your full link-tree: avatar in a circle, name in dark text, handle in sky blue, social icons with hover effects, and a list of link cards with icons and arrows. All from a three-line content file!
+
+🤩 That's a complete link-tree, and it's all driven by YAML data. Want to change a link? Edit `data/profile.yml`. Want to add one? Add a line. No template changes needed.
+
+
+
+## 7. Create a secondary tree
+
+Your home page shows your main links from the profile. But what if you want a separate link-tree for a specific topic? You can create additional trees as YAML files in `data/trees/`. Why a directory instead of a single file? Because you might want multiple link-trees: one for personal links, one for work, one for a specific event or conference. Each YAML file in `data/trees/` becomes its own page with its own QR code (we'll set that up in steps 9 and 10).
+
+**››› CODING TIME**
+
+Create `data/trees/guardians.yml` with a title, description, and a list of links related to a different topic.
+
+<details>
+<summary>See solution</summary>
+
+Create `data/trees/guardians.yml`:
+
+```yaml
+title: Guardians of the Galaxy
+description: I am Groot's team resources
+links:
+  - name: Guardians HQ
+    url: https://marvel.com/guardians
+    description: Where we save the galaxy
+    icon: shield-star
+  - name: Milano Ship Manual
+    url: https://en.wikipedia.org/wiki/Guardians_of_the_Galaxy
+    description: How to fly the Milano
+    icon: rocket
+  - name: Groot's Wikipedia
+    url: https://en.wikipedia.org/wiki/Groot
+    description: Everything about me
+    icon: tree
+```
+
 </details>
 
 
@@ -348,7 +556,7 @@ Just like the profile, we'll map the trees data to a typed Java record. The diff
 
 **››› CODING TIME**
 
-Create `src/main/java/io/acme/Trees.java` with `@DataMapping(value = "trees", type = DataMapping.Type.OBJECT_DIR)`. The record should contain a `Map<String, Tree>` where each key is the file name (e.g. `my-links`) and `Tree` has `title`, `description`, and `List<Link>`.
+Create `src/main/java/io/acme/Trees.java` with `@DataMapping(value = "trees", type = DataMapping.Type.OBJECT_DIR)`. The record should contain a `Map<String, Tree>` where each key is the file name (e.g. `guardians`) and `Tree` has `title`, `description`, and `List<Link>`.
 
 <details>
 <summary>See hint</summary>
@@ -380,192 +588,82 @@ public record Trees(Map<String, Tree> map) {
 
 </details>
 
-🚀🔑 `OBJECT_DIR` is powerful. Drop a new YAML file in `data/trees/` and it automatically becomes a new entry in the map. No config changes needed. This is how we'll support multiple link-trees later.
+🚀🔑 `OBJECT_DIR` is powerful. Drop a new YAML file in `data/trees/` and it automatically becomes a new entry in the map. No config changes needed.
 
 
-## 9. Render the links
+## 9. Generate pages from data
 
-Now wire the links data into the home page. We'll fetch the default tree using the `tree` field from the profile, then loop through its links to render styled cards.
-
-**››› CODING TIME**
-
-Add a links section to `content/index.html`. Use `{#let}` to grab the default tree from `cdi:trees.map`, then `{#for}` to loop through its links. Each link should be a card with an icon, name, description, and an arrow.
-
-<details>
-<summary>See hint</summary>
-
-Use `{#let defaultTree=cdi:trees.map.get(cdi:profile.tree)}` to fetch the tree matching your profile's `tree` field. Then `{#for link in defaultTree.links}` to iterate. For the card, use a `<a>` tag with Tailwind classes: `rounded-lg`, `border`, `bg-white`, `hover:border-sky-400`, `hover:shadow-md`, `transition-all`. Add a Phosphor `ph-arrow-right` icon at the end.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-Wrap the entire `content/index.html` body in a `{#let}` block and add the links section. Here is the complete file:
-
-```html
----
-layout: default
-title: Groot
----
-
-{#let defaultTree=cdi:trees.map.get(cdi:profile.tree)}
-<div class="flex items-start justify-center pb-6 pt-12 relative">
-  <div class="w-full max-w-md mx-auto space-y-8 px-4">
-
-    <!-- Profile -->
-    <div class="text-center space-y-3">
-      {#if cdi:profile.image}
-      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md">
-      {/if}
-      <h1 class="text-2xl font-bold tracking-tight">
-        {#if cdi:profile.name}<span class="text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
-        {#if cdi:profile.handle}<span class="text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
-      </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.title}</p>
-    </div>
-
-    <!-- Social -->
-    <div class="text-center space-y-3">
-      <div class="flex items-center justify-center gap-5">
-        {#for s in cdi:profile.social}
-        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
-           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-          <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
-        </a>
-        {/for}
-      </div>
-    </div>
-
-    <!-- Links -->
-    <div class="space-y-3">
-      {#for link in defaultTree.links}
-      <a href="{link.url}" target="_blank" rel="noopener noreferrer"
-         class="group flex items-center justify-between px-5 py-4 rounded-lg
-                border border-slate-200 dark:border-slate-700
-                bg-white dark:bg-slate-800
-                hover:border-sky-400 dark:hover:border-sky-500
-                hover:shadow-md
-                transition-all duration-200">
-        <span class="flex items-center gap-3">
-          {#if link.icon}
-          <i class="ph ph-{link.icon} text-sky-500 dark:text-sky-400" style="font-size: 20px;"></i>
-          {/if}
-          <span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-100">{link.name}</span>
-            <span class="block text-xs text-slate-500 dark:text-slate-400">{link.description}</span>
-          </span>
-        </span>
-        <span class="text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
-          <i class="ph ph-arrow-right" style="font-size: 16px;"></i>
-        </span>
-      </a>
-      {/for}
-    </div>
-
-  </div>
-</div>
-{/let}
-```
-
-</details>
-
-🚀 Refresh. You should see your full link-tree: avatar, name, social icons, and a list of link cards with icons, hover effects, and arrows.
-
-🤩 That's a complete link-tree, and it's all driven by YAML data. Want to change a link? Edit the YAML. Want to add one? Add a line. No template changes needed.
-
-
-## 10. Generate pages from data
-
-Right now you have one link-tree. But what if you want multiple? Roq can auto-generate a page for each YAML file in `data/trees/` using the `from-data` collection feature.
-
-First, configure the collection in `config/application.properties`:
+Now let's auto-generate a page for each tree. Configure the collection in `config/application.properties`:
 
 ```properties
-site.collections.trees.layout=tree
+site.collections.trees.layout=linktree
 site.collections.trees.from-data.id-key=_key
+site.collections.trees.link=/trees/:name
 ```
 
-This tells Roq: "create a `trees` collection, generate one page per data entry, use the `tree` layout, and use the YAML file name as the page ID."
+This tells Roq: "create a `trees` collection, generate one page per data entry, use the `linktree` layout, and use the YAML file name as the page ID."
 
 **››› CODING TIME**
 
-Create `templates/layouts/tree.html` that extends `default` and renders a tree page. Show the tree's title and description at the top, then the links from `page.data.links`, and the profile info at the bottom with a separator.
+Create `templates/layouts/linktree.html` that extends `default` and renders a tree page. Show the tree's title and description at the top, then its links. Below a chevron separator, show the profile and append the profile's main links.
 
 <details>
 <summary>See hint</summary>
 
-Start with `layout: default` in the frontmatter to inherit the base layout. Use `page.data.title` and `page.data.description` at the top. For the links, use `{#for link in page.data.links}` since each tree YAML file becomes the page's data. Move the profile and social sections to the bottom with a `border-t` separator.
+Use `page.data.title`, `page.data.description`, and `{#for link in page.data.links}` for the tree's own data. Reuse the profile partial and linkCard tag. The `show-profile` frontmatter key lets tree YAML files hide the profile section (defaults to `true`). The `profile-links` key controls whether profile links are appended.
 
 </details>
 
 <details>
 <summary>See solution</summary>
 
-Create `templates/layouts/tree.html`:
+Create `templates/layouts/linktree.html`:
 
 ```html
 ---
 layout: default
+robots: noindex
+sitemap: false
 ---
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 
-<div class="flex items-start justify-center pb-6 pt-12">
-  <div class="w-full max-w-md mx-auto space-y-8 px-4">
+<div class="lt-page-relative">
+  <a href="/trees" class="lt-nav-trees" title="All trees">
+    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
+  </a>
+  <div class="lt-container">
 
-    <!-- Title & Description -->
-    <div class="text-center space-y-2">
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{page.title}</h1>
+    <div class="lt-heading">
+      <h1 class="lt-heading-title">{page.title}</h1>
       {#if page.description}
-      <p class="text-sm text-slate-500 dark:text-slate-400">{page.description}</p>
+      <p class="lt-title">{page.description}</p>
       {/if}
     </div>
 
-    <!-- Links -->
-    <div class="space-y-3">
+    <div class="lt-links">
       {#for link in page.data.links}
-      <a href="{link.url}" target="_blank" rel="noopener noreferrer"
-         class="group flex items-center justify-between px-5 py-4 rounded-lg
-                border border-slate-200 dark:border-slate-700
-                bg-white dark:bg-slate-800
-                hover:border-sky-400 dark:hover:border-sky-500
-                hover:shadow-md
-                transition-all duration-200">
-        <span class="flex items-center gap-3">
-          {#if link.icon}
-          <i class="ph ph-{link.icon} text-sky-500 dark:text-sky-400" style="font-size: 20px;"></i>
-          {/if}
-          <span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-100">{link.name}</span>
-            <span class="block text-xs text-slate-500 dark:text-slate-400">{link.description}</span>
-          </span>
-        </span>
-        <span class="text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
-          <i class="ph ph-arrow-right" style="font-size: 16px;"></i>
-        </span>
-      </a>
+      {#linkCard link=link /}
       {/for}
     </div>
 
-    <!-- Profile -->
-    <div class="border-t border-slate-200 dark:border-slate-700 pt-8 text-center space-y-3">
-      {#if cdi:profile.image}
-      <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="w-20 h-20 mx-auto rounded-full bg-white dark:bg-slate-800 p-1.5 shadow-md">
-      {/if}
-      <div>
-        {#if cdi:profile.name}<span class="text-sm font-medium text-slate-900 dark:text-white">{cdi:profile.name}</span>{/if}
-        {#if cdi:profile.handle}<span class="text-sm text-sky-500 dark:text-sky-400">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
-      </div>
-      <div class="flex items-center justify-center gap-4">
-        {#for s in cdi:profile.social}
-        <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}"
-           class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-          <i class="ph-fill ph-{s.icon}" style="font-size: 20px;"></i>
-        </a>
-        {/for}
-      </div>
+    {#if page.data('show-profile', true)}
+    <div class="lt-separator">
+      <i class="ph ph-caret-double-down" style="font-size: 20px;"></i>
     </div>
+
+    <div class="lt-profile-links">
+      {#include partials/profile /}
+    </div>
+
+    {#if page.data('profile-links', true) and cdi:profile.links??}
+    <div class="lt-links">
+      {#for link in cdi:profile.links}
+      {#linkCard link=link /}
+      {/for}
+    </div>
+    {/if}
+    {/if}
 
   </div>
 </div>
@@ -573,14 +671,14 @@ layout: default
 
 </details>
 
-🚀 Navigate to [http://localhost:8080/trees/groot-s-links/](http://localhost:8080/trees/groot-s-links/). You should see the same link-tree as the home page, but this page was auto-generated from `data/trees/my-links.yml`. The URL is derived from the tree's title.
+🚀 Navigate to [http://localhost:8080/trees/guardians/](http://localhost:8080/trees/guardians/). You should see the Guardians tree with its links at the top, then a chevron separator, your profile, and your main links below. The tree icon in the top-right links to the gallery page (we'll build that next).
 
-🚀🔑 This is the key insight: drop a new YAML file in `data/trees/` (e.g. `work-links.yml`) and Roq generates a new page at `/work-links/` automatically. No new templates, no config changes.
+🚀🔑 This is the key insight: drop a new YAML file in `data/trees/` and Roq generates a new page automatically. The profile and main links appear at the bottom, giving visitors a path back to your other content. Add `show-profile: false` in a tree's YAML to hide the profile section on that specific page.
 
 
-## 11. Add QR codes
+## 10. Add QR codes
 
-Let's build a "gallery" page that lists all your link-trees with downloadable QR codes. This is great for sharing at events or printing on business cards.
+Let's build a gallery page that lists all your link-trees with downloadable QR codes. This is great for sharing at events or printing on business cards.
 
 First, add the QR code plugin:
 
@@ -590,7 +688,7 @@ roq add plugin:qrcode
 
 **››› CODING TIME**
 
-Create `content/trees.html` that loops through `site.collections.trees` and shows each tree as a card with its title, description, QR code, and a link to open it.
+Create `templates/layouts/linktrees.html` that extends `default`, shows the profile, a link back home, and loops through all trees to display each as a card with a QR code.
 
 <details>
 <summary>See hint</summary>
@@ -602,43 +700,45 @@ Use `{#for tree in site.collections.trees}` to loop through the collection. The 
 <details>
 <summary>See solution</summary>
 
-Create `content/trees.html`:
+Create `templates/layouts/linktrees.html`:
 
 ```html
 ---
 layout: default
-title: All Trees
 ---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 
-<div class="flex items-start justify-center pb-6 pt-12">
-  <div class="w-full max-w-md mx-auto space-y-8 px-4">
+<div class="lt-page">
+  <div class="lt-container">
 
-    <div class="text-center space-y-2">
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Link Trees</h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400">{cdi:profile.name}</p>
+    {#include partials/profile /}
+
+    <a href="/" class="lt-home-link"><i class="ph ph-house" style="font-size: 16px;"></i> Profile</a>
+
+    <div class="lt-heading">
+      <h1 class="lt-heading-title">{page.title}</h1>
     </div>
 
-    <div class="space-y-6">
+    <div class="lt-trees">
       {#for tree in site.collections.trees}
-      <div class="text-center space-y-4 p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">{tree.data.title}</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">{tree.data.description}</p>
+      <div class="lt-tree-card">
+        <h2 class="lt-tree-title">{tree.data.title}</h2>
+        <p class="lt-tree-desc">{tree.data.description}</p>
 
-        <div class="inline-block p-3 bg-white rounded-xl qr-wrap" data-filename="qr-{tree.data.title.slugify}.svg">
+        <div class="lt-qr-wrap qr-wrap" data-filename="qr-{tree.data.title.slugify}.svg">
           {#qrcode value=tree.url.absolute alt=tree.data.title foreground="#0e4a5c" background="#FFFFFF" width=200 height=200 /}
         </div>
 
-        <div class="flex items-center justify-center gap-4">
-          <a href="{tree.url}" class="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors">
-            Open
-          </a>
-          <button onclick="downloadQR(this)" class="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors cursor-pointer">
-            Download QR
-          </button>
+        <div class="lt-tree-actions">
+          <a href="{tree.url}" class="lt-tree-action">Open</a>
+          <button onclick="downloadQR(this)" class="lt-tree-action-btn">Download QR</button>
         </div>
       </div>
       {/for}
     </div>
+
+    {#insert /}
 
   </div>
 </div>
@@ -650,7 +750,7 @@ Now add the QR download script. Create `web/scripts.js`:
 
 ```javascript
 window.downloadQR = function(btn) {
-  var wrap = btn.closest('.text-center').querySelector('.qr-wrap');
+  var wrap = btn.closest('.lt-tree-card').querySelector('.qr-wrap');
   var img = wrap.querySelector('img');
   if (!img) return;
   var filename = (wrap.dataset.filename || 'qr-code.svg').toLowerCase();
@@ -669,40 +769,18 @@ window.downloadQR = function(btn) {
 };
 ```
 
-🚀 Navigate to [http://localhost:8080/trees](http://localhost:8080/trees). You should see your link-tree with a QR code. Click "Download QR" to save it as an SVG.
-
-
-## 12. Add navigation
-
-Let's add a small navigation icon on the home page to link to the trees gallery.
-
-**››› CODING TIME**
-
-Add a link to `/trees` in the top-right corner of `content/index.html`, using the Phosphor `tree-structure` icon.
-
-<details>
-<summary>See hint</summary>
-
-Add an `<a>` tag with `class="absolute top-4 right-4"` inside the `relative` container div. Use `<i class="ph ph-tree-structure" style="font-size: 24px;"></i>` for the icon.
-
-</details>
-
-<details>
-<summary>See solution</summary>
-
-In `content/index.html`, add the `relative` class to the outer flex div (if not already there) and add this link right after it opens:
+Finally, create the gallery content page. Create `content/trees.html`:
 
 ```html
-  <a href="/trees" class="absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-sky-500 dark:hover:text-sky-400 transition-colors" title="All trees">
-    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
-  </a>
+---
+layout: linktrees
+title: All Trees
+---
 ```
 
-</details>
+🚀 Navigate to [http://localhost:8080/trees](http://localhost:8080/trees). You should see your profile at the top, a "Profile" link back to the home page, and each tree displayed as a card with a QR code. Click "Download QR" to save it as an SVG.
 
-🚀 You should now see a small tree icon in the top-right corner of the home page that links to the gallery.
-
-🤩 Your link-tree site is complete! A profile card, social icons, link cards with hover effects, auto-generated pages from YAML data, and a QR code gallery. All styled with Tailwind, all driven by data.
+🤩 Your link-tree site is complete! A profile card, social icons, link cards with hover effects, auto-generated pages from YAML data, and a QR code gallery. All styled with `@apply` CSS, all driven by data, all built with reusable layouts and components.
 
 
 ## What's next?
@@ -711,10 +789,20 @@ In `content/index.html`, add the `relative` class to the outer flex div (if not 
 
 Here are a few ideas to keep going:
 
-- **Add more trees**: drop a new YAML file in `data/trees/` (e.g. `work-links.yml`) and it's instantly available at `/work-links/` with its own QR code.
+- **Add more trees**: drop a new YAML file in `data/trees/` (e.g. `work-links.yml`) and it's instantly available with its own QR code.
 - **Deploy to GitHub Pages**: your project already includes a `.github/workflows/deploy.yml`. Push to GitHub, enable Pages in Settings, and you're live.
 - **Add analytics**: set `analytics.ga4: G-XXXXX` in your site index frontmatter and add `{#ga4 /}` to the layout.
 - **Make it your own**: swap the color palette (try `indigo`/`rose`), change the card style, add animations. It's just Tailwind, go wild.
 - **Explore the docs**: [Roq the basics](/docs/basics/) covers collections, custom data, templates, and much more.
+
+## Switch to the Linktree theme
+
+Now that you understand how everything works under the hood, you can switch to the pre-built [Linktree theme](/theme/linktree-theme/) which provides all the layouts, partials, tags, and styles you just built. Run:
+
+```shell
+roq add theme:linktree
+```
+
+Then delete the files that the theme now provides: `templates/`, `web/app.css`, and `web/scripts.js`. Your data files (`data/profile.yml`, `data/trees/`) and content files (`content/index.html`, `content/trees.html`) stay the same, and you can customize the theme through `web/_custom.css`.
 
 Happy linking!
