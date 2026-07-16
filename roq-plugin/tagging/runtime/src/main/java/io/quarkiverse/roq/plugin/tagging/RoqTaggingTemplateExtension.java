@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
@@ -20,8 +22,9 @@ public class RoqTaggingTemplateExtension {
      * Returns a list of all tags from the given collection, with each tag slugified.
      */
     public static List<String> allTags(RoqCollection collection) {
+        boolean lowercase = isLowercase();
         return collection.stream()
-                .flatMap(documentPage -> RoqTaggingUtils.slugifiedTagStringsStream(documentPage.data()))
+                .flatMap(documentPage -> RoqTaggingUtils.slugifiedTagStringsStream(documentPage.data(), lowercase))
                 .toList();
     }
 
@@ -30,9 +33,10 @@ public class RoqTaggingTemplateExtension {
      * each tag appears. Each tag is slugified.
      */
     public static List<TagCount> tagsCount(RoqCollection collection) {
+        boolean lowercase = isLowercase();
         return collection
                 .stream()
-                .flatMap(documentPage -> RoqTaggingUtils.slugifiedTagStringsStream(documentPage.data()))
+                .flatMap(documentPage -> RoqTaggingUtils.slugifiedTagStringsStream(documentPage.data(), lowercase))
                 .collect(groupingBy(tag -> tag, counting())).entrySet()
                 .stream().map(entry -> new TagCount(entry.getKey(), entry.getValue()))
                 .toList();
@@ -60,15 +64,22 @@ public class RoqTaggingTemplateExtension {
             return Map.of();
         }
 
+        boolean lowercase = isLowercase();
         Map<String, List<Page>> tagMap = new LinkedHashMap<>();
 
         for (Page page : site.allPages()) {
-            for (String tag : RoqTaggingUtils.slugifiedTagStrings(page.data())) {
+            for (String tag : RoqTaggingUtils.slugifiedTagStrings(page.data(), lowercase)) {
                 tagMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(page);
             }
         }
 
         return tagMap;
+    }
+
+    private static boolean isLowercase() {
+        return ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.roq.tagging.lowercase", Boolean.class)
+                .orElse(false);
     }
 
 }

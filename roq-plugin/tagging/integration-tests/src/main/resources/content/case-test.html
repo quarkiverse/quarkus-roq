@@ -1,0 +1,19 @@
+---
+title: Tag Case Sensitivity Test Page
+---
+<h1>Tag Case Test</h1>
+<div id="all-tags-list">
+{#for entry in site.tags}
+  <div data-tag="{entry.key}" data-count="{entry.value.size}">{entry.key}</div>
+{/for}
+</div>
+
+<div id="tag-count">Total unique tags: {site.tags.size}</div>
+
+<div id="ai-uppercase-exists">{#if site.tags.containsKey('AI')}YES{#else}NO{/if}</div>
+<div id="ai-lowercase-exists">{#if site.tags.containsKey('ai')}YES{#else}NO{/if}</div>
+<div id="java-uppercase-exists">{#if site.tags.containsKey('Java')}YES{#else}NO{/if}</div>
+<div id="java-lowercase-exists">{#if site.tags.containsKey('java')}YES{#else}NO{/if}</div>
+<div id="devops-mixed-exists">{#if site.tags.containsKey('DevOps')}YES{#else}NO{/if}</div>
+<div id="devops-lowercase-exists">{#if site.tags.containsKey('devops')}YES{#else}NO{/if}</div>
+<div id="normal-exists">{#if site.tags.containsKey('normal')}YES{#else}NO{/if}</div>
