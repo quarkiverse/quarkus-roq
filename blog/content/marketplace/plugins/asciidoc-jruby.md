@@ -6,7 +6,7 @@ icon: fa-solid fa-file-lines
 install-name: asciidoc-jruby
 tags: [content, markup]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/asciidoc-jruby
-search-boost: 20
+search-boost: 1.2
 ---
 
 Full-featured Asciidoctor implementation based on [AsciidoctorJ](https://github.com/asciidoctor/asciidoctorj). Offers the complete AsciiDoc feature set including all extensions. Slower startup than the [Java variant](/plugin/asciidoc/) but covers all advanced AsciiDoc options.

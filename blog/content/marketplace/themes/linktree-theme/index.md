@@ -17,7 +17,7 @@ screenshots:
   - label: Gallery
     description: All trees with QR codes
     source: screenshots/gallery-light.png
-search-boost: 20
+search-boost: 1.2
 ---
 
 Build a personal link-tree site with data-driven YAML configuration, social icons, and auto-generated QR codes.

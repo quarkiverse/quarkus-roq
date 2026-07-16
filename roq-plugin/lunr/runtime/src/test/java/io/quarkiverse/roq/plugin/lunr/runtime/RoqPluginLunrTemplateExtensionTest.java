@@ -32,7 +32,7 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(anchor.id()).isEqualTo("intro");
         assertThat(anchor.title()).isEqualTo("Introduction");
         assertThat(anchor.content()).isEqualTo("Welcome to the documentation.");
-        assertThat(anchor.boost()).isEqualTo(3); // h2 => 2 + 1
+        assertThat(anchor.boost()).isEqualTo(0.06); // h2 => (8 - 2) / 100
     }
 
     @Test
@@ -58,10 +58,10 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(anchors).hasSize(2);
 
         assertThat(anchors.get(0))
-                .isEqualTo(new Anchor("section1", "Section 1", "First part content.", 3));
+                .isEqualTo(new Anchor("section1", "Section 1", "First part content.", 0.06));
 
         assertThat(anchors.get(1))
-                .isEqualTo(new Anchor("section2", "Section 2", "Second part content.", 4));
+                .isEqualTo(new Anchor("section2", "Section 2", "Second part content.", 0.05));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(a.id()).isEqualTo("intro");
         assertThat(a.title()).isEqualTo("Introduction");
         assertThat(a.content()).isEqualTo("This is the first paragraph. This is the second paragraph.");
-        assertThat(a.boost()).isEqualTo(3); // h2 = level 2 + 1
+        assertThat(a.boost()).isEqualTo(0.06); // h2 = (8 - 2) / 100
     }
 
     @Test
@@ -134,7 +134,7 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(a.id()).isEqualTo("features");
         assertThat(a.title()).isEqualTo("Features");
         assertThat(a.content()).isEqualTo("Fast Reliable");
-        assertThat(a.boost()).isEqualTo(4); // h3 = level 3 + 1
+        assertThat(a.boost()).isEqualTo(0.05); // h3 = (8 - 3) / 100
     }
 
     @Test
@@ -156,13 +156,13 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(a.id()).isEqualTo("a");
         assertThat(a.title()).isEqualTo("A");
         assertThat(a.content()).isEqualTo("Text A1. Text A2.");
-        assertThat(a.boost()).isEqualTo(3);
+        assertThat(a.boost()).isEqualTo(0.06);
 
         Anchor b = anchors.get(1);
         assertThat(b.id()).isEqualTo("b");
         assertThat(b.title()).isEqualTo("B");
         assertThat(b.content()).isEqualTo("Text B1.");
-        assertThat(b.boost()).isEqualTo(3);
+        assertThat(b.boost()).isEqualTo(0.06);
     }
 
     @Test
@@ -183,15 +183,15 @@ public class RoqPluginLunrTemplateExtensionTest {
 
         assertThat(anchors.get(0).id()).isEqualTo("parent");
         assertThat(anchors.get(0).content()).isEqualTo("Parent content. Child Child content.");
-        assertThat(anchors.get(0).boost()).isEqualTo(3);
+        assertThat(anchors.get(0).boost()).isEqualTo(0.06);
 
         assertThat(anchors.get(1).id()).isEqualTo("child");
         assertThat(anchors.get(1).content()).isEqualTo("Child content.");
-        assertThat(anchors.get(1).boost()).isEqualTo(5); // h4 = 4 + 1
+        assertThat(anchors.get(1).boost()).isEqualTo(0.04); // h4 = (8 - 4) / 100
 
         assertThat(anchors.get(2).id()).isEqualTo("next");
         assertThat(anchors.get(2).content()).isEqualTo("Next content.");
-        assertThat(anchors.get(2).boost()).isEqualTo(3);
+        assertThat(anchors.get(2).boost()).isEqualTo(0.06);
     }
 
     @Test
@@ -211,7 +211,7 @@ public class RoqPluginLunrTemplateExtensionTest {
         assertThat(a.id()).isEqualTo("info");
         assertThat(a.title()).isEqualTo("Info");
         assertThat(a.content()).isEqualTo("Line 1 Line 2 Line 3");
-        assertThat(a.boost()).isEqualTo(4);
+        assertThat(a.boost()).isEqualTo(0.05);
     }
 
     @Test

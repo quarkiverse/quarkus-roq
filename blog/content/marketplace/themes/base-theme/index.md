@@ -6,7 +6,7 @@ icon: fa-solid fa-cube
 install-name: base
 tags: [minimal, starter]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-frontmatter/runtime/src/main/resources/templates/theme-layouts/roq-base
-search-boost: 20
+search-boost: 1.2
 ---
 
 The base theme is a minimal starting point included with Roq. It provides the essential HTML structure with SEO, favicon, and Web Bundler support, giving you full control over your site's design. This is the ideal choice when you want to build a fully custom site from scratch.

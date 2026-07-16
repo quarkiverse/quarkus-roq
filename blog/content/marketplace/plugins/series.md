@@ -6,7 +6,7 @@ icon: fa-solid fa-layer-group
 install-name: series
 tags: [collections, navigation]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/series
-search-boost: 20
+search-boost: 1.2
 ---
 
 Join multiple posts into a series with automatic series headers.

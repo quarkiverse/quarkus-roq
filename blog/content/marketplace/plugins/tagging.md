@@ -6,7 +6,7 @@ icon: fa-solid fa-tags
 install-name: tagging
 tags: [collections, navigation]
 source: https://github.com/quarkiverse/quarkus-roq/tree/main/roq-plugin/tagging
-search-boost: 20
+search-boost: 1.2
 ---
 
 Generate a dynamic (derived) collection based on a given collection's tags. For example, if multiple posts have `tags: guide`, a `/posts/tag/guide` page is generated listing all matching posts. This works for any collection.

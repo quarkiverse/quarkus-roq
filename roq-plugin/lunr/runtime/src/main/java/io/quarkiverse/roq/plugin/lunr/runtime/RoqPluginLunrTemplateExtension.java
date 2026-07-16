@@ -60,8 +60,8 @@ public class RoqPluginLunrTemplateExtension {
             final List<String> tags = RoqTemplateExtension.asStrings(page.data("tags"));
             baseDoc.put("tags", tags);
         }
-        final long baseBoost = page.data().containsKey(RoqLunrKeys.SEARCH_BOOST)
-                ? page.data().getLong(RoqLunrKeys.SEARCH_BOOST)
+        final double baseBoost = page.data().containsKey(RoqLunrKeys.SEARCH_BOOST)
+                ? page.data().getDouble(RoqLunrKeys.SEARCH_BOOST)
                 : 1;
         final String absoluteUrl = page.url().absolute();
         if (!anchors.isEmpty()) {
@@ -121,7 +121,7 @@ public class RoqPluginLunrTemplateExtension {
                 continue;
             }
 
-            int boost = boostForTag(heading.tagName());
+            double boost = boostForTag(heading.tagName());
             anchors.add(new Anchor(id, title, content, boost));
         }
 
@@ -141,7 +141,7 @@ public class RoqPluginLunrTemplateExtension {
             String id = heading.id();
             String title = heading.text();
             int level = Integer.parseInt(heading.tagName().substring(1));
-            int boost = level + 1;
+            double boost = (8 - level) / 100.0;
 
             StringBuilder contentBuilder = new StringBuilder();
             Element current = heading.nextElementSibling();
@@ -166,13 +166,13 @@ public class RoqPluginLunrTemplateExtension {
         return anchors;
     }
 
-    private static int boostForTag(String tagName) {
+    private static double boostForTag(String tagName) {
         if (tagName.matches("h[1-6]")) {
-            return Integer.parseInt(tagName.substring(1)) + 1;
+            return (8 - Integer.parseInt(tagName.substring(1))) / 100.0;
         }
-        return 1;
+        return 0;
     }
 
-    record Anchor(String id, String title, String content, int boost) {
+    record Anchor(String id, String title, String content, double boost) {
     }
 }
