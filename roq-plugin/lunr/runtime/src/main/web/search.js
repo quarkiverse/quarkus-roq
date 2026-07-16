@@ -83,7 +83,6 @@ const setupSearch = function (options = {}) {
         documents = data;
         idx = lunr(function () {
             this.ref('id')
-            this.field('fragment', {boost: 1.2})
             this.field('title', {boost: 2})
             this.field('summary')
             this.field('tags', {boost: 1.5})

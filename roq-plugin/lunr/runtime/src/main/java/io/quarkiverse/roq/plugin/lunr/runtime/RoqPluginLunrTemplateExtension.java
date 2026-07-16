@@ -74,14 +74,14 @@ public class RoqPluginLunrTemplateExtension {
                         .put("title", page.title() + " - " + a.title())
                         .put("url", absoluteUrl + "#" + a.id())
                         .put("fragment", a.id())
-                        .put("boost", baseBoost + a.boost());
+                        .put("boost", baseBoost * a.boost());
                 map.put(page.id() + "#" + a.id(), d);
             }
         }
         baseDoc.put("url", absoluteUrl)
                 .put("title", page.title())
                 .put("content", htmlDoc.text())
-                .put("boost", baseBoost);
+                .put("boost", baseBoost * 1.1);
         map.put(page.id(), baseDoc);
         return map;
     }
@@ -141,7 +141,7 @@ public class RoqPluginLunrTemplateExtension {
             String id = heading.id();
             String title = heading.text();
             int level = Integer.parseInt(heading.tagName().substring(1));
-            double boost = (8 - level) / 100.0;
+            double boost = (98 - level) / 100.0;
 
             StringBuilder contentBuilder = new StringBuilder();
             Element current = heading.nextElementSibling();
@@ -168,9 +168,9 @@ public class RoqPluginLunrTemplateExtension {
 
     private static double boostForTag(String tagName) {
         if (tagName.matches("h[1-6]")) {
-            return (8 - Integer.parseInt(tagName.substring(1))) / 100.0;
+            return (98 - Integer.parseInt(tagName.substring(1))) / 100.0;
         }
-        return 0;
+        return 1;
     }
 
     record Anchor(String id, String title, String content, double boost) {

@@ -116,4 +116,4 @@ A page with 9 matches scores ~1.94x higher than one with 1 match. If boost excee
 
 With a boost of `1.2`, a boosted page only outranks a non-boosted page when their keyword relevance is within 20% of each other. Stronger keyword matches always win.
 
-Section headings also receive a tiny additive boost (h2: +0.06, h3: +0.05, down to h6: +0.02). This orders sections within the same page without pushing them above full pages.
+Full pages receive a 10% boost (×1.1) so they always rank above their own sections. Sections are slightly demoted (h2: ×0.96, h3: ×0.95, down to h6: ×0.92), keeping them ordered by heading level within the same page.

@@ -1,6 +1,7 @@
 ---
 title: Smarter Search Ranking
 description: How we fixed search boost to let keyword relevance shine.
+image: https://images.unsplash.com/photo-1520500807606-4ac9ae633574?q=80&w=1200&auto=format&fit=crop
 author: ia3andy
 tags: improvement,plugin
 date: 2026-07-16 14:00:00 +0200
@@ -15,7 +16,7 @@ Lunr uses [BM25](https://en.wikipedia.org/wiki/Okapi_BM25) for scoring, where te
 ### What changed
 
 - **Boost values reduced to the BM25 range.** Marketplace pages now use `search-boost: 1.2` instead of `20`. The reference doc still ranks above unrelated pages, but a blog post with strong keyword matches now appears right after it.
-- **Section heading boost fixed.** h2 sections now rank above h6 (was inverted), with tiny values (+0.06 for h2, +0.02 for h6) that order sections within a page without pushing them above full pages.
+- **Section heading boost fixed.** h2 sections now rank above h6 (was inverted). Sections are slightly demoted (h2: ×0.96, h6: ×0.92) while full pages get a 10% boost, ensuring pages always rank above their own sections.
 - **Field boosts rebalanced.** All field boosts (title, tags, content) are now between 1 and 2, letting BM25 handle relevance naturally.
 - **Search results now show the page URL**, making it easier to see where each result links before clicking.
 
