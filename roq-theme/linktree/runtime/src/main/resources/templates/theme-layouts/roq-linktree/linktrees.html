@@ -1,0 +1,40 @@
+---
+layout: default
+title: All Trees
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<div class="lt-page">
+  <div class="lt-container">
+
+    {#include partials/roq-linktree/profile /}
+
+    <a href="/" class="lt-home-link"><i class="ph ph-house" style="font-size: 16px;"></i> Profile</a>
+
+    <div class="lt-heading">
+      <h1 class="lt-heading-title">{page.title}</h1>
+    </div>
+
+    <div class="lt-trees">
+      {#for tree in site.collections.trees}
+      <div class="lt-tree-card">
+        <h2 class="lt-tree-title">{tree.data.title}</h2>
+        <p class="lt-tree-desc">{tree.data.description}</p>
+
+        <div class="lt-qr-wrap qr-wrap" data-filename="qr-{tree.data.title.slugify}.svg">
+          {#qrcode value=tree.url.absolute alt=tree.data.title foreground=(page.data.qr-foreground ?: "#0e4a5c") background=(page.data.qr-background ?: "#FFFFFF") width=200 height=200 /}
+        </div>
+
+        <div class="lt-tree-actions">
+          <a href="{tree.url}" class="lt-tree-action">Open</a>
+          <button onclick="downloadQR(this)" class="lt-tree-action-btn">Download QR</button>
+        </div>
+      </div>
+      {/for}
+    </div>
+
+    {#insert /}
+
+  </div>
+</div>

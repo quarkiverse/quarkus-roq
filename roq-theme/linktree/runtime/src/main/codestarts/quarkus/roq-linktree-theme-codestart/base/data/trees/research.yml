@@ -1,0 +1,15 @@
+title: Research
+description: Ada Lovelace's writings and legacy
+links:
+  - name: Notes on the Analytical Engine
+    url: https://en.wikipedia.org/wiki/Ada_Lovelace#First_computer_program
+    description: The first published algorithm
+    icon: note-pencil
+  - name: The Analytical Engine
+    url: https://en.wikipedia.org/wiki/Analytical_engine
+    description: Babbage's programmable computing machine
+    icon: gear
+  - name: Ada Lovelace Institute
+    url: https://www.adalovelaceinstitute.org
+    description: Independent research on data and AI
+    icon: books

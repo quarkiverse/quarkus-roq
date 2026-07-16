@@ -5,11 +5,16 @@ image: ada.png
 bio: |
   Ada Lovelace was a 19th-century mathematician known for her
   visionary work on Charles Babbage's Analytical Engine.
-tree: my-links
 social:
-  - name: GitHub
-    url: https://github.com/adalovelace
-    icon: github-logo
-  - name: LinkedIn
-    url: https://www.linkedin.com/in/adalovelace
-    icon: linkedin-logo
+{#for s in profile.social}
+  - name: {s.name}
+    url: {s.url}
+    icon: {s.icon}
+{/for}
+links:
+{#for link in profile.links}
+  - name: {link.name}
+    url: {link.url}
+    {#if link.description}description: {link.description}
+    {/if}icon: {link.icon}
+{/for}

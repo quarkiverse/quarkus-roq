@@ -1,0 +1,14 @@
+<a href="{link.url}" target="_blank" rel="noopener noreferrer" class="group lt-link-card">
+  <span class="lt-link-content">
+    {#if link.icon}
+    <i class="ph ph-{link.icon} lt-link-icon" style="font-size: 20px;"></i>
+    {/if}
+    <span>
+      <span class="lt-link-name">{link.name}</span>
+      {#if link.description}<span class="lt-link-desc">{link.description}</span>{/if}
+    </span>
+  </span>
+  <span class="lt-link-arrow">
+    <i class="ph ph-arrow-right" style="font-size: 16px;"></i>
+  </span>
+</a>

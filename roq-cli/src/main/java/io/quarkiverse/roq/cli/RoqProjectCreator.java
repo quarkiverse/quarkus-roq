@@ -153,7 +153,8 @@ public class RoqProjectCreator {
     }
 
     private String withVersion(String gav) {
-        if (roqVersion != null && gav.startsWith(ROQ_GROUP_ID + ":")) {
+        String[] parts = gav.split(":");
+        if (roqVersion != null && parts.length == 2 && parts[0].equals(ROQ_GROUP_ID)) {
             return gav + ":" + roqVersion;
         }
         return gav;

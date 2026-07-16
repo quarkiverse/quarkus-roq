@@ -1,3 +1,176 @@
 @import "tailwindcss";
 @import "@phosphor-icons/web/regular";
 @import "@phosphor-icons/web/fill";
+
+/* Layout */
+.lt-page {
+  @apply flex items-start justify-center pb-6 pt-12;
+}
+
+.lt-page-relative {
+  @apply flex items-start justify-center pb-6 pt-12 relative;
+}
+
+.lt-container {
+  @apply w-full max-w-md mx-auto space-y-8 px-4;
+}
+
+/* Profile */
+.lt-profile {
+  @apply text-center space-y-3;
+}
+
+.lt-avatar {
+  @apply w-32 h-32 mx-auto rounded-full bg-white dark:bg-slate-800 p-2 shadow-md;
+}
+
+.lt-name {
+  @apply text-2xl font-bold tracking-tight;
+}
+
+.lt-name-text {
+  @apply text-slate-900 dark:text-white;
+}
+
+.lt-handle {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+.lt-title {
+  @apply text-sm text-slate-500 dark:text-slate-400;
+}
+
+/* Social */
+.lt-social {
+  @apply text-center space-y-3;
+}
+
+.lt-social-icons {
+  @apply flex items-center justify-center gap-5;
+}
+
+.lt-social-link {
+  @apply text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Link cards */
+.lt-links {
+  @apply space-y-3;
+}
+
+.lt-link-card {
+  @apply flex items-center justify-between px-5 py-4 rounded-lg
+         border border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-800
+         hover:border-sky-400 dark:hover:border-sky-500
+         hover:shadow-md
+         transition-all duration-200;
+}
+
+.lt-link-content {
+  @apply flex items-center gap-3;
+}
+
+.lt-link-icon {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+.lt-link-name {
+  @apply text-sm font-medium text-slate-800 dark:text-slate-100;
+}
+
+.lt-link-desc {
+  @apply block text-xs text-slate-500 dark:text-slate-400;
+}
+
+.lt-link-arrow {
+  @apply text-slate-300 dark:text-slate-600 transition-colors;
+}
+
+.group:hover .lt-link-arrow {
+  @apply text-sky-500 dark:text-sky-400;
+}
+
+/* Profile links separator */
+.lt-profile-links {
+  @apply pt-2 pb-10 space-y-3;
+}
+
+.lt-separator {
+  @apply text-center text-slate-300 dark:text-slate-600;
+}
+
+/* Trees gallery */
+.lt-trees {
+  @apply space-y-6;
+}
+
+.lt-tree-card {
+  @apply text-center space-y-4 p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800;
+}
+
+.lt-tree-title {
+  @apply text-lg font-bold text-slate-800 dark:text-slate-100;
+}
+
+.lt-tree-desc {
+  @apply text-xs text-slate-500 dark:text-slate-400;
+}
+
+.lt-qr-wrap {
+  @apply inline-block p-3 bg-white rounded-xl;
+}
+
+.lt-tree-actions {
+  @apply flex items-center justify-center gap-4;
+}
+
+.lt-tree-action {
+  @apply text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors;
+}
+
+.lt-tree-action-btn {
+  @apply text-sm text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 transition-colors cursor-pointer;
+}
+
+/* Home link */
+.lt-home-link {
+  @apply flex items-center justify-center gap-2 text-base text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Navigation */
+.lt-nav-trees {
+  @apply absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-sky-500 dark:hover:text-sky-400 transition-colors;
+}
+
+/* Section heading */
+.lt-heading {
+  @apply text-center space-y-2;
+}
+
+.lt-heading-title {
+  @apply text-2xl font-bold tracking-tight text-slate-900 dark:text-white;
+}
+
+/* 404 */
+.lt-404 {
+  @apply flex items-center justify-center min-h-[60vh];
+}
+
+.lt-404-content {
+  @apply text-center space-y-4;
+}
+
+.lt-404-code {
+  @apply text-6xl font-bold text-slate-300 dark:text-slate-700;
+}
+
+.lt-404-text {
+  @apply text-slate-500 dark:text-slate-400;
+}
+
+.lt-404-link {
+  @apply text-sky-500 hover:text-sky-600 transition-colors;
+}
+
+@import "./_custom.css";

@@ -30,16 +30,16 @@ public class QRCodeRenderer {
             background = background.substring(1);
         }
 
-        // Generate SVG representation of the QR code
+        // Compute magnification so the SVG native size matches the requested display size
+        double magnification = Math.max(1.0, (double) width / qrCode.getWidth());
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SvgRenderer renderer = new SvgRenderer(out, 1.0, new Color(background), new Color(foreground), true);
+        SvgRenderer renderer = new SvgRenderer(out, magnification, new Color(background), new Color(foreground), true);
         try {
             renderer.render(qrCode);
         } catch (IOException e) {
             throw new RuntimeException("Error rendering QR code", e);
         }
-        // Convert SVG to base64 data URI format
-        byte[] svgBytes = out.toByteArray();
         String base64Image = Okapi.dataUriSvg(out.toByteArray());
         if (asciidoc) {
             // Render the SVG QR code as an Asciidoc image

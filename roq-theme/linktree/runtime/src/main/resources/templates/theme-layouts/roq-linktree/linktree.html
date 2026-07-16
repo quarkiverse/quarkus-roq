@@ -1,0 +1,47 @@
+---
+layout: default
+robots: noindex
+sitemap: false
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<div class="lt-page-relative">
+  <a href="/trees" class="lt-nav-trees" title="All trees">
+    <i class="ph ph-tree-structure" style="font-size: 24px;"></i>
+  </a>
+  <div class="lt-container">
+
+    <div class="lt-heading">
+      <h1 class="lt-heading-title">{page.title}</h1>
+      {#if page.description}
+      <p class="lt-title">{page.description}</p>
+      {/if}
+    </div>
+
+    <div class="lt-links">
+      {#for link in page.data.links}
+      {#roq-linktree/linkCard link=link /}
+      {/for}
+    </div>
+
+    {#if page.data('show-profile', true)}
+    <div class="lt-separator">
+      <i class="ph ph-caret-double-down" style="font-size: 20px;"></i>
+    </div>
+
+    <div class="lt-profile-links">
+      {#include partials/roq-linktree/profile /}
+    </div>
+
+    {#if page.data('profile-links', true) and cdi:profile.links??}
+    <div class="lt-links">
+      {#for link in cdi:profile.links}
+      {#roq-linktree/linkCard link=link /}
+      {/for}
+    </div>
+    {/if}
+    {/if}
+
+  </div>
+</div>
