@@ -49,7 +49,7 @@ Create `content/rss.xml`:
 {#include fm/rss.html /}
 ```
 
-Add `{#rss site /}` to your root layout `<head>` to include the RSS feed link.
+`{#rss site /}` is automatically included in the base theme layout and all built-in themes. If you use a custom layout that overrides `{#head-meta}`, add it to your `<head>`.
 
 Use `contentLimit` to control `<content:encoded>`: omit for description only (default), `contentLimit=0` for full rendered content, `contentLimit=N` for a word-limited content abstract (e.g. `{#include fm/rss.html contentLimit=150 /}`).
 
