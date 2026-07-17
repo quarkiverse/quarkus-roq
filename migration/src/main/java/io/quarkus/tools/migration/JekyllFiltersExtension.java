@@ -263,6 +263,29 @@ public class JekyllFiltersExtension {
         };
     }
 
+    static <T> List<T> distinct(List<T> list) {
+        if (list == null || list.isEmpty())
+            return List.of();
+        return list.stream().distinct().toList();
+    }
+
+    static JsonArray distinct(JsonArray array) {
+        if (array == null || array.isEmpty())
+            return new JsonArray();
+        List<Object> seen = new ArrayList<>();
+        for (int i = 0; i < array.size(); i++) {
+            Object val = array.getValue(i);
+            if (!seen.contains(val)) {
+                seen.add(val);
+            }
+        }
+        return new JsonArray(seen);
+    }
+
+    /**
+     * Jekyll's "push" filter: append an element to a list and return the new list.
+     * Usage in Qute: {myList.push(item)}
+     */
     static List<Object> push(List<?> list, Object item) {
         List<Object> result = new ArrayList<>(list);
         result.add(item);
