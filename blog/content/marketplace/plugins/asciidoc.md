@@ -122,6 +122,6 @@ bar: |
     * I can use asciidoc in the data
 ---
 
-{page.data.bar.asciidocToHtml}
+{=page.data.bar.asciidocToHtml}
 ```
 |}

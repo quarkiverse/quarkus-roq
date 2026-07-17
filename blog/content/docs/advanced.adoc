@@ -381,9 +381,7 @@ Sometimes, you want to create a link for a page without holding the variable, in
 
 Qute supports an alternative expression syntax where output expressions use `{=expr}` instead of `{expr}`. This makes templates safer when content contains curly braces (e.g. code samples, JSON) since only `{=...}` and `{#...}` are interpreted as Qute expressions, everything else is plain text.
 
-NOTE: Standard Qute syntax is still the default, but this will change in a future version. New projects already have alt syntax enabled via the generated config. We recommend setting the config explicitly so your project is ready.
-
-NOTE: All examples in this documentation use the alternative expression syntax.
+NOTE: Standard Qute syntax is still the default, but this will change in a future version. New projects already have alt syntax enabled via the generated config. We recommend setting the config explicitly so your project is ready. All examples in this documentation use the alternative expression syntax.
 
 To enable it, add to your configuration:
 
