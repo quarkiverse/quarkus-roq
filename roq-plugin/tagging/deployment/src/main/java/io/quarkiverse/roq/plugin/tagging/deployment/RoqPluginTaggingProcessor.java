@@ -32,6 +32,7 @@ import io.quarkiverse.roq.plugin.tagging.RoqTaggingTemplateExtension;
 import io.quarkiverse.roq.plugin.tagging.RoqTaggingUtils;
 import io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingConfig;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -50,13 +51,15 @@ public class RoqPluginTaggingProcessor {
 
     @BuildStep
     void registerAdditionalBeans(RoqFrontMatterOutputBuildItem roqOutput,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeans) {
         if (roqOutput == null) {
             return;
         }
         additionalBeans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(RoqTaggingTemplateExtension.class)
                 .setUnremovable().build());
+        unremovableBeans.produce(UnremovableBeanBuildItem.beanTypes(RoqTaggingConfig.class));
     }
 
     @BuildStep

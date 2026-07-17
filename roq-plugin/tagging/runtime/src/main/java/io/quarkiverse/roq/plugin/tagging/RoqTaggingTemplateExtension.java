@@ -8,15 +8,36 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingConfig;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.TemplateExtension;
 
 @TemplateExtension
 public class RoqTaggingTemplateExtension {
+
+    private static final LazyValue<Boolean> LOWERCASE = new LazyValue<>(() -> {
+        var container = Arc.container();
+        if (container == null) {
+            throw new IllegalStateException("Arc container is not available");
+        }
+        var instance = container.instance(RoqTaggingConfig.class);
+        if (!instance.isAvailable()) {
+            throw new IllegalStateException("RoqTaggingConfig bean is not available");
+        }
+        return instance.get().lowercase();
+    });
+
+    private static boolean isLowercase() {
+        try {
+            return LOWERCASE.get();
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
 
     /**
      * Returns a list of all tags from the given collection, with each tag slugified.
@@ -74,12 +95,6 @@ public class RoqTaggingTemplateExtension {
         }
 
         return tagMap;
-    }
-
-    private static boolean isLowercase() {
-        return ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.roq.tagging.lowercase", Boolean.class)
-                .orElse(false);
     }
 
 }
