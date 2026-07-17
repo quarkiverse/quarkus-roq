@@ -408,6 +408,85 @@ class JekyllFrontMatterConverterTest {
         assertFalse(result.contains("link:"), "redundant permalink should not become link");
     }
 
+    // --- Excerpt → description tests ---
+
+    @Test
+    void testExcerptRenamedToDescription(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("post.md"), """
+                ---
+                title: "My Post"
+                excerpt: "A short summary"
+                ---
+                Body text.
+                """);
+
+        converter.convertExcerpts(contentDir);
+
+        String result = Files.readString(contentDir.resolve("post.md"));
+        assertTrue(result.contains("description: \"A short summary\""),
+                "excerpt should be renamed to description");
+        assertFalse(result.contains("excerpt:"),
+                "excerpt key should be removed");
+    }
+
+    @Test
+    void testExcerptSkippedWhenDescriptionExists(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("post.md"), """
+                ---
+                title: "My Post"
+                description: "Existing description"
+                excerpt: "A short summary"
+                ---
+                """);
+
+        converter.convertExcerpts(contentDir);
+
+        String result = Files.readString(contentDir.resolve("post.md"));
+        assertTrue(result.contains("description: \"Existing description\""),
+                "existing description should be preserved");
+        assertTrue(result.contains("excerpt: \"A short summary\""),
+                "excerpt should remain when description already exists");
+    }
+
+    @Test
+    void testExcerptAbsent(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        String original = """
+                ---
+                title: "My Post"
+                ---
+                Body text.
+                """;
+        Files.writeString(contentDir.resolve("post.md"), original);
+
+        converter.convertExcerpts(contentDir);
+
+        assertEquals(original, Files.readString(contentDir.resolve("post.md")));
+    }
+
+    @Test
+    void testExcerptWithoutQuotes(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("post.md"), """
+                ---
+                title: My Post
+                excerpt: A short summary without quotes
+                ---
+                """);
+
+        converter.convertExcerpts(contentDir);
+
+        String result = Files.readString(contentDir.resolve("post.md"));
+        assertTrue(result.contains("description: A short summary without quotes"));
+        assertFalse(result.contains("excerpt:"));
+    }
+
     // --- Include target prefix tests ---
 
     @Test
@@ -501,7 +580,25 @@ class JekyllFrontMatterConverterTest {
                 "Already-prefixed file should stay as-is");
     }
 
-    // --- Integration test ---
+    // --- Integration tests ---
+
+    @Test
+    void testConvertProjectConvertsExcerpts(@TempDir Path tempDir) throws IOException {
+        Files.createDirectories(tempDir.resolve("content"));
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test\n");
+        Files.writeString(tempDir.resolve("content/post.md"), """
+                ---
+                title: "My Post"
+                excerpt: "A short summary"
+                ---
+                """);
+
+        converter.convertProject(tempDir);
+
+        String result = Files.readString(tempDir.resolve("content/post.md"));
+        assertTrue(result.contains("description: \"A short summary\""));
+        assertFalse(result.contains("excerpt:"));
+    }
 
     @Test
     void testConvertProjectRunsBothTransforms(@TempDir Path tempDir) throws IOException {
