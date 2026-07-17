@@ -9,7 +9,6 @@ import static io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingKeys.TAG_COLLE
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +30,7 @@ import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
 import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink.PageLinkData;
 import io.quarkiverse.roq.plugin.tagging.RoqTaggingTemplateExtension;
 import io.quarkiverse.roq.plugin.tagging.RoqTaggingUtils;
+import io.quarkiverse.roq.plugin.tagging.runtime.RoqTaggingConfig;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -87,10 +87,7 @@ public class RoqPluginTaggingProcessor {
 
             for (RoqFrontMatterDocumentBuildItem document : documents.stream()
                     .filter(d -> d.collection().id().equals(tagging.collection())).toList()) {
-                List<String> tags = resolveTags(document);
-                if (taggingConfig.lowercase()) {
-                    tags = tags.stream().map(tag -> tag.toLowerCase(Locale.ROOT)).toList();
-                }
+                List<String> tags = resolveTags(document, taggingConfig.lowercase());
 
                 // For all the tags we create a derivation: tag -> document ids
                 for (String tag : tags) {
@@ -155,8 +152,8 @@ public class RoqPluginTaggingProcessor {
     record Tagging(String collection, String link) {
     }
 
-    private static List<String> resolveTags(RoqFrontMatterDocumentBuildItem document) {
-        return RoqTaggingUtils.slugifiedTagStrings(document.data());
+    private static List<String> resolveTags(RoqFrontMatterDocumentBuildItem document, boolean lowercase) {
+        return RoqTaggingUtils.slugifiedTagStrings(document.data(), lowercase);
     }
 
 }
