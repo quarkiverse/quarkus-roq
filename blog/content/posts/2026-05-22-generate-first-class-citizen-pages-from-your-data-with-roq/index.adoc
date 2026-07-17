@@ -32,7 +32,7 @@ In this case one item of this collection would be found under the `\https://iamr
 
 And that's all. There is NOTHING else to do. Ok, maybe the _layout_ is still work to do. Ok. A minor peculiarity, for the moment item will be made available for the templating through the page `data`, even you have specified `@DataMapping`.
 
-To access it in your **__Qute__** template you will have to use `{page.data.title}` (or if you use the alternative syntax `\{=page.data.title}`).
+To access it in your **__Qute__** template you will have to use `\{=page.data.title}` (or `\{page.data.title}` if you are not using the alternative expression syntax).
 
 The feature is beeing particularly usefull in this AI era where LLM are so keen to generate structured output. 
 

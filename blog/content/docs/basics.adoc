@@ -69,13 +69,13 @@ description: It is time to start Roqing 🎸!
 
 <p>
   With Roq, it is very easy to link to another
-  <a href="{site.url('/roq-page')}">page</a>. // <2>
+  <a href="{=site.url('/roq-page')}">page</a>. // <2>
 </p>
 
 ----
 
 <1> The index.html also describe your `site` information through a FrontMatter header.
-<2> We use the `{site.url(path)}` using Qute to manually resolve other pages urls.
+<2> We use the `{=site.url(path)}` using Qute to manually resolve other pages urls.
 
 TIP: There are different ways to link your pages as explained in the  link:{site-url}docs/advanced#links[Links & Urls] section.
 
@@ -102,7 +102,7 @@ the-rope: You Roq! <2>
 
 If you thought you hit Roq Bottom, take this 🪢 because :
 
-__{page.data.the-rope}!__ <3>
+__{=page.data.the-rope}!__ <3>
 
 ----
 
@@ -134,7 +134,7 @@ bar: |
     This is using **Markdown**
 ---
 
-{page.data.bar.mdToHtml}
+{=page.data.bar.mdToHtml}
 
 ----
 
@@ -150,7 +150,7 @@ TIP: See the link:/markups/markdown/[Markdown markup test] page for example usag
 AsciiDoc is also fully supported in Roq via the link:/plugin/asciidoc/[AsciiDoc plugin].
 Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
 
-TIP: When using Qute expressions as link targets in AsciiDoc, use the explicit `link:` macro. AsciiDoc only auto-detects links for known URL schemes (http, https, ...), so `\{page.url}[Click here]` won't render as a link. Use `link:\{page.url}[Click here]` instead.
+TIP: When using Qute expressions as link targets in AsciiDoc, use the explicit `link:` macro. AsciiDoc only auto-detects links for known URL schemes (http, https, ...), so `\{=page.url}[Click here]` won't render as a link. Use `link:\{=page.url}[Click here]` instead.
 
 TIP: See the link:/markups/asciidoc/[AsciiDoc markup test] page for example usage of all supported AsciiDoc features.
 
@@ -176,7 +176,7 @@ img: 2024/10/roq-solid.jpg
 
 ---
 
-# {page.title} <2>
+# {=page.title} <2>
 
 Here is a list of puns suggested by Chat GPT:
 1.	Roq and Rule – A play on "rock and roll," implying dominance or success.
@@ -207,11 +207,11 @@ Ok, to dive a bit deeper, we could create a json listing all posts with some inf
 [
 {#for post in site.collections.posts} // <1>
   {
-    "title": "{post.title}",
-    "url": "{post.url.absolute}", // <2>
-    "image": "{post.image.absolute}", // <3>
-    "date": "{post.date}", // <4>
-    "read-time": "{post.readTime}" // <5>
+    "title": "{=post.title}",
+    "url": "{=post.url.absolute}", // <2>
+    "image": "{=post.image.absolute}", // <3>
+    "date": "{=post.date}", // <4>
+    "read-time": "{=post.readTime}" // <5>
   }{#if !post_isLast},{/if}
 {/for}
 ]
@@ -282,7 +282,7 @@ Now, we can access all the new collection `docs` data as follows:
 [source]
 ----
 {#for doc in site.collections.docs}
-- [{doc.title}]({doc.url})
+- [{=doc.title}]({=doc.url})
 {/for}
 ----
 
@@ -350,7 +350,7 @@ To do so, you will first need a `default.html` file as followed:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{page.title}</title> <1>
+    <title>{=page.title}</title> <1>
 </head>
 <body>
     {#insert /} <2>
@@ -434,10 +434,10 @@ For example, create a tag in `templates/partials/post-link.html`:
 ----
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage post}
 <div class="post-link">
-    <a href="{post.url}">
-      <img src="{post.image}" alt="{post.title}" class="post-image"/>
-      <h3>{post.title}</h3>
-      <p>{post.description}</p>
+    <a href="{=post.url}">
+      <img src="{=post.image}" alt="{=post.title}" class="post-image"/>
+      <h3>{=post.title}</h3>
+      <p>{=post.description}</p>
     </a>
 </div>
 ----
@@ -636,7 +636,7 @@ Roq uses the site locale to format dates in templates. Set the default locale in
 site.default-locale=fr
 ----
 
-This affects all locale-aware date extensions such as `shortDate`, `longDate`, and `dateStyle`. For example, with `site.default-locale=fr`, `{page.date.longDate}` renders "9 octobre 2024" instead of "October 9, 2024".
+This affects all locale-aware date extensions such as `shortDate`, `longDate`, and `dateStyle`. For example, with `site.default-locale=fr`, `{=page.date.longDate}` renders "9 octobre 2024" instead of "October 9, 2024".
 
 You can also override the locale per page using frontmatter:
 
@@ -682,7 +682,7 @@ Date extensions use Java's `FormatStyle` for locale-aware formatting. The availa
 | Wednesday, October 9, 2024
 |===
 
-The `style` extension also accepts a custom date pattern: `\{page.date.style('yyyy, MMM dd')}`.
+The `style` extension also accepts a custom date pattern: `\{=page.date.style('yyyy, MMM dd')}`.
 
 NOTE: Roq does not yet support i18n collections (generating the same content in multiple languages with locale-specific URLs). The locale setting only affects date and number formatting in templates.
 
@@ -844,7 +844,7 @@ Access it with the `cdi` namespace:
 
 [source,html]
 ----
-{cdi:foo.bar}
+{=cdi:foo.bar}
 ----
 
 For structured data:
@@ -862,10 +862,10 @@ john:
 
 [source,html]
 ----
-{cdi:authors.ia3andy.name}
+{=cdi:authors.ia3andy.name}
 
 {#let author=cdi:authors.get(page.data.author)}
-  <a href="{author.url}">{author.name}</a>
+  <a href="{=author.url}">{=author.name}</a>
 {/let}
 ----
 
@@ -882,8 +882,8 @@ data/heroes/
 
 [source,html]
 ----
-{cdi:heroes.batman.name}
-{cdi:heroes.superman.city}
+{=cdi:heroes.batman.name}
+{=cdi:heroes.superman.city}
 ----
 
 For type-safe Java mappings, data collections, and configuration, see the xref:advanced.adoc#data[Data section] in the advanced guide.
@@ -970,7 +970,7 @@ and then you can use that extension in your template:
 
 [source,asciidoc]
 -----
-{site.pageContent(page).doSomething}
+{=site.pageContent(page).doSomething}
 -----
 
 For more details, see the https://quarkus.io/guides/qute#template-extension-methods[Quarkus] and https://quarkus.io/guides/qute-reference#virtual_methods[Qute] documentation.
@@ -1026,9 +1026,9 @@ The resulting link for a page can be different from its directory name, attached
 
 Let's imagine for a minute that the page link is `https://my-site.org/awesome-page/`, then the slide will be served on `https://my-site.org/awesome-page/slide.pdf`.
 
-You can use `{page.file("slide.pdf")}` to resolve the file url *and check that the file exists*. This is also useful in other cases, for example from another page (e.g. `{site.page("my-page/index.md").file("slide.pdf")}`) or if you want the absolute url (e.g. `{page.file("slide.pdf").absolute}`):
+You can use `{=page.file("slide.pdf")}` to resolve the file url *and check that the file exists*. This is also useful in other cases, for example from another page (e.g. `{=site.page("my-page/index.md").file("slide.pdf")}`) or if you want the absolute url (e.g. `{=page.file("slide.pdf").absolute}`):
 
-TIP: If you want to iterate over page files, they can be listed using `{page.files}`.
+TIP: If you want to iterate over page files, they can be listed using `{=page.files}`.
 
 === Images
 
@@ -1043,20 +1043,20 @@ The default public path is `images/` and can be customized in the site configura
 Use `site.image()` to generate the correct URL:
 
 ```html
-<img src="{site.image('image-1.png')}" />
+<img src="{=site.image('image-1.png')}" />
 ```
 
 TIP: `site.image(name)` is equivalent to:
 
 ```html
-<img src="{site.file('images/' + name)}" />
+<img src="{=site.file('images/' + name)}" />
 ```
 
 ==== Page images
 
-When a page is a directory (for example `posts/surf/index.html`), the method `{page.image(name)}` checks if the image is attached to that page and returns its URL.
+When a page is a directory (for example `posts/surf/index.html`), the method `{=page.image(name)}` checks if the image is attached to that page and returns its URL.
 
-For single‑file pages (`posts/basketball.md`), `{page.image(name)}` behaves like `site.image(name)` and resolves from `public/images/`.
+For single‑file pages (`posts/basketball.md`), `{=page.image(name)}` behaves like `site.image(name)` and resolves from `public/images/`.
 
 Example structure:
 
@@ -1077,7 +1077,7 @@ my-site/
 ```
 
 <1> Non-directory pages → `page.image()` == `site.image()`.
-<2> Page-attached file → accessible via `{page.image('surf.jpg')}`.
+<2> Page-attached file → accessible via `{=page.image('surf.jpg')}`.
 <3> Site images → accessible everywhere via `site.image(name)`.
 
 ==== Usage example
@@ -1090,15 +1090,15 @@ image: cover.jpg
 ---
 <h2>👍</h2>
 <img src="surf.jpg" />                       <!-- 1 -->
-<img src="{page.image()}" />                 <!-- 2 -->
-<img src="{page.image('surf.jpg')}" />       <!-- 3 -->
-<img src="{site.image('basketball.jpg')}" /> <!-- 4 -->
-<img src="{site.image('basketball.png').absolute}" /> <!-- 5 -->
+<img src="{=page.image()}" />                 <!-- 2 -->
+<img src="{=page.image('surf.jpg')}" />       <!-- 3 -->
+<img src="{=site.image('basketball.jpg')}" /> <!-- 4 -->
+<img src="{=site.image('basketball.png').absolute}" /> <!-- 5 -->
 
 <h2>👎</h2>
-<img src="{site.image('surf.jpg')}" />       <!-- 6 -->
-<img src="{page.image('soccer.jpg')}" />     <!-- 6 -->
-<img src="{page.image('basketball.jpg')}" /> <!-- 6 -->
+<img src="{=site.image('surf.jpg')}" />       <!-- 6 -->
+<img src="{=page.image('soccer.jpg')}" />     <!-- 6 -->
+<img src="{=page.image('basketball.jpg')}" /> <!-- 6 -->
 ```
 
 === Page & Site cover image
@@ -1111,10 +1111,10 @@ Page cover image is referenced in the page FM `image` data.
 image: my-page.png
 ---
 
-{page.image}
+{=page.image}
 ----
 
-The url can be accessed from this template (and its parent layouts) through `{page.image}`.
+The url can be accessed from this template (and its parent layouts) through `{=page.image}`.
 
 [source,yaml]
 .index.html
@@ -1124,7 +1124,7 @@ image: my-site.png
 ---
 ----
 
-It can be accessed in any template through `{site.image}`.
+It can be accessed in any template through `{=site.image}`.
 
 == Styles and Javascript
 

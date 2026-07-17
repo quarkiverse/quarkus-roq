@@ -374,7 +374,7 @@ Create `templates/partials/profile.html` that displays the avatar, name, handle,
 <details>
 <summary>See hint</summary>
 
-Partials are included with `{#include partials/profile /}` and share the parent template's context. Use `site.image(cdi:profile.image)` for the avatar URL. Loop through `cdi:profile.social` for the social icons with `ph-fill ph-{s.icon}` classes.
+Partials are included with `{#include partials/profile /}` and share the parent template's context. Use `site.image(cdi:profile.image)` for the avatar URL. Loop through `cdi:profile.social` for the social icons with `ph-fill ph-{=s.icon}` classes.
 
 </details>
 
@@ -386,21 +386,21 @@ Create `templates/partials/profile.html`:
 ```html
 <div class="lt-profile">
   {#if cdi:profile.image}
-  <img src="{site.image(cdi:profile.image)}" alt="{cdi:profile.name}" class="lt-avatar">
+  <img src="{=site.image(cdi:profile.image)}" alt="{=cdi:profile.name}" class="lt-avatar">
   {/if}
   <h1 class="lt-name">
-    {#if cdi:profile.name}<span class="lt-name-text">{cdi:profile.name}</span>{/if}
-    {#if cdi:profile.handle}<span class="lt-handle">{#if cdi:profile.name} {/if}{cdi:profile.handle}</span>{/if}
+    {#if cdi:profile.name}<span class="lt-name-text">{=cdi:profile.name}</span>{/if}
+    {#if cdi:profile.handle}<span class="lt-handle">{#if cdi:profile.name} {/if}{=cdi:profile.handle}</span>{/if}
   </h1>
-  <p class="lt-title">{cdi:profile.title}</p>
+  <p class="lt-title">{=cdi:profile.title}</p>
 </div>
 
 {#if cdi:profile.social??}
 <div class="lt-social">
   <div class="lt-social-icons">
     {#for s in cdi:profile.social}
-    <a href="{s.url}" target="_blank" rel="noopener noreferrer" aria-label="{s.name}" class="lt-social-link">
-      <i class="ph-fill ph-{s.icon}" style="font-size: 24px;"></i>
+    <a href="{=s.url}" target="_blank" rel="noopener noreferrer" aria-label="{=s.name}" class="lt-social-link">
+      <i class="ph-fill ph-{=s.icon}" style="font-size: 24px;"></i>
     </a>
     {/for}
   </div>
@@ -429,14 +429,14 @@ Tags are called with `{#linkCard link=myLink /}`. The `link` variable is passed 
 Create `templates/tags/linkCard.html`:
 
 ```html
-<a href="{link.url}" target="_blank" rel="noopener noreferrer" class="group lt-link-card">
+<a href="{=link.url}" target="_blank" rel="noopener noreferrer" class="group lt-link-card">
   <span class="lt-link-content">
     {#if link.icon}
-    <i class="ph ph-{link.icon} lt-link-icon" style="font-size: 20px;"></i>
+    <i class="ph ph-{=link.icon} lt-link-icon" style="font-size: 20px;"></i>
     {/if}
     <span>
-      <span class="lt-link-name">{link.name}</span>
-      <span class="lt-link-desc">{link.description}</span>
+      <span class="lt-link-name">{=link.name}</span>
+      <span class="lt-link-desc">{=link.description}</span>
     </span>
   </span>
   <span class="lt-link-arrow">
@@ -635,9 +635,9 @@ sitemap: false
   <div class="lt-container">
 
     <div class="lt-heading">
-      <h1 class="lt-heading-title">{page.title}</h1>
+      <h1 class="lt-heading-title">{=page.title}</h1>
       {#if page.description}
-      <p class="lt-title">{page.description}</p>
+      <p class="lt-title">{=page.description}</p>
       {/if}
     </div>
 
@@ -717,21 +717,21 @@ layout: default
     <a href="/" class="lt-home-link"><i class="ph ph-house" style="font-size: 16px;"></i> Profile</a>
 
     <div class="lt-heading">
-      <h1 class="lt-heading-title">{page.title}</h1>
+      <h1 class="lt-heading-title">{=page.title}</h1>
     </div>
 
     <div class="lt-trees">
       {#for tree in site.collections.trees}
       <div class="lt-tree-card">
-        <h2 class="lt-tree-title">{tree.data.title}</h2>
-        <p class="lt-tree-desc">{tree.data.description}</p>
+        <h2 class="lt-tree-title">{=tree.data.title}</h2>
+        <p class="lt-tree-desc">{=tree.data.description}</p>
 
-        <div class="lt-qr-wrap qr-wrap" data-filename="qr-{tree.data.title.slugify}.svg">
+        <div class="lt-qr-wrap qr-wrap" data-filename="qr-{=tree.data.title.slugify}.svg">
           {#qrcode value=tree.url.absolute alt=tree.data.title foreground="#0e4a5c" background="#FFFFFF" width=200 height=200 /}
         </div>
 
         <div class="lt-tree-actions">
-          <a href="{tree.url}" class="lt-tree-action">Open</a>
+          <a href="{=tree.url}" class="lt-tree-action">Open</a>
           <button onclick="downloadQR(this)" class="lt-tree-action-btn">Download QR</button>
         </div>
       </div>

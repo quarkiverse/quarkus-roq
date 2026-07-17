@@ -114,7 +114,7 @@ theme-layout: default
   <header class="border-b border-slate-200 dark:border-slate-800">
     <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
       <a href="/" class="text-lg font-bold text-slate-900 dark:text-white hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-        {site.title}
+        {=site.title}
       </a>
       <nav class="flex gap-4 text-sm">
         <a href="/" class="text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Home</a>
@@ -262,14 +262,14 @@ layout: default
 
 <article class="space-y-6">
   <header class="space-y-2">
-    <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{page.title}</h1>
+    <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{=page.title}</h1>
     {#if page.date}
-    <time class="text-sm text-slate-500 dark:text-slate-400">{page.date.longDate}</time>
+    <time class="text-sm text-slate-500 dark:text-slate-400">{=page.date.longDate}</time>
     {/if}
     {#if page.data.tags}
     <div class="flex gap-2">
       {#for tag in page.data.tags.asStrings}
-      <span class="text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded">{tag}</span>
+      <span class="text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded">{=tag}</span>
       {/for}
     </div>
     {/if}
@@ -281,10 +281,10 @@ layout: default
 
   <footer class="border-t border-slate-200 dark:border-slate-800 pt-4 flex justify-between text-sm text-slate-500 dark:text-slate-400">
     {#if page.previous}
-    <a href="{page.previous.url}" class="hover:text-sky-600 dark:hover:text-sky-400">&larr; {page.previous.title}</a>
+    <a href="{=page.previous.url}" class="hover:text-sky-600 dark:hover:text-sky-400">&larr; {=page.previous.title}</a>
     {#else}<span></span>{/if}
     {#if page.next}
-    <a href="{page.next.url}" class="hover:text-sky-600 dark:hover:text-sky-400">{page.next.title} &rarr;</a>
+    <a href="{=page.next.url}" class="hover:text-sky-600 dark:hover:text-sky-400">{=page.next.title} &rarr;</a>
     {/if}
   </footer>
 </article>
@@ -396,11 +396,11 @@ paginate:
 
   <div class="space-y-4">
     {#for post in site.collections.posts.paginated(page.paginator)}
-    <a href="{post.url}" class="block p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md transition-all duration-200">
-      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{post.title}</h2>
-      <time class="text-xs text-slate-500 dark:text-slate-400">{post.date.longDate}</time>
+    <a href="{=post.url}" class="block p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md transition-all duration-200">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{=post.title}</h2>
+      <time class="text-xs text-slate-500 dark:text-slate-400">{=post.date.longDate}</time>
       {#if post.description}
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{post.description}</p>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{=post.description}</p>
       {/if}
     </a>
     {/for}
@@ -452,14 +452,14 @@ paginate: true
 
 <div class="space-y-6">
   <div class="text-center space-y-2">
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Tag: {page.data.tag}</h1>
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Tag: {=page.data.tag}</h1>
   </div>
 
   <div class="space-y-4">
     {#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
-    <a href="{post.url}" class="block p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md transition-all duration-200">
-      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{post.title}</h2>
-      <time class="text-xs text-slate-500 dark:text-slate-400">{post.date.longDate}</time>
+    <a href="{=post.url}" class="block p-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md transition-all duration-200">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{=post.title}</h2>
+      <time class="text-xs text-slate-500 dark:text-slate-400">{=post.date.longDate}</time>
     </a>
     {/for}
   </div>
@@ -475,7 +475,7 @@ Now update the tag spans in your `post.html` layout to be clickable links:
 <details>
 <summary>See hint</summary>
 
-Replace the `<span>` tags with `<a>` links pointing to `{site.url('/posts/tag', tag.slugify)}`.
+Replace the `<span>` tags with `<a>` links pointing to `{=site.url('/posts/tag', tag.slugify)}`.
 
 </details>
 
@@ -488,7 +488,7 @@ In `templates/layouts/post.html`, replace the tags section:
     {#if page.data.tags}
     <div class="flex gap-2">
       {#for tag in page.data.tags.asStrings}
-      <a href="{site.url('/posts/tag', tag.slugify)}" class="text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded hover:bg-sky-200 dark:hover:bg-sky-800 transition-colors">{tag}</a>
+      <a href="{=site.url('/posts/tag', tag.slugify)}" class="text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded hover:bg-sky-200 dark:hover:bg-sky-800 transition-colors">{=tag}</a>
       {/for}
     </div>
     {/if}

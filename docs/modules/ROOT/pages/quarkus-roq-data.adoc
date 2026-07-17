@@ -173,13 +173,13 @@ Data beans are named and can be accessed from any Qute template using the `cdi` 
 
 [source,html]
 ----
-{cdi:mountain.name}: {cdi:mountain.elevation}
+{=cdi:mountain.name}: {=cdi:mountain.elevation}
 
 {#for mountain in cdi:mountains.list}
-  <li>{mountain.name}: {mountain.elevation}</li>
+  <li>{=mountain.name}: {=mountain.elevation}</li>
 {/for}
 
-{cdi:heroes.batman.name}
+{=cdi:heroes.batman.name}
 ----
 
 NOTE: For type-safety, use a `@DataMapping` bean and access it using the `cdi` namespace.

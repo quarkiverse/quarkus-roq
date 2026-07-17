@@ -26,7 +26,7 @@ tagging: posts
 ---
 
 {#for post in site.collections.get(page.data.tagCollection)}
-  <div>{post.title}</div>
+  <div>{=post.title}</div>
 {/for}
 ```
 |}
@@ -43,7 +43,7 @@ paginate: true
 ---
 
 {#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}
-  <div>{post.title}</div>
+  <div>{=post.title}</div>
 {/for}
 ```
 |}
@@ -57,7 +57,7 @@ There is also a `site.tags` property, which enables this syntax in templates:
 ```html
 {#for entry in site.tags}
     {#for entry in site.tags}
-        Tag: {entry.key} has {entry.value.size} pages
+        Tag: {=entry.key} has {=entry.value.size} pages
     {/for} 
 {/for}
 
@@ -70,7 +70,7 @@ Or with sorting:
 ```html
 {#let tag_words=site.tags.entrySet.sort('key')}
     {#for entry in tag_words}
-        <a href="/blog/tag/{entry.key}">{entry.key}</a> ({entry.value.size})
+        <a href="/blog/tag/{=entry.key}">{=entry.key}</a> ({=entry.value.size})
     {/for}
 {/let}
 ```

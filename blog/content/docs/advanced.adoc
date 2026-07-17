@@ -346,13 +346,13 @@ The pages links are automatically converted to urls by Roq, they are available i
 
 [source,html]
 ----
-<a href="{site.url}">Back to main page</a>
+<a href="{=site.url}">Back to main page</a>
 ----
 or to get the next page url in a document:
 
 [source,html]
 ----
-<a href="{page.next.url}">{page.next.title}</a>
+<a href="{=page.next.url}">{=page.next.title}</a>
 ----
 
 or when iterating on documents:
@@ -360,7 +360,7 @@ or when iterating on documents:
 [source,html]
 ----
 {#for post in site.collections.posts}
-  <a href="{post.url}">{post.title}</a>
+  <a href="{=post.url}">{=post.title}</a>
 {/for}
 ----
 
@@ -368,10 +368,10 @@ or also to manually retrieve a page url with `site.page(sourcePath)`:
 
 [source,html]
 ----
-<a href="{site.page('foo.html').url}">{site.page('foo.html').title}</a>
+<a href="{=site.page('foo.html').url}">{=site.page('foo.html').title}</a>
 ----
 
-TIP: By default, url will be rendered as the path from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{site.url.absolute}`).
+TIP: By default, url will be rendered as the path from the site root. You can also get the full absolute url (i.e. from `http(s)://`) by using `absolute` on any url (e.g. `{=site.url.absolute}`).
 
 === Manual linking
 
@@ -381,7 +381,7 @@ Sometimes, you want to create a link for a page without holding the variable, in
 
 Qute supports an alternative expression syntax where output expressions use `{=expr}` instead of `{expr}`. This makes templates safer when content contains curly braces (e.g. code samples, JSON) since only `{=...}` and `{#...}` are interpreted as Qute expressions, everything else is plain text.
 
-NOTE: This will become the default syntax for Roq in a future version.
+NOTE: Standard Qute syntax is still the default, but this will change in a future version. New projects already have alt syntax enabled via the generated config. We recommend setting the config explicitly so your project is ready. All examples in this documentation use the alternative expression syntax.
 
 To enable it, add to your configuration:
 
@@ -447,7 +447,7 @@ Then use it in templates:
 
 [source,html]
 ----
-{cdi:mountain.name}: {cdi:mountain.elevation}
+{=cdi:mountain.name}: {=cdi:mountain.elevation}
 ----
 
 === Array data files
@@ -464,7 +464,7 @@ public record Mountains(List<Mountain> list) {} // <1>
 [source,html]
 ----
 {#for mountain in cdi:mountains.list}
-  {mountain.name}: {mountain.elevation}
+  {=mountain.name}: {=mountain.elevation}
 {/for}
 ----
 
@@ -485,7 +485,7 @@ public record HeroList(List<Hero> list) {
 [source,html]
 ----
 {#for hero in cdi:heroList.list}
-  {hero.name} from {hero.city}
+  {=hero.name} from {=hero.city}
 {/for}
 ----
 
@@ -500,7 +500,7 @@ public record HeroMap(Map<String, Hero> map) {
 
 [source,html]
 ----
-{cdi:heroMap.map.batman.name}
+{=cdi:heroMap.map.batman.name}
 ----
 
 === Type reference
@@ -581,8 +581,8 @@ The layout template accesses data fields via `page.data`:
 [source,html]
 .templates/layouts/page-event.html
 ----
-<h1>{page.data.name}</h1>
-<p>{page.data.description}</p>
+<h1>{=page.data.name}</h1>
+<p>{=page.data.description}</p>
 ----
 
 === Data configuration
@@ -626,7 +626,7 @@ First, include the `quarkus-roq-testing` test dependency in your `pom.xml`.
     <dependency>
         <groupId>io.quarkiverse.roq</groupId>
         <artifactId>quarkus-roq-testing</artifactId>
-        <version>{cdi:project-info.release.current-version}</version>
+        <version>{=cdi:project-info.release.current-version}</version>
         <scope>test</scope>
     </dependency>
 ----
