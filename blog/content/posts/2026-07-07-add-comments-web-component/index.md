@@ -426,7 +426,7 @@ theme-layout: post
 {#insert /}
 
 <script crossorigin src="http://localhost:7070/static/bundle/app.js" type="module"></script>
-<comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
+<comments-section post-slug="{=page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
 </details>
@@ -438,7 +438,7 @@ In your existing `templates/layouts/post.html`, add the script and component aft
 
 ```html
 <script crossorigin src="http://localhost:7070/static/bundle/app.js" type="module"></script>
-<comments-section post-slug="{page.slug}" server-url="http://localhost:7070"></comments-section>
+<comments-section post-slug="{=page.slug}" server-url="http://localhost:7070"></comments-section>
 ```
 
 </details>

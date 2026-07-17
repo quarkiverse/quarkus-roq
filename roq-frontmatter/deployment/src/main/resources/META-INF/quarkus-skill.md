@@ -83,7 +83,7 @@ layout: default
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 <main>
-  <h1>{page.title}</h1>
+  <h1>{=page.title}</h1>
   {#insert /}
 </main>
 ```
@@ -95,7 +95,7 @@ layout: default
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{page.title}</title>
+  <title>{=page.title}</title>
   {#seo page site /}
   {#rss site /}{! adds the RSS <link> tag !}
   {#insert head /}
@@ -108,7 +108,7 @@ layout: default
 
 **Layout chain**: A page with `layout: post` → post layout has `layout: main` → main has `layout: default` → default is the root (no layout field). Each level uses `{#insert /}` where child content goes.
 
-**IMPORTANT**: Use `{#insert /}` in layouts to render child content. NEVER use `{page.content}` in layouts — that causes recursive rendering issues.
+**IMPORTANT**: Use `{#insert /}` in layouts to render child content. NEVER use `{=page.content}` in layouts — that causes recursive rendering issues.
 
 ### Collections
 
@@ -162,9 +162,9 @@ This lets multiple collections share the same data source with different layouts
 
 The layout template accesses data fields via `page.data`:
 ```html
-<h1>{page.data.id}</h1>
-<h2>{page.data.name}</h2>
-<p>{page.data.description}</p>
+<h1>{=page.data.id}</h1>
+<h2>{=page.data.name}</h2>
+<p>{=page.data.description}</p>
 ```
 
 **File naming**: Documents in collection directories use date-based names: `YYYY-MM-DD-slug.md` (e.g. `2024-08-29-welcome-to-roq.md`). The date is extracted from the filename.
@@ -174,17 +174,17 @@ The layout template accesses data fields via `page.data`:
 **Iterating**:
 ```html
 {#for post in site.collections.posts}
-  <a href="{post.url}">{post.title}</a>
+  <a href="{=post.url}">{=post.title}</a>
 {/for}
 ```
 
 **Document navigation**:
 ```html
 {#if page.previous}
-  <a href="{page.previous.url}">Previous: {page.previous.title}</a>
+  <a href="{=page.previous.url}">Previous: {=page.previous.title}</a>
 {/if}
 {#if page.next}
-  <a href="{page.next.url}">Next: {page.next.title}</a>
+  <a href="{=page.next.url}">Next: {=page.next.title}</a>
 {/if}
 ```
 
@@ -218,8 +218,8 @@ paginate:
 ```html
 {#for post in site.collections.posts.paginated(page.paginator)}
   <article>
-    <h2><a href="{post.url}">{post.title}</a></h2>
-    <p>{post.description}</p>
+    <h2><a href="{=post.url}">{=post.title}</a></h2>
+    <p>{=post.description}</p>
   </article>
 {/for}
 ```
@@ -251,7 +251,7 @@ paginate:
 - `site.url(path)` — resolve path relative to root. Also `site.url(path, path1)`, `site.url(path, path1, path2)`
 - `site.title` — from index page frontmatter `title`
 - `site.description` — from index page frontmatter `description`
-- `site.image` — default site image from frontmatter `image`/`img`/`picture`. Already resolves from `public/images/`. Use directly: `{site.image}`, never `{site.image('/images/...')}` or `{site.image('images/...')}`
+- `site.image` — default site image from frontmatter `image`/`img`/`picture`. Already resolves from `public/images/`. Use directly: `{=site.image}`, never `{=site.image('/images/...')}` or `{=site.image('images/...')}`
 - `site.image(name)` — resolve image by filename only (e.g. `site.image('logo.png')`, not `site.image('/images/logo.png')`)
 - `site.imageExists(name)` — check if image exists
 - `site.data` — site-level frontmatter data (`JsonObject`)
@@ -271,7 +271,7 @@ paginate:
 - `page.url` — page URL (`RoqUrl`)
 - `page.title` — from frontmatter `title`
 - `page.description` — from frontmatter `description`
-- `page.image` — page image (`RoqUrl`). Already resolves from `public/images/` or attached files. Use directly: `{page.image}`, never `{page.image('/images/...')}` or `{page.image('images/...')}`
+- `page.image` — page image (`RoqUrl`). Already resolves from `public/images/` or attached files. Use directly: `{=page.image}`, never `{=page.image('/images/...')}` or `{=page.image('images/...')}`
 - `page.image(name)` — resolve specific image by filename only (e.g. `page.image('photo.jpg')`, not `page.image('/images/photo.jpg')`)
 - `page.imageExists(name)` — check if image exists
 - `page.date` — page date (`ZonedDateTime`, null for normal pages without a date; always set for collection documents)
@@ -300,22 +300,24 @@ paginate:
 - `page.hidden` — whether document is hidden
 
 **`RoqUrl`** (URL object):
-- `{url}` or `{url.path}` — relative path (e.g. `/posts/my-post/`), encoded
-- `{url.absolute}` — full URL (e.g. `https://example.com/posts/my-post/`)
-- `{url.relative}` — same as `path`
-- `{url.encoded}` — URL-encoded absolute URL
-- `{url.resolve(path)}` or `{url.join(path)}` — join with another path
-- `{url.append(str)}` — concatenate without `/`
-- `{url.isExternal}` — boolean
-- `{url.fromRoot(path)}` — resolve from app root
+- `{=url}` or `{=url.path}` — relative path (e.g. `/posts/my-post/`), encoded
+- `{=url.absolute}` — full URL (e.g. `https://example.com/posts/my-post/`)
+- `{=url.relative}` — same as `path`
+- `{=url.encoded}` — URL-encoded absolute URL
+- `{=url.resolve(path)}` or `{=url.join(path)}` — join with another path
+- `{=url.append(str)}` — concatenate without `/`
+- `{=url.isExternal}` — boolean
+- `{=url.fromRoot(path)}` — resolve from app root
 
 ### Qute Syntax Essentials
 
+> **Note:** Examples in this guide use the alternative expression syntax (`{=expr}`), which is enabled by default in new Roq projects. See [Alternative Expression Syntax](#alternative-expression-syntax) for details.
+
 ```html
 {! Expressions !}
-{page.title}
-{page.data.customField}
-{page.date.format('yyyy, MMM dd')}
+{=page.title}
+{=page.data.customField}
+{=page.date.format('yyyy, MMM dd')}
 
 {! Conditionals !}
 {#if page.image}...{/if}
@@ -334,21 +336,21 @@ paginate:
 {#insert menu}{#include partials/sidebar-menu /}{/}
 
 {! URL resolution !}
-<a href="{site.url('posts/my-post')}">Link</a>
-<a href="{site.url('docs', 'getting-started')}">Docs</a>
+<a href="{=site.url('posts/my-post')}">Link</a>
+<a href="{=site.url('docs', 'getting-started')}">Docs</a>
 
 {! CDI beans (data files) !}
-{cdi:authors.ia3andy.name}
-{#for item in cdi:contributors.contributors}{item.name}{/for}
+{=cdi:authors.ia3andy.name}
+{#for item in cdi:contributors.contributors}{=item.name}{/for}
 
 {! Let bindings !}
 {#let author=cdi:authors.get(page.data.author)}
-  {author.name}
+  {=author.name}
 {/let}
 
 {! Slugify !}
 {#let tagSlug=tag.slugify}
-  <a href="{site.url('/posts/tag', tagSlug)}">{tagSlug}</a>
+  <a href="{=site.url('/posts/tag', tagSlug)}">{=tagSlug}</a>
 {/let}
 
 {! Type declarations (in layouts) !}
@@ -356,8 +358,9 @@ paginate:
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
 
-{! Escaping Qute in content (standard syntax only) !}
-\{not-a-qute-expression}
+{! With alt syntax, curly braces are plain text !}
+{not-evaluated} is just plain text
+{=page.title} is evaluated
 ```
 
 ### Alternative Expression Syntax
@@ -374,7 +377,7 @@ With alt syntax enabled:
 - Sections (unchanged): `{#for ...}`, `{#if ...}`, `{#include ...}`, `{@type ...}`
 - Plain text: `{anything}` is NOT interpreted (no escaping needed)
 
-This will become the default syntax for Roq in a future version.
+Standard Qute syntax is still the default, but this will change in a future version. New projects already have alt syntax enabled via the generated config. We recommend setting the config explicitly so your project is ready.
 
 ### Data Files
 
@@ -389,10 +392,10 @@ ia3andy:
 
 **Template access**:
 ```html
-{cdi:authors.ia3andy.name}
+{=cdi:authors.ia3andy.name}
 
 {#let author=cdi:authors.get(page.data.author)}
-  <span>{author.name}</span>
+  <span>{=author.name}</span>
 {/let}
 ```
 
@@ -422,22 +425,22 @@ Add to root layout `<head>`:
 ### Template Extensions
 
 Date formatting (on `ZonedDateTime`):
-- `{page.date.iso}` — ISO 8601 (`2024-08-29T13:32:20+02:00`)
-- `{page.date.isoDate}` — date only (`2024-08-29`)
-- `{page.date.shortDate}` / `{page.date.longDate}` — locale-aware date
-- `{page.date.shortDateTime}` / `{page.date.longDateTime}` — locale-aware date-time
-- `{page.date.rfc822}` — RFC 822 (for RSS)
-- `{page.date.format('yyyy, MMM dd')}` — custom pattern
+- `{=page.date.iso}` — ISO 8601 (`2024-08-29T13:32:20+02:00`)
+- `{=page.date.isoDate}` — date only (`2024-08-29`)
+- `{=page.date.shortDate}` / `{=page.date.longDate}` — locale-aware date
+- `{=page.date.shortDateTime}` / `{=page.date.longDateTime}` — locale-aware date-time
+- `{=page.date.rfc822}` — RFC 822 (for RSS)
+- `{=page.date.format('yyyy, MMM dd')}` — custom pattern
 
 Content helpers:
-- `{text.slugify}` — URL-friendly slug
-- `{htmlContent.stripHtml}` — remove HTML tags
-- `{text.numberOfWords}` — word count
-- `{text.wordLimit(n)}` — truncate to N words
-- `{page.readTime}` — estimated reading time in minutes
-- `{page.contentAbstract}` / `{page.contentAbstract(n)}` — first N words (default 75)
-- `{list.randomise}` — shuffle a list
-- `{fileName.mimeType}` — MIME type from extension
+- `{=text.slugify}` — URL-friendly slug
+- `{=htmlContent.stripHtml}` — remove HTML tags
+- `{=text.numberOfWords}` — word count
+- `{=text.wordLimit(n)}` — truncate to N words
+- `{=page.readTime}` — estimated reading time in minutes
+- `{=page.contentAbstract}` / `{=page.contentAbstract(n)}` — first N words (default 75)
+- `{=list.randomise}` — shuffle a list
+- `{=fileName.mimeType}` — MIME type from extension
 
 ### Configuration
 
@@ -463,9 +466,9 @@ For advanced Qute template needs (e.g. `@TemplateExtension` to add custom method
 ### Common Pitfalls
 
 - **Layout inheritance** — ALWAYS use the frontmatter `layout:` field for layout inheritance (e.g. `layout: main`). NEVER use Qute's `{#include}` or `{#layout}` directives for this purpose — they won't work with Roq's layout chain.
-- **`{page.content}` in layouts** — NEVER use `{page.content}` in layouts. Use `{#insert /}` to render child content. `{page.content}` causes recursive rendering.
+- **`{=page.content}` in layouts** — NEVER use `{=page.content}` in layouts. Use `{#insert /}` to render child content. `{=page.content}` causes recursive rendering.
 - **Wrong directory location** — Standalone Roq FrontMatter uses `src/main/resources/` for `content/`, `templates/`, `public/`, `data/`. The full `quarkus-roq` extension uses project root instead.
 - **Layout resolution** — `layout: page` resolves local first, then theme fallback (themes require full `quarkus-roq`). Use `theme-layout: page` to explicitly target the theme layout.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
 - **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. Do NOT use the `images/` prefix in frontmatter or template calls (e.g. `image: photo.jpg`, not `image: images/photo.jpg`).
-- **Escaping Qute** — Use `\{expression}` to escape Qute expressions in content that should be rendered literally. Add pages to `site.escaped-pages` config to skip Qute parsing entirely.
+- **Escaping Qute** — With alt syntax enabled, plain `{expression}` is not evaluated, so escaping is not needed. Without alt syntax, use `\{expression}` to escape Qute expressions that should be rendered literally. You can also add pages to `site.escaped-pages` config to skip Qute parsing entirely.

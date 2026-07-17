@@ -237,7 +237,7 @@ Create `templates/partials/comments.html`:
 <!-- Comments section -->
 <section class="mt-12 border-t border-slate-200 dark:border-slate-700 pt-8">
   <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6">
-    Comments ({cdi:comments.count(page.slug)})
+    Comments ({=cdi:comments.count(page.slug)})
   </h2>
 
   <!-- Comment list -->
@@ -245,10 +245,10 @@ Create `templates/partials/comments.html`:
     {#for comment in cdi:comments.forPost(page.slug)}
     <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
       <div class="flex items-center justify-between mb-2">
-        <span class="font-medium text-sm text-slate-800 dark:text-slate-200">{comment.author}</span>
-        <time class="text-xs text-slate-500 dark:text-slate-400">{comment.createdAt.format('MMM d, yyyy HH:mm')}</time>
+        <span class="font-medium text-sm text-slate-800 dark:text-slate-200">{=comment.author}</span>
+        <time class="text-xs text-slate-500 dark:text-slate-400">{=comment.createdAt.format('MMM d, yyyy HH:mm')}</time>
       </div>
-      <p class="text-sm text-slate-700 dark:text-slate-300">{comment.content}</p>
+      <p class="text-sm text-slate-700 dark:text-slate-300">{=comment.content}</p>
     </div>
     {#else}
     <p class="text-sm text-slate-500 dark:text-slate-400 italic">No comments yet. Be the first!</p>
@@ -257,8 +257,8 @@ Create `templates/partials/comments.html`:
 
   <!-- Comment form -->
   <form method="POST" action="/api/comments" class="space-y-4">
-    <input type="hidden" name="postSlug" value="{page.slug}">
-    <input type="hidden" name="redirectUrl" value="{page.url}">
+    <input type="hidden" name="postSlug" value="{=page.slug}">
+    <input type="hidden" name="redirectUrl" value="{=page.url}">
     <div>
       <label for="author" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
       <input type="text" id="author" name="author" required

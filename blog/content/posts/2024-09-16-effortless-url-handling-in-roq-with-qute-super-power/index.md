@@ -14,19 +14,19 @@ Managing URLs is now very easy! With our updated Qute-powered feature, you can n
 - **Relative URL Example (toString prints the relative url)**:
 
 ```html
-<a class="post-thumbnail" href="\{post.url}"> </a>
+<a class="post-thumbnail" href="\{=post.url}"> </a>
 ```
 
 - **Absolute URL Example**:
 
 ```html
-<a class="post-thumbnail" href="\{post.url.absolute}"> </a>
+<a class="post-thumbnail" href="\{=post.url.absolute}"> </a>
 ```
 
 - ** Smart URL:**
 
 ```html
-<meta name="twitter:image:src" content="\{page.image.absolute}" >
+<meta name="twitter:image:src" content="\{=page.image.absolute}" >
 ```
 
 There is a method in Page to retrieve the image url as a `RoqUrl` from the configured site images path. It is smart so that if the page image is external, it won't be affected.

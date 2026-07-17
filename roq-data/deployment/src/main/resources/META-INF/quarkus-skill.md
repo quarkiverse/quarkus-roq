@@ -8,6 +8,8 @@ guide: https://docs.quarkiverse.io/quarkus-roq/dev/quarkus-roq-data.html
 
 Roq Data processes JSON and YAML data files into CDI beans, making them accessible in Qute templates and injectable in Java code with type safety.
 
+> **Note:** Template examples use the alternative expression syntax (`{=expr}`), enabled by default in new Roq projects. Standard syntax uses `{expr}` instead. See the [quarkus-roq-frontmatter skill](https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/roq-frontmatter/deployment/src/main/resources/META-INF/quarkus-skill.md) for details.
+
 ### Data Files
 
 Place JSON (`.json`) or YAML (`.yml`, `.yaml`) files in the `data/` directory. Each file becomes a CDI bean named after the file (without extension).
@@ -24,7 +26,7 @@ john:
 
 **Template access**:
 ```html
-{cdi:authors.ia3andy.name}
+{=cdi:authors.ia3andy.name}
 ```
 
 ### Data Directories
@@ -44,8 +46,8 @@ This produces:
 
 **Template access**:
 ```html
-{cdi:heroes.batman.name}
-{cdi:heroes.superman.city}
+{=cdi:heroes.batman.name}
+{=cdi:heroes.superman.city}
 ```
 
 ### Type-Safe Mapping
@@ -151,16 +153,16 @@ JsonArray contributors;
 
 ```html
 {! Direct property access !}
-{cdi:authors.ia3andy.name}
+{=cdi:authors.ia3andy.name}
 
 {! Iteration !}
 {#for contributor in cdi:contributors.contributors}
-  <span>{contributor.name} ({contributor.role})</span>
+  <span>{=contributor.name} ({=contributor.role})</span>
 {/for}
 
 {! Let bindings for convenience !}
 {#let author=cdi:authors.get(page.data.author)}
-  <a href="{author.url}">{author.name}</a>
+  <a href="{=author.url}">{=author.name}</a>
 {/let}
 ```
 
