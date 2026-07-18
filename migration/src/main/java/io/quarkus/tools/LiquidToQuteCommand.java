@@ -201,7 +201,7 @@ public class LiquidToQuteCommand implements Callable<Integer> {
 
                         // Extract types from include lines — match any path ending with the filename
                         java.util.regex.Pattern includeP = java.util.regex.Pattern.compile(
-                                "\\{#include \\S*" + fnQuoted + " type=\"([^\"]+)\" /\\}");
+                                "\\{#include \\S*" + fnQuoted + " type=\"([^\"]+)\"(?: _unisolated)? /\\}");
                         java.util.regex.Matcher includeM = includeP.matcher(content);
                         List<String> types = new ArrayList<>();
                         while (includeM.find()) {
@@ -214,7 +214,7 @@ public class LiquidToQuteCommand implements Callable<Integer> {
                         for (String type : types) {
                             content = content.replaceFirst(
                                     "\\{#include \\S*" + fnQuoted + " type=\""
-                                            + java.util.regex.Pattern.quote(type) + "\" /\\}"
+                                            + java.util.regex.Pattern.quote(type) + "\"(?: _unisolated)? /\\}"
                                             + "\\s*\n(\\s*)\\{#if " + java.util.regex.Pattern.quote(partial.accumVar()) + "\\}",
                                     "$1{#if " + partial.sourceVar() + ".mergeTypes('" + type + "')}");
                         }

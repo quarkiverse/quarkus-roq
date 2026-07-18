@@ -1196,9 +1196,9 @@ public class LiquidToQuteConverter {
 
             String replacement;
             if (!params.isEmpty()) {
-                replacement = "{#include " + path + " " + params + " /}";
+                replacement = "{#include " + path + " " + params + " _unisolated /}";
             } else {
-                replacement = "{#include " + path + " /}";
+                replacement = "{#include " + path + " _unisolated /}";
             }
 
             includeMatcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
