@@ -1,0 +1,67 @@
+{
+  "$schema": "https://frontmatter.codes/frontmatter.schema.json",
+  "frontMatter.taxonomy.contentTypes": [
+    {
+      "name": "default",
+      "pageBundle": false,
+      "previewPath": "/posts",
+      "fields": [
+        {
+          "title": "Title",
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "title": "Description",
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "title": "Author",
+          "name": "author",
+          "type": "string"
+        },
+        {
+          "title": "Publishing date",
+          "name": "date",
+          "type": "datetime",
+          "default": "{{now}}",
+          "isPublishDate": true
+        },
+        {
+          "title": "Content preview",
+          "name": "image",
+          "type": "image"
+        },
+        {
+          "title": "Is draft ?",
+          "name": "draft",
+          "type": "draft"
+        },
+        {
+          "title": "Layout",
+          "name": "layout",
+          "type": "choice",
+          "choices": ["post", "page"],
+          "default": "post"
+        },
+        {
+          "title": "Tags",
+          "name": "tags",
+          "type": "tags"
+        }
+       
+        
+      ]
+    }
+  ],
+  "frontMatter.content.pageFolders": [
+    {
+      "title": "posts",
+      "path": "[[workspace]]/blog/content/posts"
+    }
+  ],
+  "frontMatter.framework.id": "other",
+  "frontMatter.content.publicFolder": "blog/src/main/resources/META-INF/resources",
+  "frontMatter.preview.host": "http://localhost:8080"
+}
