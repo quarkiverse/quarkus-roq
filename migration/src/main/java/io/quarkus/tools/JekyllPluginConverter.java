@@ -77,6 +77,7 @@ public class JekyllPluginConverter {
                 case HANDLED -> {
                     System.out.println("  [HANDLED] " + fileName + " — " + info.reason());
                     handled.add(fileName);
+                    Files.deleteIfExists(rbFile);
                 }
                 case TRANSLATABLE -> {
                     Path equivalentPath = projectDir.resolve(JAVA_PACKAGE_PATH)
@@ -91,6 +92,7 @@ public class JekyllPluginConverter {
                                 + " → " + info.equivalentFile());
                         translated.add(fileName);
                     }
+                    Files.deleteIfExists(rbFile);
                 }
                 case MANUAL -> {
                     Path equivalentPath = projectDir.resolve(JAVA_PACKAGE_PATH)
@@ -99,6 +101,7 @@ public class JekyllPluginConverter {
                         System.out.println("  [SKIP] " + fileName
                                 + " — equivalent already exists: " + info.equivalentFile());
                         skipped.add(fileName);
+                        Files.deleteIfExists(rbFile);
                     } else {
                         String msg = buildManualFailureMessage(fileName, rbContent, info);
                         failureMessages.put(fileName, msg);
@@ -106,6 +109,13 @@ public class JekyllPluginConverter {
                         System.err.println("  [MANUAL] " + fileName + " — needs hand-coded equivalent");
                     }
                 }
+            }
+        }
+
+        // Remove _plugins/ if empty (all plugins handled or translated)
+        try (Stream<Path> remaining = Files.list(pluginsDir)) {
+            if (remaining.findAny().isEmpty()) {
+                Files.delete(pluginsDir);
             }
         }
 
