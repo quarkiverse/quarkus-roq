@@ -43,6 +43,10 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     @Option(names = { "--partials" }, description = "Converting partials/includes (uses {page.content} instead of {#insert /})")
     private boolean partials;
 
+    @Option(names = {
+            "--config-mappings" }, split = ",", description = "ConfigMapping section names from _config.yml (e.g. search,analytics)")
+    private List<String> configMappings;
+
     private LiquidToQuteConverter converter = new LiquidToQuteConverter();
 
     public static void main(String... args) {
@@ -54,6 +58,9 @@ public class LiquidToQuteCommand implements Callable<Integer> {
     public Integer call() throws Exception {
         converter = new LiquidToQuteConverter(extensionSyntax);
         converter.setConvertingPartials(partials);
+        if (configMappings != null && !configMappings.isEmpty()) {
+            converter.setConfigMappingSections(configMappings);
+        }
 
         if (!Files.exists(input)) {
             System.err.println("Error: Input path '" + input + "' does not exist");

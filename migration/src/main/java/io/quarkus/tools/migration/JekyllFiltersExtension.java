@@ -269,4 +269,20 @@ public class JekyllFiltersExtension {
         }
         return result;
     }
+
+    // Jekyll append filter: string concatenation
+    // {{ language.url | append: path }} → {=language.url.append(path)}
+    static String append(Object base, Object suffix) {
+        String baseStr = base != null ? base.toString() : "";
+        String suffixStr = suffix != null ? suffix.toString() : "";
+        return baseStr + suffixStr;
+    }
+
+    // Jekyll prepend filter: string concatenation (reversed)
+    // {{ path | prepend: language.url }} → {=path.prepend(language.url)}
+    static String prepend(Object suffix, Object prefix) {
+        String prefixStr = prefix != null ? prefix.toString() : "";
+        String suffixStr = suffix != null ? suffix.toString() : "";
+        return prefixStr + suffixStr;
+    }
 }
