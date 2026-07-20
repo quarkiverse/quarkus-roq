@@ -4,13 +4,14 @@ import { html, render } from 'lit';
 
 /**
  * Show a notification toast using Vaadin Notification
- * 
+ *
  * Usage:
  *   import { showNotification } from './components/notification-toast.js';
  *   showNotification('Error message here', 'error');
  *   showNotification('Success!', 'success');
- * 
- * @param {string} message - The message to display
+ *   showNotification(html`Pushed. <a href=${url} target="_blank">Open PR</a>`, 'success', 10000);
+ *
+ * @param {string|import('lit').TemplateResult} message - The message to display (plain text or lit template)
  * @param {'error' | 'success' | 'warning' | 'primary' | 'contrast'} theme - The theme/type of notification
  * @param {number} duration - Auto-dismiss duration in ms (0 for no auto-dismiss)
  */
