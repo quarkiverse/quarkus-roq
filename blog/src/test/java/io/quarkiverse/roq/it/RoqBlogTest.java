@@ -7,6 +7,12 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkiverse.roq.testing.RoqLinks;
@@ -98,8 +104,67 @@ public class RoqBlogTest {
     }
 
     @Test
+    public void testMarkdownTwinFromMarkdownSource() {
+        // A Markdown page publishes its verbatim source at <page>.md (not the rendered HTML page, which carries the
+        // "&copy; ROQ" site footer).
+        RestAssured.when().get("/posts/welcome-to-roq.md").then().statusCode(200)
+                .body(containsString("Hello folks,"))
+                .body(not(containsString("&copy; ROQ")));
+    }
+
+    @Test
+    public void testMarkdownTwinFromAsciidocSource() {
+        // The AsciiDoc twin path shells out to external converters (asciidoctor-reducer + downdoc). They are not on the
+        // CI runners, so skip rather than fail when either is missing; a JVM-native conversion is a follow-on (#1104).
+        assumeTrue(converterOnPath("roq.markdown-twin.reducer", "asciidoctor-reducer")
+                && converterOnPath("roq.markdown-twin.downdoc", "downdoc"),
+                "asciidoctor-reducer and/or downdoc not on PATH; skipping AsciiDoc-twin test");
+        // An AsciiDoc page (docs/basics.adoc uses include::) is flattened then converted to Markdown at <page>.md:
+        // includes resolved (no include:: left), content from an included file is inlined, and it is Markdown, not HTML.
+        RestAssured.when().get("/docs/basics.md").then().statusCode(200)
+                .body(startsWith("# Roq the basics"))
+                .body(containsString("## Directory Structure"))
+                .body(not(containsString("include::"))).body(not(containsString("&copy; ROQ")));
+    }
+
+    @Test
+    public void testTwinWrittenToDisk() {
+        Path twin = RoqLinks.outputDir().resolve("posts/welcome-to-roq.md");
+        assertTrue(Files.exists(twin), "Markdown twin should be written to the generated site: " + twin);
+    }
+
+    @Test
+    public void testTwinOptOut() {
+        // markups/twin-optout.md sets `llmstxt: false`, reusing the existing llms.txt opt-out, so no twin is published.
+        RestAssured.when().get("/markups/twin-optout.md").then().statusCode(404);
+    }
+
+    @Test
     public void testLinks() {
         assertFalse(RoqLinks.collect().isEmpty(), "Should collect links from the generated site");
         assertTrue(RoqLinks.checkInternal().isEmpty(), "Should have no broken internal links");
+    }
+
+    /**
+     * Whether the external converter resolved from {@code systemProperty} (falling back to {@code defaultCommand}) can be
+     * launched. Mirrors the property overrides used by {@code RoqPluginMarkdownTwinProcessor}. Returns {@code false} when
+     * the binary is absent (IOException on launch), so the AsciiDoc-twin test is skipped rather than failed on runners
+     * that lack the tools.
+     */
+    private static boolean converterOnPath(String systemProperty, String defaultCommand) {
+        final String command = System.getProperty(systemProperty, defaultCommand);
+        try {
+            final Process process = new ProcessBuilder(command, "--version").redirectErrorStream(true).start();
+            process.getInputStream().readAllBytes();
+            if (!process.waitFor(10, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 }
