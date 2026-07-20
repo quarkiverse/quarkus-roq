@@ -2438,8 +2438,8 @@ public class LiquidToQuteConverter {
 
         // Same for .get() arguments — JsonObjectValueResolver.get(param) casts param
         // to String, so Results$NotFound → ClassCastException.
-        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version —
-        //       JsonObjectValueResolver will handle NotFound gracefully in 3.38.
+        // TODO: Remove .or('') workaround when Quarkus 3.39+ is the minimum version —
+        //       JsonObjectValueResolver will handle NotFound gracefully in 3.39.
         result = content.replaceAll(
                 "(\\.get\\()((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)(\\))",
                 "$1$2.or('')$4");
@@ -2451,7 +2451,7 @@ public class LiquidToQuteConverter {
         // Also protect plain variable arguments in .get() calls — a variable from a
         // prior {#let} may hold Results$NotFound if the source expression was missing.
         // Skip string/number literals and .data.* args (already handled above).
-        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version.
+        // TODO: Remove .or('') workaround when Quarkus 3.39+ is the minimum version.
         result = addOrEmptyToGetArgs(content);
         if (!result.equals(content)) {
             conversionsApplied.add("Added .or('') to variable arguments in .get() calls");
@@ -2495,7 +2495,7 @@ public class LiquidToQuteConverter {
                 line = pattern.matcher(line).replaceAll(".get($1.or(''))");
                 String indent = line.substring(0, line.indexOf(line.trim()));
                 result.append(indent)
-                        .append("{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: ")
+                        .append("{! TODO: Quarkus 3.39 fixes NotFound in .get() — remove .or('') to get: ")
                         .append(cleanVersion).append(" !}\n");
                 changed = true;
             }

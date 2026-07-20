@@ -642,7 +642,7 @@ class LiquidToQuteConverterTest {
     @Test
     void testDynamicBracketNotation() {
         String input = "{% assign author = site.data.authors[author_key] %}";
-        String expected = "{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: " +
+        String expected = "{! TODO: Quarkus 3.39 fixes NotFound in .get() — remove .or('') to get: " +
                 "{#let author=cdi:authors.get(author_key)}{/let} !}\n" +
                 "{#let author=cdi:authors.get(author_key.or(''))}{/let}";
         assertConverts(input, expected,
@@ -652,7 +652,7 @@ class LiquidToQuteConverterTest {
     @Test
     void testDynamicBracketNotationInVariable() {
         String input = "{{ site.data.authors[key].name }}";
-        String expected = "{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: " +
+        String expected = "{! TODO: Quarkus 3.39 fixes NotFound in .get() — remove .or('') to get: " +
                 "{=cdi:authors.get(key).name.raw} !}\n" +
                 "{=cdi:authors.get(key.or('')).name.raw}";
         assertConverts(input, expected,
@@ -671,7 +671,7 @@ class LiquidToQuteConverterTest {
     void testAssignBracketWithDefaultPreservesOr() {
         String input = "{% assign post_author = site.data.authors[post_author] | default: post_author %}" +
                 "{% if post_author %}x{% endif %}";
-        String expected = "{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: " +
+        String expected = "{! TODO: Quarkus 3.39 fixes NotFound in .get() — remove .or('') to get: " +
                 "{#let post_author=cdi:authors.get(post_author).or(post_author)}{#if post_author}x{/if}{/let} !}\n" +
                 "{#let post_author=cdi:authors.get(post_author.or('')).or(post_author)}" +
                 "{#if post_author}x{/if}{/let}";
@@ -1254,7 +1254,7 @@ class LiquidToQuteConverterTest {
     @Test
     void testSiteDataWithBracketAccessConvertsToeCdi() {
         assertConverts("{% if site.data.versioned[docversion_index].index %}yes{% endif %}",
-                "{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: " +
+                "{! TODO: Quarkus 3.39 fixes NotFound in .get() — remove .or('') to get: " +
                         "{#if cdi:versioned.get(docversion_index).index}yes{/if} !}\n" +
                         "{#if cdi:versioned.get(docversion_index.or('')).index}yes{/if}",
                 "site.data.X[var] should convert to cdi:X.get(var)");
