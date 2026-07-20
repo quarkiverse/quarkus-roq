@@ -8,6 +8,9 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkiverse.roq.testing.RoqLinks;
 import io.quarkus.test.junit.QuarkusTest;
@@ -95,6 +98,37 @@ public class RoqBlogTest {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200).body(containsString("<urlset"))
                 .body(containsString("<loc>/</loc>")).body(containsString("<loc>/posts/tag/plugin/</loc>"))
                 .body(not(containsString("<loc>/404.html</loc>"))).body(containsString("</urlset>"));
+    }
+
+    @Test
+    public void testMarkdownTwinFromMarkdownSource() {
+        // A Markdown page publishes its verbatim source at <page>.md (not the rendered HTML page, which carries the
+        // "&copy; ROQ" site footer).
+        RestAssured.when().get("/posts/welcome-to-roq.md").then().statusCode(200)
+                .body(containsString("Hello folks,"))
+                .body(not(containsString("&copy; ROQ")));
+    }
+
+    @Test
+    public void testMarkdownTwinFromAsciidocSource() {
+        // An AsciiDoc page (docs/basics.adoc uses include::) is flattened then converted to Markdown at <page>.md:
+        // includes resolved (no include:: left), content from an included file is inlined, and it is Markdown, not HTML.
+        RestAssured.when().get("/docs/basics.md").then().statusCode(200)
+                .body(startsWith("# Roq the basics"))
+                .body(containsString("## Directory Structure"))
+                .body(not(containsString("include::"))).body(not(containsString("&copy; ROQ")));
+    }
+
+    @Test
+    public void testTwinWrittenToDisk() {
+        Path twin = RoqLinks.outputDir().resolve("posts/welcome-to-roq.md");
+        assertTrue(Files.exists(twin), "Markdown twin should be written to the generated site: " + twin);
+    }
+
+    @Test
+    public void testTwinOptOut() {
+        // markups/twin-optout.md sets `llmstxt: false`, reusing the existing llms.txt opt-out, so no twin is published.
+        RestAssured.when().get("/markups/twin-optout.md").then().statusCode(404);
     }
 
     @Test
