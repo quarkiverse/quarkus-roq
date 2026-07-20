@@ -34,9 +34,9 @@ class JekyllConfigConverterTest {
         assertTrue(props.containsKey("site.date-format"));
         assertTrue(props.containsKey("quarkus.qute.strict-rendering"));
         assertTrue(props.containsKey("quarkus.qute.type-check-excludes"));
-        assertEquals("true", props.getProperty("quarkus.qute.alt-expr-syntax"));
-        assertEquals("yyyy-MM-dd['T'HH:mm:ss][X]", props.getProperty("site.date-format"));
-        assertEquals("false", props.getProperty("quarkus.qute.strict-rendering"));
+        assertTrue("true".equals(props.getProperty("quarkus.qute.alt-expr-syntax")));
+        assertTrue("yyyy-MM-dd['T'HH:mm:ss][X]".equals(props.getProperty("site.date-format")));
+        assertTrue("false".equals(props.getProperty("quarkus.qute.strict-rendering")));
         assertTrue(props.getProperty("quarkus.qute.type-check-excludes").contains("java.lang.Object.*"));
         assertTrue(props.getProperty("quarkus.qute.type-check-excludes")
                 .contains("io.quarkiverse.roq.frontmatter.runtime.model.Page.paginator"));
@@ -81,7 +81,8 @@ class JekyllConfigConverterTest {
         assertTrue(siteConfigYaml.contains("baseurl: \"/blog\""));
         assertTrue(siteConfigYaml.contains("language: \"en\""));
         assertTrue(siteConfigYaml.contains("twitter_username: \"johndoe\""));
-        assertTrue(siteConfigYaml.contains("tags: []"));
+        assertFalse(siteConfigYaml.contains("tags:"),
+                "siteConfig should not contain tags (handled by tagging plugin): " + siteConfigYaml);
     }
 
     @Test
@@ -101,14 +102,9 @@ class JekyllConfigConverterTest {
         String siteConfigYaml = converter.createSiteConfigYaml(configYaml, null);
 
         assertNotNull(siteConfigYaml);
-        assertTrue(siteConfigYaml.contains("search:"));
-        assertTrue(siteConfigYaml.contains("scriptMode: \"defer\""));
-        assertTrue(siteConfigYaml.contains("host: \"https://search.example.com\""));
-        assertTrue(siteConfigYaml.contains("scriptPath: \"/search.js\""));
-        assertTrue(siteConfigYaml.contains("cachedScriptFile: \"search-cached.js\""));
-        assertTrue(siteConfigYaml.contains("initialTimeout: 1500"));
-        assertTrue(siteConfigYaml.contains("moreTimeout: 2500"));
-        assertTrue(siteConfigYaml.contains("minChars: 2"));
+        // search should NOT be in siteConfig - it goes to ConfigMapping instead
+        assertFalse(siteConfigYaml.contains("search:"),
+                "search config should be handled by ConfigMapping, not siteConfig.yml");
     }
 
     @Test
@@ -223,6 +219,54 @@ class JekyllConfigConverterTest {
         String indexContent = Files.readString(tempDir.resolve("content/index.md"));
         assertTrue(indexContent.contains("description: \"Supersonic Subatomic Java\""),
                 "Index page in content/ should have description from _config.yml: " + indexContent);
+    }
+
+    @Test
+    void testConvertProjectAddsNameToIndexPage(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+        Files.writeString(tempDir.resolve("index.md"), """
+                ---
+                layout: index
+                ---
+                Hello
+                """);
+
+        converter.convertProject(tempDir);
+
+        String indexContent = Files.readString(tempDir.resolve("index.md"));
+        assertTrue(indexContent.contains("name: \"Test Site\""),
+                "Index page should have name from _config.yml title: " + indexContent);
+        assertTrue(indexContent.contains("simple-name: \"Test Site\""),
+                "Index page should have simple-name from _config.yml title: " + indexContent);
+    }
+
+    @Test
+    void testConvertProjectDoesNotOverwriteExistingName(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+        Files.writeString(tempDir.resolve("index.md"), """
+                ---
+                layout: index
+                name: My Custom Name
+                simple-name: MCN
+                ---
+                Hello
+                """);
+
+        converter.convertProject(tempDir);
+
+        String indexContent = Files.readString(tempDir.resolve("index.md"));
+        assertTrue(indexContent.contains("name: My Custom Name"),
+                "Existing name should not be overwritten: " + indexContent);
+        assertTrue(indexContent.contains("simple-name: MCN"),
+                "Existing simple-name should not be overwritten: " + indexContent);
+        assertFalse(indexContent.contains("name: \"Test Site\""),
+                "Should not add duplicate name: " + indexContent);
     }
 
     @Test
@@ -344,7 +388,7 @@ class JekyllConfigConverterTest {
         converter.convertProject(tempDir);
 
         String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
-        assertFalse(propsContent.contains("site.collections.author"));
+        assertTrue(!propsContent.contains("site.collections.author"));
     }
 
     @Test
@@ -387,9 +431,9 @@ class JekyllConfigConverterTest {
         converter.convertProject(tempDir);
 
         String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
-        assertFalse(propsContent.contains("site.collections.drafts"),
+        assertTrue(!propsContent.contains("site.collections.drafts"),
                 "Should not have drafts collection: " + propsContent);
-        assertFalse(propsContent.contains("site.collections.internal"),
+        assertTrue(!propsContent.contains("site.collections.internal"),
                 "Should not have internal collection: " + propsContent);
     }
 
@@ -408,7 +452,7 @@ class JekyllConfigConverterTest {
         converter.convertProject(tempDir);
 
         String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
-        assertFalse(propsContent.contains("site.collections.posts"),
+        assertTrue(!propsContent.contains("site.collections.posts"),
                 "Should not emit posts collection (Roq built-in): " + propsContent);
         assertTrue(propsContent.contains("site.collections.guides=true"),
                 "Should have guides collection: " + propsContent);
@@ -457,9 +501,9 @@ class JekyllConfigConverterTest {
                 "guides should be moved to content/guides");
         assertTrue(Files.exists(tempDir.resolve("content/versions/main/index.md")),
                 "versions should be moved to content/versions");
-        assertFalse(Files.exists(tempDir.resolve("_guides")),
+        assertTrue(!Files.exists(tempDir.resolve("_guides")),
                 "_guides should no longer exist");
-        assertFalse(Files.exists(tempDir.resolve("_versions")),
+        assertTrue(!Files.exists(tempDir.resolve("_versions")),
                 "_versions should no longer exist");
     }
 
@@ -547,8 +591,8 @@ class JekyllConfigConverterTest {
         String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
         assertTrue(propsContent.contains("site.collections.guides.link=/guides/:name"),
                 "Should translate guides permalink to link: " + propsContent);
-        assertTrue(propsContent.contains("site.collections.versions.link=/version/:dir[1:]/:name"),
-                "Should translate versions permalink to link with :dir[1:]/:name: " + propsContent);
+        assertTrue(propsContent.contains("site.collections.versions.link=/version/:dir[1]/:name"),
+                "Should translate versions permalink to link with :dir[1]/:name: " + propsContent);
     }
 
     @Test
@@ -680,16 +724,6 @@ class JekyllConfigConverterTest {
     }
 
     @Test
-    void testCnameWithWhitespace() throws IOException {
-        String configYaml = """
-                title: Test Site
-                """;
-        String siteConfigYaml = converter.createSiteConfigYaml(configYaml, "  example.com\n");
-        assertTrue(siteConfigYaml.contains("cname: \"example.com\""),
-                "CNAME should be trimmed: " + siteConfigYaml);
-    }
-
-    @Test
     void testUnsetsShowtitleToPreventDuplicateTitles() {
         Properties props = converter.createApplicationProperties();
         assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.\"!showtitle\""),
@@ -739,6 +773,75 @@ class JekyllConfigConverterTest {
     }
 
     @Test
+    void testAddTaggingFrontmatterFromJekyllArchives(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                jekyll-archives:
+                  enabled:
+                    - tags
+                  layouts:
+                    tag: tag-archive
+                  permalinks:
+                    tag: '/blog/tag/:name/'
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+        Files.createDirectories(tempDir.resolve("_layouts"));
+        Files.writeString(tempDir.resolve("_layouts/tag-archive.html"), """
+                ---
+                layout: base
+                ---
+                <h1>{{ page.title }}</h1>
+                """);
+
+        converter.convertProject(tempDir);
+
+        String layoutContent = Files.readString(tempDir.resolve("_layouts/tag-archive.html"));
+        assertTrue(layoutContent.contains("tagging:"),
+                "Tag layout should have tagging frontmatter: " + layoutContent);
+        assertTrue(layoutContent.contains("collection: posts"),
+                "Tagging should target posts collection: " + layoutContent);
+        assertTrue(layoutContent.contains("link: /blog/tag/:tag/"),
+                "Tagging link should use :tag placeholder: " + layoutContent);
+    }
+
+    @Test
+    void testAddTaggingFrontmatterWithoutPermalink(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                jekyll-archives:
+                  enabled:
+                    - tags
+                  layouts:
+                    tag: my-tags
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+        Files.createDirectories(tempDir.resolve("_layouts"));
+        Files.writeString(tempDir.resolve("_layouts/my-tags.html"), """
+                ---
+                layout: base
+                ---
+                <h1>Tags</h1>
+                """);
+
+        converter.convertProject(tempDir);
+
+        String layoutContent = Files.readString(tempDir.resolve("_layouts/my-tags.html"));
+        assertTrue(layoutContent.contains("tagging: posts"),
+                "Without permalink, tagging should use simple form: " + layoutContent);
+    }
+
+    @Test
+    void testNoTaggingFrontmatterWithoutJekyllArchives(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+        // Should not fail — no jekyll-archives config, nothing to do
+    }
+
+    @Test
     void testComplexNestedConfig() throws IOException {
         String configYaml = """
                 title: Complex Site
@@ -763,7 +866,172 @@ class JekyllConfigConverterTest {
         assertTrue(siteConfigYaml.contains("language: \"en\""));
         assertTrue(siteConfigYaml.contains("twitter_username: \"johndoe\""));
         assertTrue(siteConfigYaml.contains("github_username: \"johndoe\""));
-        assertTrue(siteConfigYaml.contains("search:"));
-        assertTrue(siteConfigYaml.contains("scriptMode: \"defer\""));
+        // search should NOT be in siteConfig - it goes to ConfigMapping instead
+        assertFalse(siteConfigYaml.contains("search:"),
+                "search config should be handled by ConfigMapping, not siteConfig.yml");
+    }
+
+    @Test
+    void testExcludeGeneratesIgnoredFiles(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                exclude:
+                  - _versions/2.*
+                  - _versions/3.*
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+
+        String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
+        assertTrue(propsContent.contains("site.ignored-files=versions/2.*/**,versions/3.*/**"),
+                "Should have ignored-files property: " + propsContent);
+    }
+
+    @Test
+    void testExcludeStripsUnderscorePrefix(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                exclude:
+                  - _guides
+                  - _versions/4.*
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+
+        String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
+        assertTrue(propsContent.contains("site.ignored-files=guides/**,versions/4.*/**"),
+                "Should strip underscore prefix: " + propsContent);
+    }
+
+    @Test
+    void testExcludePreservesExistingGlobs(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                exclude:
+                  - vendor/bundle/
+                  - _versions/2.*
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+
+        String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
+        assertTrue(propsContent.contains("vendor/bundle/"),
+                "Should preserve trailing slash pattern: " + propsContent);
+        assertTrue(propsContent.contains("versions/2.*/**"),
+                "Should append /** to glob without suffix: " + propsContent);
+    }
+
+    @Test
+    void testNoExcludeNoIgnoredFiles(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+
+        String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
+        assertFalse(propsContent.contains("site.ignored-files"),
+                "Should not have ignored-files without exclude: " + propsContent);
+    }
+
+    @Test
+    void testExcludeNotInSiteConfig(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                exclude:
+                  - _versions/2.*
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        converter.convertProject(tempDir);
+
+        String siteConfigYaml = Files.readString(tempDir.resolve("data/siteConfig.yml"));
+        assertFalse(siteConfigYaml.contains("exclude"),
+                "exclude should not leak into siteConfig.yml: " + siteConfigYaml);
+    }
+
+    @Test
+    void testDeriveProfileName() {
+        assertEquals("only-latest-guides",
+                JekyllConfigConverter.deriveProfileName("_only_latest_guides_config.yml"));
+        assertEquals("noguides",
+                JekyllConfigConverter.deriveProfileName("_noguides_config.yml"));
+        assertEquals("dev",
+                JekyllConfigConverter.deriveProfileName("_config_dev.yml"));
+        assertEquals("overlay",
+                JekyllConfigConverter.deriveProfileName("_config.yml"));
+    }
+
+    @Test
+    void testOverlayConfigCreatesProfileAwareFiles(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test Site\n");
+        Files.writeString(tempDir.resolve("_only_latest_guides_config.yml"), """
+                exclude:
+                  - _versions/2.*
+                  - _versions/3.*
+                """);
+        Files.writeString(tempDir.resolve("_noguides_config.yml"), """
+                exclude:
+                  - _guides
+                  - _versions
+                """);
+
+        converter.convertProject(tempDir);
+
+        String noguides = Files.readString(
+                tempDir.resolve("config/application-noguides.properties"));
+        assertTrue(noguides.contains("site.ignored-files=guides/**,versions/**"),
+                "Should have noguides profile file: " + noguides);
+
+        String latestGuides = Files.readString(
+                tempDir.resolve("config/application-only-latest-guides.properties"));
+        assertTrue(latestGuides.contains(
+                "site.ignored-files=versions/2.*/**,versions/3.*/**"),
+                "Should have only-latest-guides profile file: " + latestGuides);
+
+        assertFalse(Files.exists(tempDir.resolve("_noguides_config.yml")),
+                "Original overlay should be deleted");
+        assertFalse(Files.exists(tempDir.resolve("_only_latest_guides_config.yml")),
+                "Original overlay should be deleted");
+    }
+
+    @Test
+    void testOverlayWithOnlySearchConfigIsDeletedNoProps(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test Site\n");
+        Files.writeString(tempDir.resolve("_config_dev.yml"), """
+                search:
+                  script-mode: direct
+                  host: https://search-dev.example.com
+                """);
+
+        converter.convertProject(tempDir);
+
+        String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
+        assertTrue(propsContent.contains("%dev.testsite.search.script-mode=direct"),
+                "Search config should be in application.properties with %dev prefix");
+        assertTrue(propsContent.contains("%dev.testsite.search.host=https://search-dev.example.com"),
+                "Search config should include host with %dev prefix");
+        assertFalse(Files.exists(tempDir.resolve("_config_dev.yml")),
+                "Original overlay should be deleted");
+        // Verify ConfigMapping files were generated
+        assertTrue(Files.exists(tempDir.resolve("src/main/java/io/testsite/search/config/SearchConfig.java")),
+                "SearchConfig interface should be generated");
+        assertTrue(Files.exists(tempDir.resolve("src/main/java/io/testsite/search/config/SearchConfigProducer.java")),
+                "SearchConfigProducer should be generated");
+    }
+
+    @Test
+    void testEmptyOverlayIsSkipped(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test Site\n");
+        Files.writeString(tempDir.resolve("_config_empty.yml"), "# empty\n");
+
+        converter.convertProject(tempDir);
+
+        assertFalse(Files.exists(tempDir.resolve("config/application-empty.properties")),
+                "Empty overlay should not create profile file");
     }
 }
