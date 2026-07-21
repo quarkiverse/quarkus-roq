@@ -1,9 +1,6 @@
 package io.quarkiverse.roq.it;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
+import java.util.Map;
 
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkus.test.junit.QuarkusTest;
@@ -11,8 +8,12 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 
 @QuarkusTest
 @RoqAndRoll
@@ -66,7 +67,7 @@ public class RoqBlogSlugifiedFilesTest {
     @Test
     public void testAlias() {
         RestAssured.when().get("/first-roq-article-ever/").then().statusCode(200)
-                .body(containsString("url='/posts/welcome-to-roq/'"));
+                .body(containsString("url=/posts/welcome-to-roq/"));
     }
 
     @Test

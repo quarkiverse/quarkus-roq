@@ -1,19 +1,19 @@
 
 package io.quarkiverse.roq.it;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkiverse.roq.testing.RoqLinks;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @RoqAndRoll
@@ -66,7 +66,7 @@ public class RoqBlogTest {
     @Test
     public void testAlias() {
         RestAssured.when().get("/first-roq-article-ever/").then().statusCode(200)
-                .body(containsString("url='/posts/welcome-to-roq/'"));
+                .body(containsString("url=/posts/welcome-to-roq/"));
     }
 
     @Test
