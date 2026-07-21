@@ -1,0 +1,26 @@
+---
+layout: home
+title: Your Name
+description: >-
+  Personal blog about software development,
+  Java, and web technologies.
+greeting: Hi, I'm Your Name!
+tagline: Just a coder
+paginate: posts
+---
+
+<div class="intro">
+  <h1>{site.data.greeting}</h1>
+  <p>{site.data.tagline}</p>
+</div>
+
+<div class="posts">
+  <h2>Blog</h2>
+  <div class="posts-wrapper">
+    {#for post in site.collections.posts.paginated(page.paginator)}
+    {#roq/postCard post site /}
+    {/for}
+  </div>
+
+  {#include partials/roq-the-code/pagination.html /}
+</div>

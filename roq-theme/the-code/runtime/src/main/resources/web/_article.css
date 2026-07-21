@@ -1,0 +1,27 @@
+@layer components {
+    .post-page { @apply max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-12; }
+    .post-page header { @apply mb-8; }
+    .post-page header h1 { @apply text-4xl font-bold mb-4 text-primary; }
+    .post-page header .post-meta { @apply text-gray-500 text-sm mb-8; }
+    .post-page footer { @apply mt-16 pt-8 border-t border-gray-800; }
+    .post-page footer > div { @apply flex justify-between; }
+    .post-page footer a { @apply text-gray-400 hover:text-primary transition-colors; }
+    .post-layout-wrapper { @apply relative flex flex-col lg:flex-row gap-4 lg:gap-6; }
+    .post-content-area { @apply flex-1 min-w-0 order-1 lg:order-2; }
+    .post-page .article-content { @apply prose dark:prose-invert leading-relaxed text-base; }
+    .metadata-box { @apply rounded-lg p-5 bg-card border border-card-border; }
+    .metadata-title { @apply text-base font-bold mb-4 text-primary; }
+    .metadata-row { @apply flex gap-4 mb-3 last:mb-0; }
+    .metadata-label { @apply font-normal min-w-[80px] text-primary; }
+    .metadata-value { @apply text-secondary; }
+    .metadata-tags { @apply flex flex-wrap gap-2; }
+
+    .article-content pre code .comment { @apply text-tertiary dark:text-tertiary; }
+    .article-content pre code .keyword { @apply text-accent-500 dark:text-accent-400; }
+    .article-content pre code .class-name { @apply text-accent-600 dark:text-accent-300; }
+    .article-content pre code .string { @apply text-primary dark:text-accent-300; }
+    .article-content pre code .number { @apply text-accent-600 dark:text-accent-400; }
+    .article-content pre code .function { @apply text-accent-600 dark:text-accent-300; }
+    .article-content pre code .operator { @apply text-accent-500 dark:text-accent-500; }
+    .article-content pre code .token { @apply text-primary dark:text-primary; }
+}
