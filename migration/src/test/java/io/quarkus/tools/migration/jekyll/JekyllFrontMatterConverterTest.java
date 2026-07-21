@@ -278,6 +278,64 @@ class JekyllFrontMatterConverterTest {
         assertFalse(result.contains("link:"));
     }
 
+    // --- newUrl → aliases tests ---
+
+    @Test
+    void testNewUrlConvertedToAliases(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("old-page.md"), """
+                ---
+                newUrl: /new-page/
+                ---
+                """);
+
+        converter.convertNewUrlToAliases(contentDir);
+
+        String result = Files.readString(contentDir.resolve("old-page.md"));
+        assertTrue(result.contains("aliases:"), "newUrl should be converted to aliases");
+        assertTrue(result.contains("  - /new-page/"), "alias should contain the target URL");
+        assertFalse(result.contains("newUrl:"), "newUrl key should be removed");
+    }
+
+    @Test
+    void testNewUrlPreservesOtherFrontmatter(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("redirect.md"), """
+                ---
+                layout: redirect
+                newUrl: /guides/new-guide
+                title: Old Guide
+                ---
+                """);
+
+        converter.convertNewUrlToAliases(contentDir);
+
+        String result = Files.readString(contentDir.resolve("redirect.md"));
+        assertTrue(result.contains("aliases:\n  - /guides/new-guide"));
+        assertTrue(result.contains("layout: redirect"));
+        assertTrue(result.contains("title: Old Guide"));
+        assertFalse(result.contains("newUrl:"));
+    }
+
+    @Test
+    void testNewUrlAbsentLeavesFileUnchanged(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        String original = """
+                ---
+                title: Normal Page
+                ---
+                Content.
+                """;
+        Files.writeString(contentDir.resolve("page.md"), original);
+
+        converter.convertNewUrlToAliases(contentDir);
+
+        assertEquals(original, Files.readString(contentDir.resolve("page.md")));
+    }
+
     // --- Redirect deduplication tests ---
 
     @Test
@@ -305,9 +363,11 @@ class JekyllFrontMatterConverterTest {
         assertFalse(Files.exists(redirectsDir.resolve("foo-guide.md")));
 
         String result = Files.readString(redirectsDir.resolve("foo-guide.html"));
-        assertTrue(result.contains("/guides/foo-guide.html"));
-        assertTrue(result.contains("/guides/foo-guide/index.html"));
-        assertTrue(result.contains("newUrl: /guides/foo"));
+        assertTrue(result.contains("aliases:"), "Merged file should have aliases block");
+        assertTrue(result.contains("  - /guides/foo-guide.html"), "aliases should contain HTML permalink");
+        assertTrue(result.contains("  - /guides/foo-guide/index.html"), "aliases should contain MD permalink");
+        assertFalse(result.contains("permalink:"), "permalink should be replaced by aliases");
+        assertTrue(result.contains("newUrl: /guides/foo"), "newUrl should be preserved");
     }
 
     @Test
@@ -361,8 +421,10 @@ class JekyllFrontMatterConverterTest {
         assertFalse(Files.exists(redirectsDir.resolve("bar-guide.md")));
 
         String result = Files.readString(redirectsDir.resolve("bar-guide.html"));
-        assertTrue(result.contains("/guides/bar-guide.html"));
-        assertTrue(result.contains("/guides/bar-guide/index.html"));
+        assertTrue(result.contains("aliases:"), "Merged file should have aliases block");
+        assertTrue(result.contains("  - /guides/bar-guide.html"), "aliases should contain HTML permalink");
+        assertTrue(result.contains("  - /guides/bar-guide/index.html"), "aliases should contain MD permalink");
+        assertFalse(result.contains("permalink:"), "permalink should be replaced by aliases");
     }
 
     @Test
@@ -598,6 +660,25 @@ class JekyllFrontMatterConverterTest {
         String result = Files.readString(tempDir.resolve("content/post.md"));
         assertTrue(result.contains("description: \"A short summary\""));
         assertFalse(result.contains("excerpt:"));
+    }
+
+    @Test
+    void testConvertProjectConvertsNewUrlToAliases(@TempDir Path tempDir) throws IOException {
+        Files.createDirectories(tempDir.resolve("content"));
+        Files.writeString(tempDir.resolve("_config.yml"), "title: Test\n");
+        Files.writeString(tempDir.resolve("content/old-guide.md"), """
+                ---
+                layout: redirect
+                newUrl: /guides/new-guide
+                ---
+                """);
+
+        converter.convertProject(tempDir);
+
+        String result = Files.readString(tempDir.resolve("content/old-guide.md"));
+        assertTrue(result.contains("aliases:\n  - /guides/new-guide"),
+                "convertProject should convert newUrl to aliases");
+        assertFalse(result.contains("newUrl:"));
     }
 
     @Test
