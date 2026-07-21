@@ -188,12 +188,21 @@ public class RemoteContentSelection {
         Files.createDirectories(publicDir);
         Files.writeString(publicDir.resolve("analytics.js"), analyticsScript); // <3>
 
+        // Build selection paths
+        List<SelectedPath> paths = new ArrayList<>();
+
+        // Add the downloaded JavaScript file to the selection
+        paths.add(SelectedPath.builder()
+            .path("/js/analytics.js")
+            .outputPath("/js/analytics.js")
+            .build()); // <4>
+
         // Generate a static page for each post
-        List<SelectedPath> paths = posts.stream()
+        paths.addAll(posts.stream()
             .map(post -> SelectedPath.builder()
-                .html("/blog/" + post.slug) // <4>
+                .html("/blog/" + post.slug) // <5>
                 .build())
-            .toList();
+            .toList());
 
         return new RoqSelection(paths);
     }
@@ -215,7 +224,8 @@ record Post(String slug, String title, String content) {}
 <1> Inject a REST client pointing to your headless CMS or API
 <2> Fetch the list of posts at build time (when `mvn package quarkus:run` runs)
 <3> Download a JavaScript file from the API and write it to the public/ directory
-<4> Generate a static HTML page for each post: `/blog/hello-world/index.html`, etc.
+<4> Add a selection path for the downloaded file so it gets included in the static site
+<5> Generate a static HTML page for each post: `/blog/hello-world/index.html`, etc.
 
 **Configuration for the REST client:**
 
