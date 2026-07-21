@@ -164,6 +164,9 @@ import jakarta.inject.Singleton;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @ApplicationScoped
@@ -175,14 +178,20 @@ public class RemoteContentSelection {
 
     @Produces
     @Singleton
-    RoqSelection produce() {
+    RoqSelection produce() throws IOException {
         // Fetch content list from remote API at build time
         List<Post> posts = apiClient.getAllPosts(); // <2>
+
+        // Download a JavaScript file from the API
+        String analyticsScript = apiClient.getAnalyticsScript();
+        java.nio.file.Path publicDir = Paths.get("public/js");
+        Files.createDirectories(publicDir);
+        Files.writeString(publicDir.resolve("analytics.js"), analyticsScript); // <3>
 
         // Generate a static page for each post
         List<SelectedPath> paths = posts.stream()
             .map(post -> SelectedPath.builder()
-                .html("/blog/" + post.slug) // <3>
+                .html("/blog/" + post.slug) // <4>
                 .build())
             .toList();
 
@@ -195,13 +204,18 @@ interface ContentApiClient {
     @GET
     @Path("/posts")
     List<Post> getAllPosts();
+
+    @GET
+    @Path("/analytics.js")
+    String getAnalyticsScript();
 }
 
 record Post(String slug, String title, String content) {}
 ----
 <1> Inject a REST client pointing to your headless CMS or API
 <2> Fetch the list of posts at build time (when `mvn package quarkus:run` runs)
-<3> Generate a static HTML page for each post: `/blog/hello-world/index.html`, etc.
+<3> Download a JavaScript file from the API and write it to the public/ directory
+<4> Generate a static HTML page for each post: `/blog/hello-world/index.html`, etc.
 
 **Configuration for the REST client:**
 
