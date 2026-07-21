@@ -14,7 +14,6 @@ import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -44,13 +43,13 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, JsonObject data, Paginator paginator) {
-        return () -> new NormalPage(url, source, data, paginator);
+    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, EncodedJsonObject data, Paginator paginator) {
+        return () -> new NormalPage(url, source, data.get(), paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, JsonObject data,
+    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, EncodedJsonObject data,
             boolean hidden) {
-        return () -> new DocumentPage(collection, url, source, data, hidden);
+        return () -> new DocumentPage(collection, url, source, data.get(), hidden);
     }
 
     public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage,
