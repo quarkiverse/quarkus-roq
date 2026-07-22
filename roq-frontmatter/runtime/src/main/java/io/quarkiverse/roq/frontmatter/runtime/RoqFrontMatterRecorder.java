@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import io.quarkiverse.roq.EncodedJson;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.*;
@@ -43,11 +44,11 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, EncodedJsonObject data, Paginator paginator) {
+    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, EncodedJson data, Paginator paginator) {
         return () -> new NormalPage(url, source, data.get(), paginator);
     }
 
-    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, EncodedJsonObject data,
+    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, EncodedJson data,
             boolean hidden) {
         return () -> new DocumentPage(collection, url, source, data.get(), hidden);
     }
