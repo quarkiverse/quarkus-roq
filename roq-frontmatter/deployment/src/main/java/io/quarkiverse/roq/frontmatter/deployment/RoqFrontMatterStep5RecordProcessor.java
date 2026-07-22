@@ -11,6 +11,7 @@ import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.EncodedJson;
 import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
@@ -25,7 +26,6 @@ import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterReco
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedSiteIndexBuildItem;
-import io.quarkiverse.roq.frontmatter.runtime.EncodedJsonObject;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -96,7 +96,7 @@ class RoqFrontMatterStep5RecordProcessor {
                 final RoqUrl url = item.url();
                 final Supplier<DocumentPage> document = recorder.createDocument(item.collection().id(),
                         url,
-                        item.source(), new EncodedJsonObject(item.data()), item.collection().hidden());
+                        item.source(), new EncodedJson(item.data()), item.collection().hidden());
                 documentsById.put(item.source().id(), document);
                 pagesProducer
                         .produce(
@@ -137,7 +137,7 @@ class RoqFrontMatterStep5RecordProcessor {
         List<RoqFrontMatterPublishNormalPageBuildItem> siteIndexPages = new ArrayList<>();
         for (RoqFrontMatterPublishNormalPageBuildItem page : pages) {
             final Supplier<NormalPage> recordedPage = recorder.createPage(page.url(),
-                    page.source(), new EncodedJsonObject(page.data()), page.paginator());
+                    page.source(), new EncodedJson(page.data()), page.paginator());
             pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(page.source().id(), page.url(), false, recordedPage));
             normalPagesProducer
                     .produce(new RoqFrontMatterRecordedNormalPageBuildItem(page.source().id(), page.url(), recordedPage));

@@ -8,6 +8,7 @@ import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.EncodedJson;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.RoqDataRecorder;
@@ -58,7 +59,7 @@ class RoqDataBeanProcessor {
             beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
                     .scope(ApplicationScoped.class)
                     .named(roqData.getName())
-                    .runtimeValue(recorder.createRoqDataJson(roqData.getData()))
+                    .runtimeValue(recorder.createRoqDataJson(EncodedJson.of(roqData.getData())))
                     .unremovable()
                     .done());
             beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));
@@ -70,7 +71,7 @@ class RoqDataBeanProcessor {
             beansProducer.produce(SyntheticBeanBuildItem.configure(beanBuildItem.getBeanClass())
                     .scope(beanBuildItem.isRecord() ? Singleton.class : ApplicationScoped.class)
                     .named(beanBuildItem.getName())
-                    .runtimeValue(recorder.createRoqDataJson(beanBuildItem.getData()))
+                    .runtimeValue(recorder.createRoqDataBean(beanBuildItem.getData()))
                     .unremovable()
                     .done());
             beans.add("    - %s[name=%s]".formatted(beanBuildItem.getBeanClass().getName(), beanBuildItem.getName()));
