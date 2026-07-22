@@ -84,4 +84,43 @@ class RoqUrlTest {
         RoqUrl result = url.removeFirst("/posts/my.post");
         assertEquals("/blog/", result.path());
     }
+
+    @Test
+    void testIsFullPathHttpSchemes() {
+        assertTrue(RoqUrl.isFullPath("http://example.com"));
+        assertTrue(RoqUrl.isFullPath("https://example.com/foo"));
+    }
+
+    @Test
+    void testIsFullPathNonHttpSchemes() {
+        assertTrue(RoqUrl.isFullPath("mailto:user@example.com"));
+        assertTrue(RoqUrl.isFullPath("tel:+15551234567"));
+        assertTrue(RoqUrl.isFullPath("data:text/plain,hello"));
+        assertTrue(RoqUrl.isFullPath("javascript:void(0)"));
+        assertTrue(RoqUrl.isFullPath("ftp://example.com/file"));
+        assertTrue(RoqUrl.isFullPath("irc://irc.example.org/channel"));
+    }
+
+    @Test
+    void testIsFullPathUnknownSchemeIsRelative() {
+        // Schemes not part of ACCEPTED_URI_SCHEMES are treated as relative paths
+        assertFalse(RoqUrl.isFullPath("z39.50r://example.com:210/DB"));
+        assertFalse(RoqUrl.isFullPath("custom-scheme:foo"));
+    }
+
+    @Test
+    void testIsFullPathRelativePaths() {
+        assertFalse(RoqUrl.isFullPath("/posts/my-post"));
+        assertFalse(RoqUrl.isFullPath("posts/my-post"));
+        assertFalse(RoqUrl.isFullPath(""));
+    }
+
+    @Test
+    void testResolveNonHttpSchemeIsPreserved() {
+        RootUrl root = testRoot();
+        assertEquals("mailto:user@example.com", root.resolve("mailto:user@example.com").absolute());
+        assertEquals("tel:+15551234567", root.resolve("tel:+15551234567").absolute());
+        // root-relative link should still be resolved with the root path
+        assertEquals("/blog/posts/foo/", root.resolve("/posts/foo/").path());
+    }
 }
