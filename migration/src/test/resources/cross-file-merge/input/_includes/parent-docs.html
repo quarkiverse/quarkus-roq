@@ -1,0 +1,19 @@
+{% assign index = site.data.myindex %}
+<div id="docs">
+  {% include merge-items.html type="tutorial" %}
+  {% if values %}
+  <div class="tutorials">
+    {% for guide in values %}
+    <p>{{ guide.title }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% include merge-items.html type="reference" %}
+  {% if values %}
+  <div class="references">
+    {% for guide in values %}
+    <p>{{ guide.title }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
