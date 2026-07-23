@@ -150,7 +150,7 @@ TIP: See the link:/markups/markdown/[Markdown markup test] page for example usag
 AsciiDoc is also fully supported in Roq via the link:/plugin/asciidoc/[AsciiDoc plugin].
 Once installed, to write pages or documents in AsciiDoc, simply use the `.adoc` or `.asciidoc` file extension.
 
-TIP: When using Qute expressions as link targets in AsciiDoc, use the explicit `link:` macro. AsciiDoc only auto-detects links for known URL schemes (http, https, ...), so `\{=page.url}[Click here]` won't render as a link. Use `link:\{=page.url}[Click here]` instead.
+TIP: When using Qute expressions as link targets in AsciiDoc, use the explicit `link:` macro. AsciiDoc only auto-detects links for known URL schemes (http, https, ...), so `{=page.url}[Click here]` won't render as a link. Use `link:{=page.url}[Click here]` instead.
 
 TIP: See the link:/markups/asciidoc/[AsciiDoc markup test] page for example usage of all supported AsciiDoc features.
 
@@ -485,7 +485,7 @@ icon: my-custom-icon.svg
 [[seo]]
 === SEO
 
-Roq includes built-in SEO support with meta tags, Open Graph, and Twitter cards. The `\{#seo page site /}` tag is automatically included by the default theme. If you use a custom layout, add it to your HTML head:
+Roq includes built-in SEO support with meta tags, Open Graph, and Twitter cards. The `{#seo page site /}` tag is automatically included by the default theme. If you use a custom layout, add it to your HTML head:
 
 [source,html]
 ----
@@ -498,7 +498,7 @@ It will automatically generate `<title>`, `<meta>` author/description, Open Grap
 
 ==== `robots` meta tag (per page)
 
-Set a `robots` value in a page's (or document's) FrontMatter to control how search engines index it. When the page is rendered, the `\{#seo page site /}` tag will emit a corresponding `<meta name="robots">` tag.
+Set a `robots` value in a page's (or document's) FrontMatter to control how search engines index it. When the page is rendered, the `{#seo page site /}` tag will emit a corresponding `<meta name="robots">` tag.
 
 [source,yaml]
 ----
@@ -566,12 +566,12 @@ analytics:
   ga4: XXXXXXXXXX
 ----
 
-If you use a custom layout, add the `\{#ga4 /}` tag to your HTML head.
+If you use a custom layout, add the `{#ga4 /}` tag to your HTML head.
 
 [[rss]]
 === RSS
 
-The `\{#rss site /}` tag is automatically included by the base theme layout and all built-in themes (default, resume). If you use a custom layout that overrides `\{#head-meta}`, add it to your HTML head:
+The `{#rss site /}` tag is automatically included by the base theme layout and all built-in themes (default, resume). If you use a custom layout that overrides `{#head-meta}`, add it to your HTML head:
 
 [source,html]
 ----
@@ -593,8 +593,8 @@ By default, `<content:encoded>` contains the post description. Use the `contentL
 
 [source,html]
 ----
-\{#include fm/rss.html contentLimit=0 /}  <1>
-\{#include fm/rss.html contentLimit=150 /}  <2>
+{#include fm/rss.html contentLimit=0 /}  <1>
+{#include fm/rss.html contentLimit=150 /}  <2>
 ----
 <1> Full rendered content
 <2> Content abstract limited to 150 words
@@ -682,7 +682,7 @@ Date extensions use Java's `FormatStyle` for locale-aware formatting. The availa
 | Wednesday, October 9, 2024
 |===
 
-The `style` extension also accepts a custom date pattern: `\{=page.date.style('yyyy, MMM dd')}`.
+The `style` extension also accepts a custom date pattern: `{=page.date.style('yyyy, MMM dd')}`.
 
 NOTE: Roq does not yet support i18n collections (generating the same content in multiple languages with locale-specific URLs). The locale setting only affects date and number formatting in templates.
 
