@@ -28,5 +28,6 @@
         <module>diagram</module>
         <module>faker</module>
         <module>hybrid</module>
+        <module>l10n-adoc</module>
     </modules>
 </project>
