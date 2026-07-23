@@ -9,10 +9,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -35,11 +39,8 @@ public class RedirectMergerCommand implements Callable<Integer> {
     @Parameters(index = "0", description = "Project directory (must contain content/)")
     private Path projectDir;
 
-    private static final Pattern ALIASES_LINE = Pattern.compile("^aliases:\\s*\\n((?:[ \\t]+-[ \\t]+[^\\n]+\\n)*)",
-            Pattern.MULTILINE);
-    private static final Pattern NEWURL_LINE = Pattern.compile("^newUrl:[ \\t]*(.*)\\n", Pattern.MULTILINE);
-    private static final Pattern FRONTMATTER = Pattern.compile("^---\\s*\\n(.*?)^---\\s*\\n",
-            Pattern.MULTILINE | Pattern.DOTALL);
+    private static final String FM_DELIMITER = "---\n";
+    private static final YAMLMapper YAML_MAPPER = new YAMLMapper();
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new RedirectMergerCommand()).execute(args);
@@ -77,35 +78,30 @@ public class RedirectMergerCommand implements Callable<Integer> {
     private boolean mergeRedirect(Path contentDir, Path redirectsDir, Path redirectFile) throws IOException {
         String content = Files.readString(redirectFile);
 
-        // Extract frontmatter
-        Matcher fmMatcher = FRONTMATTER.matcher(content);
-        if (!fmMatcher.find()) {
+        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
             return false;
         }
 
-        String frontmatter = fmMatcher.group(1);
+        JsonObject data;
+        try {
+            data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
+        } catch (JsonProcessingException e) {
+            System.out.println("  Warning: failed to parse frontmatter in " + redirectFile + ": " + e.getMessage());
+            return false;
+        }
 
         // Extract target URL from either aliases: or newUrl:
         String target = null;
 
         // Try aliases: first (if JekyllFrontMatterCommand already converted it)
-        Matcher aliasesMatcher = ALIASES_LINE.matcher(frontmatter);
-        if (aliasesMatcher.find()) {
-            String aliasesBlock = aliasesMatcher.group(1);
-            target = aliasesBlock.lines()
-                    .map(String::trim)
-                    .filter(l -> l.startsWith("- "))
-                    .findFirst()
-                    .map(l -> l.substring(2).trim())
-                    .orElse(null);
+        JsonArray aliases = data.getJsonArray("aliases");
+        if (aliases != null && !aliases.isEmpty()) {
+            target = aliases.getString(0);
         }
 
         // Fall back to newUrl: (if not yet converted)
         if (target == null) {
-            Matcher newUrlMatcher = NEWURL_LINE.matcher(frontmatter);
-            if (newUrlMatcher.find()) {
-                target = newUrlMatcher.group(1).trim();
-            }
+            target = data.getString("newUrl");
         }
 
         if (target == null || target.isEmpty()) {
@@ -126,7 +122,6 @@ public class RedirectMergerCommand implements Callable<Integer> {
                 .replaceAll("\\.(md|html)$", "");
         Path sourceContentFile = findTargetFile(contentDir, sourceFilePath);
         if (sourceContentFile != null && !hasLinkFrontmatter(sourceContentFile)) {
-            // Content file exists at same path as redirect and will render there - delete redirect to avoid conflict
             Files.delete(redirectFile);
             System.out.println("  Deleted: " + sourcePath + " → " + target + " (conflicts with content page)");
             return true;
@@ -136,27 +131,22 @@ public class RedirectMergerCommand implements Callable<Integer> {
         boolean isExternal = target.startsWith("http://") || target.startsWith("https://");
 
         if (isExternal) {
-            // External redirects stay as redirect pages - don't merge or delete
             System.out.println("  Keep: " + sourcePath + " → " + target + " (external URL)");
             return false;
         }
 
         // Find target file for internal redirects
-        // Remove leading slash and .html/.adoc extensions from target
         String targetPath = target.replaceFirst("^/", "")
                 .replaceAll("/$", "")
                 .replaceAll("\\.html$", "");
 
         Path targetFile = findTargetFile(contentDir, targetPath);
         if (targetFile == null) {
-            // Can't find target file - keep as redirect page (might be rendered at different path via frontmatter)
-            // Only delete if we're confident it's truly broken to avoid false positives
             System.out.println("  Keep: " + sourcePath + " → " + target + " (redirect page, target file not found)");
             return false;
         }
 
-        // Delete if source and target resolve to the same path (circular redirect - useless)
-        // Normalize both for comparison (remove trailing slashes)
+        // Delete if source and target resolve to the same path (circular redirect)
         String normalizedSource = sourcePath.replaceAll("/$", "");
         String normalizedTarget = target.replaceAll("/$", "");
         if (!normalizedTarget.startsWith("/")) {
@@ -172,26 +162,22 @@ public class RedirectMergerCommand implements Callable<Integer> {
         addAliasToFile(targetFile, sourcePath);
         System.out.println("  Merged: " + sourcePath + " → " + target);
 
-        // Delete the redirect file after successful merge
         Files.delete(redirectFile);
 
         return true;
     }
 
     private Path findTargetFile(Path contentDir, String targetPath) throws IOException {
-        // Try with .adoc extension first (most common for guides)
         Path adocFile = contentDir.resolve(targetPath + ".adoc");
         if (Files.exists(adocFile)) {
             return adocFile;
         }
 
-        // Try .md
         Path mdFile = contentDir.resolve(targetPath + ".md");
         if (Files.exists(mdFile)) {
             return mdFile;
         }
 
-        // Try .html
         Path htmlFile = contentDir.resolve(targetPath + ".html");
         if (Files.exists(htmlFile)) {
             return htmlFile;
@@ -202,45 +188,50 @@ public class RedirectMergerCommand implements Callable<Integer> {
 
     private boolean hasLinkFrontmatter(Path file) throws IOException {
         String content = Files.readString(file);
-        Matcher fmMatcher = FRONTMATTER.matcher(content);
-        if (!fmMatcher.find()) {
+        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
             return false;
         }
-        String frontmatter = fmMatcher.group(1);
-        // Check if frontmatter has "link:" key (means file renders at different URL)
-        return frontmatter.contains("link:");
+        try {
+            JsonObject data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
+            return data.containsKey("link");
+        } catch (JsonProcessingException e) {
+            return false;
+        }
     }
 
     private void addAliasToFile(Path file, String alias) throws IOException {
         String content = Files.readString(file);
 
-        Matcher fmMatcher = FRONTMATTER.matcher(content);
-        if (!fmMatcher.find()) {
-            // No frontmatter, add it
-            content = "---\naliases:\n  - " + alias + "\n---\n" + content;
+        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
+            content = FM_DELIMITER + "aliases:\n  - " + alias + "\n" + FM_DELIMITER + content;
             Files.writeString(file, content);
             return;
         }
 
-        String frontmatter = fmMatcher.group(1);
-
-        // Check if aliases already exist
-        Matcher aliasesMatcher = ALIASES_LINE.matcher(frontmatter);
-        if (aliasesMatcher.find()) {
-            String existingAliases = aliasesMatcher.group(1);
-            // Check if this alias is already present
-            if (existingAliases.contains("- " + alias + "\n") || existingAliases.contains("- " + alias + " \n")) {
-                return; // Already has this alias
-            }
-            // Add to existing aliases
-            String updatedAliases = existingAliases + "  - " + alias + "\n";
-            String updatedFrontmatter = aliasesMatcher.replaceFirst("aliases:\n" + Matcher.quoteReplacement(updatedAliases));
-            content = fmMatcher.replaceFirst("---\n" + Matcher.quoteReplacement(updatedFrontmatter) + "---\n");
-        } else {
-            // Add new aliases section
-            String updatedFrontmatter = "aliases:\n  - " + alias + "\n" + frontmatter;
-            content = fmMatcher.replaceFirst("---\n" + Matcher.quoteReplacement(updatedFrontmatter) + "---\n");
+        JsonObject data;
+        try {
+            data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
+        } catch (JsonProcessingException e) {
+            return;
         }
+
+        String body = RoqFrontMatterTemplateUtils.stripFrontMatter(content);
+
+        JsonArray existingAliases = data.getJsonArray("aliases");
+        if (existingAliases == null) {
+            existingAliases = new JsonArray();
+        }
+
+        if (existingAliases.contains(alias)) {
+            return;
+        }
+
+        existingAliases.add(alias);
+        data.put("aliases", existingAliases);
+
+        // Serialize back to YAML frontmatter
+        String yaml = YAML_MAPPER.writeValueAsString(data.getMap());
+        content = FM_DELIMITER + yaml + FM_DELIMITER + body;
 
         Files.writeString(file, content);
     }
