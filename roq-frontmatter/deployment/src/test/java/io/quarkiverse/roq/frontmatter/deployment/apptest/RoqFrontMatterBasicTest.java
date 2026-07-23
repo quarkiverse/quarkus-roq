@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.apptest;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
@@ -169,6 +170,20 @@ public class RoqFrontMatterBasicTest {
         assertTrue(body.contains("content:encoded"), "Should contain content:encoded element");
         assertTrue(body.contains("..."), "Should contain truncation marker from word limit");
         assertTrue(body.contains("Keep reading"), "Should contain keep reading link");
+    }
+
+    @Test
+    @DisplayName("RSS does not HTML-escape titles/descriptions inside CDATA")
+    public void testRssCdataNotHtmlEscaped() {
+        String body = RestAssured.when().get("/rss.xml").then().statusCode(200).log().ifValidationFails()
+                .extract().body().asString();
+        // Values are wrapped in CDATA, so they must be raw text, not HTML-escaped entities.
+        assertTrue(body.contains("<title><![CDATA[Roq's tips & \"tricks\"]]></title>"),
+                "Title must be raw inside CDATA");
+        assertTrue(body.contains("<description><![CDATA[Roq's astuces & \"conseils\"]]></description>"),
+                "Description must be raw inside CDATA");
+        assertFalse(body.contains("Roq&#39;s"), "Apostrophe must not be HTML-escaped inside CDATA");
+        assertFalse(body.contains("&amp;quot;"), "Quotes must not be HTML-escaped inside CDATA");
     }
 
 }
