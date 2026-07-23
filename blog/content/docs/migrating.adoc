@@ -141,6 +141,8 @@ roq add plugin:aliases     # for URL redirects
 roq add plugin:tagging     # if using tags
 ----
 
+TIP: When migrating from Jekyll or Hugo, consider which features in your original site require plugins in Roq. For example, if your Jekyll site uses the `jekyll-sitemap` plugin, add `plugin:sitemap` to your Roq project. If you use tags for categorization, add `plugin:tagging`. Check the available plugins with `roq list plugins` or browse the link:{site-url}marketplace/#plugins[Plugins & Themes] directory to find equivalents for your site's features.
+
 === LLM prompt for project setup
 
 [source,text]
