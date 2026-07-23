@@ -406,7 +406,7 @@ site.escaped-pages=posts/escaped**,my-page.html
 
 * Set it in FrontMatter by adding `escape: true` in your page data (not working with layouts).
 
-* Escape inline content by wrapping the section with `\{|` and `|\}`, or by manually escaping Qute expressions using `&#92;{`.
+* Escape inline content by wrapping the section with `&#123;|` and `|&#125;`, or by manually escaping Qute expressions using `&#92;{`.
 
 
 [#root-path]
