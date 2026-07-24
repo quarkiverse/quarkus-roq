@@ -94,6 +94,14 @@
         @apply scale-110;
     }
 
+    .menu ul li a.active {
+        @apply translate-x-1 text-accent-400;
+    }
+
+    .menu ul li a.active i {
+        @apply scale-110;
+    }
+
     /* === Contact === */
     .contact-title {
         @apply text-sidebar-muted;
