@@ -2308,44 +2308,11 @@ public class LiquidToQuteConverter {
         // page.data.* and post.data.* access a JsonObject.
         // Do NOT add ?? — Qute passes "property??" as the literal key name to
         // JsonObject.getValue(), which fails because the key is "property".
-        //
-        // BUT: when a .data.* property is used as an argument to str:split/str:splitTrimmed,
-        // a missing key returns Results$NotFound which can't be cast to String → ClassCastException.
-        // Add .or('') to those arguments so the split receives an empty string instead.
-        String result = content.replaceAll(
-                "(str:split(?:Trimmed)?\\()((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)(,)",
-                "$1$2.or('')$4");
-        if (!result.equals(content)) {
-            conversionsApplied.add("Added .or('') to .data.* properties in split arguments");
-            content = result;
-        }
-
-        // Same for .get() arguments — JsonObjectValueResolver.get(param) casts param
-        // to String, so Results$NotFound → ClassCastException.
-        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version —
-        //       JsonObjectValueResolver will handle NotFound gracefully in 3.38.
-        result = content.replaceAll(
-                "(\\.get\\()((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)(\\))",
-                "$1$2.or('')$4");
-        if (!result.equals(content)) {
-            conversionsApplied.add("Added .or('') to .data.* properties in .get() arguments");
-            content = result;
-        }
-
-        // Also protect plain variable arguments in .get() calls — a variable from a
-        // prior {#let} may hold Results$NotFound if the source expression was missing.
-        // Skip string/number literals and .data.* args (already handled above).
-        // TODO: Remove .or('') workaround when Quarkus 3.38+ is the minimum version.
-        result = addOrEmptyToGetArgs(content);
-        if (!result.equals(content)) {
-            conversionsApplied.add("Added .or('') to variable arguments in .get() calls");
-            content = result;
-        }
 
         // Guard {=page.data.FIELD} output — Liquid outputs empty string for missing
         // keys, but Qute renders NOT_FOUND.  Add .or('') so the output is blank.
         // (.raw is appended later by appendRawToOutputExpressions)
-        result = content.replaceAll(
+        String result = content.replaceAll(
                 "\\{=((page|post)\\.data\\.[a-zA-Z_][a-zA-Z0-9_]*)\\}",
                 "{=$1.or('')}");
         if (!result.equals(content)) {
@@ -2363,33 +2330,6 @@ public class LiquidToQuteConverter {
         }
 
         return result;
-    }
-
-    private String addOrEmptyToGetArgs(String content) {
-        String[] lines = content.split("\n", -1);
-        Pattern pattern = Pattern.compile("\\.get\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)");
-        boolean changed = false;
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            Matcher m = pattern.matcher(line);
-            if (m.find()) {
-                String cleanVersion = line.trim();
-                line = pattern.matcher(line).replaceAll(".get($1.or(''))");
-                String indent = line.substring(0, line.indexOf(line.trim()));
-                result.append(indent)
-                        .append("{! TODO: Quarkus 3.38 fixes NotFound in .get() — remove .or('') to get: ")
-                        .append(cleanVersion).append(" !}\n");
-                changed = true;
-            }
-            result.append(line);
-            if (i < lines.length - 1) {
-                result.append('\n');
-            }
-        }
-
-        return changed ? result.toString() : content;
     }
 
     private String convertUrlConcatenation(String content) {
