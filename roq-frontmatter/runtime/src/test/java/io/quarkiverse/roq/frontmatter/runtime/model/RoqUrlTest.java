@@ -86,6 +86,60 @@ class RoqUrlTest {
     }
 
     @Test
+    void testIsActiveExactMatch() {
+        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started");
+        assertTrue(url.isActive("/blog/docs/getting-started"));
+        assertTrue(url.isActive("/blog/docs/getting-started/"));
+        assertFalse(url.isActive("/docs/getting-started"));
+        assertFalse(url.isActive("/blog/docs/advanced"));
+        assertFalse(url.isActive("/blog/docs"));
+    }
+
+    @Test
+    void testIsActiveTrailingSlash() {
+        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started/");
+        assertTrue(url.isActive("/blog/docs/getting-started"));
+        assertTrue(url.isActive("/blog/docs/getting-started/"));
+    }
+
+    @Test
+    void testIsActiveRootPage() {
+        RoqUrl url = new RoqUrl(testRoot(), "/");
+        assertTrue(url.isActive("/blog"));
+        assertTrue(url.isActive("/blog/"));
+        assertFalse(url.isActive("/blog/docs"));
+        assertFalse(url.isActive("/docs"));
+    }
+
+    @Test
+    void testNavReturnsActiveForMatchingPath() {
+        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started");
+        assertEquals("active", url.nav("/blog/docs/getting-started"));
+        assertEquals("", url.nav("/blog/docs"));
+    }
+
+    @Test
+    void testNavReturnsEmptyForNonMatchingPath() {
+        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started");
+        assertEquals("", url.nav("/blog/posts"));
+        assertEquals("", url.nav("/blog/about"));
+    }
+
+    @Test
+    void testNavWithMultiplePaths() {
+        RoqUrl urlOnDocs = new RoqUrl(testRoot(), "/docs/advanced");
+        assertEquals("active", urlOnDocs.nav("/blog/posts", "/blog/docs/advanced", "/blog/about"));
+        assertEquals("", urlOnDocs.nav("/blog/posts", "/blog/about"));
+    }
+
+    @Test
+    void testNavRootPage() {
+        RoqUrl url = new RoqUrl(testRoot(), "/");
+        assertEquals("active", url.nav("/blog"));
+        assertEquals("", url.nav("/blog/docs"));
+    }
+
+    @Test
     void testIsFullPathHttpSchemes() {
         assertTrue(RoqUrl.isFullPath("http://example.com"));
         assertTrue(RoqUrl.isFullPath("https://example.com/foo"));
