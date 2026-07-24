@@ -6,7 +6,7 @@
   <h3 class="section-title menu-title">{menuTitle ?: 'MENU'}</h3>
   <ul>
     {#for item in menu}
-    <li><a href="{site.url(item.path)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
+    <li><a class="{page.url.nav(site.url(item.path).path)}" href="{site.url(item.path)}" {#if item.target??}target="{item.target}"{/if}><i class="{item.icon}"></i>{item.title}</a> </li>
     {/for}
   </ul>
 </section>
