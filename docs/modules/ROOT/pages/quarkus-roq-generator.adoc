@@ -179,53 +179,36 @@ public class RemoteContentSelection {
     @Produces
     @Singleton
     RoqSelection produce() throws IOException {
-        // Fetch content list from remote API at build time
-        List<Post> posts = apiClient.getAllPosts(); // <2>
 
-        // Download a JavaScript file from the API
+        // Another use case: download a JavaScript file from the API
         String analyticsScript = apiClient.getAnalyticsScript();
+        // Download into the public directory (this file should be included in the .gitignore)
+        // Alternatively, you can download outside the source tree and add a vertx route so the generator can access the served content
         java.nio.file.Path publicDir = Paths.get("public/js");
         Files.createDirectories(publicDir);
-        Files.writeString(publicDir.resolve("analytics.js"), analyticsScript); // <3>
+        Files.writeString(publicDir.resolve("analytics.js"), analyticsScript); // <2>
 
         // Build selection paths
         List<SelectedPath> paths = new ArrayList<>();
 
         // Add the downloaded JavaScript file to the selection
+        // Files downloaded during the selection phase need
+        // explicit selection paths, because they're created after the normal public/
+        // directory copy happens
         paths.add(SelectedPath.builder()
             .path("/js/analytics.js")
             .outputPath("/js/analytics.js")
-            .build()); // <4>
-
-        // Generate a static page for each post
-        paths.addAll(posts.stream()
-            .map(post -> SelectedPath.builder()
-                .html("/blog/" + post.slug) // <5>
-                .build())
-            .toList());
+            .build()); // <3>
 
         return new RoqSelection(paths);
     }
 }
 
-@RegisterRestClient(configKey = "content-api")
-interface ContentApiClient {
-    @GET
-    @Path("/posts")
-    List<Post> getAllPosts();
-
-    @GET
-    @Path("/analytics.js")
-    String getAnalyticsScript();
-}
-
 record Post(String slug, String title, String content) {}
 ----
 <1> Inject a REST client pointing to your headless CMS or API
-<2> Fetch the list of posts at build time (when `mvn package quarkus:run` runs)
-<3> Download a JavaScript file from the API and write it to the public/ directory
-<4> Add a selection path for the downloaded file so it gets included in the static site
-<5> Generate a static HTML page for each post: `/blog/hello-world/index.html`, etc.
+<2> Download a JavaScript file from the API and write it to the public/ directory
+<3> Add a selection path for the downloaded file so it gets included in the static site
 
 **Configuration for the REST client:**
 
