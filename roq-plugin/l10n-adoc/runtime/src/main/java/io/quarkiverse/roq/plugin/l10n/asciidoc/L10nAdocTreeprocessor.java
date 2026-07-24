@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.asciidoctor.ast.*;
 import org.asciidoctor.extension.Treeprocessor;
+import org.jboss.logging.Logger;
 
 class L10nAdocTreeprocessor extends Treeprocessor {
 
-    private static final Logger LOG = Logger.getLogger(L10nAdocTreeprocessor.class.getName());
+    private static final Logger LOG = Logger.getLogger(L10nAdocTreeprocessor.class);
 
     private final Path poBaseDir;
 
@@ -31,7 +30,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         Object docNameObj = document.getAttribute("docname");
 
         if (baseDir == null || rootDir == null || docNameObj == null) {
-            LOG.fine("Missing base_dir, root_dir, or docname — skipping L10N");
+            LOG.debug("Missing base_dir, root_dir, or docname — skipping L10N");
             return document;
         }
 
@@ -39,7 +38,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
                 poBaseDir, baseDir, rootDir, docNameObj.toString());
 
         if (poFilePath.isEmpty()) {
-            LOG.fine(() -> "No PO file found for " + docNameObj + " — skipping L10N");
+            LOG.debugf("No PO file found for %s — skipping L10N", docNameObj);
             return document;
         }
 
@@ -47,7 +46,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         try {
             poFile = new L10nAdocPoFile(poFilePath.get());
         } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to parse PO file: " + poFilePath.get(), e);
+            LOG.warnf(e, "Failed to parse PO file: %s", poFilePath.get());
             return document;
         }
 
