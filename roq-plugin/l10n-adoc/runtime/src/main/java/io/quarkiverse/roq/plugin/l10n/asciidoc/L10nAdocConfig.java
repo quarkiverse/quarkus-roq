@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 
-@ConfigMapping(prefix = "l10n")
+@ConfigMapping(prefix = "quarkus.roq.l10n-adoc")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface L10nAdocConfig {
 

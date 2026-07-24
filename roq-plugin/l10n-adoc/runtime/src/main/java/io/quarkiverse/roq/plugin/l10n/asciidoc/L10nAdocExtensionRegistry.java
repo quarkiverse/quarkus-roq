@@ -16,11 +16,6 @@ public class L10nAdocExtensionRegistry implements ExtensionRegistry {
     }
 
     static Path resolvePoBaseDir() {
-        Path fromRecorder = L10nAdocRecorder.getPoBaseDir();
-        if (fromRecorder != null) {
-            return fromRecorder;
-        }
-        String env = System.getenv("L10N_PO_BASE_DIR");
-        return env != null ? Path.of(env) : null;
+        return L10nAdocRecorder.getPoBaseDir();
     }
 }
