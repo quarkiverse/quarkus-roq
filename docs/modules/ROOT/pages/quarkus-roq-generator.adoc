@@ -65,7 +65,7 @@ The choice between static and dynamic selection depends on whether you know all 
 
 === Static selection (configuration-based)
 
-Use static selection when you have want to include a **fixed set of extra paths** that don't change based on external data.
+Use static selection when you want to include a **fixed set of extra paths** that don't change based on external data.
 
 Configure paths in `application.properties`:
 [source,properties]
