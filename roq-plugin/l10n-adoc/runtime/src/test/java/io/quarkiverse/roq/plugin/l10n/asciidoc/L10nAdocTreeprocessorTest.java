@@ -301,4 +301,64 @@ class L10nAdocTreeprocessorTest {
                     "Registry-resolved config should enable translation. Got: " + html);
         }
     }
+
+    @Test
+    void translatesIncludedFileWithSeparatePoFile(@TempDir Path tempDir) throws IOException {
+        Path poBaseDir = tempDir.resolve("po");
+        Path contentDir = tempDir.resolve("project/content");
+        Path includesDir = contentDir.resolve("_includes");
+        Files.createDirectories(includesDir);
+
+        // PO for the main document
+        Path mainPo = poBaseDir.resolve("content/test-doc.adoc.po");
+        Files.createDirectories(mainPo.getParent());
+        Files.writeString(mainPo, """
+                msgid ""
+                msgstr ""
+                "Content-Type: text/plain; charset=UTF-8\\n"
+
+                msgid "Main Title"
+                msgstr "Título Principal"
+                """);
+
+        // PO for the included file
+        Path includePo = poBaseDir.resolve("content/_includes/shared.adoc.po");
+        Files.createDirectories(includePo.getParent());
+        Files.writeString(includePo, """
+                msgid ""
+                msgstr ""
+                "Content-Type: text/plain; charset=UTF-8\\n"
+
+                msgid "Included Section"
+                msgstr "Seção Incluída"
+
+                msgid "Shared content from include."
+                msgstr "Conteúdo compartilhado do include."
+                """);
+
+        // Include file must contain a section — AsciidoctorJ only records
+        // the include file path in source_location at section boundaries
+        Files.writeString(includesDir.resolve("shared.adoc"),
+                "== Included Section\n\nShared content from include.\n");
+
+        Path mainAdoc = contentDir.resolve("test-doc.adoc");
+        Files.writeString(mainAdoc, "== Main Title\n\ninclude::_includes/shared.adoc[]\n");
+
+        try (Asciidoctor asciidoctor = createAsciidoctor(poBaseDir)) {
+            var doc = asciidoctor.loadFile(mainAdoc.toFile(), Options.builder()
+                    .safe(SafeMode.UNSAFE)
+                    .sourcemap(true)
+                    .baseDir(contentDir.toFile())
+                    .option("root_dir", contentDir.getParent().toString())
+                    .build());
+            String html = doc.convert();
+
+            assertTrue(html.contains("Título Principal"),
+                    "Main document title should be translated. Got: " + html);
+            assertTrue(html.contains("Seção Incluída"),
+                    "Included section title should be translated. Got: " + html);
+            assertTrue(html.contains("Conteúdo compartilhado do include."),
+                    "Included paragraph should be translated from its own PO file. Got: " + html);
+        }
+    }
 }

@@ -2,7 +2,10 @@ package io.quarkiverse.roq.plugin.l10n.asciidoc;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.asciidoctor.ast.*;
@@ -14,6 +17,8 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     private static final Logger LOG = Logger.getLogger(L10nAdocTreeprocessor.class);
 
     private final Path poBaseDir;
+    private final Map<Path, L10nAdocPoFile> poFileCache = new HashMap<>();
+    private String rootDir;
 
     L10nAdocTreeprocessor(Path poBaseDir) {
         this.poBaseDir = poBaseDir;
@@ -26,7 +31,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         }
 
         String baseDir = optionAsString(document, "base_dir");
-        String rootDir = optionAsString(document, "root_dir");
+        rootDir = optionAsString(document, "root_dir");
         Object docNameObj = document.getAttribute("docname");
 
         if (baseDir == null || rootDir == null || docNameObj == null) {
@@ -42,11 +47,8 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             return document;
         }
 
-        L10nAdocPoFile poFile;
-        try {
-            poFile = new L10nAdocPoFile(poFilePath.get());
-        } catch (IOException e) {
-            LOG.warnf(e, "Failed to parse PO file: %s", poFilePath.get());
+        L10nAdocPoFile poFile = loadPoFile(poFilePath.get());
+        if (poFile == null) {
             return document;
         }
 
@@ -54,6 +56,36 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         processNodes(document.getBlocks(), poFile);
 
         return document;
+    }
+
+    private L10nAdocPoFile loadPoFile(Path path) {
+        return poFileCache.computeIfAbsent(path, p -> {
+            try {
+                return new L10nAdocPoFile(p);
+            } catch (IOException e) {
+                LOG.warnf(e, "Failed to parse PO file: %s", p);
+                return null;
+            }
+        });
+    }
+
+    private L10nAdocPoFile resolvePoFileFromSourceLocation(StructuralNode node) {
+        Cursor location = node.getSourceLocation();
+        if (location == null || location.getFile() == null || rootDir == null) {
+            return null;
+        }
+        Path rootPath = Paths.get(rootDir);
+        Path sourceFile = Paths.get(location.getDir()).resolve(location.getFile()).normalize();
+        if (!sourceFile.startsWith(rootPath)) {
+            return null;
+        }
+        Path relativeSource = rootPath.relativize(sourceFile);
+        Path poPath = poBaseDir.resolve(relativeSource + ".po");
+        if (!java.nio.file.Files.exists(poPath)) {
+            LOG.debugf("No PO file for included source: %s", poPath);
+            return null;
+        }
+        return loadPoFile(poPath);
     }
 
     private void translateTitle(Document document, L10nAdocPoFile poFile) {
@@ -87,10 +119,13 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     }
 
     private void translateSection(Section section, L10nAdocPoFile poFile) {
+        L10nAdocPoFile resolved = resolvePoFileFromSourceLocation(section);
+        L10nAdocPoFile effectivePoFile = resolved != null ? resolved : poFile;
+
         String originalId = section.getId();
         String title = section.getTitle();
         if (title != null) {
-            String translated = poFile.translate(title);
+            String translated = effectivePoFile.translate(title);
             if (translated != null) {
                 section.setTitle(translated);
                 if (originalId != null) {
@@ -98,7 +133,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
                 }
             }
         }
-        processNodes(section.getBlocks(), poFile);
+        processNodes(section.getBlocks(), effectivePoFile);
     }
 
     private void translateBlock(Block block, L10nAdocPoFile poFile) {
