@@ -5,8 +5,8 @@
 {#let name=(collectionName ?: 'posts') cl=contentLimit.or(-1)}
 <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
-    <title><![CDATA[ {site.title} ]]></title>
-    <description><![CDATA[ {site.description} ]]></description>
+    <title><![CDATA[ {#if site.title}{site.title.raw}{/if} ]]></title>
+    <description><![CDATA[ {#if site.description}{site.description.raw}{/if} ]]></description>
     <link>{site.url.absolute}</link>
     <atom:link href="{site.url('rss.xml').absolute}" rel="self" type="application/rss+xml"/>
     <generator>Quarkus Roq</generator>
@@ -14,19 +14,19 @@
     <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.rfc822}{/if}</lastBuildDate>
     {#for post in site.collections.get(name)}
       <item>
-        <title><![CDATA[{post.title}]]></title>
+        <title><![CDATA[{post.title.raw}]]></title>
         <link>{post.url.absolute}</link>
         <guid isPermaLink="false">{post.url.absolute}</guid>
         <pubDate>{post.date.rfc822}</pubDate>
-        <description><![CDATA[{post.description}]]></description>
+        <description><![CDATA[{#if post.description}{post.description.raw}{/if}]]></description>
         {#if cl >= 0}
         {#if cl == 0}
-        <content:encoded><![CDATA[{post.content}<div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        <content:encoded><![CDATA[{post.content.raw}<div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
         {#else}
-        <content:encoded><![CDATA[<p>{post.contentAbstract(contentLimit)}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        <content:encoded><![CDATA[<p>{post.contentAbstract(contentLimit).raw}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
         {/if}
         {#else}
-        <content:encoded><![CDATA[<p>{post.description}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
+        <content:encoded><![CDATA[<p>{#if post.description}{post.description.raw}{/if}</p><div style="margin-top: 50px; font-style: italic;"><strong><a href="{post.url.absolute}">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>
         {/if}
       </item>
     {/for}
