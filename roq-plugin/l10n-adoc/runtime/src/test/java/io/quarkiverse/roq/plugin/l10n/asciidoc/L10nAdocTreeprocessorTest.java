@@ -19,7 +19,7 @@ class L10nAdocTreeprocessorTest {
         Asciidoctor asciidoctor = Asciidoctor.Factory.create();
         asciidoctor.javaExtensionRegistry()
                 .preprocessor(new L10nAdocPreprocessor(poBaseDir))
-                .treeprocessor(new L10nAdocTreeprocessor(poBaseDir));
+                .treeprocessor(new L10nAdocTreeprocessor(poBaseDir, false));
         return asciidoctor;
     }
 
@@ -292,7 +292,7 @@ class L10nAdocTreeprocessorTest {
         try (Asciidoctor asciidoctor = Asciidoctor.Factory.create()) {
             asciidoctor.javaExtensionRegistry()
                     .preprocessor(new L10nAdocPreprocessor(poBaseDir))
-                    .treeprocessor(new L10nAdocTreeprocessor(poBaseDir));
+                    .treeprocessor(new L10nAdocTreeprocessor(poBaseDir, false));
 
             Path contentDir = tempDir.resolve("project/content");
             String html = convert(asciidoctor, "== Registry Test\n\nContent.", contentDir);
@@ -359,6 +359,79 @@ class L10nAdocTreeprocessorTest {
                     "Included section title should be translated. Got: " + html);
             assertTrue(html.contains("Conteúdo compartilhado do include."),
                     "Included paragraph should be translated from its own PO file. Got: " + html);
+        }
+    }
+
+    @Test
+    void extractOnBuildCreatesPoFile(@TempDir Path tempDir) throws IOException {
+        Path poBaseDir = tempDir.resolve("po");
+        Path contentDir = tempDir.resolve("project/content");
+        Files.createDirectories(contentDir);
+
+        try (Asciidoctor asciidoctor = Asciidoctor.Factory.create()) {
+            asciidoctor.javaExtensionRegistry()
+                    .preprocessor(new L10nAdocPreprocessor(poBaseDir))
+                    .treeprocessor(new L10nAdocTreeprocessor(poBaseDir, true));
+
+            asciidoctor.convert("== New Section\n\nNew paragraph.",
+                    Options.builder()
+                            .safe(SafeMode.SAFE)
+                            .baseDir(contentDir.toFile())
+                            .attributes(Attributes.builder()
+                                    .attribute("docname", "new-doc")
+                                    .build())
+                            .option("root_dir", contentDir.getParent().toString())
+                            .build());
+
+            Path poFile = poBaseDir.resolve("content/new-doc.adoc.po");
+            assertTrue(Files.exists(poFile), "PO file should be created: " + poFile);
+
+            String content = Files.readString(poFile);
+            assertTrue(content.contains("\"New Section\""), "Should contain section title. Got: " + content);
+            assertTrue(content.contains("\"New paragraph.\""), "Should contain paragraph. Got: " + content);
+        }
+    }
+
+    @Test
+    void extractOnBuildPreservesExistingTranslations(@TempDir Path tempDir) throws IOException {
+        Path poBaseDir = tempDir.resolve("po");
+        Path contentDir = tempDir.resolve("project/content");
+        Files.createDirectories(contentDir);
+
+        Path existingPo = poBaseDir.resolve("content/test-doc.adoc.po");
+        Files.createDirectories(existingPo.getParent());
+        Files.writeString(existingPo, """
+                msgid ""
+                msgstr ""
+                "Content-Type: text/plain; charset=UTF-8\\n"
+
+                msgid "Existing Title"
+                msgstr "Título Existente"
+                """);
+
+        try (Asciidoctor asciidoctor = Asciidoctor.Factory.create()) {
+            asciidoctor.javaExtensionRegistry()
+                    .preprocessor(new L10nAdocPreprocessor(poBaseDir))
+                    .treeprocessor(new L10nAdocTreeprocessor(poBaseDir, true));
+
+            String html = asciidoctor.convert("== Existing Title\n\nNew paragraph.",
+                    Options.builder()
+                            .safe(SafeMode.SAFE)
+                            .baseDir(contentDir.toFile())
+                            .attributes(Attributes.builder()
+                                    .attribute("docname", "test-doc")
+                                    .build())
+                            .option("root_dir", contentDir.getParent().toString())
+                            .build());
+
+            assertTrue(html.contains("Título Existente"),
+                    "Existing translation should be applied. Got: " + html);
+
+            String poContent = Files.readString(existingPo);
+            assertTrue(poContent.contains("\"Título Existente\""),
+                    "Existing translation should be preserved in PO. Got: " + poContent);
+            assertTrue(poContent.contains("\"New paragraph.\""),
+                    "New entry should be added to PO. Got: " + poContent);
         }
     }
 }

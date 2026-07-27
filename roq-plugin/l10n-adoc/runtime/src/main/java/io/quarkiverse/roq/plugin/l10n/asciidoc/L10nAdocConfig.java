@@ -16,4 +16,16 @@ public interface L10nAdocConfig {
      * resolved relative to this directory.
      */
     Optional<String> poBaseDir();
+
+    /**
+     * When true (default), translatable text is extracted to PO files during the build.
+     * Set to false to only apply existing translations without updating PO files.
+     */
+    Optional<Boolean> extractOnBuild();
+
+    /**
+     * Target language code for generated PO file headers (e.g. "ja-JP").
+     * Used when creating new PO files during extract-on-build.
+     */
+    Optional<String> targetLanguage();
 }

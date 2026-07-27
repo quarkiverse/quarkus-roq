@@ -20,5 +20,7 @@ public class RoqPluginL10nAdocProcessor {
     @Record(ExecutionTime.STATIC_INIT)
     void configureL10n(L10nAdocConfig config, L10nAdocRecorder recorder) {
         recorder.setPoBaseDir(config.poBaseDir());
+        recorder.setExtractOnBuild(config.extractOnBuild());
+        recorder.setTargetLanguage(config.targetLanguage());
     }
 }

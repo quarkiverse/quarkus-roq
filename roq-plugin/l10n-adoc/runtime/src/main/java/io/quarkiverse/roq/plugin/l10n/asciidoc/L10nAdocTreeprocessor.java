@@ -3,10 +3,11 @@ package io.quarkiverse.roq.plugin.l10n.asciidoc;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.asciidoctor.ast.*;
 import org.asciidoctor.extension.Treeprocessor;
@@ -17,11 +18,12 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     private static final Logger LOG = Logger.getLogger(L10nAdocTreeprocessor.class);
 
     private final Path poBaseDir;
-    private final Map<Path, L10nAdocPoFile> poFileCache = new HashMap<>();
-    private String rootDir;
+    private final boolean extractOnBuild;
+    private final Map<Path, L10nAdocPoFile> poFileCache = new ConcurrentHashMap<>();
 
-    L10nAdocTreeprocessor(Path poBaseDir) {
+    L10nAdocTreeprocessor(Path poBaseDir, boolean extractOnBuild) {
         this.poBaseDir = poBaseDir;
+        this.extractOnBuild = extractOnBuild;
     }
 
     @Override
@@ -31,7 +33,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         }
 
         String baseDir = optionAsString(document, "base_dir");
-        rootDir = optionAsString(document, "root_dir");
+        String rootDir = optionAsString(document, "root_dir");
         Object docNameObj = document.getAttribute("docname");
 
         if (baseDir == null || rootDir == null || docNameObj == null) {
@@ -42,34 +44,66 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         Optional<Path> poFilePath = L10nAdocPoFileResolver.resolve(
                 poBaseDir, baseDir, rootDir, docNameObj.toString());
 
-        if (poFilePath.isEmpty()) {
+        Path resolvedPoPath;
+        if (poFilePath.isPresent()) {
+            resolvedPoPath = poFilePath.get();
+        } else if (extractOnBuild) {
+            resolvedPoPath = poBaseDir.resolve(
+                    Paths.get(rootDir).relativize(Paths.get(baseDir).resolve(docNameObj + ".adoc")) + ".po");
+        } else {
             LOG.debugf("No PO file found for %s — skipping L10N", docNameObj);
             return document;
         }
 
-        L10nAdocPoFile poFile = loadPoFile(poFilePath.get());
+        List<Path> touchedPoPaths = new ArrayList<>();
+        touchedPoPaths.add(resolvedPoPath);
+
+        L10nAdocPoFile poFile = loadOrCreatePoFile(resolvedPoPath);
         if (poFile == null) {
             return document;
         }
 
         translateTitle(document, poFile);
-        processNodes(document.getBlocks(), poFile);
+        processNodes(document.getBlocks(), poFile, rootDir, touchedPoPaths);
+
+        if (extractOnBuild) {
+            flushTouchedPoFiles(touchedPoPaths);
+        }
 
         return document;
     }
 
-    private L10nAdocPoFile loadPoFile(Path path) {
-        return poFileCache.computeIfAbsent(path, p -> {
-            try {
-                return new L10nAdocPoFile(p);
-            } catch (IOException e) {
-                LOG.warnf(e, "Failed to parse PO file: %s", p);
-                return null;
+    private void flushTouchedPoFiles(List<Path> paths) {
+        for (Path path : paths) {
+            L10nAdocPoFile pf = poFileCache.get(path);
+            if (pf != null && pf.hasChanges()) {
+                try {
+                    pf.writeTo(path);
+                    LOG.infof("Updated PO file: %s", path);
+                } catch (IOException e) {
+                    LOG.warnf(e, "Failed to write PO file: %s", path);
+                }
             }
+        }
+    }
+
+    private L10nAdocPoFile loadOrCreatePoFile(Path path) {
+        return poFileCache.computeIfAbsent(path, p -> {
+            if (java.nio.file.Files.exists(p)) {
+                try {
+                    return new L10nAdocPoFile(p);
+                } catch (IOException e) {
+                    LOG.warnf(e, "Failed to parse PO file: %s", p);
+                    return null;
+                }
+            } else if (extractOnBuild) {
+                return new L10nAdocPoFile();
+            }
+            return null;
         });
     }
 
-    private L10nAdocPoFile resolvePoFileFromSourceLocation(StructuralNode node) {
+    private Path resolvePoPathFromSourceLocation(StructuralNode node, String rootDir) {
         Cursor location = node.getSourceLocation();
         if (location == null || location.getFile() == null || rootDir == null) {
             return null;
@@ -80,52 +114,76 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             return null;
         }
         Path relativeSource = rootPath.relativize(sourceFile);
-        Path poPath = poBaseDir.resolve(relativeSource + ".po");
-        if (!java.nio.file.Files.exists(poPath)) {
+        return poBaseDir.resolve(relativeSource + ".po");
+    }
+
+    private L10nAdocPoFile resolvePoFileFromSourceLocation(StructuralNode node, String rootDir) {
+        Path poPath = resolvePoPathFromSourceLocation(node, rootDir);
+        if (poPath == null) {
+            return null;
+        }
+        if (!java.nio.file.Files.exists(poPath) && !extractOnBuild) {
             LOG.debugf("No PO file for included source: %s", poPath);
             return null;
         }
-        return loadPoFile(poPath);
+        return loadOrCreatePoFile(poPath);
+    }
+
+    private String translateAndExtract(L10nAdocPoFile poFile, String msgid) {
+        if (msgid == null) {
+            return null;
+        }
+        if (extractOnBuild) {
+            poFile.addEntry(msgid);
+        }
+        return poFile.translate(msgid);
     }
 
     private void translateTitle(Document document, L10nAdocPoFile poFile) {
         String title = document.getDoctitle();
-        if (title != null) {
-            String translated = poFile.translate(title);
-            if (translated != null) {
-                document.setAttribute("doctitle", translated, true);
-            }
+        String translated = translateAndExtract(poFile, title);
+        if (translated != null) {
+            document.setAttribute("doctitle", translated, true);
         }
     }
 
-    private void processNodes(List<StructuralNode> nodes, L10nAdocPoFile poFile) {
+    private void processNodes(List<StructuralNode> nodes, L10nAdocPoFile poFile, String rootDir,
+            List<Path> touchedPoPaths) {
         for (StructuralNode node : nodes) {
-            processNode(node, poFile);
+            processNode(node, poFile, rootDir, touchedPoPaths);
         }
     }
 
-    private void processNode(StructuralNode node, L10nAdocPoFile poFile) {
+    private void processNode(StructuralNode node, L10nAdocPoFile poFile, String rootDir,
+            List<Path> touchedPoPaths) {
         if (node instanceof Section section) {
-            translateSection(section, poFile);
+            translateSection(section, poFile, rootDir, touchedPoPaths);
         } else if (node instanceof Table table) {
             translateTable(table, poFile);
         } else if (node instanceof DescriptionList dlist) {
-            translateDescriptionList(dlist, poFile);
+            translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
         } else if (node instanceof org.asciidoctor.ast.List list) {
-            translateList(list, poFile);
+            translateList(list, poFile, rootDir, touchedPoPaths);
         } else if (node instanceof Block block) {
-            translateBlock(block, poFile);
+            translateBlock(block, poFile, rootDir, touchedPoPaths);
         }
     }
 
-    private void translateSection(Section section, L10nAdocPoFile poFile) {
-        L10nAdocPoFile resolved = resolvePoFileFromSourceLocation(section);
+    private void translateSection(Section section, L10nAdocPoFile poFile, String rootDir,
+            List<Path> touchedPoPaths) {
+        L10nAdocPoFile resolved = resolvePoFileFromSourceLocation(section, rootDir);
         L10nAdocPoFile effectivePoFile = resolved != null ? resolved : poFile;
+        if (resolved != null) {
+            Path poPath = resolvePoPathFromSourceLocation(section, rootDir);
+            if (poPath != null && !touchedPoPaths.contains(poPath)) {
+                touchedPoPaths.add(poPath);
+            }
+        }
 
         String originalId = section.getId();
         String title = section.getTitle();
         if (title != null) {
-            String translated = effectivePoFile.translate(title);
+            String translated = translateAndExtract(effectivePoFile, title);
             if (translated != null) {
                 section.setTitle(translated);
                 if (originalId != null) {
@@ -133,10 +191,10 @@ class L10nAdocTreeprocessor extends Treeprocessor {
                 }
             }
         }
-        processNodes(section.getBlocks(), effectivePoFile);
+        processNodes(section.getBlocks(), effectivePoFile, rootDir, touchedPoPaths);
     }
 
-    private void translateBlock(Block block, L10nAdocPoFile poFile) {
+    private void translateBlock(Block block, L10nAdocPoFile poFile, String rootDir, List<Path> touchedPoPaths) {
         String context = block.getContext();
         if ("listing".equals(context) || "literal".equals(context)
                 || "pass".equals(context) || "stem".equals(context)) {
@@ -148,39 +206,41 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         if ("paragraph".equals(context) || "quote".equals(context) || "verse".equals(context)) {
             String source = block.getSource();
             if (source != null) {
-                String translated = poFile.translate(source);
+                String translated = translateAndExtract(poFile, source);
                 if (translated != null) {
                     block.setSource(translated);
                 }
             }
         }
 
-        processNodes(block.getBlocks(), poFile);
+        processNodes(block.getBlocks(), poFile, rootDir, touchedPoPaths);
     }
 
-    private void translateList(org.asciidoctor.ast.List list, L10nAdocPoFile poFile) {
+    private void translateList(org.asciidoctor.ast.List list, L10nAdocPoFile poFile, String rootDir,
+            List<Path> touchedPoPaths) {
         translateBlockTitle(list, poFile);
         for (StructuralNode item : list.getItems()) {
             if (item instanceof ListItem listItem) {
                 String source = listItem.getSource();
                 if (source != null) {
-                    String translated = poFile.translate(source);
+                    String translated = translateAndExtract(poFile, source);
                     if (translated != null) {
                         listItem.setSource(translated);
                     }
                 }
-                processNodes(listItem.getBlocks(), poFile);
+                processNodes(listItem.getBlocks(), poFile, rootDir, touchedPoPaths);
             }
         }
     }
 
-    private void translateDescriptionList(DescriptionList dlist, L10nAdocPoFile poFile) {
+    private void translateDescriptionList(DescriptionList dlist, L10nAdocPoFile poFile, String rootDir,
+            List<Path> touchedPoPaths) {
         translateBlockTitle(dlist, poFile);
         for (DescriptionListEntry entry : dlist.getItems()) {
             for (ListItem term : entry.getTerms()) {
                 String source = term.getSource();
                 if (source != null) {
-                    String translated = poFile.translate(source);
+                    String translated = translateAndExtract(poFile, source);
                     if (translated != null) {
                         term.setSource(translated);
                     }
@@ -190,12 +250,12 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             if (description != null) {
                 String source = description.getSource();
                 if (source != null) {
-                    String translated = poFile.translate(source);
+                    String translated = translateAndExtract(poFile, source);
                     if (translated != null) {
                         description.setSource(translated);
                     }
                 }
-                processNodes(description.getBlocks(), poFile);
+                processNodes(description.getBlocks(), poFile, rootDir, touchedPoPaths);
             }
         }
     }
@@ -212,14 +272,14 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             for (Cell cell : row.getCells()) {
                 String source = cell.getSource();
                 if (source != null) {
-                    String translated = poFile.translate(source);
+                    String translated = translateAndExtract(poFile, source);
                     if (translated != null) {
                         cell.setSource(translated);
                     }
                 }
                 Document innerDoc = cell.getInnerDocument();
                 if (innerDoc != null) {
-                    processNodes(innerDoc.getBlocks(), poFile);
+                    processNodes(innerDoc.getBlocks(), poFile, null, new ArrayList<>());
                 }
             }
         }
@@ -228,7 +288,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     private void translateBlockTitle(StructuralNode node, L10nAdocPoFile poFile) {
         String title = node.getTitle();
         if (title != null) {
-            String translated = poFile.translate(title);
+            String translated = translateAndExtract(poFile, title);
             if (translated != null) {
                 node.setTitle(translated);
             }
@@ -239,5 +299,4 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         Object value = document.getOptions().get(key);
         return value != null ? value.toString() : null;
     }
-
 }
