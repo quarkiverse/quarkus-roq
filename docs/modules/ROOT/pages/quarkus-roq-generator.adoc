@@ -41,47 +41,267 @@ Check how the Roq blog is deployed on GitHub pages https://github.com/quarkivers
 
 == Advanced Usage
 
-=== Configure the static selection
+=== Understanding selections and sources
 
-You can configure application paths which should be generated as static files from the Quarkus configuration:
+Roq Generator works by making HTTP requests to your running Quarkus application and saving the responses as static files.
+You control **which pages to generate** through *selections*.
+
+For typical Roq sites using file-based content (Markdown/AsciiDoc in `content/`), no selection configuration is needed - the
+Roq extension automatically discovers and generates your pages.
+
+**Where content comes from:**
+
+* **File-based content** - Markdown/AsciiDoc files in your `content/` directory (the default Roq pattern)
+* **Database content** - Blog posts, products, or other content stored in PostgreSQL, MySQL, etc.
+* **Remote APIs** - Content fetched from headless CMS (Contentful, Strapi), external APIs, or microservices
+* **Other** - If you can code it, you can create it
+
+**How you specify what to generate (selections):**
+
+* **Static selection** - Fixed paths configured in `application.properties` (simple, declarative)
+* **Dynamic selection** - Paths computed at build time from databases or APIs (programmatic, flexible)
+
+The choice between static and dynamic selection depends on whether you know all your URLs at configuration time or need to discover them at build time.
+
+=== Static selection (configuration-based)
+
+Use static selection when you want to include a **fixed set of extra paths** that don't change based on external data.
+
+Configure paths in `application.properties`:
 [source,properties]
-.application.properties
 ----
-quarkus.roq.generator.paths=/,/static/**,/bar/
+quarkus.roq.generator.paths=/,/static/**,/about/,/blog/
 ----
 
-TIP: By convention paths ending with `/` such as `/bar/` are considered as html pages and with generate html pages such as `/bar/index.html`.
+**Path conventions:**
 
-CAUTION: The glob syntax is only working with fixed paths. Paths which uses query params or path params should be either manually entered or provided at runtime from the Java code.
+* Paths ending with `/` generate HTML: `/about/` → `/about/index.html`
+* Paths without `/` are used as-is: `/robots.txt` → `/robots.txt`
+* Glob patterns (`**`) only work for fixed directory structures
 
-You can also manually specify the generated output path:
+**Custom output paths:**
+
+You can override where files are written:
 [source,properties]
-.application.properties
 ----
-quarkus.roq.generator.custom-paths."/api/foo"=/foo.json
+quarkus.roq.generator.custom-paths."/api/posts"=/posts.json
+quarkus.roq.generator.custom-paths."/feed.xml"=/rss.xml
 ----
 
-=== Configure the dynamic selection
+**When to use static selection:**
 
-You need to produce a `RoqSelection` singleton from your application:
+* Your site has a known, fixed structure
+* All content lives in files (no database or API queries needed)
+* You're migrating from Jekyll/Hugo and have a stable set of pages
+
+**Limitations:**
+
+* Cannot use query parameters or path variables dynamically
+* Cannot discover pages from databases or APIs at build time
+* For those cases, use dynamic selection instead
+
+=== Dynamic selection (code-based)
+
+Use dynamic selection when pages depend on **runtime data sources** like databases, APIs, or computed values.
+
+==== Why use dynamic selection?
+
+Dynamic selection solves the problem of **bringing external content into your static site**.
+Instead of manually listing every URL, you fetch data at build time and programmatically generate the page list.
+
+**Common use cases:**
+
+* **Headless CMS** - Fetch content from Contentful, Strapi, Sanity, or similar
+* **Database-driven sites** - Generate pages for products, blog posts, or user profiles stored in a database
+* **API integration** - Pull documentation from GitHub, issues from Jira, or any REST API
+* **Complex routing** - Generate arbitrary urls
+* **Multi-language sites** - Generate pages for each locale based on translation data
+
+==== Basic example
+
+Produce a `RoqSelection` bean in your application:
 
 [source,java]
 ----
+import io.quarkiverse.roq.generator.runtime.RoqSelection;
+import io.quarkiverse.roq.generator.runtime.SelectedPath;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
+import java.util.List;
+
+@ApplicationScoped
+public class SiteSelection {
 
     @Produces
     @Singleton
     RoqSelection produce() {
         return new RoqSelection(List.of(
-                SelectedPath.builder().html("/roq?name=foo").build(), // <1>
-                SelectedPath.builder().html("/blog/hello-roq").build(), // <2>
-                SelectedPath.builder().path("/api/hello?name=foo").outputPath("/hello-foo.json").build()));  // <3>
+            SelectedPath.builder().html("/blog/hello-roq").build(), // <1>
+            SelectedPath.builder().html("/search?tag=java").build(), // <2>
+            SelectedPath.builder().path("/api/posts").outputPath("/posts.json").build() // <3>
+        ));
     }
+}
 ----
-<1> Using `.html()` means we want to generate an html page from `roq?name=foo` content, when unspecified we generate the output path automatically, in that case it would be `/roq-name-foo/index.html`.
-<2> in that case it will generate `/blog/hello-roq/index.html`.
-<3> It is also possible to manually specify the output path. In that case it will generate `/hello-foo.json` from `/api/hello?name=foo` content.
+<1> Generates `/blog/hello-roq/index.html` - the `.html()` method auto-generates the output path
+<2> Generates `/search-tag-java/index.html` - query params are normalized for the filesystem
+<3> Generates `/posts.json` - manually specify the output path for non-HTML content
 
-TIP: Use `@Transactional` if you need to iterate through database entities to prepare your selection. For example if the blog post ids are stored in a database.
+==== Remote API example
+
+Pull content from an external API at build time:
+
+[source,java]
+----
+import io.quarkiverse.roq.generator.runtime.RoqSelection;
+import io.quarkiverse.roq.generator.runtime.SelectedPath;
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+@ApplicationScoped
+public class RemoteContentSelection {
+
+    @Inject
+    @RestClient
+    ContentApiClient apiClient; // <1>
+
+    @Produces
+    @Singleton
+    RoqSelection produce() throws IOException {
+
+        // Another use case: download a JavaScript file from the API
+        String analyticsScript = apiClient.getAnalyticsScript();
+        // Download into the public directory (this file should be included in the .gitignore)
+        // Alternatively, you can download outside the source tree and add a vertx route so the generator can access the served content
+        java.nio.file.Path publicDir = Paths.get("public/js");
+        Files.createDirectories(publicDir);
+        Files.writeString(publicDir.resolve("analytics.js"), analyticsScript); // <2>
+
+        // Build selection paths
+        List<SelectedPath> paths = new ArrayList<>();
+
+        // Add the downloaded JavaScript file to the selection
+        // Files downloaded during the selection phase need
+        // explicit selection paths, because they're created after the normal public/
+        // directory copy happens
+        paths.add(SelectedPath.builder()
+            .path("/js/analytics.js")
+            .outputPath("/js/analytics.js")
+            .build()); // <3>
+
+        return new RoqSelection(paths);
+    }
+}
+
+record Post(String slug, String title, String content) {}
+----
+<1> Inject a REST client pointing to your headless CMS or API
+<2> Download a JavaScript file from the API and write it to the public/ directory
+<3> Add a selection path for the downloaded file so it gets included in the static site
+
+**Configuration for the REST client:**
+
+[source,properties]
+----
+quarkus.rest-client.content-api.url=https://api.example.com
+----
+
+**Why this is useful:**
+
+* **Decouple content from code** - Content editors use a CMS, developers control the site structure
+* **Static performance with dynamic sources** - Your live site serves static HTML, but content comes from anywhere
+* **No runtime database** - The database/API is only needed at build time, not when serving the site
+* **Flexible content sources** - Swap CMSs or APIs without changing your templates
+
+==== Database example
+
+Generate pages from database records:
+
+[source,java]
+----
+import io.quarkiverse.roq.generator.runtime.RoqSelection;
+import io.quarkiverse.roq.generator.runtime.SelectedPath;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.transaction.Transactional;
+import java.util.List;
+
+@ApplicationScoped
+public class DatabaseSelection {
+
+    @Inject
+    EntityManager em;
+
+    @Produces
+    @Singleton
+    @Transactional // <1>
+    RoqSelection produce() {
+        // Query all products from the database
+        List<Product> products = em.createQuery(
+            "SELECT p FROM Product p WHERE p.published = true",
+            Product.class
+        ).getResultList(); // <2>
+
+        // Generate a page for each product
+        List<SelectedPath> paths = products.stream()
+            .map(product -> SelectedPath.builder()
+                .html("/products/" + product.slug)
+                .build())
+            .toList();
+
+        return new RoqSelection(paths);
+    }
+}
+
+@Entity
+class Product {
+    @Id Long id;
+    String slug;
+    String name;
+    boolean published;
+}
+----
+<1> Use `@Transactional` when querying the database - this runs at build time
+<2> The database must be accessible during the build (`mvn package quarkus:run`)
+
+==== Combining static and dynamic selection
+
+You can use both approaches together:
+
+[source,properties]
+.application.properties
+----
+quarkus.roq.generator.paths=/,/about/,/contact/ # <1>
+----
+
+[source,java]
+----
+@Produces
+@Singleton
+RoqSelection produce() {
+    return new RoqSelection(dynamicPaths()); // <2>
+}
+----
+<1> Static pages that never change
+<2> Dynamic pages computed from databases or APIs
+
+Roq will generate both the static paths and the dynamic paths.
 
 
 [[standalone-installation]]
