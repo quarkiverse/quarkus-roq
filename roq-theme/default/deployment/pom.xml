@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.mvnpm.at.fontsource</groupId>
             <artifactId>fira-code</artifactId>
-            <version>5.2.7</version>
+            <version>5.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.mvnpm.at.fontsource</groupId>
