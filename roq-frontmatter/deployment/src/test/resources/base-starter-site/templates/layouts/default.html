@@ -1,0 +1,18 @@
+---
+layout: roq-base/default
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+
+<header class="site-header">
+  <a class="site-title" href="{site.url}">{site.title}</a>
+  <nav class="site-nav">
+    <a href="{site.url('/blog')}">Blog</a>
+    <a href="{site.url('/about')}">About</a>
+  </nav>
+</header>
+
+{#insert /}
+
+<footer class="site-footer">
+  <p>{site.title} &middot; Built with <a href="https://iamroq.dev/">Roq</a></p>
+</footer>
