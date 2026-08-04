@@ -861,7 +861,9 @@ public class JekyllConfigConverter {
     void addJandexPluginToPom(Path projectDir) throws IOException {
         Path pomFile = projectDir.resolve("pom.xml");
         if (!Files.exists(pomFile)) {
-            System.err.println("Warning: pom.xml not found, cannot add Jandex plugin");
+            // pom.xml is created by 'roq create' before this runs in the migration script.
+            // If it doesn't exist (e.g., in unit tests), silently skip - Jandex is only
+            // needed for Quarkus runtime, not for testing the conversion logic
             return;
         }
 
