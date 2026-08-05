@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.l10n;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
 
     private L10nAdocPoFile loadOrCreatePoFile(Path path) {
         return poFileCache.computeIfAbsent(path, p -> {
-            if (java.nio.file.Files.exists(p)) {
+            if (Files.exists(p)) {
                 try {
                     return new L10nAdocPoFile(p);
                 } catch (IOException e) {
@@ -132,7 +133,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         if (poPath == null) {
             return null;
         }
-        if (!java.nio.file.Files.exists(poPath) && !extractOnBuild) {
+        if (!Files.exists(poPath) && !extractOnBuild) {
             LOG.debugf("No PO file for included source: %s", poPath);
             return null;
         }
