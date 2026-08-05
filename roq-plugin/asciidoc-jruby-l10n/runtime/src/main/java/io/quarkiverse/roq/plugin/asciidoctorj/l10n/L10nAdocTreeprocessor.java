@@ -167,14 +167,14 @@ class L10nAdocTreeprocessor extends Treeprocessor {
 
     private void processNode(StructuralNode node, L10nAdocPoFile poFile, String rootDir,
             List<Path> touchedPoPaths) {
-         switch (node) {
+        switch (node) {
             case Section section -> translateSection(section, poFile, rootDir, touchedPoPaths);
             case Table table -> translateTable(table, poFile);
             case DescriptionList dlist -> translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
             case org.asciidoctor.ast.List list -> translateList(list, poFile, rootDir, touchedPoPaths);
             case Block block -> translateBlock(block, poFile, rootDir, touchedPoPaths);
             default -> throw new IllegalStateException("Unexpected value: " + node);
-        };
+        }
     }
 
     private void translateSection(Section section, L10nAdocPoFile poFile, String rootDir,
