@@ -24,7 +24,7 @@ class L10nAdocPoFile {
 
     private final Map<String, String> translations;
     private final Map<String, Message> existingMessages;
-    private final List<String> encounteredMsgids;
+    private final CopyOnWriteArrayList<String> encounteredMsgids;
     private final AtomicBoolean dirty;
 
     L10nAdocPoFile(Path poFile) throws IOException {
@@ -54,10 +54,8 @@ class L10nAdocPoFile {
         if (msgid == null || msgid.isBlank()) {
             return;
         }
-        // CopyOnWriteArrayList.addIfAbsent is thread-safe and atomic
         encounteredMsgids.addIfAbsent(msgid);
 
-        // ConcurrentHashMap.computeIfAbsent is thread-safe and atomic
         existingMessages.computeIfAbsent(msgid, key -> {
             dirty.set(true);
             Message msg = new Message();
@@ -124,7 +122,7 @@ class L10nAdocPoFile {
         dirty.set(false);
     }
 
-    privat Map<String, Message> parseMessages(File file) throws IOException {
+    private Map<String, Message> parseMessages(File file) throws IOException {
         Map<String, Message> result = new LinkedHashMap<>();
         MessageStreamParser parser = new MessageStreamParser(file);
         while (parser.hasNext()) {
@@ -136,13 +134,13 @@ class L10nAdocPoFile {
         return result;
     }
 
-    privat Map<String, String> extractTranslations(Map<String, Message> messages) {
+    private Map<String, String> extractTranslations(Map<String, Message> messages) {
         // Use ConcurrentHashMap since translations may be read concurrently
         Map<String, String> result = new ConcurrentHashMap<>();
         for (Message msg : messages.values()) {
             String msgid = msg.getMsgid();
             String msgstr = msg.getMsgstr();
-            if (msgid == null || msgid.isEmpty()) {
+            if (msgid == null || msgid.isBlank()) {
                 continue;
             }
             if (msgstr == null || msgstr.isEmpty()) {
