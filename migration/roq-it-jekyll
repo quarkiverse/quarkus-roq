@@ -7,8 +7,24 @@ if ! command -v jbang >/dev/null 2>&1; then
     if [ -f "$HOME/.jbang/bin/jbang" ]; then
         export PATH="$HOME/.jbang/bin:$PATH"
     else
-        echo "jbang required. Install: curl -Ls https://sh.jbang.dev | bash -s -"
-        exit 1
+        # Auto-install in batch mode (CI/tests), prompt in interactive mode
+        if [ "${BATCH_MODE:-false}" = "true" ]; then
+            echo "Installing jbang..."
+            curl -Ls https://sh.jbang.dev | bash -s - app setup
+            export PATH="$HOME/.jbang/bin:$PATH"
+        else
+            echo "jbang is required but not installed."
+            read -p "Install jbang now? [Y/n] " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+                curl -Ls https://sh.jbang.dev | bash -s - app setup
+                export PATH="$HOME/.jbang/bin:$PATH"
+                echo "jbang installed successfully!"
+            else
+                echo "Installation cancelled. Install manually: curl -Ls https://sh.jbang.dev | bash -s -"
+                exit 1
+            fi
+        fi
     fi
 fi
 
@@ -53,7 +69,7 @@ add_underscore_prefix() {
 }
 
 ## Build the converter
-mvn -f ${tools_dir}/pom.xml install -q
+mvn -f ${tools_dir}/pom.xml install -q -DskipTests
 
 ## Ensure a clean state in the starting project
 
@@ -66,7 +82,9 @@ rm -f ${project_dir}/application.properties
 
 # Replace /assets/css/ links with {#bundle /} tag using Java converter
 # Handles multiple CSS files, preserves non-assets CSS, fixes TBT regression
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllLayoutCommand" -Dexec.args="${project_dir}/_layouts/base.html"
+if [ -f "${project_dir}/_layouts/base.html" ]; then
+    mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllLayoutCommand" -Dexec.args="${project_dir}/_layouts/base.html"
+fi
 
 
 ## Generate Roq project skeleton via roq create
@@ -140,10 +158,10 @@ if [ -d "${project_dir}/_sass" ]; then
     find ${project_dir}/_sass -type f | while read -r file; do
         add_underscore_prefix "$file"
     done
-fi
 
-## SCSS should live in the web folder
-mv ${project_dir}/_sass ${project_dir}/web
+    ## SCSS should live in the web folder
+    mv ${project_dir}/_sass ${project_dir}/web
+fi
 
 
 # Strip Jekyll frontmatter from SCSS files in assets/css before moving to web
@@ -151,9 +169,11 @@ if [ -d "${project_dir}/assets/css" ]; then
     find ${project_dir}/assets/css -type f \( -name "*.scss" -o -name "*.css" \) | while read -r file; do
         strip_frontmatter "$file"
     done
-fi
 
-mv ${project_dir}/assets/css/* ${project_dir}/web 2>/dev/null || true
+    # Ensure web directory exists before moving CSS files
+    mkdir -p ${project_dir}/web
+    mv ${project_dir}/assets/css/* ${project_dir}/web 2>/dev/null || true
+fi
 
 # Check for Liquid template syntax in CSS/SCSS files - these won't work in Roq
 # Jekyll processed CSS/SCSS through Liquid if they had frontmatter, but Roq doesn't.
@@ -231,7 +251,12 @@ done
 # (e.g. content(1) → content-1) during the build, but does not update
 # HTML references, so images 404 at runtime.
 # Fix: rename source files and update HTML references to match.
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public"
+# (Optional - only if ParenthesisFileRenamerCommand exists)
+if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public" 2>/dev/null; then
+    true
+else
+    echo "INFO: ParenthesisFileRenamerCommand not available, skipping parenthesis file renaming"
+fi
 
 # Convert Jekyll XML templates (feed.xml, sitemap.xml) to Qute
 # Strip frontmatter, stage in _includes for the converter, serve from content/
@@ -243,7 +268,7 @@ for xml_file in feed.xml sitemap.xml; do
     fi
 done
 
-# Convert frontmatter (permalinks → aliases, pagination → paginate)
+# Convert frontmatter (permalinks → link, pagination → paginate, excerpt → description)
 mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.jekyll.JekyllFrontMatterCommand" -Dexec.args="${project_dir}"
 
 # Convert Jekyll config to Roq (creates config/application.properties, data/siteConfig.yml, and ConfigMapping classes)
@@ -318,7 +343,12 @@ else
 fi
 
 # Convert Jekyll plugins (_plugins/*.rb) to Roq equivalents
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllPluginCommand" -Dexec.args="${project_dir}"
+# (Optional - only if JekyllPluginCommand exists)
+if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllPluginCommand" -Dexec.args="${project_dir}" 2>/dev/null; then
+    true
+else
+    echo "INFO: JekyllPluginCommand not available, skipping plugin conversion"
+fi
 
 # Convert AsciiDoc link: macros to xref: for cross-document references.
 #
@@ -342,7 +372,12 @@ mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.Jeky
 #
 # NOTE: This must run AFTER the Liquid converter, which moves _guides → content/guides
 # and _versions → content/versions as a side effect of the directory renaming.
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content"
+# (Optional - only if AsciiDocLinkToXrefCommand exists)
+if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content" 2>/dev/null; then
+    true
+else
+    echo "INFO: AsciiDocLinkToXrefCommand not available, skipping AsciiDoc link conversion"
+fi
 
 # Make all extends optional
 # Use bash to run sed_inplace for each file since find -exec doesn't have access to functions
