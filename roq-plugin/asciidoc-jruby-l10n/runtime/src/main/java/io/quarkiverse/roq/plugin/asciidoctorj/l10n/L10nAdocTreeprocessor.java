@@ -165,18 +165,14 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     }
 
     private void processNode(StructuralNode node, L10nAdocPoFile poFile, String rootDir,
-            List<Path> touchedPoPaths) {
-        if (node instanceof Section section) {
-            translateSection(section, poFile, rootDir, touchedPoPaths);
-        } else if (node instanceof Table table) {
-            translateTable(table, poFile);
-        } else if (node instanceof DescriptionList dlist) {
-            translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
-        } else if (node instanceof org.asciidoctor.ast.List list) {
-            translateList(list, poFile, rootDir, touchedPoPaths);
-        } else if (node instanceof Block block) {
-            translateBlock(block, poFile, rootDir, touchedPoPaths);
-        }
+                             List<Path> touchedPoPaths) {
+        return switch (node) {
+            case Section section -> translateSection(section, poFile, rootDir, touchedPoPaths);
+            case Table table -> translateTable(table, poFile);
+            case DescriptionList dlist -> translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
+            case org.asciidoctor.ast.List list -> translateList(list, poFile, rootDir, touchedPoPaths);
+            case Block block -> translateBlock(block, poFile, rootDir, touchedPoPaths);
+        };
     }
 
     private void translateSection(Section section, L10nAdocPoFile poFile, String rootDir,

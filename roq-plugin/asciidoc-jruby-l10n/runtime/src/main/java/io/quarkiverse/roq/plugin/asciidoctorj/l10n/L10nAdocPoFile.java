@@ -23,8 +23,8 @@ import org.fedorahosted.tennera.jgettext.catalog.parse.MessageStreamParser;
 class L10nAdocPoFile {
 
     private final Map<String, String> translations;
-    private final ConcurrentHashMap<String, Message> existingMessages;
-    private final CopyOnWriteArrayList<String> encounteredMsgids;
+    private final Map<String, Message> existingMessages;
+    private final List<String> encounteredMsgids;
     private final AtomicBoolean dirty;
 
     L10nAdocPoFile(Path poFile) throws IOException {
@@ -124,7 +124,7 @@ class L10nAdocPoFile {
         dirty.set(false);
     }
 
-    private static Map<String, Message> parseMessages(File file) throws IOException {
+    privat Map<String, Message> parseMessages(File file) throws IOException {
         Map<String, Message> result = new LinkedHashMap<>();
         MessageStreamParser parser = new MessageStreamParser(file);
         while (parser.hasNext()) {
@@ -136,7 +136,7 @@ class L10nAdocPoFile {
         return result;
     }
 
-    private static Map<String, String> extractTranslations(Map<String, Message> messages) {
+    privat Map<String, String> extractTranslations(Map<String, Message> messages) {
         // Use ConcurrentHashMap since translations may be read concurrently
         Map<String, String> result = new ConcurrentHashMap<>();
         for (Message msg : messages.values()) {
