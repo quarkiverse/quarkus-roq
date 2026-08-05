@@ -42,6 +42,40 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Site chrome */
+.site-header {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.site-nav a {
+  color: var(--muted);
+  margin-left: 1rem;
+}
+
+.site-nav a:hover {
+  color: var(--accent);
+}
+
+.site-footer {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 /* Hero */
 .hero {
   text-align: center;
@@ -61,7 +95,7 @@ a:hover {
 }
 
 /* Content */
-.content {
+main {
   max-width: 48rem;
   margin: 0 auto;
   padding: 0 1.5rem 4rem;
@@ -103,4 +137,34 @@ a:hover {
 
 .grid .card {
   margin-bottom: 0;
+}
+
+/* Post list */
+.post-list {
+  list-style: none;
+  padding: 0;
+}
+
+.post-list li {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-list time {
+  display: block;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.post-list p {
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+/* Pagination */
+.pagination ul {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  padding: 1rem 0;
 }

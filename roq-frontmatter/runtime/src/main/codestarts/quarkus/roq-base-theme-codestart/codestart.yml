@@ -4,7 +4,7 @@ type: code
 tags: extension-codestart
 metadata:
   title: Roq Base Theme
-  description: Minimal base theme for Roq (index page, CSS).
+  description: Minimal base theme for Roq (layout, index, about and blog pages, CSS).
   related-guide-section: https://iamroq.dev/docs/
 language:
   base:
