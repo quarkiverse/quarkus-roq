@@ -166,13 +166,14 @@ class L10nAdocTreeprocessor extends Treeprocessor {
     }
 
     private void processNode(StructuralNode node, L10nAdocPoFile poFile, String rootDir,
-                             List<Path> touchedPoPaths) {
-        return switch (node) {
+            List<Path> touchedPoPaths) {
+         switch (node) {
             case Section section -> translateSection(section, poFile, rootDir, touchedPoPaths);
             case Table table -> translateTable(table, poFile);
             case DescriptionList dlist -> translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
             case org.asciidoctor.ast.List list -> translateList(list, poFile, rootDir, touchedPoPaths);
             case Block block -> translateBlock(block, poFile, rootDir, touchedPoPaths);
+            default -> throw new IllegalStateException("Unexpected value: " + node);
         };
     }
 
@@ -274,7 +275,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         translateTableRows(table.getFooter(), poFile);
     }
 
-    private void translateTableRows(java.util.List<Row> rows, L10nAdocPoFile poFile) {
+    private void translateTableRows(List<Row> rows, L10nAdocPoFile poFile) {
         for (Row row : rows) {
             for (Cell cell : row.getCells()) {
                 String source = cell.getSource();
