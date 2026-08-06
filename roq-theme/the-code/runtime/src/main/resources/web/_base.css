@@ -1,0 +1,17 @@
+@layer base {
+    body {
+        @apply antialiased font-sans transition-colors duration-200;
+        @apply min-h-screen bg-surface text-primary;
+    }
+    a:hover, button:hover { @apply text-accent-500 underline decoration-2 decoration-accent-500; }
+    code::before, code::after { content: none !important; }
+}
+
+@layer utilities {
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
