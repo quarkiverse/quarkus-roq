@@ -78,7 +78,7 @@ public class RoqEditorJsonRPCService {
     public List<PageSource> getPosts() {
         return Optional.ofNullable(site.collections().get("posts")).stream()
                 .flatMap(RoqCollection::stream)
-                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .sorted(Comparator.comparing(Page::date, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(p -> new PageSource(p.collectionId(), p.sourcePath(), p.title(), p.description(), p.url().path(),
                         p.source().extension(), markup(p), formatDate(p.date()), getCurrentSuggestedPath(p)))
                 .toList();
