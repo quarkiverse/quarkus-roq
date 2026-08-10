@@ -43,26 +43,54 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             return document;
         }
 
-        String baseDir = optionAsString(document, "base_dir");
         String rootDir = optionAsString(document, "root_dir");
-        Object docNameObj = document.getAttribute("docname");
-
-        if (baseDir == null || rootDir == null || docNameObj == null) {
-            LOG.debug("Missing base_dir, root_dir, or docname — skipping L10N");
+        String baseDir = optionAsString(document, "base_dir");
+        if (rootDir == null || baseDir == null) {
+            LOG.debug("Missing root_dir or base_dir — skipping L10N");
             return document;
         }
 
-        Optional<Path> poFilePath = L10nAdocPoFileResolver.resolve(
-                poBaseDir, baseDir, rootDir, docNameObj.toString());
-
+        Path rootPath = Paths.get(rootDir);
         Path resolvedPoPath;
-        if (poFilePath.isPresent()) {
-            resolvedPoPath = poFilePath.get();
-        } else if (extractOnBuild) {
-            resolvedPoPath = poBaseDir.resolve(
-                    Paths.get(rootDir).relativize(Paths.get(baseDir).resolve(docNameObj + ".adoc")) + ".po");
+
+        // Prefer actual source location (works for file-backed documents, handles both .adoc and .asciidoc)
+        Cursor mainLocation = document.getSourceLocation();
+        if (mainLocation != null && mainLocation.getFile() != null) {
+            Path sourcePath = Paths.get(mainLocation.getDir()).resolve(mainLocation.getFile()).normalize();
+            resolvedPoPath = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootPath, sourcePath);
+            if (resolvedPoPath == null) {
+                LOG.debugf("Source file %s is outside root %s — skipping L10N", sourcePath, rootDir);
+                return document;
+            }
         } else {
-            LOG.debugf("No PO file found for %s — skipping L10N", docNameObj);
+            // Fallback for in-memory/synthetic documents: use docname + baseDir
+            // This supports test scenarios and programmatically generated content
+            Object docNameObj = document.getAttribute("docname");
+            if (docNameObj == null) {
+                LOG.debug("No source location and no docname attribute — skipping L10N");
+                return document;
+            }
+            if (extractOnBuild) {
+                Path sourcePath = Paths.get(baseDir).resolve(docNameObj + ".adoc");
+                resolvedPoPath = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootPath, sourcePath);
+                if (resolvedPoPath == null) {
+                    LOG.debugf("Cannot compute PO path for docname %s — skipping L10N", docNameObj);
+                    return document;
+                }
+            } else {
+                Optional<Path> found = L10nAdocPoFileResolver.findPoFileForDocName(
+                        poBaseDir, baseDir, rootDir, docNameObj.toString());
+                if (found.isEmpty()) {
+                    LOG.debugf("No PO file found for docname %s — skipping L10N", docNameObj);
+                    return document;
+                }
+                resolvedPoPath = found.get();
+            }
+        }
+
+        // Only proceed if PO file exists or we're extracting
+        if (!Files.exists(resolvedPoPath) && !extractOnBuild) {
+            LOG.debugf("No PO file found at %s — skipping L10N", resolvedPoPath);
             return document;
         }
 
@@ -121,11 +149,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         }
         Path rootPath = Paths.get(rootDir);
         Path sourceFile = Paths.get(location.getDir()).resolve(location.getFile()).normalize();
-        if (!sourceFile.startsWith(rootPath)) {
-            return null;
-        }
-        Path relativeSource = rootPath.relativize(sourceFile);
-        return poBaseDir.resolve(relativeSource + ".po");
+        return L10nAdocPoFileResolver.computePoPath(poBaseDir, rootPath, sourceFile);
     }
 
     private L10nAdocPoFile resolvePoFileFromSourceLocation(StructuralNode node, String rootDir) {

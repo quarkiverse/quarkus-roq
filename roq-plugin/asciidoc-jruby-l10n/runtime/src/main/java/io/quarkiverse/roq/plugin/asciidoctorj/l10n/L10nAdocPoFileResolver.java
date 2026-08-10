@@ -5,19 +5,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocKeys;
+
 class L10nAdocPoFileResolver {
 
-    static Optional<Path> resolve(Path poBaseDir, String baseDir, String rootDir, String docName) {
-        Path basePath = Paths.get(baseDir);
-        Path rootPath = Paths.get(rootDir);
-        Path sourcePath = basePath.resolve(docName + ".adoc");
+    static Path computePoPath(Path poBaseDir, Path rootPath, Path sourcePath) {
         if (!sourcePath.startsWith(rootPath)) {
-            return Optional.empty();
+            return null;
         }
         Path relativePath = rootPath.relativize(sourcePath);
-        Path poFile = poBaseDir.resolve(relativePath + ".po");
-        if (Files.exists(poFile)) {
-            return Optional.of(poFile);
+        return poBaseDir.resolve(relativePath + ".po");
+    }
+
+    static Optional<Path> findPoFileForDocName(Path poBaseDir, String baseDir, String rootDir, String docName) {
+        Path basePath = Paths.get(baseDir);
+        Path rootPath = Paths.get(rootDir);
+
+        for (String ext : RoqAsciidocKeys.ASCIIDOC_EXTENSIONS) {
+            Path sourcePath = basePath.resolve(docName + "." + ext);
+            Path poPath = computePoPath(poBaseDir, rootPath, sourcePath);
+            if (poPath != null && Files.exists(poPath)) {
+                return Optional.of(poPath);
+            }
         }
         return Optional.empty();
     }

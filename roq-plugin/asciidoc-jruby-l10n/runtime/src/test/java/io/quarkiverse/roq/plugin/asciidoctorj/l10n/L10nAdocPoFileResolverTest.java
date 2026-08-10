@@ -1,12 +1,9 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.l10n;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -17,89 +14,58 @@ class L10nAdocPoFileResolverTest {
     Path tempDir;
 
     @Test
-    void resolvesPoFileFromRelativePath() throws IOException {
+    void computesPoPathFromSourcePath() {
         Path poBaseDir = tempDir.resolve("po");
-        Path poFile = poBaseDir.resolve("content/guides/getting-started.adoc.po");
-        Files.createDirectories(poFile.getParent());
-        Files.writeString(poFile, "");
-
         Path rootDir = tempDir.resolve("project");
+        Path sourcePath = rootDir.resolve("content/guides/getting-started.adoc");
 
-        Optional<Path> result = L10nAdocPoFileResolver.resolve(
-                poBaseDir,
-                rootDir.resolve("content/guides").toString(),
-                rootDir.toString(),
-                "getting-started");
+        Path result = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootDir, sourcePath);
 
-        assertTrue(result.isPresent());
-        assertEquals(poFile, result.get());
+        assertEquals(poBaseDir.resolve("content/guides/getting-started.adoc.po"), result);
     }
 
     @Test
-    void returnsEmptyWhenPoFileDoesNotExist() {
+    void handlesNestedContentPaths() {
         Path poBaseDir = tempDir.resolve("po");
         Path rootDir = tempDir.resolve("project");
+        Path sourcePath = rootDir.resolve("content/guides/security/overview.adoc");
 
-        Optional<Path> result = L10nAdocPoFileResolver.resolve(
-                poBaseDir,
-                rootDir.resolve("content/guides").toString(),
-                rootDir.toString(),
-                "nonexistent");
+        Path result = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootDir, sourcePath);
 
-        assertTrue(result.isEmpty());
+        assertEquals(poBaseDir.resolve("content/guides/security/overview.adoc.po"), result);
     }
 
     @Test
-    void handlesNestedContentPaths() throws IOException {
+    void handlesRootLevelContent() {
         Path poBaseDir = tempDir.resolve("po");
-        Path poFile = poBaseDir.resolve("content/guides/security/overview.adoc.po");
-        Files.createDirectories(poFile.getParent());
-        Files.writeString(poFile, "");
-
         Path rootDir = tempDir.resolve("project");
+        Path sourcePath = rootDir.resolve("content/index.adoc");
 
-        Optional<Path> result = L10nAdocPoFileResolver.resolve(
-                poBaseDir,
-                rootDir.resolve("content/guides/security").toString(),
-                rootDir.toString(),
-                "overview");
+        Path result = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootDir, sourcePath);
 
-        assertTrue(result.isPresent());
-        assertEquals(poFile, result.get());
+        assertEquals(poBaseDir.resolve("content/index.adoc.po"), result);
     }
 
     @Test
-    void handlesRootLevelContent() throws IOException {
+    void handlesAsciidocExtension() {
         Path poBaseDir = tempDir.resolve("po");
-        Path poFile = poBaseDir.resolve("content/index.adoc.po");
-        Files.createDirectories(poFile.getParent());
-        Files.writeString(poFile, "");
-
         Path rootDir = tempDir.resolve("project");
+        Path sourcePath = rootDir.resolve("content/guides/getting-started.asciidoc");
 
-        Optional<Path> result = L10nAdocPoFileResolver.resolve(
-                poBaseDir,
-                rootDir.resolve("content").toString(),
-                rootDir.toString(),
-                "index");
+        Path result = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootDir, sourcePath);
 
-        assertTrue(result.isPresent());
-        assertEquals(poFile, result.get());
+        assertEquals(poBaseDir.resolve("content/guides/getting-started.asciidoc.po"), result);
     }
 
     @Test
-    void returnsEmptyWhenBaseDirIsNotUnderRootDir() {
+    void returnsNullWhenSourceIsOutsideRoot() {
         Path poBaseDir = tempDir.resolve("po");
         Path rootDir = tempDir.resolve("project");
-        // baseDir is outside rootDir — relativize would throw without the guard
-        Path outsideBaseDir = tempDir.resolve("other-project/content");
+        // sourcePath is outside rootDir
+        Path sourcePath = tempDir.resolve("other-project/content/some-doc.adoc");
 
-        Optional<Path> result = L10nAdocPoFileResolver.resolve(
-                poBaseDir,
-                outsideBaseDir.toString(),
-                rootDir.toString(),
-                "some-doc");
+        Path result = L10nAdocPoFileResolver.computePoPath(poBaseDir, rootDir, sourcePath);
 
-        assertTrue(result.isEmpty());
+        assertNull(result);
     }
 }
