@@ -218,30 +218,22 @@ public record RoqUrl(
     }
 
     /**
-     * Check if this url path matches the given path exactly (ignoring trailing slash).
+     * Check if this url path matches one of the given paths exactly (ignoring trailing slash).
      *
      * @param path the path to check against (including root path if configured)
+     * @param paths additional paths to check against
      */
-    public boolean isActive(String path) {
-        return normalize(path()).equals(normalize(path));
-    }
-
-    /**
-     * Returns "active" if this url matches one of the given paths, an empty string otherwise.
-     *
-     * @param paths the paths to check against (including root path if configured)
-     */
-    public String nav(String... paths) {
-        for (String path : paths) {
-            if (isActive(path)) {
-                return "active";
+    public boolean isActive(String path, String... paths) {
+        final String current = StringPaths.removeTrailingSlash(path());
+        if (path != null && current.equals(StringPaths.removeTrailingSlash(path))) {
+            return true;
+        }
+        for (String p : paths) {
+            if (p != null && current.equals(StringPaths.removeTrailingSlash(p))) {
+                return true;
             }
         }
-        return "";
-    }
-
-    private static String normalize(String path) {
-        return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+        return false;
     }
 
     /**
