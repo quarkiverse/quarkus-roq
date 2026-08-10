@@ -118,7 +118,7 @@ class L10nAdocPoFile {
         }
         // Reset change tracking — the file now matches the in-memory state
         existingMessages.keySet().retainAll(encounteredMsgids);
-        existingMessages.putIfAbsent("", new Message());
+        existingMessages.putIfAbsent("", header);
         dirty.set(false);
     }
 
