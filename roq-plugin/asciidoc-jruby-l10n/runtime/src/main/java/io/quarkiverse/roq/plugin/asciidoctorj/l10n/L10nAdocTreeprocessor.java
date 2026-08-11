@@ -1,7 +1,6 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.l10n;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -88,8 +87,8 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             }
         }
 
-        // Only proceed if PO file exists or we're extracting
-        if (!Files.exists(resolvedPoPath) && !extractOnBuild) {
+        // Lightweight check before attempting to load
+        if (!extractOnBuild && !L10nAdocPoFileResolver.poFileExists(resolvedPoPath)) {
             LOG.debugf("No PO file found at %s — skipping L10N", resolvedPoPath);
             return document;
         }
@@ -128,17 +127,16 @@ class L10nAdocTreeprocessor extends Treeprocessor {
 
     private L10nAdocPoFile loadOrCreatePoFile(Path path) {
         return poFileCache.computeIfAbsent(path, p -> {
-            if (Files.exists(p)) {
-                try {
-                    return new L10nAdocPoFile(p);
-                } catch (IOException e) {
-                    LOG.warnf(e, "Failed to parse PO file: %s", p);
-                    return null;
+            try {
+                return new L10nAdocPoFile(p);
+            } catch (IOException e) {
+                if (extractOnBuild) {
+                    // File doesn't exist but we're extracting - create empty
+                    return new L10nAdocPoFile();
                 }
-            } else if (extractOnBuild) {
-                return new L10nAdocPoFile();
+                LOG.warnf(e, "Failed to parse PO file: %s", p);
+                return null;
             }
-            return null;
         });
     }
 
@@ -157,8 +155,9 @@ class L10nAdocTreeprocessor extends Treeprocessor {
         if (poPath == null) {
             return null;
         }
-        if (!Files.exists(poPath) && !extractOnBuild) {
-            LOG.debugf("No PO file for included source: %s", poPath);
+        // Lightweight check first - this is called for every section in included files
+        // Avoid expensive IOException for the common case where included files don't have PO files
+        if (!extractOnBuild && !L10nAdocPoFileResolver.poFileExists(poPath)) {
             return null;
         }
         return loadOrCreatePoFile(poPath);
@@ -197,7 +196,7 @@ class L10nAdocTreeprocessor extends Treeprocessor {
             case DescriptionList dlist -> translateDescriptionList(dlist, poFile, rootDir, touchedPoPaths);
             case org.asciidoctor.ast.List list -> translateList(list, poFile, rootDir, touchedPoPaths);
             case Block block -> translateBlock(block, poFile, rootDir, touchedPoPaths);
-            default -> throw new IllegalStateException("Unexpected value: " + node);
+            default -> LOG.debugf("Skipping unsupported node type: %s", node.getClass().getSimpleName());
         }
     }
 

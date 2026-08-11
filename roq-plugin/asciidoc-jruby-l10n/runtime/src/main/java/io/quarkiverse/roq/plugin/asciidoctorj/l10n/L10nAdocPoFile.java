@@ -3,6 +3,10 @@ package io.quarkiverse.roq.plugin.asciidoctorj.l10n;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -16,6 +20,8 @@ import org.fedorahosted.tennera.jgettext.Message;
 import org.fedorahosted.tennera.jgettext.PoWriter;
 import org.fedorahosted.tennera.jgettext.catalog.parse.MessageStreamParser;
 
+import io.quarkiverse.tools.stringpaths.StringPaths;
+
 /**
  * Thread-safe PO file representation.
  * Multiple tree processors may access the same cached instance concurrently.
@@ -28,7 +34,7 @@ class L10nAdocPoFile {
     private final AtomicBoolean dirty;
 
     L10nAdocPoFile(Path poFile) throws IOException {
-        Map<String, Message> parsed = parseMessages(poFile.toFile());
+        Map<String, Message> parsed = parseMessages(poFile);
         this.existingMessages = new ConcurrentHashMap<>(parsed);
         this.translations = extractTranslations(parsed);
         this.encounteredMsgids = new CopyOnWriteArrayList<>();
@@ -122,9 +128,38 @@ class L10nAdocPoFile {
         dirty.set(false);
     }
 
+    private Map<String, Message> parseMessages(Path path) throws IOException {
+        // Try classpath first (for resources)
+        String resourcePath = StringPaths.toUnixPath(path.toString());
+        try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
+            if (resource != null) {
+                return parseMessagesFromReader(new InputStreamReader(resource, StandardCharsets.UTF_8));
+            }
+        }
+
+        // Fall back to filesystem
+        if (Files.isRegularFile(path)) {
+            return parseMessages(path.toFile());
+        }
+
+        throw new IOException("PO file not found in classpath or filesystem: " + path);
+    }
+
     private Map<String, Message> parseMessages(File file) throws IOException {
         Map<String, Message> result = new LinkedHashMap<>();
         MessageStreamParser parser = new MessageStreamParser(file);
+        while (parser.hasNext()) {
+            Message msg = parser.next();
+            if (msg.getMsgid() != null) {
+                result.put(msg.getMsgid(), msg);
+            }
+        }
+        return result;
+    }
+
+    private Map<String, Message> parseMessagesFromReader(Reader reader) {
+        Map<String, Message> result = new LinkedHashMap<>();
+        MessageStreamParser parser = new MessageStreamParser(reader);
         while (parser.hasNext()) {
             Message msg = parser.next();
             if (msg.getMsgid() != null) {
