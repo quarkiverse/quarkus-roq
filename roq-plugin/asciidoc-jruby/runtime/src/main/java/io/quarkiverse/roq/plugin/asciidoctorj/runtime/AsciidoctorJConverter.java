@@ -16,6 +16,7 @@ import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 
 @Singleton
 public class AsciidoctorJConverter {
@@ -66,9 +67,11 @@ public class AsciidoctorJConverter {
 
         final OptionsBuilder optionsBuilder = Options.builder();
         if (templateAttributes.sourcePath() != null) {
-            Path templateDir = Paths.get(templateAttributes.sourcePath()).getParent();
+            Path sourcePath = Paths.get(templateAttributes.sourcePath());
+            Path templateDir = sourcePath.getParent();
             optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());
             optionsBuilder.option(ROOTDIR, templateAttributes.sourceRootPath());
+            attributes.attribute("docname", StringPaths.removeExtension(sourcePath.getFileName().toString()));
         }
         return optionsBuilder
                 .safe(SafeMode.SAFE)

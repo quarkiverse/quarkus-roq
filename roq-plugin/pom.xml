@@ -21,6 +21,7 @@
         <module>asciidoc-common</module>
         <module>asciidoc</module>
         <module>asciidoc-jruby</module>
+        <module>asciidoc-jruby-l10n</module>
         <module>qrcode</module>
         <module>series</module>
         <module>sitemap</module>

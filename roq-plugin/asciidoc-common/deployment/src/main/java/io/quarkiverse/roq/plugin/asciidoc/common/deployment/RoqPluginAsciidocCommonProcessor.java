@@ -1,21 +1,19 @@
 package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
-import java.util.Set;
-
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.plugin.asciidoc.common.runtime.AsciidocTemplateExtension;
+import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocKeys;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 
 public class RoqPluginAsciidocCommonProcessor {
 
-    private static final Set<String> APPLICABLE_EXTENSIONS = Set.of("adoc", "asciidoc");
-
     @BuildStep
     RoqFrontMatterQuteMarkupBuildItem markup() {
-        return new RoqFrontMatterQuteMarkupBuildItem("asciidoc", c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()),
+        return new RoqFrontMatterQuteMarkupBuildItem("asciidoc",
+                c -> RoqAsciidocKeys.ASCIIDOC_EXTENSIONS.contains(c.getExtension()),
                 new RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection(
                         "{#asciidoc attributes=page.asciidocAttributes??}", "{/asciidoc}"));
     }
@@ -27,7 +25,8 @@ public class RoqPluginAsciidocCommonProcessor {
 
     @BuildStep
     RoqFrontMatterHeaderParserBuildItem header(AsciidocCommonConfig config) {
-        return AsciidocHeaderParser.createBuildItem(config.qute(), c -> APPLICABLE_EXTENSIONS.contains(c.getExtension()));
+        return AsciidocHeaderParser.createBuildItem(config.qute(),
+                c -> RoqAsciidocKeys.ASCIIDOC_EXTENSIONS.contains(c.getExtension()));
     }
 
 }
