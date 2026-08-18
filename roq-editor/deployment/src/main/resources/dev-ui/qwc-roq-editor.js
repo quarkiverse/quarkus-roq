@@ -491,6 +491,19 @@ export class QwcRoqEditor extends LitElement {
         this._pendingRefreshPages = true;
     }
 
+    /**
+     * Called from dialogs when a page path changed as a side effect of another action,
+     * e.g. a single-file page converted to a directory page to hold uploaded files.
+     */
+    notifyPagePathChanged(oldPath, newPath) {
+        const page = this._findPageByPath(oldPath);
+        if (page) {
+            this._applyPagePath(page, newPath);
+            // Refresh in the background to avoid a blocking loading dialog over an open dialog
+            this._pendingRefreshPages = "background";
+        }
+    }
+
     async _writeCall(method, params) {
         const response = await this.jsonRpc[method](params);
         const wrapper = response.result;

@@ -6,6 +6,7 @@ import '@vaadin/button';
 import '@vaadin/icon';
 import '@vaadin/vertical-layout';
 import './image-picker.js';
+import { showConfirm } from './confirm-dialog.js';
 
 let cachedJsonRpc = null;
 
@@ -223,8 +224,30 @@ export class ImageDialog extends LitElement {
         this._showPicker = false;
     }
 
+    _isDirectoryPage(path) {
+        return path.split('/').pop().startsWith('index.');
+    }
+
+    _toDirectoryPagePath(path) {
+        const dotIndex = path.lastIndexOf('.');
+        const base = dotIndex > 0 ? path.substring(0, dotIndex) : path;
+        const extension = dotIndex > 0 ? path.substring(dotIndex) : '';
+        return `${base}/index${extension}`;
+    }
+
     async _onImageUpload(e) {
         const { file, location } = e.detail;
+
+        if (location === 'page' && this._pagePath && !this._isDirectoryPage(this._pagePath)) {
+            const newPath = this._toDirectoryPagePath(this._pagePath);
+            const confirmed = await showConfirm(
+                `This page is a single file. To attach files to it, it will be converted to a directory page: `
+                + `'${this._pagePath}' will become '${newPath}'. The page content and url are not affected.`,
+                { title: 'Convert page to a directory?', confirmText: 'Convert and Upload', theme: 'primary' }
+            );
+            if (!confirmed) return;
+        }
+
         this._uploading = true;
         this._uploadError = null;
 
@@ -244,6 +267,13 @@ export class ImageDialog extends LitElement {
             if (result.errorMessage) {
                 this._uploadError = result.errorMessage;
             } else {
+                if (result.newPagePath && location === 'page') {
+                    // The page was a single file and has been converted to a directory page
+                    // to hold the uploaded file: propagate the new page path to the editor
+                    const oldPath = this._pagePath;
+                    this._pagePath = result.newPagePath;
+                    document.querySelector('qwc-roq-editor')?.notifyPagePathChanged?.(oldPath, result.newPagePath);
+                }
                 const newImage = {
                     name: file.name,
                     path: result.path,
