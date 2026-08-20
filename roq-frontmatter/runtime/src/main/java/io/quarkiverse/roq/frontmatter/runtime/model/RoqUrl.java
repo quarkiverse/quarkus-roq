@@ -116,6 +116,15 @@ public record RoqUrl(
     }
 
     /**
+     * Checks if this is an absolute path (starting with /)
+     *
+     * @return true if the path starts with a slash
+     */
+    public static boolean isAbsolute(String path) {
+        return path.startsWith("/");
+    }
+
+    /**
      * Create a new Url joining the other path.
      * Whatever if the path starts with `/`, it will always join.
      *
@@ -245,6 +254,37 @@ public record RoqUrl(
     public RoqUrl removeFirst(String str) {
         String newPath = resourcePath().replaceFirst(java.util.regex.Pattern.quote(str), "");
         return new RoqUrl(root(), newPath);
+    }
+
+    /**
+     * Extracts the collection base path from a page URL to use as relfileprefix.
+     * Examples:
+     * - /guides/my-doc → /guides/
+     * - /version/main/guides/security → /version/main/guides/
+     * - /blog/my-post/ → /blog/
+     *
+     * @param pageUrl the absolute page URL
+     * @return the collection base path with trailing slash, or null if cannot be determined
+     */
+    public static String parentPath(String pageUrl) {
+        if (pageUrl == null || pageUrl.isEmpty() || pageUrl.equals("/")) {
+            return null;
+        }
+
+        String path = isAbsolute(pageUrl) ? pageUrl.substring(1) : pageUrl;
+
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+
+        int lastSlash = path.lastIndexOf('/');
+        if (lastSlash == -1) {
+            // No slash means single-level like /my-doc, return / as base
+            return "/";
+        }
+
+        // Return everything up to and including the last slash before the page name
+        return "/" + path.substring(0, lastSlash + 1);
     }
 
 }
