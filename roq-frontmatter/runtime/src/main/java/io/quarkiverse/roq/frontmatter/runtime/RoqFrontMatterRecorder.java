@@ -73,6 +73,7 @@ public class RoqFrontMatterRecorder {
     public Consumer<Route> initializeResolverRoute() {
         return r -> {
             r.method(HttpMethod.GET);
+            r.method(HttpMethod.HEAD);
             r.order(config.routeOrder() - 10);
         };
     }
@@ -80,6 +81,7 @@ public class RoqFrontMatterRecorder {
     public Consumer<Route> initializeRenderRoute() {
         return r -> {
             r.method(HttpMethod.GET);
+            r.method(HttpMethod.HEAD);
             r.order(config.routeOrder());
         };
     }
