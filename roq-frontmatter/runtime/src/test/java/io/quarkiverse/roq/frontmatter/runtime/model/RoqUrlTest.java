@@ -112,31 +112,18 @@ class RoqUrlTest {
     }
 
     @Test
-    void testNavReturnsActiveForMatchingPath() {
-        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started");
-        assertEquals("active", url.nav("/blog/docs/getting-started"));
-        assertEquals("", url.nav("/blog/docs"));
-    }
-
-    @Test
-    void testNavReturnsEmptyForNonMatchingPath() {
-        RoqUrl url = new RoqUrl(testRoot(), "/docs/getting-started");
-        assertEquals("", url.nav("/blog/posts"));
-        assertEquals("", url.nav("/blog/about"));
-    }
-
-    @Test
-    void testNavWithMultiplePaths() {
+    void testIsActiveWithMultiplePaths() {
         RoqUrl urlOnDocs = new RoqUrl(testRoot(), "/docs/advanced");
-        assertEquals("active", urlOnDocs.nav("/blog/posts", "/blog/docs/advanced", "/blog/about"));
-        assertEquals("", urlOnDocs.nav("/blog/posts", "/blog/about"));
+        assertTrue(urlOnDocs.isActive("/blog/posts", "/blog/docs/advanced", "/blog/about"));
+        assertFalse(urlOnDocs.isActive("/blog/posts", "/blog/about"));
     }
 
     @Test
-    void testNavRootPage() {
-        RoqUrl url = new RoqUrl(testRoot(), "/");
-        assertEquals("active", url.nav("/blog"));
-        assertEquals("", url.nav("/blog/docs"));
+    void testIsActiveWithNullPaths() {
+        RoqUrl url = new RoqUrl(testRoot(), "/docs/advanced");
+        assertFalse(url.isActive(null));
+        assertFalse(url.isActive(null, (String) null));
+        assertTrue(url.isActive(null, "/blog/docs/advanced"));
     }
 
     @Test
