@@ -1,0 +1,74 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-po-base-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-po-base-dir[`+++quarkus.roq.l10n-adoc.po-base-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.l10n-adoc.po-base-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Base directory containing PO translation files. When set, AsciiDoc content is translated at the AST level using PO files resolved relative to this directory.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_L10N_ADOC_PO_BASE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_L10N_ADOC_PO_BASE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-extract-on-build]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-extract-on-build[`+++quarkus.roq.l10n-adoc.extract-on-build+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.l10n-adoc.extract-on-build+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+When true (default), translatable text is extracted to PO files during the build. Set to false to only apply existing translations without updating PO files.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_L10N_ADOC_EXTRACT_ON_BUILD+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_L10N_ADOC_EXTRACT_ON_BUILD+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-target-language]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-target-language[`+++quarkus.roq.l10n-adoc.target-language+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.l10n-adoc.target-language+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Target language code for generated PO file headers (e.g. "ja-JP"). Used when creating new PO files during extract-on-build.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_L10N_ADOC_TARGET_LANGUAGE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_L10N_ADOC_TARGET_LANGUAGE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+|===
+
