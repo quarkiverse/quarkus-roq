@@ -244,6 +244,13 @@ export class ImageDialog extends LitElement {
             if (result.errorMessage) {
                 this._uploadError = result.errorMessage;
             } else {
+                if (result.newPagePath && location === 'page') {
+                    // The page was a single file and has been converted to a directory page
+                    // to hold the uploaded file: propagate the new page path to the editor
+                    const oldPath = this._pagePath;
+                    this._pagePath = result.newPagePath;
+                    document.querySelector('qwc-roq-editor')?.notifyPagePathChanged?.(oldPath, result.newPagePath);
+                }
                 const newImage = {
                     name: file.name,
                     path: result.path,
