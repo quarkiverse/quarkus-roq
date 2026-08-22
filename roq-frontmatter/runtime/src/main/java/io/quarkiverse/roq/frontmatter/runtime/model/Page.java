@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
+import static io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl.isAbsolute;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.normaliseName;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.resolveFile;
@@ -226,7 +227,7 @@ public class Page {
         }
         // An absolute path (starting with /) is a site-level image and should be
         // resolved against the public image dir, not the page-local files.
-        if (path.startsWith("/")) {
+        if (isAbsolute(path)) {
             return site().image(path.substring(1));
         }
         path = normaliseName(path, source().files().slugified());
@@ -249,7 +250,7 @@ public class Page {
             // Use site static files
             return site().imageExists(path);
         }
-        if (path.startsWith("/")) {
+        if (isAbsolute(path)) {
             return site().imageExists(path.substring(1));
         }
         path = normaliseName(path, source().files().slugified());
