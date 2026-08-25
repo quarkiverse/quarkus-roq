@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.jsoup.Jsoup;
@@ -458,11 +459,16 @@ public class RoqPluginTocTemplateExtensionTest {
 
     @Test
     void shouldNotReadPageSourceWhenNotNeeded() {
-        Supplier<String> failing = () -> {
+        assertThat(resolveMaxLevel(new JsonObject().put("content-toc-levels", 3), "asciidoc", failingSource()))
+                .isEqualTo(3);
+        assertThat(resolveMaxLevel(new JsonObject(), "markdown", failingSource())).isEqualTo(6);
+    }
+
+    /** A page source supplier that fails the test if it is read. */
+    private static Supplier<String> failingSource() {
+        return () -> {
             throw new AssertionError("page source should not be read");
         };
-        assertThat(resolveMaxLevel(new JsonObject().put("content-toc-levels", 3), "asciidoc", failing)).isEqualTo(3);
-        assertThat(resolveMaxLevel(new JsonObject(), "markdown", failing)).isEqualTo(6);
     }
 
     @Test
@@ -470,5 +476,57 @@ public class RoqPluginTocTemplateExtensionTest {
         JsonObject data = new JsonObject().put("asciidoc-attributes", new JsonObject().put("toclevels", "many"));
         assertThat(asciidocTocLevels(data, () -> "= Title\n:toclevels: 2\n")).isEqualTo(2);
         assertThat(asciidocTocLevels(data, () -> "= Title\n")).isNull();
+
+        JsonObject parsed = new JsonObject().put("attributes", new JsonObject().put("toclevels", "many"));
+        assertThat(asciidocTocLevels(parsed, () -> "= Title\n:toclevels: 2\n")).isEqualTo(2);
     }
+
+    @Test
+    void shouldReadTocLevelsFromParsedHeaderAttributes() {
+        // Roq stores the attributes it parses from the AsciiDoc document header under "attributes"
+        JsonObject data = new JsonObject().put("attributes", new JsonObject().put("toclevels", "4"));
+        assertThat(resolveMaxLevel(data, "asciidoc", failingSource())).isEqualTo(5);
+    }
+
+    @Test
+    void shouldPreferFrontmatterAttributesOverParsedHeaderAttributes() {
+        JsonObject data = new JsonObject()
+                .put("asciidoc-attributes", new JsonObject().put("toclevels", "1"))
+                .put("attributes", new JsonObject().put("toclevels", "4"));
+        assertThat(resolveMaxLevel(data, "asciidoc", failingSource())).isEqualTo(2);
+    }
+
+    @Test
+    void shouldFallBackToSourceWhenParsedHeaderHasNoTocLevels() {
+        // A document that declares an anchor before its title parses to an empty attribute map
+        JsonObject data = new JsonObject().put("attributes", new JsonObject());
+        assertThat(resolveMaxLevel(data, "asciidoc", () -> "= Title\n:toclevels: 4\n")).isEqualTo(5);
+    }
+
+    @Test
+    void shouldReadTocLevelsFromAttributesGivenAsMap() {
+        JsonObject data = new JsonObject().put("attributes", Map.of("toclevels", "3"));
+        assertThat(resolveMaxLevel(data, "asciidoc", failingSource())).isEqualTo(4);
+    }
+
+    @Test
+    void shouldIgnoreTocLevelsBelowTheDocumentHeader() {
+        // Below the first section title, ":toclevels:" is body content, here inside a listing block
+        String source = "= Title\n\n== Section\n\n----\n:toclevels: 5\n----\n";
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> source)).isEqualTo(3);
+    }
+
+    @Test
+    void shouldUseTheLastTocLevelsEntryInTheHeader() {
+        String source = "= Title\n:toclevels: 1\n:toclevels: 4\n\n== Section\n";
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> source)).isEqualTo(5);
+    }
+
+    @Test
+    void shouldAcceptSoftSetTocLevels() {
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> "= Title\n:toclevels: 3@\n")).isEqualTo(4);
+        JsonObject data = new JsonObject().put("attributes", new JsonObject().put("toclevels", "3@"));
+        assertThat(resolveMaxLevel(data, "asciidoc", failingSource())).isEqualTo(4);
+    }
+
 }

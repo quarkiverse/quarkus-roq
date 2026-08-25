@@ -115,8 +115,9 @@ Pages can tune the TOC through the following front matter keys, which mirror the
 | `content-toc-levels`
 | `6`, or `toclevels` + 1 for AsciiDoc
 | Maximum heading tag level to include (1–6). For example, `content-toc-levels: 3` includes only `h1`, `h2`, and `h3`. Set to `3` for parity with the default theme's JavaScript TOC default.
-When this key is absent on an AsciiDoc page, the plugin uses the document's `toclevels` attribute instead, read from the `asciidoc-attributes` front matter map or from a `:toclevels:` entry in the document source, and adds one because `toclevels` counts section depth (`sect1` renders as `h2`).
-With neither set, AsciiDoc pages show two section levels (`h2` and `h3`), matching Asciidoctor's own default; other pages include all six levels.
+When this key is absent on an AsciiDoc page, the plugin uses the document's `toclevels` attribute instead, and adds one because `toclevels` counts section depth (`sect1` renders as `h2`).
+It looks for that attribute in the `asciidoc-attributes` front matter map, then in the attributes Roq parsed from the document header, then in a `:toclevels:` entry in the document header itself.
+With neither key set, AsciiDoc pages show two section levels (`h2` and `h3`), matching Asciidoctor's own default; other pages include all six levels.
 
 | `content-toc-title`
 | `Table of contents`

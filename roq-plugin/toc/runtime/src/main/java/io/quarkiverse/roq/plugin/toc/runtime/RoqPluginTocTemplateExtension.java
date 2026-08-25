@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jboss.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -32,6 +33,8 @@ import io.vertx.core.json.JsonObject;
 @Unremovable
 public class RoqPluginTocTemplateExtension {
 
+    private static final Logger LOG = Logger.getLogger(RoqPluginTocTemplateExtension.class);
+
     static final Map<String, CachedToc> CACHE = new ConcurrentHashMap<>();
 
     record CachedToc(int contentHash, List<TocEntry> entries) {
@@ -43,9 +46,22 @@ public class RoqPluginTocTemplateExtension {
     static final int ASCIIDOC_DEFAULT_TOC_LEVELS = 2;
     /** Default for non-AsciiDoc pages: every heading level. */
     static final int DEFAULT_MAX_LEVEL = 6;
-    // Matches an AsciiDoc attribute entry such as ":toclevels: 3" at the start of a line.
+    /** Front matter key holding an explicit maximum heading tag level. */
+    static final String CONTENT_TOC_LEVELS = "content-toc-levels";
+    /**
+     * Page data keys that can hold AsciiDoc document attributes, most specific first.
+     * A page sets {@code asciidoc-attributes} itself and Roq passes it to Asciidoctor as an API
+     * attribute, so it overrides the document header; {@code attributes} holds the attributes Roq
+     * parsed from that header.
+     */
+    static final List<String> ASCIIDOC_ATTRIBUTE_KEYS = List.of("asciidoc-attributes", "attributes");
+
+    // Matches an AsciiDoc attribute entry such as ":toclevels: 3", optionally soft-set as ":toclevels: 3@".
     // The optional "{|" allows for the Qute escape wrapper Roq adds around escaped page content.
-    private static final Pattern ASCIIDOC_TOC_LEVELS = Pattern.compile("(?m)^(?:\\{\\|)?:toclevels:[ \\t]*(\\d+)[ \\t]*$");
+    private static final Pattern ASCIIDOC_TOC_LEVELS = Pattern
+            .compile("(?m)^(?:\\{\\|)?:toclevels:[ \\t]*(\\d+)@?[ \\t]*$");
+    // The first section title ends the document header; attribute entries below it are body content.
+    private static final Pattern ASCIIDOC_FIRST_SECTION = Pattern.compile("(?m)^={2,6}[ \\t]");
 
     /**
      * Returns a structured list of TOC entries extracted from the page's rendered HTML content.
@@ -69,7 +85,13 @@ public class RoqPluginTocTemplateExtension {
             return List.of();
         }
         List<TocEntry> fullEntries = extractTocFromHtmlCached(page, html);
-        int maxLevel = resolveMaxLevel(page.data(), markupOf(page), page::rawTemplate);
+        String markup = markupOf(page);
+        int maxLevel = resolveMaxLevel(page.data(), markup, page::rawTemplate);
+        if (LOG.isDebugEnabled()) {
+            LOG.debugf("Table of contents for '%s': markup=%s, maxLevel=%s, headings=%s, page data keys=%s",
+                    page.url(), markup, maxLevel, fullEntries.size(),
+                    page.data() == null ? List.of() : page.data().fieldNames());
+        }
         return applyMaxLevel(fullEntries, maxLevel);
     }
 
@@ -133,44 +155,73 @@ public class RoqPluginTocTemplateExtension {
      * <ol>
      * <li>the {@code content-toc-levels} frontmatter key (a heading tag level);</li>
      * <li>for AsciiDoc pages, {@code toclevels} from the {@code asciidoc-attributes} frontmatter map;</li>
-     * <li>for AsciiDoc pages, a {@code :toclevels:} attribute entry in the page source;</li>
+     * <li>for AsciiDoc pages, {@code toclevels} from the attributes Roq parsed from the document header;</li>
+     * <li>for AsciiDoc pages, a {@code :toclevels:} attribute entry in the document header;</li>
      * <li>Asciidoctor's default of 2 for AsciiDoc pages, or all six levels otherwise.</li>
      * </ol>
      * AsciiDoc {@code toclevels} counts section depth ({@code sect1} renders as {@code h2}), so it is
      * converted to a heading tag level by adding one. The result matches what Asciidoctor's own
      * {@code :toc:} output would show for the same document.
      */
-    static int resolveMaxLevel(JsonObject data, String markup, Supplier<String> rawTemplate) {
-        Integer explicit = data == null ? null : asInteger(data.getValue("content-toc-levels"));
+    static int resolveMaxLevel(JsonObject data, String markup, Supplier<String> source) {
+        Integer explicit = data == null ? null : asInteger(data.getValue(CONTENT_TOC_LEVELS));
         if (explicit != null) {
             return explicit;
         }
         if (!ASCIIDOC_MARKUP.equals(markup)) {
             return DEFAULT_MAX_LEVEL;
         }
-        Integer tocLevels = asciidocTocLevels(data, rawTemplate);
+        Integer tocLevels = asciidocTocLevels(data, source);
         return (tocLevels != null ? tocLevels : ASCIIDOC_DEFAULT_TOC_LEVELS) + 1;
     }
 
     /**
-     * Returns the AsciiDoc {@code toclevels} value from the frontmatter {@code asciidoc-attributes} map,
-     * else from a {@code :toclevels:} entry in the page source, else {@code null}.
+     * Returns the AsciiDoc {@code toclevels} value from the page's AsciiDoc attribute maps, else from a
+     * {@code :toclevels:} entry in the document header, else {@code null}. The source is only read when
+     * no attribute map supplies a value.
      */
-    static Integer asciidocTocLevels(JsonObject data, Supplier<String> rawTemplate) {
-        if (data != null && data.getValue("asciidoc-attributes") instanceof JsonObject attributes) {
-            Integer fromFrontmatter = asInteger(attributes.getValue("toclevels"));
-            if (fromFrontmatter != null) {
-                return fromFrontmatter;
+    static Integer asciidocTocLevels(JsonObject data, Supplier<String> source) {
+        if (data != null) {
+            for (String key : ASCIIDOC_ATTRIBUTE_KEYS) {
+                Integer fromAttributes = tocLevelsFrom(data.getValue(key));
+                if (fromAttributes != null) {
+                    return fromAttributes;
+                }
             }
         }
-        String source = rawTemplate == null ? null : rawTemplate.get();
-        if (source != null) {
-            Matcher m = ASCIIDOC_TOC_LEVELS.matcher(source);
-            if (m.find()) {
-                return asInteger(m.group(1));
-            }
+        String text = source == null ? null : source.get();
+        return text == null ? null : tocLevelsFromSource(text);
+    }
+
+    /**
+     * Returns {@code toclevels} from a map of AsciiDoc attributes, which reaches the page data either as
+     * a {@link JsonObject} or, when a page declares it in frontmatter, as a plain {@link Map}.
+     */
+    static Integer tocLevelsFrom(Object attributes) {
+        if (attributes instanceof JsonObject json) {
+            return asInteger(json.getValue("toclevels"));
+        }
+        if (attributes instanceof Map<?, ?> map) {
+            return asInteger(map.get("toclevels"));
         }
         return null;
+    }
+
+    /**
+     * Returns the last {@code :toclevels:} entry in the document header, else {@code null}. Only the
+     * header is scanned, because an attribute entry below the first section title is body content and a
+     * literal {@code :toclevels:} inside a listing block is not an attribute at all. Asciidoctor applies
+     * the last assignment, so the last entry in the header wins.
+     */
+    static Integer tocLevelsFromSource(String source) {
+        Matcher firstSection = ASCIIDOC_FIRST_SECTION.matcher(source);
+        String header = firstSection.find() ? source.substring(0, firstSection.start()) : source;
+        Matcher m = ASCIIDOC_TOC_LEVELS.matcher(header);
+        Integer value = null;
+        while (m.find()) {
+            value = asInteger(m.group(1));
+        }
+        return value;
     }
 
     static Integer asInteger(Object value) {
@@ -178,8 +229,13 @@ public class RoqPluginTocTemplateExtension {
             return number.intValue();
         }
         if (value instanceof String string) {
+            String text = string.trim();
+            // Asciidoctor's soft-set syntax marks a value a document can override: ":toclevels: 3@".
+            if (text.endsWith("@")) {
+                text = text.substring(0, text.length() - 1).trim();
+            }
             try {
-                return Integer.parseInt(string.trim());
+                return Integer.parseInt(text);
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -290,11 +346,11 @@ public class RoqPluginTocTemplateExtension {
         sb.append("</ul>\n");
     }
 
-    static String escapeHtml(String text) {
+    private static String escapeHtml(String text) {
         return Entities.escape(text, new Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.base));
     }
 
-    static String escapeAttr(String text) {
+    private static String escapeAttr(String text) {
         return escapeHtml(text).replace("\"", "&quot;");
     }
 
