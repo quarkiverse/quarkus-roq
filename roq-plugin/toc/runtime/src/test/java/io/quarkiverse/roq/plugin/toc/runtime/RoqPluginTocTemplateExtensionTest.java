@@ -1,20 +1,26 @@
 package io.quarkiverse.roq.plugin.toc.runtime;
 
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.applyMaxLevel;
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.asciidocTocLevels;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.buildHierarchy;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.extractHeadings;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.extractTocFromHtml;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.isContentTocEnabled;
 import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.renderTocHtml;
+import static io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.resolveMaxLevel;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.plugin.toc.runtime.RoqPluginTocTemplateExtension.HeadingInfo;
+import io.quarkus.qute.TemplateExtension;
 import io.vertx.core.json.JsonObject;
 
 public class RoqPluginTocTemplateExtensionTest {
@@ -388,5 +394,81 @@ public class RoqPluginTocTemplateExtensionTest {
         assertThat(entries.get(0).id()).isEqualTo("intro");
         assertThat(entries.get(0).children()).hasSize(1);
         assertThat(entries.get(0).children().get(0).id()).isEqualTo("details");
+    }
+
+    // --- New tests: template extension registration ---
+
+    @Test
+    void shouldRegisterOnlyTocAndTocHtmlAsTemplateExtensions() {
+        // A class-level @TemplateExtension registers every static non-private helper (e.g. escapeHtml)
+        // as a template extension, which clashes with same-named extensions defined by a site or plugin.
+        assertThat(RoqPluginTocTemplateExtension.class.isAnnotationPresent(TemplateExtension.class)).isFalse();
+
+        List<String> registered = Arrays.stream(RoqPluginTocTemplateExtension.class.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(TemplateExtension.class))
+                .map(Method::getName)
+                .sorted()
+                .toList();
+        assertThat(registered).containsExactly("toc", "tocHtml");
+    }
+
+    // --- New tests: max level resolution ---
+
+    @Test
+    void shouldPreferContentTocLevelsOverAsciidocTocLevels() {
+        JsonObject data = new JsonObject().put("content-toc-levels", 4);
+        assertThat(resolveMaxLevel(data, "asciidoc", () -> "= Title\n:toclevels: 1\n")).isEqualTo(4);
+    }
+
+    @Test
+    void shouldAcceptContentTocLevelsAsString() {
+        JsonObject data = new JsonObject().put("content-toc-levels", "2");
+        assertThat(resolveMaxLevel(data, "markdown", () -> "")).isEqualTo(2);
+    }
+
+    @Test
+    void shouldReadTocLevelsFromAsciidocHeader() {
+        String source = "= Title\n:toclevels: 3\n\n== Section\n";
+        // toclevels counts section depth (sect1 = h2), so 3 section levels means heading tags up to h4
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> source)).isEqualTo(4);
+    }
+
+    @Test
+    void shouldReadTocLevelsFromEscapedAsciidocSource() {
+        String source = "{|:toclevels: 1\n\n== Section\n|}";
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> source)).isEqualTo(2);
+    }
+
+    @Test
+    void shouldPreferFrontmatterAsciidocAttributesOverHeader() {
+        JsonObject data = new JsonObject().put("asciidoc-attributes", new JsonObject().put("toclevels", "1"));
+        assertThat(resolveMaxLevel(data, "asciidoc", () -> "= Title\n:toclevels: 4\n")).isEqualTo(2);
+    }
+
+    @Test
+    void shouldDefaultAsciidocPagesToAsciidoctorTocLevels() {
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> "= Title\n\n== Section\n")).isEqualTo(3);
+    }
+
+    @Test
+    void shouldDefaultNonAsciidocPagesToAllLevels() {
+        assertThat(resolveMaxLevel(new JsonObject(), "markdown", () -> "# Title\n:toclevels: 1\n")).isEqualTo(6);
+        assertThat(resolveMaxLevel(null, null, null)).isEqualTo(6);
+    }
+
+    @Test
+    void shouldNotReadPageSourceWhenNotNeeded() {
+        Supplier<String> failing = () -> {
+            throw new AssertionError("page source should not be read");
+        };
+        assertThat(resolveMaxLevel(new JsonObject().put("content-toc-levels", 3), "asciidoc", failing)).isEqualTo(3);
+        assertThat(resolveMaxLevel(new JsonObject(), "markdown", failing)).isEqualTo(6);
+    }
+
+    @Test
+    void shouldIgnoreNonNumericTocLevels() {
+        JsonObject data = new JsonObject().put("asciidoc-attributes", new JsonObject().put("toclevels", "many"));
+        assertThat(asciidocTocLevels(data, () -> "= Title\n:toclevels: 2\n")).isEqualTo(2);
+        assertThat(asciidocTocLevels(data, () -> "= Title\n")).isNull();
     }
 }

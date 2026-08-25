@@ -6,6 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,6 +17,7 @@ import org.jsoup.nodes.Entities;
 import org.jsoup.select.Elements;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.Unremovable;
@@ -25,7 +29,6 @@ import io.vertx.core.json.JsonObject;
  * Qute template extension that provides table of contents generation for pages.
  */
 
-@TemplateExtension
 @Unremovable
 public class RoqPluginTocTemplateExtension {
 
@@ -34,16 +37,29 @@ public class RoqPluginTocTemplateExtension {
     record CachedToc(int contentHash, List<TocEntry> entries) {
     }
 
+    /** Markup name registered by the Roq AsciiDoc plugins. */
+    static final String ASCIIDOC_MARKUP = "asciidoc";
+    /** Asciidoctor's own default for {@code toclevels}: two section levels (h2 and h3). */
+    static final int ASCIIDOC_DEFAULT_TOC_LEVELS = 2;
+    /** Default for non-AsciiDoc pages: every heading level. */
+    static final int DEFAULT_MAX_LEVEL = 6;
+    // Matches an AsciiDoc attribute entry such as ":toclevels: 3" at the start of a line.
+    // The optional "{|" allows for the Qute escape wrapper Roq adds around escaped page content.
+    private static final Pattern ASCIIDOC_TOC_LEVELS = Pattern.compile("(?m)^(?:\\{\\|)?:toclevels:[ \\t]*(\\d+)[ \\t]*$");
+
     /**
      * Returns a structured list of TOC entries extracted from the page's rendered HTML content.
      * Honors the {@code content-toc} (opt-out, default {@code true}) and {@code content-toc-levels}
-     * (max heading tag level 1–6, default 6) frontmatter keys.
+     * (max heading tag level 1–6) frontmatter keys. When {@code content-toc-levels} is absent,
+     * AsciiDoc pages fall back to their {@code toclevels} attribute (see {@link #resolveMaxLevel});
+     * other pages include all six levels.
      * <p>
      * Usage in Qute templates: {@code {page.toc}}
      * <p>
      * The returned list and its entries should be treated as immutable by callers — they may be
      * shared across renders via an internal content-hash-keyed cache.
      */
+    @TemplateExtension
     public static List<TocEntry> toc(Page page) {
         if (!isContentTocEnabled(page.data())) {
             return List.of();
@@ -53,7 +69,7 @@ public class RoqPluginTocTemplateExtension {
             return List.of();
         }
         List<TocEntry> fullEntries = extractTocFromHtmlCached(page, html);
-        int maxLevel = page.data().getInteger("content-toc-levels", 6);
+        int maxLevel = resolveMaxLevel(page.data(), markupOf(page), page::rawTemplate);
         return applyMaxLevel(fullEntries, maxLevel);
     }
 
@@ -66,6 +82,7 @@ public class RoqPluginTocTemplateExtension {
      * <p>
      * Usage in Qute templates: {@code {page.tocHtml}}
      */
+    @TemplateExtension
     public static RawString tocHtml(Page page) {
         List<TocEntry> entries = toc(page);
         if (entries.isEmpty()) {
@@ -78,6 +95,11 @@ public class RoqPluginTocTemplateExtension {
     private static String resolvePageContent(Page page) {
         Site site = Arc.container().instance(Site.class).get();
         return site.pageContent(page);
+    }
+
+    private static String markupOf(Page page) {
+        PageSource source = page.source();
+        return source == null ? null : source.markup();
     }
 
     static List<TocEntry> extractTocFromHtmlCached(Page page, String html) {
@@ -104,6 +126,65 @@ public class RoqPluginTocTemplateExtension {
 
     static boolean isContentTocEnabled(JsonObject data) {
         return data == null || data.getBoolean("content-toc", true);
+    }
+
+    /**
+     * Resolves the maximum heading tag level (1–6) to include in the TOC, in order of precedence:
+     * <ol>
+     * <li>the {@code content-toc-levels} frontmatter key (a heading tag level);</li>
+     * <li>for AsciiDoc pages, {@code toclevels} from the {@code asciidoc-attributes} frontmatter map;</li>
+     * <li>for AsciiDoc pages, a {@code :toclevels:} attribute entry in the page source;</li>
+     * <li>Asciidoctor's default of 2 for AsciiDoc pages, or all six levels otherwise.</li>
+     * </ol>
+     * AsciiDoc {@code toclevels} counts section depth ({@code sect1} renders as {@code h2}), so it is
+     * converted to a heading tag level by adding one. The result matches what Asciidoctor's own
+     * {@code :toc:} output would show for the same document.
+     */
+    static int resolveMaxLevel(JsonObject data, String markup, Supplier<String> rawTemplate) {
+        Integer explicit = data == null ? null : asInteger(data.getValue("content-toc-levels"));
+        if (explicit != null) {
+            return explicit;
+        }
+        if (!ASCIIDOC_MARKUP.equals(markup)) {
+            return DEFAULT_MAX_LEVEL;
+        }
+        Integer tocLevels = asciidocTocLevels(data, rawTemplate);
+        return (tocLevels != null ? tocLevels : ASCIIDOC_DEFAULT_TOC_LEVELS) + 1;
+    }
+
+    /**
+     * Returns the AsciiDoc {@code toclevels} value from the frontmatter {@code asciidoc-attributes} map,
+     * else from a {@code :toclevels:} entry in the page source, else {@code null}.
+     */
+    static Integer asciidocTocLevels(JsonObject data, Supplier<String> rawTemplate) {
+        if (data != null && data.getValue("asciidoc-attributes") instanceof JsonObject attributes) {
+            Integer fromFrontmatter = asInteger(attributes.getValue("toclevels"));
+            if (fromFrontmatter != null) {
+                return fromFrontmatter;
+            }
+        }
+        String source = rawTemplate == null ? null : rawTemplate.get();
+        if (source != null) {
+            Matcher m = ASCIIDOC_TOC_LEVELS.matcher(source);
+            if (m.find()) {
+                return asInteger(m.group(1));
+            }
+        }
+        return null;
+    }
+
+    static Integer asInteger(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value instanceof String string) {
+            try {
+                return Integer.parseInt(string.trim());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     /**
