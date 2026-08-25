@@ -35,8 +35,11 @@
 }
 
 .search-button {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
   height: var(--search-icon-size);
+  padding: 0;
   background: var(--search-icon) no-repeat center;
   background-size: contain;
   border: none;
@@ -45,6 +48,11 @@
 }
 
 .search-trigger-input {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   display: flex;
   align-items: center;
   gap: 8px;

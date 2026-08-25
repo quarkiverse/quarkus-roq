@@ -26,9 +26,39 @@ const setupSearch = function (options = {}) {
     const searchOverlay = document.getElementById("search-overlay");
     const closeSearch = document.getElementById("search-close");
 
+    let lastFocusedElement = null;
+
+    function getFocusableElements() {
+        return Array.from(
+            searchOverlay.querySelectorAll('a[href], button, input, [tabindex]:not([tabindex="-1"])')
+        ).filter((el) => !el.disabled);
+    }
+
+    function trapFocus(e) {
+        if (e.key !== "Tab") {
+            return;
+        }
+        const focusable = getFocusableElements();
+        if (focusable.length === 0) {
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+
     function openSearch(e) {
         e.preventDefault();
+        lastFocusedElement = document.activeElement;
         searchOverlay.classList.add("active");
+        searchOverlay.setAttribute("aria-hidden", "false");
+        searchOverlay.addEventListener("keydown", trapFocus);
         setTimeout(() => {
             searchInputEl.value = '';
             searchInputEl.focus();
@@ -37,8 +67,14 @@ const setupSearch = function (options = {}) {
 
     function closeSearchOverlay(e) {
         searchOverlay.classList.remove("active");
+        searchOverlay.setAttribute("aria-hidden", "true");
+        searchOverlay.removeEventListener("keydown", trapFocus);
         searchInputEl.value = '';
         searchQuery = null;
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+        }
     }
 
     if (searchButtonEl) {
