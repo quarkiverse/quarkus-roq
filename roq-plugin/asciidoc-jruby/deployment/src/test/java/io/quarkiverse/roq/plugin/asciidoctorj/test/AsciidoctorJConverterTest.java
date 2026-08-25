@@ -31,6 +31,20 @@ public class AsciidoctorJConverterTest {
     }
 
     @Test
+    void shouldApplyBLANKAttributeAsEmpty() {
+        AsciidoctorJConverter blankConverter = new AsciidoctorJConverter(Map.of("idprefix", "BLANK"));
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                "/tmp/site",
+                "/tmp/site/content/guides/test.adoc",
+                null, null, null, null);
+
+        Options options = blankConverter.createOptions(Map.of(), attrs);
+        Document doc = asciidoctor.load("= Test\n\n== My Section", options);
+
+        assertThat(doc.getAttribute("idprefix")).isEqualTo("");
+    }
+
+    @Test
     void shouldSetDocnameWithMultipleDots() {
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
                 "/tmp/site",

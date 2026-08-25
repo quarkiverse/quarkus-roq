@@ -23,6 +23,7 @@ public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
     public static final String ROOTDIR = "root_dir";
+    public static final String BLANK = "BLANK";
 
     private final Asciidoctor asciidoctor;
     private Map<String, String> configuredAttributes;
@@ -62,7 +63,7 @@ public class AsciidoctorJConverter {
         if (templateAttributes.sitePath() != null) {
             attributes.attribute("site-path", templateAttributes.sitePath());
         }
-        configuredAttributes.forEach(attributes::attribute);
+        configuredAttributes.forEach((key, value) -> attributes.attribute(key, resolveAttributeValue(value)));
         asciidocAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();
@@ -89,6 +90,10 @@ public class AsciidoctorJConverter {
         // In Qute context it might often be indented
         final Document doc = asciidoctor.load(trimIndent(asciidoc), options);
         return doc.convert();
+    }
+
+    static String resolveAttributeValue(String value) {
+        return BLANK.equals(value) ? "" : value;
     }
 
     public static String trimIndent(String content) {

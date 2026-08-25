@@ -750,10 +750,27 @@ class JekyllConfigConverterTest {
                 "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
         assertEquals("highlightjs", props.getProperty("quarkus.asciidoc.attributes.source-highlighter"),
                 "Jekyll asciidoctor.attributes.source-highlighter should map to quarkus.asciidoc.attributes.source-highlighter");
-        assertNull(props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
-                "Empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
-        assertNull(props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
-                "Empty-string attributes should be skipped");
+        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
+                "Empty-string attributes should be emitted as BLANK (resolved to '' by the Roq plugin)");
+        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
+                "Empty-string attributes should be emitted as BLANK");
+        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.idprefix"),
+                "jekyll-asciidoc defaults idprefix to '' — emitted as BLANK");
+        assertEquals("-", props.getProperty("quarkus.asciidoc.attributes.idseparator"),
+                "jekyll-asciidoc defaults idseparator to '-' instead of Asciidoctor's '_'");
+    }
+
+    @Test
+    void testNoAsciidoctorBlockOmitsIdSeparator() throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Properties props = converter.createApplicationProperties(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(configYaml));
+        assertNull(props.getProperty("quarkus.asciidoc.attributes.idseparator"),
+                "idseparator should only be set when asciidoctor config is present");
+        assertNull(props.getProperty("quarkus.asciidoc.attributes.idprefix"),
+                "idprefix should only be set when asciidoctor config is present");
     }
 
     @Test
