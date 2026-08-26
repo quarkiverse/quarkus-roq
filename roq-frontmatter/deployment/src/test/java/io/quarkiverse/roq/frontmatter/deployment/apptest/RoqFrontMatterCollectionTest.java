@@ -18,7 +18,8 @@ import io.restassured.RestAssured;
  * Features tested: multi-collection site (posts + guides), collection counts,
  * next/prev navigation, date-based link patterns, pagination (size, total, pages),
  * author filtering, past() extension, readTime, local file overriding resource file,
- * theme layout override by local layout, layout chain rendering.
+ * theme layout override by local layout, layout chain rendering, llms.txt heading omitted
+ * for a collection with no visible docs.
  */
 @DisplayName("Roq FrontMatter - Collections, navigation, pagination, theme override, and local/resource priority")
 public class RoqFrontMatterCollectionTest {
@@ -303,5 +304,35 @@ public class RoqFrontMatterCollectionTest {
         String body = RestAssured.when().get("/guides/getting-started").then().statusCode(200)
                 .extract().body().asString();
         org.junit.jupiter.api.Assertions.assertTrue(body.contains("<article class=\"guide\">"));
+    }
+
+    // --- llms.txt ---
+
+    @Test
+    @DisplayName("llms.txt omits heading for collection with no visible docs")
+    public void testLlmsTxtOmitsCollectionWithNoVisibleDocs() {
+        RestAssured.when().get("/llms.txt").then().statusCode(200).log().ifValidationFails()
+                .body(not(containsString("## Guides")));
+    }
+
+    @Test
+    @DisplayName("llms.txt keeps heading for collection with visible docs")
+    public void testLlmsTxtKeepsCollectionWithVisibleDocs() {
+        RestAssured.when().get("/llms.txt").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("## Posts"));
+    }
+
+    @Test
+    @DisplayName("llms-full.txt omits heading for collection with no visible docs")
+    public void testLlmsFullTxtOmitsCollectionWithNoVisibleDocs() {
+        RestAssured.when().get("/llms-full.txt").then().statusCode(200).log().ifValidationFails()
+                .body(not(containsString("## Guides")));
+    }
+
+    @Test
+    @DisplayName("llms-full.txt keeps heading for collection with visible docs")
+    public void testLlmsFullTxtKeepsCollectionWithVisibleDocs() {
+        RestAssured.when().get("/llms-full.txt").then().statusCode(200).log().ifValidationFails()
+                .body(containsString("## Posts"));
     }
 }

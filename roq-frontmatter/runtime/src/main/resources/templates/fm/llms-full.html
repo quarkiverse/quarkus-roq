@@ -6,7 +6,7 @@
 
 {/if}
 {#for collection in site.collections.list}
-{#if !collection.hidden && !collection.derived}
+{#if !collection.hidden && !collection.derived && collection.hasLlmstxtEntries}
 ## {collection.id.capitalizeFirst}
 
 {#for doc in collection}
