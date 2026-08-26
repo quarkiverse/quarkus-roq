@@ -1,17 +1,18 @@
-<div class="search-overlay" id="search-overlay">
+<div class="search-overlay" id="search-overlay" role="dialog" aria-modal="true" aria-label="Search" aria-hidden="true">
   <div class="search-overlay-content">
-    <button class="search-close" id="search-close">&times;</button>
+    <button class="search-close" id="search-close" aria-label="Close search">&times;</button>
     <div id="search-field">
       <input
         type="search"
         class="search-input"
         id="search-input"
         placeholder="Search..."
+        aria-label="Search"
         autocomplete="off"
         autofocus
       />
     </div>
-    <div class="search-results" id="search-results">
+    <div class="search-results" id="search-results" role="region" aria-live="polite" aria-label="Search results">
       <!-- Search results will be dynamically inserted here -->
     </div>
   </div>
