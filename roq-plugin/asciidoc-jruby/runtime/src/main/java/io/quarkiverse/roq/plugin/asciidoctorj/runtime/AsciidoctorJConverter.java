@@ -31,7 +31,7 @@ public class AsciidoctorJConverter {
     public static final String ROOTDIR = "root_dir";
 
     private final Asciidoctor asciidoctor;
-    private Map<String, String> configuredAttributes;
+    private final Map<String, String> configuredAttributes;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
@@ -56,9 +56,9 @@ public class AsciidoctorJConverter {
         // The relative path fails if pages are accessed without a trailing slash
         String relfileprefix = "../"; // fallback to relative
         if (templateAttributes.pageUrl() != null) {
-            String collectionBasePath = parentPath(templateAttributes.pageUrl());
-            if (collectionBasePath != null) {
-                relfileprefix = collectionBasePath;
+            String basePath = parentPath(templateAttributes.pageUrl());
+            if (basePath != null) {
+                relfileprefix = basePath;
             }
         }
 

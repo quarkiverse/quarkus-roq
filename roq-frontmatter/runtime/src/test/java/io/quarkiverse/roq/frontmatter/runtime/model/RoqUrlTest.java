@@ -127,6 +127,41 @@ class RoqUrlTest {
     }
 
     @Test
+    void testParentPathMultiSegment() {
+        assertEquals("/guides/", RoqUrl.parentPath("/guides/my-doc"));
+    }
+
+    @Test
+    void testParentPathDeepPath() {
+        assertEquals("/version/main/guides/", RoqUrl.parentPath("/version/main/guides/security"));
+    }
+
+    @Test
+    void testParentPathTrailingSlash() {
+        assertEquals("/blog/", RoqUrl.parentPath("/blog/my-post/"));
+    }
+
+    @Test
+    void testParentPathSingleSegment() {
+        assertEquals("/", RoqUrl.parentPath("/my-doc"));
+    }
+
+    @Test
+    void testParentPathRoot() {
+        assertNull(RoqUrl.parentPath("/"));
+    }
+
+    @Test
+    void testParentPathNull() {
+        assertNull(RoqUrl.parentPath(null));
+    }
+
+    @Test
+    void testParentPathEmpty() {
+        assertNull(RoqUrl.parentPath(""));
+    }
+
+    @Test
     void testIsFullPathHttpSchemes() {
         assertTrue(RoqUrl.isFullPath("http://example.com"));
         assertTrue(RoqUrl.isFullPath("https://example.com/foo"));

@@ -65,13 +65,4 @@ public class RoqAsciidocJTest {
         assertThat(body).contains("Roughly 15 minutes");
     }
 
-    @Test
-    public void testXrefUsesAbsolutePaths() {
-        final String body = RestAssured.when().get("/guides/my-doc").then().statusCode(200).log().ifValidationFails().extract()
-                .asString();
-        // Xrefs should use absolute paths like /guides/rabbitmq/ not relative paths like ../rabbitmq/
-        // This ensures links work correctly in both dev mode and production builds
-        assertThat(body).contains("<a href=\"/guides/rabbitmq/\">Quarkus Messaging RabbitMQ extension</a>");
-        assertThat(body).doesNotContain("href=\"../rabbitmq/\"");
-    }
 }
