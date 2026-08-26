@@ -750,10 +750,28 @@ class JekyllConfigConverterTest {
                 "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
         assertEquals("highlightjs", props.getProperty("quarkus.asciidoc.attributes.source-highlighter"),
                 "Jekyll asciidoctor.attributes.source-highlighter should map to quarkus.asciidoc.attributes.source-highlighter");
-        assertNull(props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
-                "Empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+        assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
+                "Boolean AsciiDoc attributes with empty value should be emitted as 'true'");
         assertNull(props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
-                "Empty-string attributes should be skipped");
+                "Non-boolean empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+    }
+
+    @Test
+    void testLooksLikeValueAttribute() {
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("outfilesuffix"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("idprefix"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("idseparator"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("imagesdir"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("source-highlighter"));
+
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("sectanchors"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("sectnums"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("experimental"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("toc"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("hardbreaks"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("linkcss"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("data-uri"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("icons"));
     }
 
     @Test
