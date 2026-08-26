@@ -24,8 +24,8 @@ import io.quarkiverse.tools.stringpaths.StringPaths;
 public class AsciidocJInclude extends IncludeProcessor {
     private static final Pattern URL_PREFIX_PATTERN = Pattern.compile("^((https?|file|ftp|irc)://|mailto:)");
     private static final Pattern HEADING_PATTERN = Pattern.compile("^(=+)(\\s+.*)$");
-    private static final Pattern TAG_START_PATTERN = Pattern.compile("^(?://|#|--|;;|<!--)\\s*tag::(\\S+?)\\[\\]");
-    private static final Pattern TAG_END_PATTERN = Pattern.compile("^(?://|#|--|;;|<!--)\\s*end::(\\S+?)\\[\\]");
+    private static final Pattern TAG_START_PATTERN = Pattern.compile("^\\s*(?://|#|--|;;|<!--)\\s*tag::(\\S+?)\\[\\]");
+    private static final Pattern TAG_END_PATTERN = Pattern.compile("^\\s*(?://|#|--|;;|<!--)\\s*end::(\\S+?)\\[\\]");
 
     public AsciidocJInclude() {
     }
@@ -83,9 +83,22 @@ public class AsciidocJInclude extends IncludeProcessor {
 
     }
 
-    private static void pushInclude(PreprocessorReader reader, String content, String target, Map<String, Object> attributes)
+    private void pushInclude(PreprocessorReader reader, String content, String target, Map<String, Object> attributes)
             throws IOException {
+        String tagsValue = resolveTagsValue(attributes);
         final String processedContent = String.join("\n", processInclude(content, attributes));
+
+        if (tagsValue != null) {
+            Set<String> availableTags = collectTagNames(content.lines().toList());
+            for (String raw : tagsValue.split("[;,]")) {
+                String tag = raw.trim();
+                if (!tag.isEmpty() && !tag.startsWith("!") && !availableTags.contains(tag)) {
+                    log(new LogRecord(Severity.WARN,
+                            "Include tag '%s' not found in '%s'".formatted(tag, target)));
+                }
+            }
+        }
+
         reader.pushInclude(
                 processedContent,
                 target,
@@ -94,20 +107,36 @@ public class AsciidocJInclude extends IncludeProcessor {
                 attributes);
     }
 
+    private static String resolveTagsValue(Map<String, Object> attrs) {
+        if (attrs.containsKey("tag") && attrs.get("tag") instanceof String) {
+            return (String) attrs.get("tag");
+        }
+        if (attrs.containsKey("tags") && attrs.get("tags") instanceof String) {
+            return (String) attrs.get("tags");
+        }
+        return null;
+    }
+
+    static Set<String> collectTagNames(List<String> lines) {
+        Set<String> tags = new LinkedHashSet<>();
+        for (String line : lines) {
+            Matcher m = TAG_START_PATTERN.matcher(line);
+            if (m.find()) {
+                tags.add(m.group(1));
+            }
+        }
+        return tags;
+    }
+
     // The main entry point, based on the Ruby push_include logic
     static List<String> processInclude(String content, Map<String, Object> attrs) throws IOException {
         // 1. Handle encoding (applies to file reading, not in-memory)
         List<String> lines = content.lines().toList();
 
-        // 2. Handle tag/tag(s) extraction first, as in Ruby
-        if (attrs.containsKey("tag") && attrs.get("tag") instanceof String) {
-            lines = extractTag(lines, (String) attrs.get("tag"));
-        } else if (attrs.containsKey("tags") && attrs.get("tags") instanceof String) {
-            // Ruby supports "tags" as a comma-separated list
-            final String tags = (String) attrs.get("tags");
-            for (String tag : tags.split(",")) {
-                lines = extractTag(lines, tag.trim());
-            }
+        // Handle tag/tag(s) extraction first, as in Ruby
+        String tagsValue = resolveTagsValue(attrs);
+        if (tagsValue != null) {
+            lines = extractTags(lines, tagsValue);
         }
 
         // 3. Handle lines attribute (after tags, as in Ruby)
@@ -125,30 +154,49 @@ public class AsciidocJInclude extends IncludeProcessor {
         return lines;
     }
 
-    // --- Helper methods: direct port of Ruby logic ---
-
-    // Extract lines between tag::...[] and end::...[]
+    // Extract lines matching the given tag expression.
     // Supports standard AsciiDoc comment styles: //, #, --, ;;, <!--
-    private static List<String> extractTag(List<String> lines, String tag) {
-        List<String> result = new ArrayList<>();
-        boolean inTag = false;
-        for (String line : lines) {
-            if (!inTag) {
-                Matcher m = TAG_START_PATTERN.matcher(line);
-                if (m.find() && m.group(1).equals(tag)) {
-                    inTag = true;
-                    continue;
-                }
-            } else {
-                Matcher m = TAG_END_PATTERN.matcher(line);
-                if (m.find() && m.group(1).equals(tag)) {
-                    break;
-                }
+    // Tags are separated by ";" or ",", and "!" negates (excludes) a tag.
+    private static List<String> extractTags(List<String> lines, String tagsValue) {
+        List<String> includeTags = new ArrayList<>();
+        List<String> excludeTags = new ArrayList<>();
+
+        for (String raw : tagsValue.split("[;,]")) {
+            String tag = raw.trim();
+            if (tag.isEmpty()) {
+                continue;
             }
-            if (inTag) {
+            if (tag.startsWith("!")) {
+                excludeTags.add(tag.substring(1));
+            } else {
+                includeTags.add(tag);
+            }
+        }
+
+        Set<String> activeTagStack = new LinkedHashSet<>();
+        List<String> result = new ArrayList<>();
+
+        for (String line : lines) {
+            Matcher startMatcher = TAG_START_PATTERN.matcher(line);
+            if (startMatcher.find()) {
+                activeTagStack.add(startMatcher.group(1));
+                continue;
+            }
+            Matcher endMatcher = TAG_END_PATTERN.matcher(line);
+            if (endMatcher.find()) {
+                activeTagStack.remove(endMatcher.group(1));
+                continue;
+            }
+
+            boolean included = includeTags.isEmpty()
+                    || activeTagStack.stream().anyMatch(includeTags::contains);
+            boolean excluded = activeTagStack.stream().anyMatch(excludeTags::contains);
+
+            if (included && !excluded) {
                 result.add(line);
             }
         }
+
         return result;
     }
 
