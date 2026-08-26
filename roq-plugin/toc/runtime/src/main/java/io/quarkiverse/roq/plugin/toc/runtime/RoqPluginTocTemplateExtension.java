@@ -2,9 +2,11 @@ package io.quarkiverse.roq.plugin.toc.runtime;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -40,6 +42,12 @@ public class RoqPluginTocTemplateExtension {
     record CachedToc(int contentHash, List<TocEntry> entries) {
     }
 
+    /**
+     * Keys of the pages whose table of contents is being resolved on the current thread.
+     * See {@link #toc(Page)}.
+     */
+    private static final ThreadLocal<Set<String>> RESOLVING = ThreadLocal.withInitial(HashSet::new);
+
     /** Markup name registered by the Roq AsciiDoc plugins. */
     static final String ASCIIDOC_MARKUP = "asciidoc";
     /** Asciidoctor's own default for {@code toclevels}: two section levels (h2 and h3). */
@@ -74,25 +82,56 @@ public class RoqPluginTocTemplateExtension {
      * <p>
      * The returned list and its entries should be treated as immutable by callers — they may be
      * shared across renders via an internal content-hash-keyed cache.
+     * <p>
+     * Building the list renders the page content, so a {@code {page.toc}} expression inside that
+     * content re-enters this method for the same page. The re-entrant call returns an empty list,
+     * which keeps the nested render finite; the outer call still returns the real entries.
      */
     @TemplateExtension
     public static List<TocEntry> toc(Page page) {
         if (!isContentTocEnabled(page.data())) {
             return List.of();
         }
-        String html = resolvePageContent(page);
-        if (html == null || html.isBlank()) {
+        Set<String> resolving = RESOLVING.get();
+        String pageKey = pageKey(page);
+        if (!resolving.add(pageKey)) {
+            LOG.debugf("Ignoring a re-entrant {page.toc} while rendering the content of '%s'", pageKey);
             return List.of();
         }
-        List<TocEntry> fullEntries = extractTocFromHtmlCached(page, html);
-        String markup = markupOf(page);
-        int maxLevel = resolveMaxLevel(page.data(), markup, page::rawTemplate);
-        if (LOG.isDebugEnabled()) {
-            LOG.debugf("Table of contents for '%s': markup=%s, maxLevel=%s, headings=%s, page data keys=%s",
-                    page.url(), markup, maxLevel, fullEntries.size(),
-                    page.data() == null ? List.of() : page.data().fieldNames());
+        try {
+            String html = resolvePageContent(page);
+            if (html == null || html.isBlank()) {
+                return List.of();
+            }
+            List<TocEntry> fullEntries = extractTocFromHtmlCached(page, html);
+            String markup = markupOf(page);
+            int maxLevel = resolveMaxLevel(page.data(), markup, page::rawTemplate);
+            if (LOG.isDebugEnabled()) {
+                LOG.debugf("Table of contents for '%s': markup=%s, maxLevel=%s, headings=%s, page data keys=%s",
+                        page.url(), markup, maxLevel, fullEntries.size(),
+                        page.data() == null ? List.of() : page.data().fieldNames());
+            }
+            return applyMaxLevel(fullEntries, maxLevel);
+        } finally {
+            resolving.remove(pageKey);
+            if (resolving.isEmpty()) {
+                RESOLVING.remove();
+            }
         }
-        return applyMaxLevel(fullEntries, maxLevel);
+    }
+
+    /**
+     * Identifies a page for the re-entrancy check: its source id, else its URL, else its identity.
+     */
+    private static String pageKey(Page page) {
+        PageSource source = page.source();
+        if (source != null && source.id() != null) {
+            return source.id();
+        }
+        if (page.url() != null) {
+            return page.url().toString();
+        }
+        return "page@" + System.identityHashCode(page);
     }
 
     /**
