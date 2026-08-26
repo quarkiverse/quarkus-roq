@@ -146,4 +146,20 @@ public class AsciidoctorJConverterTest {
         assertThat(options.map().get(Options.BASEDIR)).isEqualTo(pageDir.toString());
     }
 
+    @Test
+    void shouldConvertTrueToEmptyForBooleanAttributes() {
+        AsciidoctorJConverter converter = new AsciidoctorJConverter(
+                Map.of("sectanchors", "true", "icons", "font"));
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                "/tmp/site",
+                "/tmp/site/content/guides/test.adoc",
+                null, null, null, null);
+
+        Options options = converter.createOptions(Map.of(), attrs);
+        Document doc = asciidoctor.load("= Test\n\n== Section One\n\nContent", options);
+
+        assertThat(doc.getAttribute("sectanchors")).isEqualTo("");
+        assertThat(doc.getAttribute("icons")).isEqualTo("font");
+    }
+
 }
