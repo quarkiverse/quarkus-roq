@@ -250,6 +250,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "and-y",
+      "name": "Andreas Fertsch-Röver",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1234522?v=4",
+      "profile": "https://github.com/and-y",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
