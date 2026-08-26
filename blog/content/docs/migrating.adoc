@@ -831,6 +831,9 @@ If you are migrating manually, consider adding them to `config/application.prope
 
 | `quarkus.web-bundler.bundling.external=/assets/*`
 | Tells the CSS bundler not to resolve Jekyll-style `/assets/...` URL references
+
+| `quarkus.asciidoc.attributes.sectanchors=true`
+| Enables section anchor links (use `true` for any boolean AsciiDoc attribute since SmallRye Config does not support empty-string map values; Roq converts `true` to an empty string before passing to AsciidoctorJ)
 |===
 
 === LLM prompt for configuration
