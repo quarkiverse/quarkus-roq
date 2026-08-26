@@ -122,7 +122,7 @@ public class TemplateLink {
             name = pageSource.baseFileName();
         }
 
-        return StringPaths.slugify(removeDate(name), true, false);
+        return StringPaths.slugify(removeDate(name), true, true);
     }
 
     private static String resolveName(LinkData data) {
