@@ -28,6 +28,7 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
 import io.vertx.core.json.JsonObject;
+import io.yupiik.asciidoc.model.Author;
 import io.yupiik.asciidoc.model.Header;
 import io.yupiik.asciidoc.parser.Parser;
 import io.yupiik.asciidoc.parser.internal.Reader;
@@ -96,10 +97,14 @@ public class AsciidocHeaderParser {
         if (header.attributes().containsKey(DESCRIPTION) && !header.attributes().get(DESCRIPTION).isBlank()) {
             pageData.put(DESCRIPTION, header.attributes().get("description"));
         }
-        if (!header.author().name().isBlank()) {
-            pageData.put("author", header.author().name());
-            pageData.put("author-email", header.author().mail());
+
+        if ((header.author() != null) && !header.author().isEmpty()
+                && !header.author().getFirst().name().isBlank()) {
+            Author firstAuthor = header.author().getFirst();
+            pageData.put("author", firstAuthor.name());
+            pageData.put("author-email", firstAuthor.mail());
         }
+
         if (!header.revision().number().isBlank()) {
             pageData.put("revision", new JsonObject()
                     .put("number", header.revision().number())
