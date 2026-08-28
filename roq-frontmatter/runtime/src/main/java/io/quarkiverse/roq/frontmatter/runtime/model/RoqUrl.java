@@ -140,6 +140,21 @@ public record RoqUrl(
     }
 
     /**
+     * Resolve a page attachment against this url. When the url targets an html file
+     * (e.g. `/posts/my-post.html` produced by a `:ext!` link), the extension is removed
+     * so attachments resolve under the page directory (e.g. `/posts/my-post/img.png`).
+     *
+     * @param name the attachment file name or relative path
+     * @return the attachment url
+     */
+    public RoqUrl resolveAttachment(Object name) {
+        if (!isExternal() && resourcePath().endsWith(".html")) {
+            return new RoqUrl(root(), StringPaths.removeExtension(resourcePath())).resolve(name);
+        }
+        return resolve(name);
+    }
+
+    /**
      * This will just append the given string (without adding the `/`)
      *
      * @param other the string to append
