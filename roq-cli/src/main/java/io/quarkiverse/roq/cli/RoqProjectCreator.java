@@ -118,6 +118,10 @@ public class RoqProjectCreator {
                 .extensions(allExtensions)
                 .extraCodestarts(extraCodestarts);
 
+        if (!noConfig) {
+            createProject.useConfigDir();
+        }
+
         if (allExtensions.stream().noneMatch(e -> e.contains("roq-plugin-hybrid"))) {
             createProject.noDockerfiles();
         }
@@ -129,26 +133,13 @@ public class RoqProjectCreator {
         QuarkusCommandOutcome outcome = createProject.execute();
 
         if (outcome.isSuccess()) {
-            postCreate(allExtensions);
+            postCreate();
             return true;
         }
         return false;
     }
 
-    private void postCreate(Set<String> allExtensions) throws IOException {
-        if (!noConfig) {
-            // Move application.properties to config/
-            Path propsSource = projectDir.resolve("src/main/resources/application.properties");
-            Path configDir = projectDir.resolve("config");
-            Files.createDirectories(configDir);
-            Path propsDest = configDir.resolve("application.properties");
-            if (Files.exists(propsSource)) {
-                Files.move(propsSource, propsDest);
-            } else {
-                Files.createFile(propsDest);
-            }
-        }
-
+    private void postCreate() throws IOException {
         deleteDirIfNoFiles(projectDir.resolve("src"));
     }
 
