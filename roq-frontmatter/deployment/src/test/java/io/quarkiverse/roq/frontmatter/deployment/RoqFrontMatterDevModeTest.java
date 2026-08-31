@@ -25,6 +25,7 @@ public class RoqFrontMatterDevModeTest {
                     .addAsResource(
                             new org.jboss.shrinkwrap.api.asset.StringAsset(
                                     "quarkus.http.port=" + DEV_MODE_PORT + "\n" +
+                                            "quarkus.http.root-path=/\n" +
                                             "quarkus.roq.resource-dir=basic-site"),
                             "application.properties"));
 
