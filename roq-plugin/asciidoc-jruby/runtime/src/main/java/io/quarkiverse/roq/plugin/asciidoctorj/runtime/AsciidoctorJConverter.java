@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
+import static io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl.parentPath;
 import static org.asciidoctor.Options.BASEDIR;
 
 import java.nio.file.Path;
@@ -11,7 +12,12 @@ import java.util.Map;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import org.asciidoctor.*;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.Attributes;
+import org.asciidoctor.AttributesBuilder;
+import org.asciidoctor.Options;
+import org.asciidoctor.OptionsBuilder;
+import org.asciidoctor.SafeMode;
 import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
@@ -25,7 +31,7 @@ public class AsciidoctorJConverter {
     public static final String ROOTDIR = "root_dir";
 
     private final Asciidoctor asciidoctor;
-    private Map<String, String> configuredAttributes;
+    private final Map<String, String> configuredAttributes;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
@@ -44,10 +50,22 @@ public class AsciidoctorJConverter {
     }
 
     public Options createOptions(Map<String, String> asciidocAttributes, RoqTemplateAttributes templateAttributes) {
+
+        // Set relfileprefix and relfilesuffix based on the page's collection path
+        // This ensures xrefs generate absolute paths like /guides/file/ instead of ../file/
+        // The relative path fails if pages are accessed without a trailing slash
+        String relfileprefix = "../"; // fallback to relative
+        if (templateAttributes.pageUrl() != null) {
+            String basePath = parentPath(templateAttributes.pageUrl());
+            if (basePath != null) {
+                relfileprefix = basePath;
+            }
+        }
+
         final AttributesBuilder attributes = Attributes.builder()
                 .attribute("showtitle@", "")
                 .attribute("sitegen@", "roq")
-                .attribute("relfileprefix@", "../")
+                .attribute("relfileprefix@", relfileprefix)
                 .attribute("relfilesuffix@", "/")
                 .attribute("noheader@", "");
         if (templateAttributes.pageUrl() != null) {

@@ -15,7 +15,7 @@ public class RoqAsciidocJTest {
         final String body = RestAssured.when().get("/guides/my-doc").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
         assertThat(body).contains("<h1 class=\"page-title\">Getting Started to Quarkus Messaging with AMQP 1.0</h1>");
-        assertThat(body).contains("<a href=\"../rabbitmq/\">Quarkus Messaging RabbitMQ extension</a>");
+        assertThat(body).contains("<a href=\"/guides/rabbitmq/\">Quarkus Messaging RabbitMQ extension</a>");
         assertThat(body).contains("Roughly 15 minutes");
         assertThat(body).contains("<h3 id=\"foo\">Foo</h3>");
         assertThat(body).contains("<h4 id=\"what-is-lorem-ipsum\">What is Lorem Ipsum?</h4>");
@@ -64,4 +64,5 @@ public class RoqAsciidocJTest {
         assertThat(body).contains("content-result");
         assertThat(body).contains("Roughly 15 minutes");
     }
+
 }
