@@ -26,7 +26,7 @@ public class RoqFrontMatterRoutingTest {
     @RegisterExtension
     static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
-                    .addAsResource("application.properties")
+                    .addAsResource("routing-application.properties", "application.properties")
                     .addAsResource("routing-site"));
 
     @Test

@@ -25,7 +25,6 @@ public class RoqFrontMatterDevModeTest {
                     .addAsResource(
                             new org.jboss.shrinkwrap.api.asset.StringAsset(
                                     "quarkus.http.port=" + DEV_MODE_PORT + "\n" +
-                                            "quarkus.http.root-path=/\n" +
                                             "quarkus.roq.resource-dir=basic-site"),
                             "application.properties"));
 
@@ -57,7 +56,7 @@ public class RoqFrontMatterDevModeTest {
     public void testGetDynamicPage() {
         RestAssured.given()
                 .port(DEV_MODE_PORT)
-                .get("/page/some-page")
+                .get("/page/some-page/")
                 .then()
                 .statusCode(200)
                 .log().ifValidationFails();
@@ -69,7 +68,7 @@ public class RoqFrontMatterDevModeTest {
         RestAssured.given()
                 .port(DEV_MODE_PORT)
                 .when()
-                .head("/page/some-page")
+                .head("/page/some-page/")
                 .then()
                 .log().all()
                 .statusCode(200);
