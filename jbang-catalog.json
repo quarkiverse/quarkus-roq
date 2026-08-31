@@ -1,7 +1,7 @@
 {
   "aliases": {
     "roq": {
-      "script-ref": "io.quarkiverse.roq:quarkus-roq-cli:2.1.7:runner@fatjar",
+      "script-ref": "io.quarkiverse.roq:quarkus-roq-cli:2.1.8:runner@fatjar",
       "description": "Roq CLI - static site generator",
       "java": "21+",
       "runtime-options": [
