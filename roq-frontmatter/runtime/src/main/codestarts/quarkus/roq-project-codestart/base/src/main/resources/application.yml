@@ -1,0 +1,3 @@
+quarkus:
+  qute:
+    alt-expr-syntax: true

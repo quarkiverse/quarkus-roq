@@ -1,0 +1,103 @@
+name: Create Site Test
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Every Monday at 6:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-code-quarkus-download:
+    name: "code.quarkus.io: ${{ matrix.combo.name }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        combo:
+          - name: default theme
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-default"
+            expect_files: "content/index.html data/menu.yml web/_custom.css"
+
+          - name: default + markdown
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-default&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-markdown"
+            expect_files: "content/index.html data/menu.yml"
+
+          - name: resume theme
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-resume"
+            expect_files: "content/index.html data/bio.yml data/profile.yml"
+
+          - name: linktree theme
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-linktree"
+            expect_files: "data/profile.yml"
+
+          - name: base theme (no theme extension)
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&ec=roq-base-theme-codestart"
+            expect_files: "content/index.html web/app.css"
+
+          - name: default + all plugins
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-default&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-markdown&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-tagging&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-aliases&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-series&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-sitemap&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-lunr"
+            expect_files: "content/index.html data/menu.yml"
+
+          - name: default + asciidoc
+            params: "e=io.quarkiverse.roq%3Aquarkus-roq&e=io.quarkiverse.roq%3Aquarkus-roq-theme-default&e=io.quarkiverse.roq%3Aquarkus-roq-plugin-asciidoc"
+            expect_files: "content/index.html"
+
+    steps:
+      - name: Download from code.quarkus.io
+        run: |
+          URL="https://code.quarkus.io/d?a=my-roq-site&ndf=true&nw=false&ec=roq-project-codestart&cd=site.title%3DMy+Roq+Site&${{ matrix.combo.params }}&cn=roq"
+          echo "Downloading: $URL"
+          HTTP_CODE=$(curl -sS -w '%{http_code}' -o my-roq-site.zip "$URL")
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Download failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Extract and verify structure
+        run: |
+          unzip -q my-roq-site.zip -d project
+          cd project/my-roq-site
+
+          # Common files from roq-project-codestart
+          for f in pom.xml README.md public/images/favicon.ico public/images/favicon.svg; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Missing expected file: $f"
+              exit 1
+            fi
+          done
+
+          # Combo-specific files
+          for f in ${{ matrix.combo.expect_files }}; do
+            if [ ! -e "$f" ]; then
+              echo "::error::Missing expected file: $f"
+              exit 1
+            fi
+          done
+
+          # Verify pom.xml contains quarkus-roq
+          if ! grep -q 'quarkus-roq' pom.xml; then
+            echo "::error::pom.xml does not contain quarkus-roq dependency"
+            exit 1
+          fi
+
+          echo "All checks passed"
+          echo "--- Project tree ---"
+          find . -not -path './.mvn/*' -not -path './mvnw*' | sort
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: 'maven'
+
+      - name: Verify project compiles
+        working-directory: project/my-roq-site
+        run: mvn -B compile -q
