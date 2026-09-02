@@ -161,6 +161,44 @@ class RoqUrlTest {
         assertNull(RoqUrl.parentPath(""));
     }
 
+    // The Asciidoc converter feeds parentPath() the value of page.url().absolute(), which is a
+    // full URL (scheme + host + path), not a root-relative path. These cases cover that contract.
+
+    @Test
+    void testParentPathFullUrl() {
+        assertEquals("/guides/", RoqUrl.parentPath("https://quarkus.io/guides/init-tasks/"));
+    }
+
+    @Test
+    void testParentPathFullUrlNoTrailingSlash() {
+        assertEquals("/guides/", RoqUrl.parentPath("https://quarkus.io/guides/security"));
+    }
+
+    @Test
+    void testParentPathFullUrlHttpScheme() {
+        assertEquals("/blog/", RoqUrl.parentPath("http://example.com/blog/my-post/"));
+    }
+
+    @Test
+    void testParentPathFullUrlDeepPath() {
+        assertEquals("/version/main/guides/", RoqUrl.parentPath("https://example.com/version/main/guides/security"));
+    }
+
+    @Test
+    void testParentPathFullUrlSingleSegment() {
+        assertEquals("/", RoqUrl.parentPath("https://example.com/my-doc"));
+    }
+
+    @Test
+    void testParentPathFullUrlSiteRoot() {
+        assertNull(RoqUrl.parentPath("https://example.com/"));
+    }
+
+    @Test
+    void testParentPathFullUrlNoPath() {
+        assertNull(RoqUrl.parentPath("https://example.com"));
+    }
+
     @Test
     void testIsFullPathHttpSchemes() {
         assertTrue(RoqUrl.isFullPath("http://example.com"));
