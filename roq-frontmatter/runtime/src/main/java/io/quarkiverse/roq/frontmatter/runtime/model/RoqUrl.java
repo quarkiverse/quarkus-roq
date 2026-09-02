@@ -273,17 +273,33 @@ public record RoqUrl(
 
     /**
      * Extracts the collection base path from a page URL to use as relfileprefix.
+     * The input may be a root-relative path or a full URL (scheme + host + path); the latter is
+     * what {@code page.url().absolute()} produces, which is what the Asciidoc converter passes in.
      * Examples:
      * - /guides/my-doc → /guides/
      * - /version/main/guides/security → /version/main/guides/
      * - /blog/my-post/ → /blog/
+     * - https://quarkus.io/guides/my-doc → /guides/
+     * - https://example.com/version/main/guides/security → /version/main/guides/
      *
-     * @param pageUrl the absolute page URL
+     * @param pageUrl the page URL, either root-relative or a full URL
      * @return the collection base path with trailing slash, or null if cannot be determined
      */
     public static String parentPath(String pageUrl) {
         if (pageUrl == null || pageUrl.isEmpty() || pageUrl.equals("/")) {
             return null;
+        }
+
+        // When given a full URL (e.g. https://quarkus.io/guides/my-doc), drop the scheme and
+        // authority so we work on the path only; otherwise the host would leak into the prefix.
+        // URI.create() is safe here because pageUrl originates from page.url().absolute(), which
+        // has already been validated; it throws IllegalArgumentException on a malformed URI.
+        if (isFullPath(pageUrl)) {
+            String uriPath = URI.create(pageUrl).getPath();
+            if (uriPath == null || uriPath.isEmpty() || uriPath.equals("/")) {
+                return null;
+            }
+            pageUrl = uriPath;
         }
 
         String path = isAbsolute(pageUrl) ? pageUrl.substring(1) : pageUrl;

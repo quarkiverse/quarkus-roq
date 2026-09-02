@@ -8,14 +8,16 @@ import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJSectionHelperFactory;
 import io.quarkus.qute.Engine;
 
 public class QuarkusAsciidoctorJTest {
 
-    public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(
-            new AsciidoctorJConverter(Map.of()));
+    public static final AsciidoctorJConverter CONVERTER = new AsciidoctorJConverter(Map.of());
+
+    public static final AsciidoctorJSectionHelperFactory FACTORY = new AsciidoctorJSectionHelperFactory(CONVERTER);
 
     @Test
     public void shouldConvertUsingAsciiTag() {
@@ -50,6 +52,20 @@ public class QuarkusAsciidoctorJTest {
                     <p><a href="../foo/">Bar</a></p>
                  </div>
                 """);
+    }
+
+    @Test
+    void shouldDeriveXrefPrefixFromPathWhenPageUrlIsAbsolute() {
+        // In production the page URL passed to the converter is page.url().absolute(), i.e. a full
+        // URL including scheme and host. The xref prefix must be derived from the path only; if the
+        // whole URL leaks in, inter-document links become /https://host/guides/... and 404.
+        RoqTemplateAttributes attributes = new RoqTemplateAttributes(
+                null, null, "https://quarkus.io", "/", "https://quarkus.io/guides/my-doc/", "/guides/my-doc/");
+
+        String result = CONVERTER.apply("xref:foo.adoc[Bar]", Map.of(), attributes);
+
+        assertThat(result).contains("<a href=\"/guides/foo/\">Bar</a>");
+        assertThat(result).doesNotContain("/https:");
     }
 
     @Test
