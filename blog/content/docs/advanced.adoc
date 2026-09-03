@@ -600,8 +600,8 @@ The layout template accesses data fields via `page.data`:
 | When true, only data files with a matching `@DataMapping` annotation produce beans
 
 | `quarkus.roq.data.log-data-beans`
-| `true`
-| Log registered data beans during build
+| `false`
+| Log the list of registered data beans at INFO level during build (always available at DEBUG level)
 |===
 
 == Debugging

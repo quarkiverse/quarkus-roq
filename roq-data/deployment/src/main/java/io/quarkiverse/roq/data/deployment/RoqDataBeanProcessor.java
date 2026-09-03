@@ -77,10 +77,15 @@ class RoqDataBeanProcessor {
             beans.add("    - %s[name=%s]".formatted(beanBuildItem.getBeanClass().getName(), beanBuildItem.getName()));
         }
 
-        if (!beans.isEmpty() && config.logDataBeans()) {
-            LOG.infof("Roq data beans%s: %n%s",
+        if (!beans.isEmpty() && (config.logDataBeans() || LOG.isDebugEnabled())) {
+            final String message = "Roq data beans%s: %n%s".formatted(
                     roqDataJsonBuildItems.isEmpty() ? "" : " (* add a @DataMapping to enable type-safety)",
                     String.join(System.lineSeparator(), beans));
+            if (config.logDataBeans()) {
+                LOG.info(message);
+            } else {
+                LOG.debug(message);
+            }
         }
     }
 
