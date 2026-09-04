@@ -1,5 +1,8 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
+{#let pageLang=page.data.lang?? siteLang=site.data.lang??}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{pageLang ?: siteLang ?: global:locale}">
 <head>
   {#include partials/roq-resume/head.html /}
 </head>
@@ -7,3 +10,4 @@
     {#insert /}
 </body>
 </html>
+{/let}

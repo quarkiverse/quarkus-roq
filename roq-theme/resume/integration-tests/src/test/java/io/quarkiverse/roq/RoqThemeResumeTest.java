@@ -39,6 +39,15 @@ public class RoqThemeResumeTest {
     }
 
     @Test
+    public void testHtmlLangAttribute() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        // No 'lang' frontmatter is set in this sample site, so it falls back to the JVM default
+        // locale; just verify the attribute is rendered with a non-empty value (not hardcoded "en").
+        assertThat(body).containsPattern("<html lang=\"[^\"]+\"");
+    }
+
+    @Test
     public void testStyle() {
         final String body = RestAssured.when().get(bundle.style("app")).then().statusCode(200).log().ifValidationFails()
                 .extract()
