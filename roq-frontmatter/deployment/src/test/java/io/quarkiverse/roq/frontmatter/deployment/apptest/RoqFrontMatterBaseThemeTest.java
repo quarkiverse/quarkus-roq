@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.deployment.apptest;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,10 @@ import io.restassured.RestAssured;
  * Site: {@code base-theme-site} (resource)
  * <p>
  * Verifies that roq-base theme layouts work as fallback when no local layouts are provided.
+ * Also covers the {@code <html lang="...">} attribute: the site sets {@code lang: fr} and the
+ * "about" page overrides it with {@code lang: de}, exercising the page → site fallback chain
+ * (the JVM-default fallback case needs its own lang-free site, see
+ * {@link RoqFrontMatterHtmlLangGlobalFallbackTest}).
  */
 @DisplayName("Roq FrontMatter - Base theme layouts")
 public class RoqFrontMatterBaseThemeTest {
@@ -39,5 +44,19 @@ public class RoqFrontMatterBaseThemeTest {
         RestAssured.when().get("/posts/hello-post").then().statusCode(200).log().ifValidationFails()
                 .body(containsString("<h1 class=\"page-title\">Hello Post</h1>"))
                 .body(containsString("A post using roq-base post layout."));
+    }
+
+    @Test
+    @DisplayName("html lang attribute uses the page's FM lang when set")
+    public void testHtmlLangFromPage() {
+        RestAssured.when().get("/about").then().statusCode(200).log().ifValidationFails()
+                .body("html.@lang", equalTo("de"));
+    }
+
+    @Test
+    @DisplayName("html lang attribute falls back to the site's FM lang when the page has none")
+    public void testHtmlLangFallsBackToSite() {
+        RestAssured.when().get("/posts/hello-post").then().statusCode(200).log().ifValidationFails()
+                .body("html.@lang", equalTo("fr"));
     }
 }
