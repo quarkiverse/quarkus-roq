@@ -17,6 +17,8 @@ endif::add-copy-button-to-config-props[]
 --
 Defines the AsciidoctorJ attributes to be applied during rendering.
 
+Use the special value `BLANK` to set an attribute to the empty string, since SmallRye Config does not support empty map values. For example, `quarkus.asciidoc.attributes.idprefix=BLANK` sets `idprefix` to `""`.
+
 Default values:
 
  - `relfileprefix=../`
