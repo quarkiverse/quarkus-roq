@@ -30,9 +30,12 @@ public interface RoqDataConfig {
     boolean enforceBean();
 
     /**
-     * Log data beans as info during build
+     * Whether to log the list of registered data beans at INFO level during build.
+     * <br>
+     * When disabled, the list is still available at DEBUG level for the
+     * {@code io.quarkiverse.roq.data.deployment.RoqDataBeanProcessor} logger.
      */
-    @WithDefault("true")
+    @WithDefault("false")
     boolean logDataBeans();
 
     static boolean isEqual(RoqDataConfig q1, RoqDataConfig q2) {

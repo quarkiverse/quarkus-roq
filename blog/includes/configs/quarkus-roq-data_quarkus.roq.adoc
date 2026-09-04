@@ -58,7 +58,8 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Log data beans as info during build
+Whether to log the list of registered data beans at INFO level during build.  +
+When disabled, the list is still available at DEBUG level for the `io.quarkiverse.roq.data.deployment.RoqDataBeanProcessor` logger.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -69,7 +70,7 @@ Environment variable: `+++QUARKUS_ROQ_DATA_LOG_DATA_BEANS+++`
 endif::add-copy-button-to-env-var[]
 --
 |boolean
-|`+++true+++`
+|`+++false+++`
 
 |===
 
