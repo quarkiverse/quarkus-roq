@@ -1,0 +1,26 @@
+@layer components {
+    header.site-header { @apply max-w-5xl mx-auto px-6 py-6 md:py-8 border-b border-border; }
+    header.site-header .header-inner { @apply flex justify-between items-center; }
+    footer.site-footer { @apply max-w-5xl mx-auto px-6 py-8 mt-16 border-t border-border; }
+    footer.site-footer .footer-inner { @apply text-center text-sm text-tertiary; }
+    main.site-main { @apply max-w-5xl mx-auto px-6 py-8; }
+
+    .header-logo { @apply text-lg md:text-xl font-bold text-primary hover:opacity-80 transition-opacity; }
+
+    .nav-item { @apply text-primary transition-all uppercase text-sm; }
+    .nav-social { @apply leading-tight flex items-center; }
+
+    #mobile-menu-button { @apply md:hidden p-2 cursor-pointer; }
+    .desktop-nav { @apply hidden md:flex items-center gap-4; }
+    .desktop-nav nav { @apply flex gap-6 items-center; }
+    .desktop-nav a { @apply hover:underline; }
+    .desktop-nav .theme-toggle { @apply relative inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer bg-surface-3; }
+    .desktop-nav .theme-toggle:hover { @apply bg-border; }
+    .desktop-nav .icon { @apply w-5 h-5; }
+
+    .mobile-nav { @apply md:hidden flex flex-col gap-4 mt-4 pt-4 border-t border-border; }
+    .mobile-nav nav { @apply flex flex-col gap-4; }
+    .mobile-nav a,
+    .mobile-nav .theme-toggle { @apply hover:text-accent-400 py-2 text-left flex items-center gap-2; }
+    .mobile-nav .icon { @apply w-4 h-4; }
+}
