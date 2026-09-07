@@ -1,9 +1,11 @@
 package io.quarkus.tools;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -23,35 +25,54 @@ class ParenthesisFileRenamerTest {
         Files.write(indexFiles.resolve("content"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
         Files.write(indexFiles.resolve("content(1)"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
         Files.write(indexFiles.resolve("content(14)"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
+        Files.write(indexFiles.resolve("image(preview).png"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
         Files.write(indexFiles.resolve("logo.png"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
 
         Path html = tempDir.resolve("newsletter/38/index.html");
         Files.writeString(html,
-                "<img src=\"./index_files/content\"/>\n"
+                "<p>See section(3) and part(foo) for details.</p>\n"
+                        + "<img src=\"./index_files/content\"/>\n"
                         + "<img src=\"./index_files/content(1)\"/>\n"
-                        + "<img src=\"./index_files/content(14)\"/>\n"
+                        + "<a href=\"./index_files/content(14)\">link</a>\n"
+                        + "<img src='./index_files/image(preview).png'/>\n"
                         + "<img src=\"./index_files/logo.png\"/>\n",
                 StandardCharsets.UTF_8);
 
         ParenthesisFileRenamer renamer = new ParenthesisFileRenamer();
         ParenthesisFileRenamer.Result result = renamer.rename(tempDir);
 
-        assertThat(result.filesRenamed()).isEqualTo(2);
+        assertThat(result.filesRenamed()).isEqualTo(3);
         assertThat(result.htmlFilesUpdated()).isEqualTo(1);
 
         assertThat(indexFiles.resolve("content")).exists();
         assertThat(indexFiles.resolve("content-1")).exists();
         assertThat(indexFiles.resolve("content-14")).exists();
+        assertThat(indexFiles.resolve("image-preview.png")).exists();
         assertThat(indexFiles.resolve("logo.png")).exists();
         assertThat(indexFiles.resolve("content(1)")).doesNotExist();
         assertThat(indexFiles.resolve("content(14)")).doesNotExist();
+        assertThat(indexFiles.resolve("image(preview).png")).doesNotExist();
 
         String updatedHtml = Files.readString(html, StandardCharsets.UTF_8);
+        assertThat(updatedHtml).contains("<p>See section(3) and part(foo) for details.</p>");
         assertThat(updatedHtml).contains("index_files/content\"");
         assertThat(updatedHtml).contains("index_files/content-1\"");
         assertThat(updatedHtml).contains("index_files/content-14\"");
+        assertThat(updatedHtml).contains("index_files/image-preview.png'");
         assertThat(updatedHtml).contains("index_files/logo.png\"");
-        assertThat(updatedHtml).doesNotContain("content(");
+    }
+
+    @Test
+    void throwsOnFileCollision() throws IOException {
+        Path dir = tempDir.resolve("collision");
+        Files.createDirectories(dir);
+        Files.write(dir.resolve("content(1)"), new byte[] { 1 });
+        Files.write(dir.resolve("content-1"), new byte[] { 2 });
+
+        ParenthesisFileRenamer renamer = new ParenthesisFileRenamer();
+        assertThatThrownBy(() -> renamer.rename(dir))
+                .isInstanceOf(FileAlreadyExistsException.class)
+                .hasMessageContaining("content-1");
     }
 
     @Test

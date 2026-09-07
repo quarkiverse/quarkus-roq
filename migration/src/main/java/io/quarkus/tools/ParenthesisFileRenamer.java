@@ -2,6 +2,7 @@ package io.quarkus.tools;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -25,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class ParenthesisFileRenamer {
 
-    private static final Pattern PAREN_REFERENCE = Pattern.compile("([a-zA-Z0-9_-]+)\\((\\d+)\\)");
+    private static final Pattern ATTR_PATTERN = Pattern.compile("(?i)\\b(src|href|srcset)\\s*=\\s*(\"([^\"]*)\"|'([^']*)')");
 
     public record Result(int filesRenamed, int htmlFilesUpdated) {
     }
@@ -35,9 +37,10 @@ public class ParenthesisFileRenamer {
             return new Result(0, 0);
         }
 
-        // Pass 1: find and rename files with parentheses
+        // Pass 1: find and collect files with parentheses and HTML files
         List<Path> htmlFiles = new ArrayList<>();
         Map<Path, String> renames = new HashMap<>();
+        Map<String, String> renamedFileNames = new HashMap<>();
 
         Files.walkFileTree(directory, new SimpleFileVisitor<>() {
             @Override
@@ -46,13 +49,24 @@ public class ParenthesisFileRenamer {
                 if (name.endsWith(".html")) {
                     htmlFiles.add(file);
                 }
-                if (name.contains("(")) {
+                if (name.contains("(") || name.contains(")")) {
                     String newName = name.replace('(', '-').replace(")", "");
                     renames.put(file, newName);
+                    renamedFileNames.put(name, newName);
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
+
+        // Pre-check for collision risks before performing moves
+        for (Map.Entry<Path, String> entry : renames.entrySet()) {
+            Path source = entry.getKey();
+            Path target = source.resolveSibling(entry.getValue());
+            if (Files.exists(target) && !renames.containsKey(target)) {
+                throw new FileAlreadyExistsException(
+                        "Cannot rename '" + source + "' to '" + target + "' because target file already exists");
+            }
+        }
 
         for (Map.Entry<Path, String> entry : renames.entrySet()) {
             Path source = entry.getKey();
@@ -60,17 +74,39 @@ public class ParenthesisFileRenamer {
             Files.move(source, target);
         }
 
-        // Pass 2: update references in HTML files
+        // Pass 2: update references in HTML files scoped to src, href, and srcset attributes
         int updatedCount = 0;
-        for (Path html : htmlFiles) {
-            String content = Files.readString(html, StandardCharsets.UTF_8);
-            String updated = PAREN_REFERENCE.matcher(content).replaceAll("$1-$2");
-            if (!updated.equals(content)) {
-                Files.writeString(html, updated, StandardCharsets.UTF_8);
-                updatedCount++;
+        if (!renamedFileNames.isEmpty()) {
+            for (Path html : htmlFiles) {
+                String content = Files.readString(html, StandardCharsets.UTF_8);
+                String updated = updateAttributeReferences(content, renamedFileNames);
+                if (!updated.equals(content)) {
+                    Files.writeString(html, updated, StandardCharsets.UTF_8);
+                    updatedCount++;
+                }
             }
         }
 
         return new Result(renames.size(), updatedCount);
+    }
+
+    private String updateAttributeReferences(String content, Map<String, String> renamedFileNames) {
+        Matcher matcher = ATTR_PATTERN.matcher(content);
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            String attrName = matcher.group(1);
+            String quote = matcher.group(3) != null ? "\"" : "'";
+            String attrValue = matcher.group(3) != null ? matcher.group(3) : matcher.group(4);
+
+            String updatedValue = attrValue;
+            for (Map.Entry<String, String> entry : renamedFileNames.entrySet()) {
+                updatedValue = updatedValue.replace(entry.getKey(), entry.getValue());
+            }
+
+            String replacement = attrName + "=" + quote + updatedValue + quote;
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 }
