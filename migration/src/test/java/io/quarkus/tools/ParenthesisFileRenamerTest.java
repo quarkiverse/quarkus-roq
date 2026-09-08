@@ -30,12 +30,14 @@ class ParenthesisFileRenamerTest {
 
         Path html = tempDir.resolve("newsletter/38/index.html");
         Files.writeString(html,
-                "<p>See section(3) and part(foo) for details.</p>\n"
-                        + "<img src=\"./index_files/content\"/>\n"
-                        + "<img src=\"./index_files/content(1)\"/>\n"
-                        + "<a href=\"./index_files/content(14)\">link</a>\n"
-                        + "<img src='./index_files/image(preview).png'/>\n"
-                        + "<img src=\"./index_files/logo.png\"/>\n",
+                """
+                        <p>See section(3) and part(foo) for details.</p>
+                        <img src="./index_files/content"/>
+                        <img src="./index_files/content(1)"/>
+                        <a href="./index_files/content(14)">link</a>
+                        <img src='./index_files/image(preview).png'/>
+                        <img src="./index_files/logo.png"/>
+                        """,
                 StandardCharsets.UTF_8);
 
         ParenthesisFileRenamer renamer = new ParenthesisFileRenamer();
@@ -73,6 +75,66 @@ class ParenthesisFileRenamerTest {
         assertThatThrownBy(() -> renamer.rename(dir))
                 .isInstanceOf(FileAlreadyExistsException.class)
                 .hasMessageContaining("content-1");
+    }
+
+    /**
+     * Two different source files that both rename to the same target name.
+     * e.g. "foo(bar)" -> "foo-bar" and "foo(-bar)" -> "foo--bar" don't collide,
+     * but "a(b)" -> "a-b" and "a-b(" -> "a-b" both produce "a-b".
+     * The pre-check must catch this before any file is touched.
+     */
+    @Test
+    void throwsWhenTwoSourcesRenameToSameTarget() throws IOException {
+        Path dir = tempDir.resolve("dup-target");
+        Files.createDirectories(dir);
+        // "img(1)" -> "img-1"  (open-paren becomes dash, close-paren dropped)
+        // "img(1"  -> "img-1"  (open-paren becomes dash, no close-paren to drop)
+        // Both slug to the same target "img-1".
+        Files.write(dir.resolve("img(1)"), new byte[] { 1 });
+        Files.write(dir.resolve("img(1"), new byte[] { 2 });
+
+        ParenthesisFileRenamer renamer = new ParenthesisFileRenamer();
+        assertThatThrownBy(() -> renamer.rename(dir))
+                .isInstanceOf(FileAlreadyExistsException.class)
+                .hasMessageContaining("img-1");
+
+        // Neither file should have been moved (pre-check fires before any rename)
+        assertThat(dir.resolve("img(1)")).exists();
+        assertThat(dir.resolve("img(1")).exists();
+        assertThat(dir.resolve("img-1")).doesNotExist();
+    }
+
+    /**
+     * An HTML file whose own name contains parentheses gets renamed.
+     * After the rename the HTML pass must read from the new path, not the stale original.
+     */
+    @Test
+    void renamesHtmlFileWithParenthesesAndUpdatesItsReferences() throws IOException {
+        Path dir = tempDir.resolve("html-parens");
+        Files.createDirectories(dir);
+
+        // The HTML file itself has parens in its name
+        Files.write(dir.resolve("image(1).png"), new byte[] { (byte) 0x89, 'P', 'N', 'G' });
+        Files.writeString(dir.resolve("page(draft).html"),
+                "<img src=\"image(1).png\"/>",
+                StandardCharsets.UTF_8);
+
+        ParenthesisFileRenamer renamer = new ParenthesisFileRenamer();
+        ParenthesisFileRenamer.Result result = renamer.rename(dir);
+
+        assertThat(result.filesRenamed()).isEqualTo(2); // image(1).png and page(draft).html
+        assertThat(result.htmlFilesUpdated()).isEqualTo(1);
+
+        // Old paths gone, new paths exist
+        assertThat(dir.resolve("page(draft).html")).doesNotExist();
+        assertThat(dir.resolve("page-draft.html")).exists();
+        assertThat(dir.resolve("image(1).png")).doesNotExist();
+        assertThat(dir.resolve("image-1.png")).exists();
+
+        // The reference inside the renamed HTML file was updated
+        String updatedHtml = Files.readString(dir.resolve("page-draft.html"), StandardCharsets.UTF_8);
+        assertThat(updatedHtml).contains("src=\"image-1.png\"");
+        assertThat(updatedHtml).doesNotContain("image(1).png");
     }
 
     @Test

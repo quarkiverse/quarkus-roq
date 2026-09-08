@@ -10,8 +10,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,40 +40,68 @@ public class ParenthesisFileRenamer {
         }
 
         // Pass 1: find and collect files with parentheses and HTML files
+        // HTML files are tracked by their eventual (post-rename) path so they remain readable
+        // even when the HTML file itself has parentheses in its name.
         List<Path> htmlFiles = new ArrayList<>();
-        Map<Path, String> renames = new HashMap<>();
-        Map<String, String> renamedFileNames = new HashMap<>();
+        Map<Path, Path> renames = new HashMap<>(); // source -> target (absolute paths)
+        Map<String, String> renamedFileNames = new HashMap<>(); // oldName -> newName (for HTML reference updates)
 
         Files.walkFileTree(directory, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 String name = file.getFileName().toString();
-                if (name.endsWith(".html")) {
-                    htmlFiles.add(file);
-                }
-                if (name.contains("(") || name.contains(")")) {
+                boolean hasParens = name.contains("(") || name.contains(")");
+                if (hasParens) {
                     String newName = name.replace('(', '-').replace(")", "");
-                    renames.put(file, newName);
+                    Path target = file.resolveSibling(newName);
+                    renames.put(file, target);
                     renamedFileNames.put(name, newName);
+                    // If the HTML file itself is being renamed, track its future path
+                    if (name.endsWith(".html")) {
+                        htmlFiles.add(target);
+                    }
+                } else if (name.endsWith(".html")) {
+                    htmlFiles.add(file);
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
 
-        // Pre-check for collision risks before performing moves
-        for (Map.Entry<Path, String> entry : renames.entrySet()) {
-            Path source = entry.getKey();
-            Path target = source.resolveSibling(entry.getValue());
+        // Pre-check for collision risks before performing any moves:
+        // 1. Two different sources rename to the same target
+        // 2. A target already exists as a non-renamed file
+        Set<Path> targets = new HashSet<>();
+        for (Map.Entry<Path, Path> entry : renames.entrySet()) {
+            Path target = entry.getValue();
+            if (!targets.add(target)) {
+                throw new FileAlreadyExistsException(
+                        "Cannot rename '" + entry.getKey() + "' to '" + target
+                                + "' because another source file renames to the same target");
+            }
             if (Files.exists(target) && !renames.containsKey(target)) {
                 throw new FileAlreadyExistsException(
-                        "Cannot rename '" + source + "' to '" + target + "' because target file already exists");
+                        "Cannot rename '" + entry.getKey() + "' to '" + target
+                                + "' because target file already exists");
             }
         }
 
-        for (Map.Entry<Path, String> entry : renames.entrySet()) {
-            Path source = entry.getKey();
-            Path target = source.resolveSibling(entry.getValue());
-            Files.move(source, target);
+        // Perform renames; on failure, roll back already-completed moves
+        List<Path[]> completed = new ArrayList<>();
+        try {
+            for (Map.Entry<Path, Path> entry : renames.entrySet()) {
+                Files.move(entry.getKey(), entry.getValue());
+                completed.add(new Path[] { entry.getKey(), entry.getValue() });
+            }
+        } catch (IOException e) {
+            // Best-effort rollback of completed renames
+            for (int i = completed.size() - 1; i >= 0; i--) {
+                try {
+                    Files.move(completed.get(i)[1], completed.get(i)[0]);
+                } catch (IOException ignored) {
+                    // Rollback is best-effort; original exception is more important
+                }
+            }
+            throw e;
         }
 
         // Pass 2: update references in HTML files scoped to src, href, and srcset attributes
