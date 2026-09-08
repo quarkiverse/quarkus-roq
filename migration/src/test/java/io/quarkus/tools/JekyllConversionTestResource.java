@@ -1,14 +1,14 @@
 package io.quarkus.tools;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
@@ -21,29 +21,13 @@ import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
  */
 public class JekyllConversionTestResource implements QuarkusTestResourceLifecycleManager {
 
-    private static final String[] FIXTURE_FILES = {
-            "_config.yml",
-            "_includes/header.html",
-            "_layouts/default.html",
-            "_layouts/home.html",
-            "_layouts/page.html",
-            "_layouts/post.html",
-            "_posts/2024-01-15-hello-world.md",
-            "_site/index.html",
-            "_site/assets/css/main.css",
-            "assets/css/main.css",
-            "Gemfile",
-            "Gemfile.lock",
-            "index.md",
-            "about.md"
-    };
-
-    private Path workDir;
+    static final String FIXTURE_RESOURCE_ROOT = "/jekyll-site";
+    static final Path WORK_DIR = Path.of("target/converted-jekyll-site");
 
     @Override
     public Map<String, String> start() {
         try {
-            workDir = Path.of("target/converted-jekyll-site");
+            Path workDir = WORK_DIR;
             if (Files.exists(workDir)) {
                 deleteRecursively(workDir);
             }
@@ -51,19 +35,7 @@ public class JekyllConversionTestResource implements QuarkusTestResourceLifecycl
             copyFixture(workDir);
             runMigrationScript(workDir);
 
-            Path absWorkDir = workDir.toAbsolutePath();
-            System.err.println("[TEST-RESOURCE] CWD = " + Path.of("").toAbsolutePath());
-            System.err.println("[TEST-RESOURCE] workDir = " + absWorkDir);
-            System.err.println("[TEST-RESOURCE] workDir exists = " + Files.exists(absWorkDir));
-            System.err.println("[TEST-RESOURCE] content dir exists = " + Files.exists(absWorkDir.resolve("content")));
-            System.err.println("[TEST-RESOURCE] templates dir exists = " + Files.exists(absWorkDir.resolve("templates")));
-            if (Files.exists(absWorkDir.resolve("content"))) {
-                try (var walk = Files.walk(absWorkDir.resolve("content"), 3)) {
-                    walk.forEach(p -> System.err.println("[TEST-RESOURCE] content: " + absWorkDir.relativize(p)));
-                }
-            }
-
-            return Map.of("quarkus.roq.dir", absWorkDir.toString());
+            return Map.of("quarkus.roq.dir", workDir.toAbsolutePath().toString());
         } catch (Exception e) {
             throw new RuntimeException("Jekyll conversion failed", e);
         }
@@ -73,45 +45,72 @@ public class JekyllConversionTestResource implements QuarkusTestResourceLifecycl
     public void stop() {
     }
 
-    private void copyFixture(Path target) throws IOException {
-        for (String file : FIXTURE_FILES) {
-            Path dest = target.resolve(file);
-            Files.createDirectories(dest.getParent());
-            try (InputStream is = Objects.requireNonNull(
-                    getClass().getResourceAsStream("/jekyll-site/" + file),
-                    "Missing fixture: /jekyll-site/" + file)) {
-                Files.copy(is, dest);
-            }
+    /**
+     * Copies all files from the {@code /jekyll-site} classpath resource tree into {@code target}.
+     * The directory is walked at copy time so the list never goes stale when fixture files are added.
+     */
+    static void copyFixture(Path target) throws IOException, URISyntaxException {
+        URL root = JekyllConversionTestResource.class.getResource(FIXTURE_RESOURCE_ROOT);
+        if (root == null) {
+            throw new IllegalStateException("Fixture resource not found: " + FIXTURE_RESOURCE_ROOT);
         }
-        Files.createDirectories(target.resolve("_data"));
+        Path fixtureRoot = Path.of(root.toURI());
+        Files.walkFileTree(fixtureRoot, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Files.createDirectories(target.resolve(fixtureRoot.relativize(dir).toString()));
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Path relative = fixtureRoot.relativize(file);
+                Files.copy(file, target.resolve(relative.toString()));
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
-    private void runMigrationScript(Path siteDir) throws Exception {
+    /**
+     * Runs the migration script and throws if it fails. Used by the lifecycle manager.
+     */
+    static void runMigrationScript(Path siteDir) throws Exception {
+        int exitCode = runMigrationScriptForExitCode(siteDir);
+        if (exitCode != 0) {
+            throw new RuntimeException("roq-it-jekyll exited with code " + exitCode);
+        }
+    }
+
+    /**
+     * Runs the migration script and returns the exit code. Used by unit tests that want to assert on it.
+     */
+    static int runMigrationScriptForExitCode(Path siteDir) throws Exception {
         Path scriptPath = findScript();
 
-        // On Windows, use Git Bash which is available in GitHub Actions and most developer setups
         String bashCommand = BashCommandHelper.getBashCommand();
-        // Convert paths to Unix format for Git Bash on Windows
         String scriptPathStr = BashCommandHelper.toUnixPath(scriptPath.toAbsolutePath().toString());
         String siteDirStr = BashCommandHelper.toUnixPath(siteDir.toAbsolutePath().toString());
 
         ProcessBuilder pb = new ProcessBuilder(bashCommand, scriptPathStr, siteDirStr);
         pb.environment().put("BATCH_MODE", "true");
-        pb.inheritIO();
+        pb.redirectErrorStream(true);
         pb.directory(siteDir.toFile());
 
         Process process = pb.start();
-        boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+        String output = new String(process.getInputStream().readAllBytes());
+        boolean finished = process.waitFor(10, TimeUnit.MINUTES);
         if (!finished) {
             process.destroyForcibly();
-            throw new RuntimeException("roq-it-jekyll timed out after 5 minutes");
+            System.err.println("SCRIPT TIMED OUT. Output:\n" + output);
+            return -1;
         }
         if (process.exitValue() != 0) {
-            throw new RuntimeException("roq-it-jekyll exited with code " + process.exitValue());
+            System.err.println("SCRIPT FAILED (exit " + process.exitValue() + "). Output:\n" + output);
         }
+        return process.exitValue();
     }
 
-    private Path findScript() {
+    static Path findScript() {
         Path script = Path.of("roq-it-jekyll");
         if (Files.exists(script)) {
             return script.toAbsolutePath();
@@ -123,7 +122,7 @@ public class JekyllConversionTestResource implements QuarkusTestResourceLifecycl
         throw new RuntimeException("Cannot find roq-it-jekyll script");
     }
 
-    private void deleteRecursively(Path dir) throws IOException {
+    static void deleteRecursively(Path dir) throws IOException {
         Files.walkFileTree(dir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

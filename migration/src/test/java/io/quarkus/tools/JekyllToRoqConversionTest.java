@@ -4,15 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -30,65 +25,59 @@ import org.junit.jupiter.api.condition.OS;
  * augmentation runs, so producing it during the surefire test phase is the simplest
  * way to ensure that.
  */
+@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Jekyll migration requires Unix-like environment with bash. "
+        + "The roq-it-jekyll script uses bash and Unix tools. Windows users should use WSL2 if needed.")
 class JekyllToRoqConversionTest {
 
-    private static final String[] FIXTURE_FILES = {
-            "_config.yml",
-            "_includes/header.html",
-            "_layouts/default.html",
-            "_layouts/home.html",
-            "_layouts/page.html",
-            "_layouts/post.html",
-            "_posts/2024-01-15-hello-world.md",
-            "_site/index.html",
-            "_site/assets/css/main.css",
-            "assets/css/main.css",
-            "Gemfile",
-            "Gemfile.lock",
-            "index.md",
-            "about.md"
-    };
+    static final Path WORK_DIR = JekyllConversionTestResource.WORK_DIR;
 
-    static final Path WORK_DIR = Path.of("target/converted-jekyll-site");
+    @BeforeAll
+    static void runConversion() throws Exception {
+        if (Files.exists(WORK_DIR)) {
+            JekyllConversionTestResource.deleteRecursively(WORK_DIR);
+        }
+        Files.createDirectories(WORK_DIR);
+        JekyllConversionTestResource.copyFixture(WORK_DIR);
+
+        int exitCode = JekyllConversionTestResource.runMigrationScriptForExitCode(WORK_DIR);
+        assertEquals(0, exitCode, "roq-it-jekyll should succeed");
+    }
+
+    // --- Frontmatter conversion ---
 
     @Test
-    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Jekyll migration requires Unix-like environment with bash. "
-            + "The roq-it-jekyll script uses bash and Unix tools. Windows users should use WSL2 if needed.")
-    void roqItJekyllProducesValidRoqSite() throws Exception {
-        Path workDir = WORK_DIR;
-        if (Files.exists(workDir)) {
-            deleteRecursively(workDir);
-        }
-        Files.createDirectories(workDir);
-        copyFixture(workDir);
-
-        int exitCode = runMigrationScript(workDir);
-        assertEquals(0, exitCode, "roq-it-jekyll should succeed");
-
-        // --- Verify frontmatter conversion ---
-
-        String indexContent = Files.readString(workDir.resolve("content/index.md"));
-        assertThat(indexContent)
+    void indexFrontmatterIsMigrated() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("content/index.md"));
+        assertThat(content)
                 .contains("paginate:")
                 .contains("collection: posts")
                 .contains("size: 5")
                 .contains("link: index/page/:page")
                 .doesNotContain("pagination:");
+    }
 
-        String aboutContent = Files.readString(workDir.resolve("content/about.md"));
-        assertThat(aboutContent)
+    @Test
+    void aboutPermalinkIsConvertedToLink() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("content/about.md"));
+        assertThat(content)
                 .contains("link: /company/about/")
                 .doesNotContain("permalink:");
+    }
 
-        String postContent = Files.readString(workDir.resolve("content/posts/2024-01-15-hello-world.md"));
-        assertThat(postContent)
+    @Test
+    void postContentIsPreserved() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("content/posts/2024-01-15-hello-world.md"));
+        assertThat(content)
                 .contains("title: \"Hello World\"")
                 .contains("Welcome to the blog");
+    }
 
-        // --- Verify template conversion ---
+    // --- Template conversion ---
 
-        String defaultLayout = Files.readString(workDir.resolve("templates/layouts/default.html"));
-        assertThat(defaultLayout)
+    @Test
+    void defaultLayoutUsesQuteSyntax() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("templates/layouts/default.html"));
+        assertThat(content)
                 .as("Variables should use Qute expression syntax")
                 .contains("{=page.title.trim().raw}")
                 .contains("{=site.title.raw}")
@@ -97,113 +86,58 @@ class JekyllToRoqConversionTest {
                 .as("No Liquid syntax should remain")
                 .doesNotContain("{{")
                 .doesNotContain("{%");
+    }
 
-        String postLayout = Files.readString(workDir.resolve("templates/layouts/post.html"));
-        assertThat(postLayout)
+    @Test
+    void postLayoutConditionalsAndDateFilterConverted() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("templates/layouts/post.html"));
+        assertThat(content)
                 .as("Conditionals should use Qute syntax")
                 .contains("{#if page.data.author}")
                 .contains("{/if}")
                 .as("Date filter should be converted to Java format")
                 .contains(".format('MMM d, yyyy')")
                 .doesNotContain("| date:");
+    }
 
-        String homeLayout = Files.readString(workDir.resolve("templates/layouts/home.html"));
-        assertThat(homeLayout)
+    @Test
+    void homeLayoutLoopsConverted() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("templates/layouts/home.html"));
+        assertThat(content)
                 .as("Loops should use Qute syntax")
                 .contains("{#for post in site.collections.get('posts').orEmpty}")
                 .contains("{/for}")
                 .doesNotContain("{% for")
                 .doesNotContain("{% endfor");
+    }
 
-        // --- Verify partials conversion ---
+    // --- Partials conversion ---
 
-        String headerPartial = Files.readString(workDir.resolve("templates/partials/header.html"));
-        assertThat(headerPartial)
+    @Test
+    void headerPartialUsesQuteSyntax() throws IOException {
+        String content = Files.readString(WORK_DIR.resolve("templates/partials/header.html"));
+        assertThat(content)
                 .contains("{=site.title")
                 .doesNotContain("{{");
+    }
 
-        // --- Verify directory structure ---
+    // --- Directory structure ---
 
-        assertThat(workDir.resolve("content/posts")).isDirectory();
-        assertThat(workDir.resolve("templates/layouts")).isDirectory();
-        assertThat(workDir.resolve("templates/partials")).isDirectory();
-        assertThat(workDir.resolve("web/main.css")).exists();
-        assertThat(workDir.resolve("config/application.properties")).exists();
+    @Test
+    void outputDirectoryStructureIsCorrect() {
+        assertThat(WORK_DIR.resolve("content/posts")).isDirectory();
+        assertThat(WORK_DIR.resolve("templates/layouts")).isDirectory();
+        assertThat(WORK_DIR.resolve("templates/partials")).isDirectory();
+        assertThat(WORK_DIR.resolve("web/main.css")).exists();
+        assertThat(WORK_DIR.resolve("config/application.properties")).exists();
+    }
 
-        // --- Verify config ---
+    // --- Config ---
 
-        String config = Files.readString(workDir.resolve("config/application.properties"));
+    @Test
+    void applicationPropertiesContainsStrictRenderingFalse() throws IOException {
+        String config = Files.readString(WORK_DIR.resolve("config/application.properties"));
         assertThat(config)
                 .contains("quarkus.qute.strict-rendering=false");
-    }
-
-    private void copyFixture(Path target) throws IOException {
-        for (String file : FIXTURE_FILES) {
-            Path dest = target.resolve(file);
-            Files.createDirectories(dest.getParent());
-            try (InputStream is = Objects.requireNonNull(
-                    getClass().getResourceAsStream("/jekyll-site/" + file),
-                    "Missing fixture: /jekyll-site/" + file)) {
-                Files.copy(is, dest);
-            }
-        }
-        Files.createDirectories(target.resolve("_data"));
-    }
-
-    private int runMigrationScript(Path siteDir) throws Exception {
-        Path scriptPath = findScript();
-
-        // On Windows, use Git Bash which is available in GitHub Actions and most developer setups
-        String bashCommand = BashCommandHelper.getBashCommand();
-        // Convert paths to Unix format for Git Bash on Windows
-        String scriptPathStr = BashCommandHelper.toUnixPath(scriptPath.toAbsolutePath().toString());
-        String siteDirStr = BashCommandHelper.toUnixPath(siteDir.toAbsolutePath().toString());
-
-        ProcessBuilder pb = new ProcessBuilder(bashCommand, scriptPathStr, siteDirStr);
-        pb.environment().put("BATCH_MODE", "true");
-        pb.redirectErrorStream(true);
-
-        Process process = pb.start();
-        String output = new String(process.getInputStream().readAllBytes());
-        boolean finished = process.waitFor(10, TimeUnit.MINUTES);
-        if (!finished) {
-            process.destroyForcibly();
-            System.err.println("SCRIPT TIMED OUT. Output:\n" + output);
-            return -1;
-        }
-        if (process.exitValue() != 0) {
-            System.err.println("SCRIPT FAILED (exit " + process.exitValue() + "). Output:\n" + output);
-        }
-        return process.exitValue();
-    }
-
-    private static void deleteRecursively(Path dir) throws IOException {
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path d, IOException exc) throws IOException {
-                if (exc != null)
-                    throw exc;
-                Files.delete(d);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    private Path findScript() {
-        Path script = Path.of("roq-it-jekyll");
-        if (Files.exists(script)) {
-            return script;
-        }
-        script = Path.of("migration/roq-it-jekyll");
-        if (Files.exists(script)) {
-            return script;
-        }
-        throw new RuntimeException("Cannot find roq-it-jekyll script");
     }
 }
