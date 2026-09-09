@@ -1,0 +1,12 @@
+---
+title: Twin Conversion Failure Test
+---
+= Twin conversion failure
+
+This page's Markdown twin fails on purpose: the in-process converter rejects the malformed `ifeval` below (no such
+operator), while Asciidoctor logs an error and still renders the page. So the HTML page exists and its head must not
+advertise a twin.
+
+ifeval::[{a} >>> 1]
+never shown
+endif::[]

@@ -23,6 +23,10 @@
         </dependency>
         <!-- Build-time only: the pure-Java AsciiDoc parser never reaches the site's runtime classpath. -->
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-qute-deployment</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.yupiik.maven</groupId>
             <artifactId>asciidoc-java</artifactId>
             <version>${asciidoc-java.version}</version>

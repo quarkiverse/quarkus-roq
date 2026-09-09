@@ -141,6 +141,25 @@ public class RoqBlogTest {
     }
 
     @Test
+    public void testAlternateLinkAdvertisesTheTwin() {
+        // A page with a twin carries a link rel="alternate" to it in its head.
+        RestAssured.when().get("/docs/basics/").then().statusCode(200)
+                .body(containsString("<link rel=\"alternate\" type=\"text/markdown\" href=\""))
+                .body(containsString("/docs/basics/index.md\" />"));
+    }
+
+    @Test
+    public void testNoAlternateLinkWithoutATwin() {
+        // The link is driven by the twins that were generated, never by the page type: neither the opted-out page nor
+        // the page whose conversion failed (markups/twin-broken.adoc) advertises one, and neither has a twin.
+        RestAssured.when().get("/markups/twin-broken/index.md").then().statusCode(404);
+        RestAssured.when().get("/markups/twin-broken/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+        RestAssured.when().get("/markups/twin-optout/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+    }
+
+    @Test
     public void testLinks() {
         assertFalse(RoqLinks.collect().isEmpty(), "Should collect links from the generated site");
         assertTrue(RoqLinks.checkInternal().isEmpty(), "Should have no broken internal links");
