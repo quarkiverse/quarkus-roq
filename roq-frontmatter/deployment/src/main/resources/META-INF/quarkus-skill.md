@@ -66,6 +66,7 @@ Key fields:
 - **date** — Page date. For collection documents, can also be parsed from filename (`YYYY-MM-DD-slug.md`)
 - **tags** — String or array of tags
 - **author** — Author identifier
+- **lang** — Language/locale of the page (e.g. `fr`, `en-US`). Drives the rendered `<html lang="...">` attribute and the `og:locale` SEO meta tag. Resolution order: page `lang` → site `lang` (set in the index page frontmatter) → the JVM default locale. This is independent of `site.defaultLocale`, which only controls the fallback locale used for locale-aware date formatting (`page.date.shortDate`, etc.)
 - **robots** — Value rendered as `<meta name="robots">` in the HTML head by the built-in `{#seo page site /}` tag (e.g. `noindex`, `nofollow`, `noindex, nofollow`). Use it to keep drafts, internal docs, or staging pages out of search engine indexes. The meta tag is only emitted when the key is set on the page
 - **draft** — `true` to mark as draft (hidden unless `site.draft=true`)
 - **paginate** — Enable pagination. Shorthand: `paginate: posts`. Full config: `collection`, `size`, `link`
@@ -448,7 +449,7 @@ Content helpers:
 site.url=http://localhost:8080
 site.draft=true                    # Show draft pages
 site.future=true                   # Show future-dated documents
-site.defaultLocale=en              # Default language
+site.defaultLocale=en              # Default locale for date formatting (see also 'lang' frontmatter key)
 site.draftDirectory=drafts         # Folder name for drafts
 site.slugifyFiles=true             # Slugify static file names for SEO
 site.escaped-pages=posts/escaped** # Skip Qute parsing for matched pages

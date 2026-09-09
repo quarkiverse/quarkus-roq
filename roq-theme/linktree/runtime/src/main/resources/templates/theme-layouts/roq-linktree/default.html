@@ -1,7 +1,7 @@
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 <!DOCTYPE html>
-<html lang="en" class="bg-slate-100 dark:bg-slate-900">
+<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}" class="bg-slate-100 dark:bg-slate-900">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

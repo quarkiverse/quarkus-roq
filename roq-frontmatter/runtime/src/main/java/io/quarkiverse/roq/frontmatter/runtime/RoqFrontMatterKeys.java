@@ -76,6 +76,17 @@ public interface RoqFrontMatterKeys {
     String AUTHOR = "author";
 
     /**
+     * Language/locale — e.g. {@code lang: fr}. Drives the rendered {@code <html lang="...">} attribute and the
+     * {@code og:locale} SEO meta tag. Resolution order: page {@code lang} → site {@code lang} (from the index
+     * page frontmatter) → the JVM default locale.
+     * <br>
+     * ▸ Scope: site / page / document
+     * <br>
+     * ▸ Access: {@code page.data.getString("lang")} · {@code site.data.getString("lang")}
+     */
+    String LANG = "lang";
+
+    /**
      * Custom URL slug — e.g. {@code slug: my-custom-slug} (overrides auto-generated slug from title)
      * <br>
      * ▸ Scope: page / document

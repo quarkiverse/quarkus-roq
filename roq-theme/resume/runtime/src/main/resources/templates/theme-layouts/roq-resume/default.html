@@ -1,5 +1,7 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}">
 <head>
   {#include partials/roq-resume/head.html /}
 </head>

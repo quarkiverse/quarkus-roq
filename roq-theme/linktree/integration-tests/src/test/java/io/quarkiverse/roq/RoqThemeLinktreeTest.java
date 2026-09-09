@@ -40,6 +40,18 @@ public class RoqThemeLinktreeTest {
     }
 
     @Test
+    void testHtmlLangAttribute() {
+        String body = given().config(TIMEOUT_CONFIG)
+                .when().get("/")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+        // No 'lang' frontmatter is set in this sample site, so it falls back to the JVM default
+        // locale; just verify the attribute is rendered with a non-empty value (not hardcoded "en").
+        assertThat(body).containsPattern("<html lang=\"[^\"]+\"");
+    }
+
+    @Test
     void testLinktreesLayout() {
         String body = given().config(TIMEOUT_CONFIG)
                 .when().get("/trees")
