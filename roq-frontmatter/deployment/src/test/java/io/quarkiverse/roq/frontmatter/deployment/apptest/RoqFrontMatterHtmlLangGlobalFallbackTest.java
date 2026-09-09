@@ -15,8 +15,10 @@ import io.restassured.RestAssured;
  * Site: {@code html-lang-global-site} (resource)
  * <p>
  * Neither the page nor the site frontmatter sets {@code lang}, so the {@code <html lang="...">}
- * attribute must fall back to the JVM default locale ({@code global:locale}, i.e.
- * {@code Locale.getDefault()} — not affected by the {@code quarkus.default-locale} runtime config).
+ * attribute must fall back to the JVM default locale as a BCP 47 tag ({@code global:htmlLocale},
+ * i.e. {@code Locale.getDefault().toLanguageTag()} — not affected by the {@code quarkus.default-locale}
+ * runtime config). This is distinct from {@code global:locale} ({@code Locale#toString()}), which
+ * uses the underscore-separated form expected by the {@code og:locale} SEO meta tag.
  * <p>
  * The page-lang and site-lang-fallback cases are covered by {@link RoqFrontMatterBaseThemeTest}
  * instead (its {@code base-theme-site} fixture sets a {@code lang} on the site and on one page).
@@ -36,6 +38,6 @@ public class RoqFrontMatterHtmlLangGlobalFallbackTest {
     @DisplayName("Index page falls back to the JVM default locale")
     public void testGlobalLangFallback() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.@lang", equalTo(Locale.getDefault().toString()));
+                .body("html.@lang", equalTo(Locale.getDefault().toLanguageTag()));
     }
 }

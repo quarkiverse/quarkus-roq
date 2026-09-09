@@ -1,8 +1,7 @@
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
-{#let pageLang=page.data.lang?? siteLang=site.data.lang??}
 <!DOCTYPE html>
-<html lang="{pageLang ?: siteLang ?: global:locale}">
+<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}">
 <head>
   {#insert head-meta}
   <meta charset="UTF-8">
@@ -18,4 +17,3 @@
   {#insert /}
 </body>
 </html>
-{/let}
