@@ -48,6 +48,16 @@ public class RoqThemeResumeTest {
     }
 
     @Test
+    public void testBodyClassFrontmatterAppliedToBodyTag() {
+        // The `body-class` frontmatter key (as recognized by roq-base/default's <body> tag)
+        // must be honored once roq-resume extends roq-base/default.
+        final String body = RestAssured.when().get("/body-class-test").then().statusCode(200).log()
+                .ifValidationFails().extract()
+                .asString();
+        assertThat(body).containsPattern("<body[^>]*class=\"[^\"]*qa-body-class[^\"]*\"");
+    }
+
+    @Test
     public void testStyle() {
         final String body = RestAssured.when().get(bundle.style("app")).then().statusCode(200).log().ifValidationFails()
                 .extract()
