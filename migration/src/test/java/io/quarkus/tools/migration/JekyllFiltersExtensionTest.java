@@ -2,6 +2,7 @@ package io.quarkus.tools.migration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -260,6 +261,124 @@ class JekyllFiltersExtensionTest {
     }
 
     record TagCount(String name, Long count) {
+    }
+
+    // -------------------------------------------------------------------------
+    // sort(JsonObject, String) — the new overload for data/authors.yaml style maps
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sortJsonObjectByProperty_returnsEntriesSortedByNamedField() {
+        JsonObject authors = new JsonObject()
+                .put("gsmet", new JsonObject().put("name", "Guillaume Smet"))
+                .put("ebernard", new JsonObject().put("name", "Emmanuel Bernard"))
+                .put("fnigro", new JsonObject().put("name", "Francesco Nigro"));
+
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort(authors, "name");
+
+        assertEquals(3, sorted.size());
+        assertEquals("ebernard", sorted.get(0).first());
+        assertEquals("fnigro", sorted.get(1).first());
+        assertEquals("gsmet", sorted.get(2).first());
+    }
+
+    @Test
+    void sortJsonObjectByProperty_valuesArePreserved() {
+        JsonObject authors = new JsonObject()
+                .put("gsmet", new JsonObject().put("name", "Guillaume Smet").put("twitter", "gsmet_"))
+                .put("ebernard", new JsonObject().put("name", "Emmanuel Bernard").put("twitter", "Emmanuelbernard"));
+
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort(authors, "name");
+
+        // first entry is Emmanuel Bernard — check the full value object is intact
+        JsonObject firstValue = (JsonObject) sorted.get(0).last();
+        assertEquals("Emmanuel Bernard", firstValue.getString("name"));
+        assertEquals("Emmanuelbernard", firstValue.getString("twitter"));
+    }
+
+    @Test
+    void sortJsonObjectByProperty_isCaseInsensitive() {
+        JsonObject data = new JsonObject()
+                .put("b", new JsonObject().put("name", "charlie"))
+                .put("a", new JsonObject().put("name", "Alice"))
+                .put("c", new JsonObject().put("name", "Bob"));
+
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort(data, "name");
+
+        assertEquals("Alice", ((JsonObject) sorted.get(0).last()).getString("name"));
+        assertEquals("Bob", ((JsonObject) sorted.get(1).last()).getString("name"));
+        assertEquals("charlie", ((JsonObject) sorted.get(2).last()).getString("name"));
+    }
+
+    @Test
+    void sortJsonObjectByProperty_nullsAreSortedLast() {
+        JsonObject data = new JsonObject()
+                .put("b", new JsonObject().put("name", "Zara"))
+                .put("a", new JsonObject()) // no "name" field
+                .put("c", new JsonObject().put("name", "Aaron"));
+
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort(data, "name");
+
+        assertEquals("Aaron", ((JsonObject) sorted.get(0).last()).getString("name"));
+        assertEquals("Zara", ((JsonObject) sorted.get(1).last()).getString("name"));
+        // entry without "name" is sorted last
+        assertNotNull(sorted.get(2));
+        assertTrue(((JsonObject) sorted.get(2).last()).fieldNames().isEmpty()
+                || ((JsonObject) sorted.get(2).last()).getString("name") == null);
+    }
+
+    @Test
+    void sortJsonObjectByProperty_emptyObjectReturnsEmptyList() {
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort(new JsonObject(), "name");
+        assertTrue(sorted.isEmpty());
+    }
+
+    @Test
+    void sortJsonObjectByProperty_nullObjectReturnsEmptyList() {
+        List<JekyllFiltersExtension.JsonEntry> sorted = JekyllFiltersExtension.sort((JsonObject) null, "name");
+        assertTrue(sorted.isEmpty());
+    }
+
+    // -------------------------------------------------------------------------
+    // sort(JsonArray, String) — existing overload, regression coverage
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sortJsonArrayByProperty_returnsArraySortedByNamedField() {
+        JsonArray tags = new JsonArray()
+                .add(new JsonObject().put("name", "quarkus").put("count", 10))
+                .add(new JsonObject().put("name", "java").put("count", 5))
+                .add(new JsonObject().put("name", "graalvm").put("count", 3));
+
+        JsonArray sorted = JekyllFiltersExtension.sort(tags, "name");
+
+        assertEquals("graalvm", sorted.getJsonObject(0).getString("name"));
+        assertEquals("java", sorted.getJsonObject(1).getString("name"));
+        assertEquals("quarkus", sorted.getJsonObject(2).getString("name"));
+    }
+
+    @Test
+    void sortJsonArrayByProperty_emptyArrayReturnsEmptyArray() {
+        JsonArray sorted = JekyllFiltersExtension.sort(new JsonArray(), "name");
+        assertTrue(sorted.isEmpty());
+    }
+
+    // -------------------------------------------------------------------------
+    // sort(List, String) — existing overload, regression coverage
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sortListByProperty_returnsListSortedByNamedField() {
+        var items = List.of(
+                new JsonObject().put("name", "Zoe"),
+                new JsonObject().put("name", "Alice"),
+                new JsonObject().put("name", "Mike"));
+
+        List<?> sorted = JekyllFiltersExtension.sort(items, "name");
+
+        assertEquals("Alice", ((JsonObject) sorted.get(0)).getString("name"));
+        assertEquals("Mike", ((JsonObject) sorted.get(1)).getString("name"));
+        assertEquals("Zoe", ((JsonObject) sorted.get(2)).getString("name"));
     }
 
     @Test
