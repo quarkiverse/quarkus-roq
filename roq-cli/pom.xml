@@ -14,7 +14,7 @@
 
     <properties>
         <quarkus.version>3.39.1</quarkus.version>
-        <vertx.version>5.1.6</vertx.version>
+        <vertx.version>5.1.7</vertx.version>
     </properties>
 
     <dependencyManagement>
