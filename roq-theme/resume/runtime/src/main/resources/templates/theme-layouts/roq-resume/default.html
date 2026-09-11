@@ -2,8 +2,11 @@
 layout: roq-base/default
 body-class: default
 ---
-{#head-meta}
-{#include partials/roq-resume/head.html /}
-{/head-meta}
+{#head}
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}
+<base href="{page.url.relative}">
+{/head}
 
 {#insert /}
