@@ -78,9 +78,14 @@ public class RoqPluginMarkdownTwinProcessor {
      */
     @BuildStep
     void registerSeoAlternatesOverride(
+            MarkdownTwinConfig config,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer) throws IOException {
+        if (!config.enabled()) {
+            // No twins, so nothing to advertise: leave the site's own seoAlternates tag in place.
+            return;
+        }
         try (InputStream in = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(SEO_ALTERNATES_OVERRIDE_RESOURCE)) {
             if (in == null) {
@@ -103,10 +108,17 @@ public class RoqPluginMarkdownTwinProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void generateTwins(MarkdownTwinRecorder recorder,
+    void generateTwins(MarkdownTwinConfig config,
+            MarkdownTwinRecorder recorder,
             RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterPageTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
+        if (!config.enabled()) {
+            // Still record the (empty) map so the template extension has something to read.
+            recorder.init(Map.of());
+            return;
+        }
+        final TwinScope scope = TwinScope.of(config);
         final Map<String, String> configuredAttributes = configuredAttributes();
         // page resource path -> twin resource path, for the pages that really got a twin
         final Map<String, String> twins = new LinkedHashMap<>();
@@ -118,6 +130,10 @@ public class RoqPluginMarkdownTwinProcessor {
             }
             // Reuse the existing llms.txt opt-out: `llmstxt: false` suppresses the twin too.
             if (!item.data().getBoolean("llmstxt", true)) {
+                continue;
+            }
+            // Configured include/exclude patterns, so a large archived tree can be kept out of the build.
+            if (!scope.includes(item.url().resourcePath())) {
                 continue;
             }
             final String twinPath = twinPath(item.url().resourcePath());
