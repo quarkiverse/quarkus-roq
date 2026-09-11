@@ -1,6 +1,9 @@
 
 package io.quarkiverse.roq.it;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkiverse.roq.testing.RoqLinks;
 import io.quarkus.test.junit.QuarkusTest;
@@ -95,6 +98,65 @@ public class RoqBlogTest {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200).body(containsString("<urlset"))
                 .body(containsString("<loc>/</loc>")).body(containsString("<loc>/posts/tag/plugin/</loc>"))
                 .body(not(containsString("<loc>/404.html</loc>"))).body(containsString("</urlset>"));
+    }
+
+    @Test
+    public void testMarkdownTwinFromMarkdownSource() {
+        // A Markdown page publishes its verbatim source at <page-url>index.md (not the rendered HTML page, which carries
+        // the "&copy; ROQ" site footer).
+        RestAssured.when().get("/posts/welcome-to-roq/index.md").then().statusCode(200)
+                .body(containsString("Hello folks,"))
+                .body(not(containsString("&copy; ROQ")));
+    }
+
+    @Test
+    public void testMarkdownTwinFromAsciidocSource() {
+        // An AsciiDoc page (docs/basics.adoc uses include::) is converted in-process to Markdown at <page-url>index.md:
+        // includes resolved (no include:: left), content from an included file is inlined, attributes substituted, source
+        // blocks fenced, and it is Markdown, not HTML.
+        RestAssured.when().get("/docs/basics/index.md").then().statusCode(200)
+                .body(startsWith("# Roq the basics"))
+                .body(containsString("## Directory Structure"))
+                .body(containsString("```yaml"))
+                .body(containsString("blog/content/docs/basics.adoc"))
+                .body(not(containsString("include::")))
+                .body(not(containsString(":imagesdir:")))
+                .body(not(containsString("{doc-name}")))
+                .body(not(containsString("&copy; ROQ")));
+        // The twin sits inside the page's directory, never beside it: a sibling basics.md lets hosts that resolve an
+        // extensionless request to a file (surge.sh does) answer /docs/basics with the twin instead of the page.
+        RestAssured.when().get("/docs/basics.md").then().statusCode(404);
+    }
+
+    @Test
+    public void testTwinWrittenToDisk() {
+        Path twin = RoqLinks.outputDir().resolve("posts/welcome-to-roq/index.md");
+        assertTrue(Files.exists(twin), "Markdown twin should be written to the generated site: " + twin);
+    }
+
+    @Test
+    public void testTwinOptOut() {
+        // markups/twin-optout.md sets `llmstxt: false`, reusing the existing llms.txt opt-out, so no twin is published.
+        RestAssured.when().get("/markups/twin-optout/index.md").then().statusCode(404);
+    }
+
+    @Test
+    public void testAlternateLinkAdvertisesTheTwin() {
+        // A page with a twin carries a link rel="alternate" to it in its head.
+        RestAssured.when().get("/docs/basics/").then().statusCode(200)
+                .body(containsString("<link rel=\"alternate\" type=\"text/markdown\" href=\""))
+                .body(containsString("/docs/basics/index.md\" />"));
+    }
+
+    @Test
+    public void testNoAlternateLinkWithoutATwin() {
+        // The link is driven by the twins that were generated, never by the page type: neither the opted-out page nor
+        // the page whose conversion failed (markups/twin-broken.adoc) advertises one, and neither has a twin.
+        RestAssured.when().get("/markups/twin-broken/index.md").then().statusCode(404);
+        RestAssured.when().get("/markups/twin-broken/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+        RestAssured.when().get("/markups/twin-optout/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
     }
 
     @Test
