@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,49 @@ public class RoqThemeLinktreeTest {
         assertThat(body).contains("Test Links");
         assertThat(body).contains("Test Link");
         assertThat(body).contains("downloadQR");
+    }
+
+    @Test
+    void testThemeBackgroundClassesOnHtmlAndBody() {
+        String body = given().config(TIMEOUT_CONFIG)
+                .when().get("/")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+        // The overscroll-edge background must stay on <html> itself, not merely appear
+        // somewhere in the document (e.g. only on an inner wrapper div).
+        assertThat(body).containsPattern("<html[^>]*class=\"[^\"]*bg-slate-100[^\"]*dark:bg-slate-900[^\"]*\"");
+        assertThat(body).containsPattern(
+                "<body[^>]*class=\"[^\"]*bg-slate-100[^\"]*dark:bg-slate-900[^\"]*overscroll-none[^\"]*min-h-screen[^\"]*\"");
+    }
+
+    @Test
+    void testHtmlClassFrontmatterOverridesDefault() {
+        // `html-class` frontmatter (as recognized by roq-base/default's <html> tag) must be
+        // honored once roq-linktree extends roq-base/default.
+        String body = given().config(TIMEOUT_CONFIG)
+                .when().get("/html-class-test")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+        assertThat(body).containsPattern("<html[^>]*class=\"[^\"]*qa-html-class[^\"]*\"");
+    }
+
+    @Test
+    void testDocumentShellIsNotDuplicated() {
+        String body = given().config(TIMEOUT_CONFIG)
+                .when().get("/")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+        assertThat(countOccurrences(body, "<!DOCTYPE html>")).isEqualTo(1);
+        assertThat(countOccurrences(body, "<html ")).isEqualTo(1);
+        assertThat(countOccurrences(body, "<head>")).isEqualTo(1);
+        assertThat(countOccurrences(body, "<body")).isEqualTo(1);
+    }
+
+    private static long countOccurrences(String text, String literal) {
+        return Pattern.compile(Pattern.quote(literal)).matcher(text).results().count();
     }
 
     @Test
