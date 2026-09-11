@@ -5,6 +5,8 @@ import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * Decides which pages get a twin, from the configured include and exclude patterns.
@@ -20,10 +22,10 @@ final class TwinScope {
     private static final String GLOB_PREFIX = "glob:";
     private static final String REGEX_PREFIX = "regex:";
 
-    private final List<PathMatcher> include;
-    private final List<PathMatcher> exclude;
+    private final List<Predicate<String>> include;
+    private final List<Predicate<String>> exclude;
 
-    private TwinScope(List<PathMatcher> include, List<PathMatcher> exclude) {
+    private TwinScope(List<Predicate<String>> include, List<Predicate<String>> exclude) {
         this.include = include;
         this.exclude = exclude;
     }
@@ -40,35 +42,40 @@ final class TwinScope {
         if (resourcePath == null) {
             return false;
         }
-        final Path path = Path.of(normalizePath(resourcePath));
-        if (!include.isEmpty() && include.stream().noneMatch(m -> m.matches(path))) {
+        final String path = normalizePath(resourcePath);
+        if (!include.isEmpty() && include.stream().noneMatch(m -> m.test(path))) {
             return false;
         }
-        return exclude.stream().noneMatch(m -> m.matches(path));
+        return exclude.stream().noneMatch(m -> m.test(path));
     }
 
-    private static List<PathMatcher> compile(Optional<List<String>> patterns) {
-        final List<PathMatcher> matchers = new ArrayList<>();
+    private static List<Predicate<String>> compile(Optional<List<String>> patterns) {
+        final List<Predicate<String>> matchers = new ArrayList<>();
         for (String pattern : patterns.orElse(List.of())) {
             if (pattern == null || pattern.isBlank()) {
                 continue;
             }
-            matchers.add(Path.of("").getFileSystem().getPathMatcher(normalizePattern(pattern.strip())));
+            matchers.add(matcher(pattern.strip()));
         }
         return List.copyOf(matchers);
     }
 
     /**
-     * A bare pattern is a glob, matching {@code site.ignored-files}. A leading slash is dropped from a glob so that
-     * {@code /guides/**} and {@code guides/**} behave the same; an explicit regex is left untouched, since a slash
-     * there may be deliberate.
+     * A bare pattern is a glob, matching {@code site.ignored-files}. A leading slash is dropped on both sides so that
+     * {@code /guides/**} and {@code guides/**} behave the same.
+     * <p>
+     * A glob is compiled by the default file system, the way Roq compiles {@code site.ignored-files}. A regex is
+     * matched against the path string directly instead: a {@link PathMatcher} matches a regex against
+     * {@link Path#toString()}, which is backslash-separated on Windows, so a regex written with slashes would match
+     * nothing there.
      */
-    private static String normalizePattern(String pattern) {
+    private static Predicate<String> matcher(String pattern) {
         if (pattern.startsWith(REGEX_PREFIX)) {
-            return pattern;
+            return Pattern.compile(stripLeadingSlash(pattern.substring(REGEX_PREFIX.length()))).asMatchPredicate();
         }
         final String glob = pattern.startsWith(GLOB_PREFIX) ? pattern.substring(GLOB_PREFIX.length()) : pattern;
-        return GLOB_PREFIX + stripLeadingSlash(glob);
+        final PathMatcher matcher = Path.of("").getFileSystem().getPathMatcher(GLOB_PREFIX + stripLeadingSlash(glob));
+        return path -> matcher.matches(Path.of(path));
     }
 
     private static String normalizePath(String resourcePath) {

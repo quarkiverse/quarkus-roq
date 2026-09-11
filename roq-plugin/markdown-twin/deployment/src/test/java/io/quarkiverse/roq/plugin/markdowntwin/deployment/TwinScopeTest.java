@@ -68,6 +68,7 @@ class TwinScopeTest {
         assertThat(scope(List.of("guides/**"), null).includes("/guides/http-reference")).isTrue();
         assertThat(scope(List.of("/guides/**"), null).includes("guides/http-reference")).isTrue();
         assertThat(scope(List.of("glob:/guides/**"), null).includes("guides/http-reference")).isTrue();
+        assertThat(scope(List.of("regex:/guides/.*"), null).includes("guides/http-reference")).isTrue();
     }
 
     @Test
@@ -81,7 +82,18 @@ class TwinScopeTest {
     void anExplicitRegexIsHonoured() {
         final TwinScope scope = scope(List.of("regex:guides/.*"), null);
         assertThat(scope.includes("guides/http-reference")).isTrue();
+        assertThat(scope.includes("guides/nested/page")).isTrue();
         assertThat(scope.includes("about")).isFalse();
+    }
+
+    /**
+     * A regex is matched against the path string, not against a {@link java.nio.file.Path}, whose {@code toString()}
+     * is backslash-separated on Windows. Without that, a regex written with slashes matches nothing on Windows.
+     */
+    @Test
+    void aRegexSeparatorIsASlashOnEveryPlatform() {
+        assertThat(scope(List.of("regex:guides/.*"), null).includes("guides/http-reference")).isTrue();
+        assertThat(scope(null, List.of("regex:version/.*")).includes("version/3.15/guides/http-reference")).isFalse();
     }
 
     @Test
