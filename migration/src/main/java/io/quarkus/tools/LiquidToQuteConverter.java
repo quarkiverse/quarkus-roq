@@ -409,7 +409,7 @@ public class LiquidToQuteConverter {
             StringBuilder fwaSb = new StringBuilder();
 
             while (fwaMatcher.find()) {
-                String arg = fwaMatcher.group(1).trim();
+                String arg = normalizeFilterArg(fwaMatcher.group(1).trim());
                 fwaMatcher.appendReplacement(fwaSb, "." + quteMethod + "(" + Matcher.quoteReplacement(arg) + ")");
             }
             fwaMatcher.appendTail(fwaSb);
@@ -460,6 +460,19 @@ public class LiquidToQuteConverter {
         }
 
         return content;
+    }
+
+    /**
+     * Normalizes a Liquid filter argument for use in a Qute method call.
+     * Liquid uses double-quoted string literals (e.g. "name"), but Qute requires
+     * single-quoted string literals (e.g. 'name'). Bare identifiers (variable
+     * references) are passed through unchanged.
+     */
+    private String normalizeFilterArg(String arg) {
+        if (arg.startsWith("\"") && arg.endsWith("\"") && arg.length() >= 2) {
+            return "'" + arg.substring(1, arg.length() - 1) + "'";
+        }
+        return arg;
     }
 
     private String convertWhereExpFilter(String content) {

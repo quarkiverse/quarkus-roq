@@ -1495,6 +1495,31 @@ class LiquidToQuteConverterTest {
                 "group_by | sort should chain as .groupBy(arg).sort(arg), not nest sort inside groupBy arg: " + result);
         assertFalse(result.contains("group_by.sort("),
                 "sort should not be nested inside the groupBy argument: " + result);
+        assertTrue(result.contains(".sort('name')"),
+                "sort: \"name\" (double-quoted) must convert to .sort('name') with single quotes, not .sort(\"name\"): "
+                        + result);
+    }
+
+    @Test
+    void testSortFilterDoubleQuotedArgProducesSingleQuotedString() {
+        // Liquid: | sort: "name" uses a double-quoted string literal.
+        // Qute requires single-quoted string literals, so the output must be .sort('name').
+        String input = "{% assign sorted = authors | sort: \"name\" %}";
+        String result = converter.convert(input);
+        assertTrue(result.contains(".sort('name')"),
+                "sort: \"name\" should produce .sort('name') with single quotes, got: " + result);
+        assertFalse(result.contains(".sort(\"name\")"),
+                "sort: \"name\" must not produce .sort(\"name\") — Qute requires single-quoted strings: " + result);
+    }
+
+    @Test
+    void testSortFilterSingleQuotedArgPreserved() {
+        // Liquid: | sort: 'title' — already single-quoted; must stay as .sort('title').
+        String input = "{#let values=items.sort('title')}{/let}";
+        // This is already-converted Qute; pass it through to verify it is not double-converted.
+        String result = converter.convert(input);
+        assertTrue(result.contains(".sort('title')"),
+                "Already-single-quoted sort arg must not be double-converted: " + result);
     }
 
     @Test
