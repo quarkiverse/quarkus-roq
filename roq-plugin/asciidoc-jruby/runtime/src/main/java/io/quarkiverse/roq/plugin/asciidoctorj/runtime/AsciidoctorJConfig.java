@@ -20,6 +20,18 @@ public interface AsciidoctorJConfig {
      * <li><code>noheader=true</code></li>
      * <li><code>showtitle=true</code></li>
      * </ul>
+     * <p>
+     * For boolean AsciiDoc attributes (flags that are either set or unset, such as
+     * {@code sectanchors} or {@code sectnums}), use the value {@code "true"}. SmallRye
+     * Config does not support empty-string map values, so {@code "true"} is converted to
+     * an empty string before passing to AsciidoctorJ.
+     * <p>
+     * Examples:
+     * <pre>
+     * quarkus.asciidoc.attributes.sectanchors=true
+     * quarkus.asciidoc.attributes.sectnums=true
+     * quarkus.asciidoc.attributes.icons=font
+     * </pre>
      **/
     Map<String, String> attributes();
 

@@ -29,6 +29,7 @@ public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
     public static final String ROOTDIR = "root_dir";
+    public static final String TRUE = Boolean.TRUE.toString();
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
@@ -80,7 +81,10 @@ public class AsciidoctorJConverter {
         if (templateAttributes.sitePath() != null) {
             attributes.attribute("site-path", templateAttributes.sitePath());
         }
-        configuredAttributes.forEach(attributes::attribute);
+        // SmallRye Config cannot represent empty-string map values, so boolean
+        // AsciiDoc attributes (e.g. sectanchors) are stored as "true" in config.
+        // Convert back to "" so AsciidoctorJ sees them as boolean flags.
+        configuredAttributes.forEach((k, v) -> attributes.attribute(k, TRUE.equals(v) ? "" : v));
         asciidocAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();

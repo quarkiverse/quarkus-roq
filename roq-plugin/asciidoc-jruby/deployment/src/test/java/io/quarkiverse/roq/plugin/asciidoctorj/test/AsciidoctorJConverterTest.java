@@ -14,11 +14,11 @@ import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 
 public class AsciidoctorJConverterTest {
 
-    private final AsciidoctorJConverter converter = new AsciidoctorJConverter(Map.of());
     private final Asciidoctor asciidoctor = Asciidoctor.Factory.create();
 
     @Test
     void shouldSetDocnameFromSourcePath() {
+        AsciidoctorJConverter converter = new AsciidoctorJConverter(Map.of());
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
                 "/tmp/site",
                 "/tmp/site/content/guides/my-guide.adoc",
@@ -32,6 +32,7 @@ public class AsciidoctorJConverterTest {
 
     @Test
     void shouldSetDocnameWithMultipleDots() {
+        AsciidoctorJConverter converter = new AsciidoctorJConverter(Map.of());
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
                 "/tmp/site",
                 "/tmp/site/content/posts/2024-01-01-foo.bar.adoc",
@@ -41,6 +42,22 @@ public class AsciidoctorJConverterTest {
         Document doc = asciidoctor.load("= Test", options);
 
         assertThat(doc.getAttribute("docname")).isEqualTo("2024-01-01-foo.bar");
+    }
+
+    @Test
+    void shouldConvertTrueToEmptyForBooleanAttributes() {
+        AsciidoctorJConverter converter = new AsciidoctorJConverter(
+                Map.of("sectanchors", "true", "icons", "font"));
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                "/tmp/site",
+                "/tmp/site/content/guides/test.adoc",
+                null, null, null, null);
+
+        Options options = converter.createOptions(Map.of(), attrs);
+        Document doc = asciidoctor.load("= Test\n\n== Section One\n\nContent", options);
+
+        assertThat(doc.getAttribute("sectanchors")).isEqualTo("");
+        assertThat(doc.getAttribute("icons")).isEqualTo("font");
     }
 
 }
