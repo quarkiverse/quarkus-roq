@@ -1,0 +1,5 @@
+title: Test Site
+description: A test Jekyll site
+pagination:
+  collection: posts
+  per_page: 5

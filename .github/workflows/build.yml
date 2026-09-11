@@ -72,5 +72,6 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: 'maven'
+
       - name: Build with Maven (Native)
         run: mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip
