@@ -14,16 +14,25 @@ function isTemplatePlaceholder(src) {
     return src.includes('{') && src.includes('}');
 }
 
+function isAbsoluteSrc(src) {
+    if (typeof src !== 'string') {
+        return false;
+    }
+    return src.startsWith('/') || src.includes('://');
+}
+
 function resolveSrc (options, src) {
     if (isTemplatePlaceholder(src)) {
         return  'assets/placeholder-image.svg';
-    } else {
-        const prefix =
-            typeof options.urlPrefix === 'function'
-                ? options.urlPrefix()
-                : options.urlPrefix;
-        return prefix + src;
     }
+    if (isAbsoluteSrc(src)) {
+        return src;
+    }
+    const prefix =
+        typeof options.urlPrefix === 'function'
+            ? options.urlPrefix()
+            : options.urlPrefix;
+    return prefix + src;
 }
 
 
