@@ -1,0 +1,11 @@
+<div class="author-card">
+  <div class="author-details">
+    <h2 class="author-name">{name}</h2>
+    {#if nested-content??}
+    <p>{nested-content}</p>
+    {/if}
+    {#if profile??}
+    <a href="{profile}" target="_blank" rel="noopener noreferrer">@{nickname}</a>
+    {/if}
+  </div>
+</div>

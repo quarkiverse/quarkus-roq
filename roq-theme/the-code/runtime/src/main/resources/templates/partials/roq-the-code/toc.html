@@ -1,0 +1,29 @@
+{#if page.data.toc??}
+<aside class="toc-sidebar">
+  <nav class="toc-sticky">
+    <div class="toc-header"><span class="toc-emoji">🚀</span> Table of Contents</div>
+    <ol class="toc-list" id="toc-list">
+      {#if page.data.toc.size?? && page.data.toc.size > 0}
+      {#for item in page.data.toc}
+      <li class="toc-item toc-h2">
+        <a href="#{item.id}" class="toc-link" data-target="{item.id}">
+          <span class="toc-number">{item_count}.</span> {item.title}
+        </a>
+        {#if item.subsections??}
+        <ul class="toc-sublist">
+          {#for subsection in item.subsections}
+          <li class="toc-item toc-h3">
+            <a href="#{subsection.id}" class="toc-link" data-target="{item.id}">
+              <span class="toc-bullet">&bull;</span> {subsection.title}
+            </a>
+          </li>
+          {/for}
+        </ul>
+        {/if}
+      </li>
+      {/for}
+      {/if}
+    </ol>
+  </nav>
+</aside>
+{/if}

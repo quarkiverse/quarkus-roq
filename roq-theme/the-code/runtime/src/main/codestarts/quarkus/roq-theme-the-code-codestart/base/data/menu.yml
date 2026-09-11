@@ -1,0 +1,7 @@
+items:
+  - title: "Blog"
+    path: "/"
+  - title: "Tags"
+    path: "/tags"
+  - title: "About"
+    path: "/about"

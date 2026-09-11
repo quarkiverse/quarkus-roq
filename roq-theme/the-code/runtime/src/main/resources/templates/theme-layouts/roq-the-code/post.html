@@ -1,0 +1,62 @@
+---
+layout: default
+asciidoc-attributes:
+  notitle: true
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+
+<div class="post-page">
+  <header>
+    <h1>{page.title}</h1>
+    <div class="post-meta">
+      <time datetime="{page.date}">{page.date.format('MM-dd-yyyy')}</time>
+      {#if page.data.author??} &bull; <span>{page.data.author}</span>{/if}
+    </div>
+  </header>
+
+  <div class="post-layout-wrapper">
+    {#include partials/roq-the-code/toc.html /}
+
+    <article class="post-content-area">
+      <div class="article-content">
+        {#insert /}
+      </div>
+
+      <div class="metadata-box mt-12">
+        <h3 class="metadata-title">Metadata</h3>
+
+        <div class="metadata-row">
+          <span class="metadata-label">Published</span>
+          <span class="metadata-value">{page.date.format('MM-dd-yyyy')}</span>
+        </div>
+
+        {#if page.data.tags??}
+        <div class="metadata-row">
+          <span class="metadata-label">Tags</span>
+          <div class="metadata-tags">
+            {#for tag in page.data.tags.asStrings}
+            {#let tagSlug = tag.slugify}
+            <a href="{site.url('/posts/tag', tagSlug)}" class="tag-pill">&#35; {tagSlug}</a>
+            {/for}
+          </div>
+        </div>
+        {/if}
+      </div>
+
+      <footer>
+        <div>
+          {#if page.previous}
+          <a href="{page.previous.url}">
+            &larr; {page.previous.title}
+          </a>
+          {/if}
+          {#if page.next}
+          <a href="{page.next.url}">
+            {page.next.title} &rarr;
+          </a>
+          {/if}
+        </div>
+      </footer>
+    </article>
+  </div>
+</div>

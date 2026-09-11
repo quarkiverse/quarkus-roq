@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="{site.data.lang ?: 'en'}" dir="{site.data.direction ?: 'ltr'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {#seo page site /}
+    {#favicon site/}
+
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        if(theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
+    {#bundle /}
+</head>
+<body>
+    {#include partials/roq-the-code/header.html /}
+
+    <main class="site-main">
+        {#insert /}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>Powered by <a href="https://iamroq.com" target="_blank">Roq</a>!</p>
+            <p>&copy; {now.format('Y')} {site.title}. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
