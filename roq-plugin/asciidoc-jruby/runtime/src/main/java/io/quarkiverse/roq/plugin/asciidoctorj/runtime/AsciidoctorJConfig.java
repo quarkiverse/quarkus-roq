@@ -13,6 +13,11 @@ public interface AsciidoctorJConfig {
     /**
      * Defines the AsciidoctorJ attributes to be applied during rendering.
      * <p>
+     * Use the special value {@code BLANK} to set an attribute to the empty string,
+     * since SmallRye Config does not support empty map values.
+     * For example, {@code quarkus.asciidoc.attributes.idprefix=BLANK} sets {@code idprefix}
+     * to {@code ""}.
+     * <p>
      * Default values:
      * <ul>
      * <li><code>relfileprefix=../</code></li>
