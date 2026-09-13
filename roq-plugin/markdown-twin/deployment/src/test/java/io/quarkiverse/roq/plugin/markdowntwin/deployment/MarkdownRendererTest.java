@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -267,8 +268,33 @@ class MarkdownRendererTest {
 
     @Test
     void restoreCalloutMarkersOnlyTouchesTrailingMarkers() {
-        assertThat(MarkdownRenderer.restoreCalloutMarkers("a (1)\nb (1) (2)\nf(x) = (1) + 1\n"))
+        assertThat(MarkdownRenderer.restoreCalloutMarkers("a (1)\nb (1) (2)\nf(x) = (1) + 1\n", Set.of(1, 2)))
                 .isEqualTo("a <1>\nb <1> <2>\nf(x) = (1) + 1\n");
+    }
+
+    @Test
+    void restoreCalloutMarkersKeepsCodeEndingInParentheses() {
+        assertThat(MarkdownRenderer.restoreCalloutMarkers(
+                ".statusCode(200)\n@Bulkhead(1)\ncall(); // (1)\nkey: value #(2)\nd (3)\n", Set.of(1, 2)))
+                .isEqualTo(".statusCode(200)\n@Bulkhead(1)\ncall(); // <1>\nkey: value #<2>\nd (3)\n");
+    }
+
+    @Test
+    void sourceBlockEndingInParenthesesKeepsTheCode() {
+        final String md = md("""
+                [source,java]
+                ----
+                given().get("/hello") <1>
+                  .then()
+                  .statusCode(200)
+                @Priority(1) <2>
+                @Bulkhead(1)
+                ----
+                <1> Call the endpoint.
+                <2> Order the bean.
+                """);
+        assertThat(md)
+                .contains("given().get(\"/hello\") <1>\n  .then()\n  .statusCode(200)\n@Priority(1) <2>\n@Bulkhead(1)\n```");
     }
 
     @Test
