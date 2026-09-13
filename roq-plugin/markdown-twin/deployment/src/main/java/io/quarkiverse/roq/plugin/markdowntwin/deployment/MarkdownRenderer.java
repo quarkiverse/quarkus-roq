@@ -54,7 +54,8 @@ public class MarkdownRenderer implements Visitor<String> {
 
     private static final Set<String> ADMONITION_STYLES = Set.of("NOTE", "TIP", "IMPORTANT", "CAUTION", "WARNING");
     private static final Pattern ATTRIBUTE_REFERENCE = Pattern.compile("\\{([a-zA-Z0-9_][a-zA-Z0-9_-]*)}");
-    private static final Pattern TRAILING_CALLOUTS = Pattern.compile("((?:\\s*\\(\\d+\\))+)\\s*$");
+    // a marker follows whitespace or a comment prefix, `a (1)` or `a //(1)`, while code reads `.statusCode(200)`
+    private static final Pattern TRAILING_CALLOUTS = Pattern.compile("(?:\\s|//|#|--|;;)((?:\\s*\\(\\d+\\))+)\\s*$");
     private static final Pattern CALLOUT = Pattern.compile("\\((\\d+)\\)");
     private static final Pattern URL_SCHEME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9+.-]*:");
 
@@ -231,7 +232,8 @@ public class MarkdownRenderer implements Visitor<String> {
         blockTitle(code.options());
         String value = code.value() == null ? "" : code.value();
         if (!code.callOuts().isEmpty()) {
-            value = restoreCalloutMarkers(value);
+            value = restoreCalloutMarkers(value,
+                    code.callOuts().stream().map(CallOut::number).collect(Collectors.toSet()));
         }
         fence(language(code.options()), value);
         if (!code.callOuts().isEmpty()) {
@@ -278,14 +280,20 @@ public class MarkdownRenderer implements Visitor<String> {
 
     /**
      * The parser rewrites callout markers inside code from {@code <1>} to {@code (1)}; AsciiDoc readers (and downdoc)
-     * expect the angle-bracket form, so put it back on trailing markers only.
+     * expect the angle-bracket form, so put it back on trailing markers only. Code that ends in parentheses, such as
+     * {@code .statusCode(200)} or {@code @Priority(1)}, is not a marker: a marker follows whitespace or a comment prefix
+     * and carries the number of one of the block's callouts.
+     *
+     * @param value the code of the block
+     * @param numbers the numbers of the block's callouts
      */
-    static String restoreCalloutMarkers(String value) {
+    static String restoreCalloutMarkers(String value, Set<Integer> numbers) {
         final String[] lines = value.split("\n", -1);
         for (int i = 0; i < lines.length; i++) {
             final Matcher matcher = TRAILING_CALLOUTS.matcher(lines[i]);
-            if (matcher.find()) {
-                lines[i] = lines[i].substring(0, matcher.start()) + CALLOUT.matcher(matcher.group(1)).replaceAll("<$1>");
+            if (matcher.find() && CALLOUT.matcher(matcher.group(1)).results()
+                    .allMatch(marker -> numbers.contains(Integer.parseInt(marker.group(1))))) {
+                lines[i] = lines[i].substring(0, matcher.start(1)) + CALLOUT.matcher(matcher.group(1)).replaceAll("<$1>");
             }
         }
         return String.join("\n", lines);
