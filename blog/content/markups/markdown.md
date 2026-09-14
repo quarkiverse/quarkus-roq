@@ -109,6 +109,31 @@ This is another paragraph. Ut enim ad minim veniam, quis nostrud exercitation ul
 
 Here is an [inline link](https://example.com) and here is a [link with title](https://example.com "Example Title").
 
+### Autolinks
+
+Bare URLs like https://iamroq.com and email addresses like hello@example.com are turned into links automatically by the `autolink` extension.
+
+### Heading Anchors
+
+Every heading gets an `id` generated from its text by the `heading-anchor` extension, so you can link to it: [jump to Tables](#tables).
+
+## Alert Blocks
+
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+> [!IMPORTANT]
+> Key information users need to achieve their goal.
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+
 ## Mixed Content
 
 Here's a paragraph with **strong text**, *emphasized text*, `inline code`, and a [link](https://example.com) all in one.

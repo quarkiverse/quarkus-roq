@@ -145,6 +145,54 @@ If you don't need Markdown, you can disable it by excluding the Markdown plugin 
 
 TIP: See the link:/markups/markdown/[Markdown markup test] page for example usage of all supported Markdown features.
 
+[#markdown-extensions]
+===== Markdown extensions
+
+Markdown rendering is provided by https://docs.quarkiverse.io/quarkus-qute-web/dev/markdown.html[Quarkus Qute Web Markdown,window=_blank], which bundles the following commonmark-java extensions. They are all enabled by default and can be turned on or off individually with configuration properties:
+
+[cols="1,2,3", options="header"]
+|===
+| Extension | Property | Description
+
+| Tables
+| `quarkus.qute.web.markdown.plugin.tables.enabled`
+| GitHub Flavored Markdown tables (`\| a \| b \|`).
+
+| Autolink
+| `quarkus.qute.web.markdown.plugin.autolink.enabled`
+| Turns bare URLs and email addresses into links without needing the `<...>` or `[...]()` syntax.
+
+| Heading anchor
+| `quarkus.qute.web.markdown.plugin.heading-anchor.enabled`
+| Adds an `id` attribute to every heading (e.g. `## My Title` becomes `<h2 id="my-title">`), so headings can be linked to with `#my-title`.
+
+| Alerts
+| `quarkus.qute.web.markdown.plugin.alerts.enabled`
+| GitHub Flavored Markdown alert blocks (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`).
+|===
+
+All properties are booleans and default to `true`. For example, to disable autolinks and tables:
+
+[source,properties]
+.application.properties
+----
+quarkus.qute.web.markdown.plugin.autolink.enabled=false
+quarkus.qute.web.markdown.plugin.tables.enabled=false
+----
+
+The alerts extension also lets you register custom alert types (the key must be uppercase, the value is the title displayed in the block):
+
+[source,properties]
+.application.properties
+----
+quarkus.qute.web.markdown.plugin.alerts.custom-types.INFO=Information
+quarkus.qute.web.markdown.plugin.alerts.custom-types.BUG=Known Bug
+----
+
+NOTE: The heading anchor extension only adds the `id` attributes, it does not render a visible link icon next to headings. Add your own CSS/JS if you want clickable anchors.
+
+TIP: See the https://docs.quarkiverse.io/quarkus-qute-web/dev/markdown.html#extension-configuration-reference[Quarkus Qute Web configuration reference,window=_blank] for the complete list of Markdown properties.
+
 ==== AsciiDoc
 
 AsciiDoc is also fully supported in Roq via the link:/plugin/asciidoc/[AsciiDoc plugin].
