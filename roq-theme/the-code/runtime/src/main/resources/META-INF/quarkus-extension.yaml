@@ -1,0 +1,23 @@
+name: "Roq The Code Theme"
+description: "A minimal, developer-focused theme for Roq static site generator"
+metadata:
+  keywords:
+    - roq
+    - theme
+    - website
+    - static
+    - developer
+    - blog
+  guide: "https://iamroq.dev/theme/the-code/"
+  categories:
+    - "web"
+  status: "preview"
+  config:
+    - "site.theme"
+  codestart:
+    name: "roq-theme-the-code"
+    languages:
+      - "java"
+      - "kotlin"
+      - "scala"
+    artifact: "io.quarkiverse.roq:quarkus-roq-theme-the-code:codestarts:jar:${project.version}"
