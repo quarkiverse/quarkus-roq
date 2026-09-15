@@ -13,7 +13,7 @@
     <description>Command line interface for Roq static site generator</description>
 
     <properties>
-        <quarkus.version>3.39.1</quarkus.version>
+        <quarkus.version>3.39.3</quarkus.version>
         <vertx.version>5.1.7</vertx.version>
     </properties>
 
