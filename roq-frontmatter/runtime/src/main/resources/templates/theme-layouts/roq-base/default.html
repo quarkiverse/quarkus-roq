@@ -1,7 +1,7 @@
 {@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
 {@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
 <!DOCTYPE html>
-<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}">
+<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}"{#if page.data.html-class??} class="{page.data.html-class}"{/if}>
 <head>
   {#insert head-meta}
   <meta charset="UTF-8">
@@ -13,7 +13,7 @@
   {/insert}
   {#insert head /}
 </head>
-<body {#if page.data.body-class??}class="{page.data.body-class}"{/}>
+<body{#if page.data.body-class??} class="{page.data.body-class}"{/if}>
   {#insert /}
 </body>
 </html>

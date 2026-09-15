@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.apptest;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,5 +59,55 @@ public class RoqFrontMatterBaseThemeTest {
     public void testHtmlLangFallsBackToSite() {
         RestAssured.when().get("/posts/hello-post").then().statusCode(200).log().ifValidationFails()
                 .body("html.@lang", equalTo("fr"));
+    }
+
+    @Test
+    @DisplayName("html-class/body-class FrontMatter keys are applied to <html>/<body>")
+    public void testNewClassKeys() {
+        RestAssured.when().get("/classes-new").then().statusCode(200).log().ifValidationFails()
+                .body("html.@class", equalTo("new-html-class"))
+                .body("html.body.@class", equalTo("new-body-class"));
+    }
+
+    @Test
+    @DisplayName("deprecated htmlClass/bodyClass FrontMatter keys still apply for backward compatibility")
+    public void testDeprecatedClassKeys() {
+        RestAssured.when().get("/classes-old").then().statusCode(200).log().ifValidationFails()
+                .body("html.@class", equalTo("old-html-class"))
+                .body("html.body.@class", equalTo("old-body-class"));
+    }
+
+    @Test
+    @DisplayName("the new class key wins over the deprecated one when both are set")
+    public void testNewClassKeyWinsOverDeprecatedWhenBothSet() {
+        RestAssured.when().get("/classes-both").then().statusCode(200).log().ifValidationFails()
+                .body("html.@class", equalTo("new-html-class"))
+                .body("html.body.@class", equalTo("new-body-class"));
+    }
+
+    @Test
+    @DisplayName("no class attribute is rendered on <html>/<body> when no class key is set")
+    public void testNoClassKeysRendersNoClassAttribute() {
+        RestAssured.when().get("/about").then().statusCode(200).log().ifValidationFails()
+                .body("html.@class", nullValue())
+                .body("html.body.@class", nullValue());
+    }
+
+    @Test
+    @DisplayName("a page's deprecated bodyClass key overrides its layout's body-class default")
+    public void testPageDeprecatedKeyOverridesLayoutDefault() {
+        // The deprecated key is normalized to body-class per template, before the layout chain is
+        // merged, so a page still using the old key overrides the layout default like any other key.
+        RestAssured.when().get("/classes-layer-deprecated").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.@class", equalTo("page-legacy-value"));
+    }
+
+    @Test
+    @DisplayName("a layout still declaring the deprecated bodyClass key keeps working")
+    public void testLayoutDeprecatedKeyStillApplies() {
+        // Layouts go through the same normalization as pages, which is what keeps third-party
+        // themes that still ship bodyClass working.
+        RestAssured.when().get("/classes-legacy-layout").then().statusCode(200).log().ifValidationFails()
+                .body("html.body.@class", equalTo("legacy-layout"));
     }
 }

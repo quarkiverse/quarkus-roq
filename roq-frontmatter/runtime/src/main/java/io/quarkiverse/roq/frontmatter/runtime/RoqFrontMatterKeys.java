@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
+import java.util.Map;
+
 /**
  * Standard frontmatter YAML keys recognized by Roq FrontMatter.
  * <p>
@@ -183,4 +185,32 @@ public interface RoqFrontMatterKeys {
      * ▸ Access: {@code page.data.getBoolean("qute")}
      */
     String QUTE = "qute";
+
+    // ── Document classes ────────────────────────────────────────────────
+
+    /**
+     * CSS class for the {@code <html>} tag — e.g. {@code html-class: dark}
+     * <br>
+     * ▸ Scope: page (layout)
+     * <br>
+     * ▸ Access: {@code page.data.getString("html-class")}
+     */
+    String HTML_CLASS = "html-class";
+
+    /**
+     * CSS class for the {@code <body>} tag — e.g. {@code body-class: page-not-found}
+     * <br>
+     * ▸ Scope: page (layout)
+     * <br>
+     * ▸ Access: {@code page.data.getString("body-class")}
+     */
+    String BODY_CLASS = "body-class";
+
+    /**
+     * Deprecated camelCase aliases, normalized to their hyphenated counterpart when assembling
+     * a template's FrontMatter.
+     */
+    Map<String, String> DEPRECATED_ALIASES = Map.of(
+            "htmlClass", HTML_CLASS,
+            "bodyClass", BODY_CLASS);
 }

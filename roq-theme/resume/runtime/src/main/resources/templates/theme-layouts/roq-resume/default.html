@@ -1,11 +1,12 @@
-{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
-{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}
-<!DOCTYPE html>
-<html lang="{page.data.getString('lang') ?: site.data.getString('lang') ?: global:htmlLocale}">
-<head>
-  {#include partials/roq-resume/head.html /}
-</head>
-<body class="{page.data.bodyClass ?: 'default'}">
-    {#insert /}
-</body>
-</html>
+---
+layout: roq-base/default
+body-class: default
+---
+{#head}
+{#if site.data.containsKey("analytics")}
+{#ga4 tag=site.data.getJsonObject('analytics').getString("ga4", "") /}
+{/if}
+<base href="{page.url.relative}">
+{/head}
+
+{#insert /}
