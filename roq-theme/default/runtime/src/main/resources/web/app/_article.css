@@ -60,18 +60,26 @@
     }
 
     .article-page .page-share {
-        @apply flex flex-wrap gap-2;
+        @apply flex items-center gap-3;
+    }
+
+    .article-page .page-share-label {
+        @apply text-xs font-medium uppercase tracking-wider;
+        @apply text-neutral-400 dark:text-neutral-500;
+    }
+
+    .article-page .page-share-links {
+        @apply flex items-center gap-1;
     }
 
     .article-page .page-share a {
         @apply inline-flex items-center justify-center;
-        @apply no-underline bg-neutral-50;
-        @apply border border-neutral-200 px-3 py-2 rounded-lg;
-        @apply text-accent-900 text-xs font-medium transition-all duration-300;
-        @apply hover:bg-accent-600 hover:text-white hover:border-accent-600;
-        @apply hover:shadow-md hover:-translate-y-0.5;
-        @apply dark:bg-neutral-800 dark:border-neutral-700;
-        @apply dark:text-accent-400 dark:hover:bg-accent-600 dark:hover:border-accent-600;
+        @apply no-underline w-8 h-8 rounded-full;
+        @apply text-neutral-400 text-sm transition-all duration-300;
+        @apply hover:text-accent-600 hover:bg-accent-50;
+        @apply hover:-translate-y-0.5;
+        @apply dark:text-neutral-500;
+        @apply dark:hover:text-accent-400 dark:hover:bg-accent-950;
     }
 
     .article-page .page-tag {
