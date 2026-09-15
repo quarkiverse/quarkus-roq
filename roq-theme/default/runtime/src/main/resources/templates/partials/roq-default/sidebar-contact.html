@@ -1,14 +1,12 @@
 <section class="contact">
     <h3 class="section-title contact-title">{roq_theme:contact_title}</h3>
     <ul>
-        {#for entry in brand.entrySet()}
-        {#if site.data.get(entry.key)??}
+        {#for link in social:contact(site.data)}
         <li>
-            <a href="{entry.value.prefix()}{site.data.get(entry.key)}" target="_blank" rel="noopener noreferrer">
-                <i class="{entry.value.icon()}" aria-hidden="true"></i>
+            <a href="{link.url}" target="_blank" rel="noopener noreferrer">
+                <i class="{link.icon}" aria-hidden="true"></i>
             </a>
         </li>
-        {/if}
         {/for}
     </ul>
 </section>

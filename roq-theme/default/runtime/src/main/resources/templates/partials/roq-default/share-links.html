@@ -1,0 +1,9 @@
+<div class="page-share">
+  <span class="page-share-label">{roq_theme:share_label}</span>
+  <div class="page-share-links">
+    {#for link in social:share(site.data)}
+      <a href="{link.url(page.title, page.url.absolute)}" title="Share on {link.label}"
+        aria-label="Share on {link.label}" rel="nofollow noopener noreferrer" target="_blank"><i class="{link.icon}" aria-hidden="true"></i></a>
+    {/for}
+  </div>
+</div>

@@ -18,4 +18,7 @@ public interface ThemeMessageBundle {
     @Message(defaultValue = "here")
     String notfound_link();
 
+    @Message(defaultValue = "Share this article")
+    String share_label();
+
 }

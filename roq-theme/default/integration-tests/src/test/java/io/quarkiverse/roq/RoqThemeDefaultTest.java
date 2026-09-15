@@ -22,6 +22,9 @@ public class RoqThemeDefaultTest {
                 .asString();
         assertThat(body).contains("Roq</span> my world!");
         assertThat(body).contains("Roq the basics");
+        assertThat(body).contains("https://x.com/quarkusio");
+        assertThat(body).contains("https://github.com/quarkiverse/quarkus-roq");
+        assertThat(body).contains("https://www.linkedin.com/in/quarkusio");
     }
 
     @Test
@@ -40,6 +43,16 @@ public class RoqThemeDefaultTest {
                 .asString();
         assertThat(body).contains("<title>The First Roq! - My Roq Site</title>");
         assertThat(body).contains("You can access page data like this");
+        assertThat(body).contains("page-share");
+        assertThat(body).contains("Share this article");
+        assertThat(body).contains(
+                "https://x.com/intent/post?text=The+First+Roq%21&amp;url=https%3A%2F%2Fmywebsite.com%2Fposts%2Fthe-first-roq%2F");
+        assertThat(body).contains(
+                "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmywebsite.com%2Fposts%2Fthe-first-roq%2F");
+        assertThat(body).contains(
+                "https://bsky.app/intent/compose?text=The+First+Roq%21%0Ahttps%3A%2F%2Fmywebsite.com%2Fposts%2Fthe-first-roq%2F");
+        assertThat(body).contains(
+                "https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fmywebsite.com%2Fposts%2Fthe-first-roq%2F");
     }
 
     @Test
