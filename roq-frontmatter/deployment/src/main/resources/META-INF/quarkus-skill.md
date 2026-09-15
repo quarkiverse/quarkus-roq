@@ -67,6 +67,7 @@ Key fields:
 - **tags** — String or array of tags
 - **author** — Author identifier
 - **lang** — Language/locale of the page (e.g. `fr`, `en-US`). Drives the rendered `<html lang="...">` attribute and the `og:locale` SEO meta tag. Resolution order: page `lang` → site `lang` (set in the index page frontmatter) → the JVM default locale. This is independent of `site.defaultLocale`, which only controls the fallback locale used for locale-aware date formatting (`page.date.shortDate`, etc.)
+- **html-class** / **body-class** — CSS classes rendered on `<html>` / `<body>` by `roq-base/default`. Can be set on a page, or on a layout to apply a default to every page using it; a page's own value replaces the layout's, like any other frontmatter key. No attribute is rendered when neither is set
 - **robots** — Value rendered as `<meta name="robots">` in the HTML head by the built-in `{#seo page site /}` tag (e.g. `noindex`, `nofollow`, `noindex, nofollow`). Use it to keep drafts, internal docs, or staging pages out of search engine indexes. The meta tag is only emitted when the key is set on the page
 - **draft** — `true` to mark as draft (hidden unless `site.draft=true`)
 - **paginate** — Enable pagination. Shorthand: `paginate: posts`. Full config: `collection`, `size`, `link`

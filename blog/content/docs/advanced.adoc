@@ -127,6 +127,21 @@ And here the footer
 
 Now, everywhere `layout: main` is used (even in the theme), your override will be used.
 
+[#html-body-classes]
+==== HTML/Body classes
+
+`roq-base/default`'s `<html>` and `<body>` tags each accept an optional CSS class from FrontMatter, so a layout extending it (`layout: roq-base/default`) doesn't need to redefine the whole document just to add its own classes:
+
+[source,yaml]
+----
+html-class: bg-slate-100 dark:bg-slate-900
+body-class: font-sans
+----
+
+These keys can be set on a page, or on a layout (e.g. a theme's own `default.html`) to apply a default class to every page using it; a page's own value replaces the layout's, like any other FrontMatter key. When neither is set, no `class` attribute is rendered at all.
+
+TIP: The camelCase `htmlClass`/`bodyClass` keys are deprecated. They still work: each template's FrontMatter is normalized before the layout chain is merged, so an old key is read as its hyphenated counterpart and a build warning points at the file to fix. If a file sets both, the hyphenated key wins and the deprecated one is ignored.
+
 ==== How it Works Internally
 
 Roq handles theme layouts in two layers:
