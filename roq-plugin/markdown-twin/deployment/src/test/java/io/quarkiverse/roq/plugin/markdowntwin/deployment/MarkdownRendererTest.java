@@ -267,6 +267,131 @@ class MarkdownRendererTest {
     }
 
     @Test
+    void listItemContinuationsKeepSourceOrder() {
+        assertThat(md("""
+                * first
+                +
+                [source,java]
+                ----
+                code();
+                ----
+                +
+                trailing text
+                """)).isEqualTo("- first\n\n  ```java\n  code();\n  ```\n\n  trailing text\n");
+        assertThat(md("""
+                . step one
+                +
+                ----
+                mvn
+                ----
+                +
+                Then run it.
+                . step two
+                """)).isEqualTo("1. step one\n\n   ```\n   mvn\n   ```\n\n   Then run it.\n\n2. step two\n");
+    }
+
+    @Test
+    void listItemFirstParagraphStaysOnTheMarkerLine() {
+        // inline code makes the parser wrap the first paragraph of an item that carries a block
+        assertThat(md("""
+                . Set the `JAVA_HOME` variable:
+                +
+                [source,bash]
+                ----
+                export JAVA_HOME=/opt/java
+                ----
+                . Next step
+                """)).isEqualTo(
+                "1. Set the `JAVA_HOME` variable:\n\n   ```bash\n   export JAVA_HOME=/opt/java\n   ```\n\n2. Next step\n");
+    }
+
+    @Test
+    void fenceIsLongerThanTheBackticksInTheCode() {
+        final String md = md("""
+                [source,markdown]
+                ----
+                ````
+                x
+                ````
+                ----
+
+                after the block
+                """);
+        assertThat(md).isEqualTo("`````markdown\n````\nx\n````\n`````\n\nafter the block\n");
+    }
+
+    @Test
+    void kbdSplitsKeysLikeAsciidoctor() {
+        final String md = md("""
+                A kbd:[Ctrl++] B
+
+                C kbd:[+] D
+
+                E kbd:[Ctrl,Shift,T] F
+
+                G kbd:[Ctrl+X,Ctrl+S] H
+                """);
+        assertThat(md).isEqualTo("A <kbd>Ctrl</kbd>+<kbd>+</kbd> B\n\nC <kbd>+</kbd> D\n\n"
+                + "E <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> F\n\nG <kbd>Ctrl</kbd>+<kbd>X,Ctrl</kbd>+<kbd>S</kbd> H\n");
+    }
+
+    @Test
+    void passAndMenuWriteTheirContent() {
+        // asciidoctor does not read menu:[File > Save], which has no menu, as a macro and shows it as written
+        assertThat(md("A pass:q[*raw*] B menu:File[Save] C menu:[File > Save] D"))
+                .isEqualTo("A *raw* B **File > Save** C menu:[File > Save] D\n");
+    }
+
+    @Test
+    void blockAnchorIsNotAFenceLanguage() {
+        final String md = md("""
+                [[snippet]]
+                ....
+                literal
+                ....
+                """);
+        assertThat(md).isEqualTo("<a id=\"snippet\"></a>\n```\nliteral\n```\n");
+    }
+
+    @Test
+    void footnoteInSectionTitleIsDefinedOnce() {
+        final String md = md("""
+                = Doc
+
+                ifdef::absent[]
+                [#hidden]
+                == Hidden footnote:[ghost]
+                endif::[]
+
+                [#sec]
+                == Intro footnote:[first note] here
+
+                See <<sec>>. Later footnote:[second]
+                """);
+        assertThat(md).isEqualTo("# Doc\n\n<a id=\"sec\"></a>\n## Intro [^1] here\n\nSee [Intro here](#sec). Later [^2]\n\n"
+                + "[^1]: first note\n[^2]: second\n");
+    }
+
+    @Test
+    void footnoteReferencesById() {
+        // as in asciidoctor, a reference to an id that is not defined yet is unresolved and shows the id
+        final String md = md("""
+                See footnote:later[] first.
+
+                A footnote:disclaimer[The note.] B footnote:disclaimer[] C footnote:later[Defined late.]
+
+                D footnoteref:[ref,Text one] E footnoteref:[ref] F footnote:nowhere[] G
+                """);
+        assertThat(md).isEqualTo("See [later] first.\n\nA [^1] B [^1] C [^2]\n\nD [^3] E [^3] F [nowhere] G\n\n"
+                + "[^1]: The note.\n[^2]: Defined late.\n[^3]: Text one\n");
+    }
+
+    @Test
+    void indextermIsHidden() {
+        assertThat(md("Some indexterm:[hidden,term] text.")).isEqualTo("Some  text.\n");
+    }
+
+    @Test
     void restoreCalloutMarkersOnlyTouchesTrailingMarkers() {
         assertThat(MarkdownRenderer.restoreCalloutMarkers("a (1)\nb (1) (2)\nf(x) = (1) + 1\n", Set.of(1, 2)))
                 .isEqualTo("a <1>\nb <1> <2>\nf(x) = (1) + 1\n");
