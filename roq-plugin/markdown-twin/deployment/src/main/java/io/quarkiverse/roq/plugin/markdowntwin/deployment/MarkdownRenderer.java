@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,12 +59,19 @@ public class MarkdownRenderer implements Visitor<String> {
     private static final Pattern TRAILING_CALLOUTS = Pattern.compile("(?:\\s|//|#|--|;;)((?:\\s*\\(\\d+\\))+)\\s*$");
     private static final Pattern CALLOUT = Pattern.compile("\\((\\d+)\\)");
     private static final Pattern URL_SCHEME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9+.-]*:");
+    private static final Pattern BLOCK_STYLE = Pattern.compile("[a-zA-Z][a-zA-Z0-9_+-]*");
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+    /** A footnote definition: its number in the twin and its text. */
+    private record Footnote(int number, String text) {
+    }
 
     /** State shared by the root renderer and the child renderers it creates for nested blocks. */
     private static final class Shared {
         private final Map<String, String> siteAttributes;
         private final String fallbackTitle;
-        private final List<String> footnotes = new ArrayList<>();
+        private final List<Footnote> footnotes = new ArrayList<>();
+        private final Map<String, Footnote> footnotesById = new HashMap<>();
         private Map<String, String> documentAttributes = Map.of();
         private Map<String, String> sectionTitlesById = Map.of();
 
@@ -125,8 +133,8 @@ public class MarkdownRenderer implements Visitor<String> {
         final StringBuilder result = new StringBuilder(out.toString().strip());
         if (!shared.footnotes.isEmpty()) {
             result.append("\n\n");
-            for (int i = 0; i < shared.footnotes.size(); i++) {
-                result.append("[^").append(i + 1).append("]: ").append(shared.footnotes.get(i).strip()).append('\n');
+            for (Footnote footnote : shared.footnotes) {
+                result.append("[^").append(footnote.number()).append("]: ").append(footnote.text().strip()).append('\n');
             }
         }
         return result.toString().strip() + "\n";
@@ -247,15 +255,42 @@ public class MarkdownRenderer implements Visitor<String> {
     @Override
     public void visitListing(Listing listing) {
         final Map<String, String> options = options(listing.options());
+        blockAnchor(options);
         blockTitle(options);
-        final String style = options.get("");
-        final boolean diagramOrLanguage = style != null && !style.isBlank() && !"listing".equals(style)
-                && !"literal".equals(style) && !"source".equals(style);
-        fence(diagramOrLanguage ? style.strip() : language(options), listing.value() == null ? "" : listing.value());
+        final String style = style(options);
+        final boolean diagramOrLanguage = !style.isEmpty() && !"listing".equals(style) && !"literal".equals(style)
+                && !"source".equals(style);
+        fence(diagramOrLanguage ? style : language(options), listing.value() == null ? "" : listing.value());
     }
 
+    /**
+     * The block style (first positional attribute) when it is a name, empty otherwise: the parser also stores a
+     * {@code [[id]]} line above the block there, as {@code [id]}.
+     */
+    private static String style(Map<String, String> options) {
+        final String style = options.get("");
+        return style != null && BLOCK_STYLE.matcher(style.strip()).matches() ? style.strip() : "";
+    }
+
+    /** Writes the anchor of a block, given as {@code [#id]} or as a {@code [[id]]} line above it. */
+    private void blockAnchor(Map<String, String> options) {
+        final String style = options.get("") == null ? "" : options.get("").strip();
+        if (options.get("id") == null && style.length() > 2 && style.startsWith("[") && style.endsWith("]")) {
+            anchor(Map.of("id", style.substring(1, style.length() - 1)));
+        } else {
+            anchor(options);
+        }
+    }
+
+    /** The fence is one backtick longer than the longest run of backticks in the code, and at least three long. */
     private void fence(String language, String value) {
-        final String fence = value.contains("```") ? "````" : "```";
+        int longest = 0;
+        int run = 0;
+        for (int i = 0; i < value.length(); i++) {
+            run = value.charAt(i) == '`' ? run + 1 : 0;
+            longest = Math.max(longest, run);
+        }
+        final String fence = "`".repeat(Math.max(3, longest + 1));
         out.append(fence).append(language == null ? "" : language).append('\n').append(value);
         if (!value.endsWith("\n")) {
             out.append('\n');
@@ -321,19 +356,28 @@ public class MarkdownRenderer implements Visitor<String> {
         }
         for (Element item : items) {
             final String marker = ordered ? number++ + ". " : "- ";
-            final StringBuilder text = new StringBuilder();
-            final List<Element> blocks = new ArrayList<>();
-            splitListItem(item, text, blocks);
-            out.append(marker).append(checkbox(item)).append(text.toString().strip()).append('\n');
+            final List<List<Element>> segments = segments(
+                    item instanceof Paragraph paragraph ? paragraph.children() : List.of(item));
+            // the parser wraps the first paragraph of some items that carry blocks: it still goes on the marker line
+            if (!segments.isEmpty() && segments.get(0).size() == 1 && segments.get(0).get(0) instanceof Paragraph wrapped
+                    && !wrapped.children().isEmpty() && wrapped.children().stream().allMatch(MarkdownRenderer::isInline)
+                    && (wrapped.options() == null || wrapped.options().get("id") == null)) {
+                segments.set(0, wrapped.children());
+            }
+            final List<Element> first = !segments.isEmpty() && isInline(segments.get(0).get(0)) ? segments.remove(0)
+                    : List.of();
+            out.append(marker).append(checkbox(item)).append(inlineChildren(first).strip()).append('\n');
             final String indent = " ".repeat(marker.length());
-            for (Element block : blocks) {
-                final String rendered = block(List.of(block));
+            // the rest of the item, in source order: continuation text, code blocks, nested lists
+            for (List<Element> segment : segments) {
+                final Element head = segment.get(0);
+                final String rendered = isInline(head) ? inlineChildren(segment).strip() : block(segment);
                 if (rendered.isEmpty()) {
                     continue;
                 }
-                final boolean nestedList = block.type() == Element.ElementType.UNORDERED_LIST
-                        || block.type() == Element.ElementType.ORDERED_LIST;
-                if (!nestedList) {
+                final boolean nestedList = head.type() == Element.ElementType.UNORDERED_LIST
+                        || head.type() == Element.ElementType.ORDERED_LIST;
+                if (!nestedList && !endsWithBlankLine()) {
                     out.append('\n');
                 }
                 out.append(indent(rendered, indent)).append('\n');
@@ -355,21 +399,31 @@ public class MarkdownRenderer implements Visitor<String> {
         return "";
     }
 
-    /** A list item is a run of inline elements followed by nested blocks (the parser attaches a nested list there). */
-    private void splitListItem(Element item, StringBuilder text, List<Element> blocks) {
-        if (item instanceof Paragraph paragraph) {
-            for (Element child : paragraph.children()) {
-                if (isInline(child)) {
-                    text.append(inline(child));
-                } else {
-                    blocks.add(child);
+    /**
+     * Splits the children of a list item, in source order, into runs of inline elements and single block elements: a
+     * continuation block ({@code +}) and the text after it come as siblings of the item's first text.
+     */
+    private static List<List<Element>> segments(List<Element> children) {
+        final List<List<Element>> segments = new ArrayList<>();
+        List<Element> run = null;
+        for (Element child : children) {
+            if (isInline(child)) {
+                if (run == null) {
+                    run = new ArrayList<>();
+                    segments.add(run);
                 }
+                run.add(child);
+            } else {
+                segments.add(List.of(child));
+                run = null;
             }
-        } else if (isInline(item)) {
-            text.append(inline(item));
-        } else {
-            blocks.add(item);
         }
+        return segments;
+    }
+
+    private boolean endsWithBlankLine() {
+        final int length = out.length();
+        return length >= 2 && out.charAt(length - 1) == '\n' && out.charAt(length - 2) == '\n';
     }
 
     @Override
@@ -679,30 +733,75 @@ public class MarkdownRenderer implements Visitor<String> {
             case "link" -> "[" + substitute(options.getOrDefault("", label)).strip() + "](" + substitute(label).strip() + ")";
             case "xref" -> xref(macro, options);
             case "mailto" -> "[" + options.getOrDefault("", label).strip() + "](mailto:" + label.strip() + ")";
-            case "kbd" -> keys(content);
+            // the parser splits kbd:[Ctrl,Shift,T] at the first comma, the rest being in the opts option
+            case "kbd" -> keys(options.get("opts") == null ? content : content + "," + options.get("opts"));
             case "btn" -> "**" + content.strip() + "**";
-            case "menu" -> "**" + label.strip() + (options.get("") != null ? " > " + options.get("").strip() : "") + "**";
-            case "pass" -> content;
-            case "icon", "toc", "include" -> "";
-            case "footnote" -> footnote(options.getOrDefault("", label));
+            case "menu" -> menu(label, options.get(""));
+            // the label holds the substitutions of pass:q[...], the content is the positional option
+            case "pass" -> options.getOrDefault("", "");
+            case "icon", "toc", "include", "indexterm" -> "";
+            case "footnote", "footnoteref" -> footnote(macro, options);
             case "stem", "latexmath", "asciimath" -> "$" + content.strip() + "$";
             default -> options.getOrDefault("", label);
         };
     }
 
-    private static String keys(String label) {
-        final List<String> keys = new ArrayList<>();
-        for (String key : label.split("\\+")) {
-            if (!key.isBlank()) {
-                keys.add("<kbd>" + key.strip() + "</kbd>");
+    /**
+     * Splits keys as asciidoctor does: on the first {@code ,} or {@code +} found after the first character, a trailing
+     * delimiter being a key itself ({@code Ctrl++}).
+     */
+    static String keys(String label) {
+        final String value = label.strip();
+        final int comma = value.indexOf(',', 1);
+        final int plus = value.indexOf('+', 1);
+        final int delimiter = comma < 0 ? plus : plus < 0 ? comma : Math.min(comma, plus);
+        final List<String> keys;
+        if (value.length() > 1 && delimiter > 0) {
+            final String separator = value.substring(delimiter, delimiter + 1);
+            if (value.endsWith(separator)) {
+                keys = new ArrayList<>(
+                        List.of(value.substring(0, value.length() - 1).split(Pattern.quote(separator), -1)));
+                keys.set(keys.size() - 1, keys.get(keys.size() - 1) + separator);
+            } else {
+                keys = List.of(value.split(Pattern.quote(separator)));
             }
+        } else {
+            keys = List.of(value);
         }
-        return String.join("+", keys);
+        return keys.stream().map(String::strip).filter(key -> !key.isEmpty()).map(key -> "<kbd>" + key + "</kbd>")
+                .collect(Collectors.joining("+"));
     }
 
-    private String footnote(String text) {
-        shared.footnotes.add(text);
-        return "[^" + shared.footnotes.size() + "]";
+    /** {@code menu:File[Save]}; asciidoctor does not read {@code menu:[File > Save]} as a macro and shows it as written. */
+    private static String menu(String menu, String items) {
+        if (menu.isBlank()) {
+            return "menu:[" + (items == null ? "" : items) + "]";
+        }
+        return "**" + menu.strip() + (items != null && !items.isBlank() ? " > " + items.strip() : "") + "**";
+    }
+
+    /**
+     * {@code footnote:[text]} and {@code footnote:id[text]} define a footnote; {@code footnote:id[]} and the legacy
+     * {@code footnoteref:[id]} refer to the footnote defined with that id. As in asciidoctor, a reference to an id that
+     * is not defined yet is unresolved and shows the id in brackets.
+     */
+    private String footnote(Macro macro, Map<String, String> options) {
+        final String label = macro.label() == null ? "" : macro.label().strip();
+        final boolean legacy = "footnoteref".equals(macro.name()) && label.isEmpty();
+        final String id = legacy ? options.getOrDefault("", "").strip() : label;
+        final String text = options.getOrDefault(legacy ? "opts" : "", "");
+        Footnote footnote = id.isEmpty() ? null : shared.footnotesById.get(id);
+        if (footnote == null) {
+            if (text.isBlank()) {
+                return id.isEmpty() ? "" : "[" + id + "]";
+            }
+            footnote = new Footnote(shared.footnotes.size() + 1, text);
+            shared.footnotes.add(footnote);
+            if (!id.isEmpty()) {
+                shared.footnotesById.put(id, footnote);
+            }
+        }
+        return "[^" + footnote.number() + "]";
     }
 
     /**
@@ -817,10 +916,15 @@ public class MarkdownRenderer implements Visitor<String> {
             } else if (element instanceof FloatingTitle floatingTitle) {
                 registerTitle(floatingTitle.options(), floatingTitle.title(), titles);
             } else if (element instanceof ConditionalBlock conditional) {
-                collectTitles(conditional.children(), titles);
-                if (conditional.elseBranches() != null) {
+                // only the branch that renders, as visitConditionalBlock does
+                if (conditional.evaluator().test(context())) {
+                    collectTitles(conditional.children(), titles);
+                } else if (conditional.elseBranches() != null) {
                     for (ConditionalBlock branch : conditional.elseBranches()) {
-                        collectTitles(branch.children(), titles);
+                        if (branch.evaluator().test(context())) {
+                            collectTitles(branch.children(), titles);
+                            break;
+                        }
                     }
                 }
             } else if (element instanceof OpenBlock openBlock) {
@@ -829,10 +933,49 @@ public class MarkdownRenderer implements Visitor<String> {
         }
     }
 
+    /** Section titles are link texts: plain text, since rendering a title would register its footnotes a second time. */
     private void registerTitle(Map<String, String> options, Element title, Map<String, String> titles) {
         final String id = options == null ? null : options.get("id");
         if (id != null && !id.isBlank()) {
-            titles.put(id.strip(), inline(title).strip());
+            titles.put(id.strip(), WHITESPACE.matcher(plainText(title)).replaceAll(" ").strip()
+                    .replace("[", "\\[").replace("]", "\\]"));
         }
+    }
+
+    /** The text of an element without markup and without side effects: a footnote, an index term or an icon gives none. */
+    private String plainText(Element element) {
+        if (element == null) {
+            return "";
+        }
+        return switch (element.type()) {
+            case TEXT -> Objects.requireNonNullElse(((Text) element).value(), "");
+            case CODE -> Objects.requireNonNullElse(((Code) element).value(), "");
+            case LINK -> {
+                final Link link = (Link) element;
+                yield link.label() == null ? Objects.requireNonNullElse(link.url(), "") : plainText(link.label());
+            }
+            case ANCHOR -> {
+                final Anchor anchor = (Anchor) element;
+                yield anchor.label() == null || anchor.label().isBlank() ? Objects.requireNonNullElse(anchor.value(), "")
+                        : anchor.label();
+            }
+            case ATTRIBUTE -> {
+                final Attribute attribute = (Attribute) element;
+                final String value = context().attribute(attribute.attribute());
+                yield value == null ? "{" + attribute.attribute() + "}"
+                        : attribute.evaluator().apply(value).stream().map(this::plainText).collect(Collectors.joining());
+            }
+            case MACRO -> {
+                final Macro macro = (Macro) element;
+                yield switch (macro.name()) {
+                    case "footnote", "footnoteref", "indexterm", "icon", "image" -> "";
+                    default -> Objects.requireNonNullElse(options(macro.options()).get(""),
+                            Objects.requireNonNullElse(macro.label(), ""));
+                };
+            }
+            case LINE_BREAK -> " ";
+            case PARAGRAPH -> ((Paragraph) element).children().stream().map(this::plainText).collect(Collectors.joining());
+            default -> "";
+        };
     }
 }
