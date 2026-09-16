@@ -127,6 +127,7 @@ Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured fo
 - `roq add plugin:tagging` — add a plugin or theme
 - `roq update` — update the Roq/Quarkus project to latest versions
 - `roq blog` — list blog posts from a Roq site RSS feed
+- Offline usage: the `roq` launcher resolves the JBang catalog online (cached 12h). Without network, run `jbang --offline run roq@quarkiverse/quarkus-roq generate --offline` (first `--offline` is for JBang, second is passed to Maven/Gradle). Requires having run `roq` and built the project online once
 
 ### AI Agent Integration
 

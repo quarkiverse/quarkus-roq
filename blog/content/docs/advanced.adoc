@@ -811,6 +811,31 @@ Extension prefixes:
 * `roq serve` -- Serve a previously generated static site directory.
 * `roq update` -- Update the Quarkus and Roq versions. See <<Updating Roq>>.
 
+[#cli-offline]
+=== Working offline
+
+The `roq` command installed by JBang is a small launcher for the `roq@quarkiverse/quarkus-roq` alias. Each time it runs, JBang resolves this alias against the online catalog (`jbang-catalog.json`) so that you always get the latest Roq CLI. The catalog is cached for 12 hours: after that, running `roq` without network access fails with:
+
+[source]
+----
+[jbang] [ERROR] Could not download https://github.com/quarkiverse/quarkus-roq/blob/HEAD/jbang-catalog.json
+----
+
+To work offline, run the Roq CLI through JBang in offline mode. JBang then uses the cached catalog and dependencies instead of contacting the network:
+
+[source,shell]
+----
+jbang --offline run roq@quarkiverse/quarkus-roq generate --offline
+jbang --offline run roq@quarkiverse/quarkus-roq start --offline
+----
+
+* The first `--offline` (before `run`) is for JBang: use the cached catalog and dependencies, never go online.
+* The second `--offline` (after the Roq command) is passed to Maven or Gradle so that the build itself does not try to download anything.
+
+NOTE: This requires having run `roq` online at least once (to cache the CLI), and having built the project online at least once (to cache its dependencies in the local Maven or Gradle repository).
+
+TIP: If you often work offline, define a shell alias, for example `alias roq-offline='jbang --offline run roq@quarkiverse/quarkus-roq'`, then use `roq-offline generate --offline`.
+
 [#editor]
 == Editor
 
