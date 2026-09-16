@@ -72,6 +72,14 @@ public class RoqThemeDefaultTest {
     }
 
     @Test
+    public void test404BodyClassMatchesWrapperDivClass() {
+        final String body = RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        assertThat(body).containsPattern("<body[^>]*class=\"[^\"]*page-not-found[^\"]*\"");
+        assertThat(body).containsPattern("<div class=\"wrapper[^\"]*page-not-found[^\"]*\"");
+    }
+
+    @Test
     public void testStyle() {
         final String body = RestAssured.when().get(bundle.style("app")).then().statusCode(200).log().ifValidationFails()
                 .extract()

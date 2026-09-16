@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.resolveDefaultLayout;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.applyContentTransforms;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.getMarkup;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DEPRECATED_ALIASES;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.ESCAPE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAYOUT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.QUTE;
@@ -11,6 +12,8 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_
 
 import java.util.List;
 import java.util.Optional;
+
+import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.FrontMatterTemplateMetadata;
@@ -22,6 +25,8 @@ import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterAssembleUtils {
+
+    private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterAssembleUtils.class);
 
     private RoqFrontMatterAssembleUtils() {
     }
@@ -54,6 +59,7 @@ public final class RoqFrontMatterAssembleUtils {
             List<RoqFrontMatterDataModificationBuildItem> dataModifications) {
 
         JsonObject data = metadata.parsedHeaders().data().copy();
+        normalizeDeprecatedAliases(data, metadata);
         String content = metadata.parsedHeaders().content();
 
         LayoutRef layoutRef = resolveLayoutRef(data, isPage, metadata.isPartial(), collection, config);
@@ -87,6 +93,28 @@ public final class RoqFrontMatterAssembleUtils {
 
         return new ProcessedTemplate(source, layoutId, data,
                 transformed.generatedTemplate());
+    }
+
+    /**
+     * Copy deprecated camelCase FrontMatter keys to their hyphenated counterpart, so templates only
+     * ever read the canonical key. This runs per template, before {@code mergeParents} flattens the
+     * layout chain, which is what lets a page's deprecated key still override a layout's default.
+     * The deprecated key is kept so templates reading it directly keep working.
+     */
+    private static void normalizeDeprecatedAliases(JsonObject data, FrontMatterTemplateMetadata metadata) {
+        for (var alias : DEPRECATED_ALIASES.entrySet()) {
+            if (!data.containsKey(alias.getKey())) {
+                continue;
+            }
+            if (data.containsKey(alias.getValue())) {
+                LOGGER.warnf("'%s' is deprecated and ignored because '%s' is also set in '%s', use '%s' only.",
+                        alias.getKey(), alias.getValue(), metadata.sourceFile().relativePath(), alias.getValue());
+                continue;
+            }
+            LOGGER.warnf("'%s' is deprecated in '%s', use '%s' instead.",
+                    alias.getKey(), metadata.sourceFile().relativePath(), alias.getValue());
+            data.put(alias.getValue(), data.getValue(alias.getKey()));
+        }
     }
 
     // ── Layout helpers ──────────────────────────────────────────────────
