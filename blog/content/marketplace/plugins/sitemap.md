@@ -59,8 +59,8 @@ and the page holding the include never links to itself.
 </nav>
 ```
 
-Style it through the `.roq-sitemap` class, or target a group with `.roq-sitemap-pages`, `.roq-sitemap-collection`
-or `[data-collection="posts"]`.
+The default theme styles it out of the box. To customize it, target the `.roq-sitemap` class, or a specific group
+with `.roq-sitemap-pages`, `.roq-sitemap-collection` or `[data-collection="posts"]`.
 
 ## Excluding pages
 

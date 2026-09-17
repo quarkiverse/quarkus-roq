@@ -6,7 +6,7 @@
         <h2>Pages</h2>
         <ul>
         {#for p in pages}
-            <li><a href="{p.url.path}">{p.title}</a></li>
+            <li><a href="{p.url.path}">{p.title}{#if p.paginator and p.paginator.total > 1} <span class="roq-sitemap-page-number">({fm:pageNumber(p.paginator.currentIndex, p.paginator.total)})</span>{/if}</a></li>
         {/for}
         </ul>
     </section>
