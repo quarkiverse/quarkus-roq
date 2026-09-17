@@ -1,0 +1,25 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+<nav class="roq-sitemap">
+    {#let pages=site.sitemapPages(page)}
+    {#if pages.size > 0}
+    <section class="roq-sitemap-group roq-sitemap-pages">
+        <h2>Pages</h2>
+        <ul>
+        {#for p in pages}
+            <li><a href="{p.url.path}">{p.title}{#if p.paginator and p.paginator.total > 1} <span class="roq-sitemap-page-number">({fm:pageNumber(p.paginator.currentIndex, p.paginator.total)})</span>{/if}</a></li>
+        {/for}
+        </ul>
+    </section>
+    {/if}
+    {/let}
+    {#for collection in site.sitemapCollections}
+    <section class="roq-sitemap-group roq-sitemap-collection" data-collection="{collection.id}">
+        <h2>{collection.id.capitalizeFirst}</h2>
+        <ul>
+        {#for doc in collection.sitemapDocuments}
+            <li><a href="{doc.url.path}">{doc.title}</a></li>
+        {/for}
+        </ul>
+    </section>
+    {/for}
+</nav>

@@ -1,0 +1,40 @@
+/* Sitemap Styles */
+
+@layer components {
+
+    .roq-sitemap {
+        @apply flex flex-col gap-8 m-0 p-0 list-none;
+    }
+
+    .roq-sitemap-group {
+        @apply p-4 sm:p-6 rounded-lg border border-neutral-200;
+        @apply bg-neutral-50/50;
+        @apply dark:border-neutral-700 dark:bg-neutral-800/30;
+    }
+
+    .roq-sitemap-group h2 {
+        @apply text-base font-bold text-accent-900 mt-0 mb-3;
+        @apply dark:text-accent-400;
+    }
+
+    .roq-sitemap-group ul {
+        @apply m-0 p-0 pl-5 list-disc list-outside space-y-3;
+        @apply columns-3xs gap-8;
+        @apply marker:text-accent-300 dark:marker:text-accent-700;
+    }
+
+    .roq-sitemap-group li {
+        @apply m-0 p-0 break-inside-avoid-column;
+    }
+
+    .roq-sitemap-group a {
+        @apply no-underline text-accent-700;
+        @apply transition-colors duration-200;
+        @apply hover:text-accent-900 hover:underline hover:underline-offset-2;
+        @apply dark:text-accent-400/80 dark:hover:text-accent-300;
+    }
+
+    .roq-sitemap-page-number {
+        @apply text-neutral-500 dark:text-neutral-400;
+    }
+}
