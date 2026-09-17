@@ -26,7 +26,8 @@ import io.yupiik.asciidoc.parser.resolver.RelativeContentResolver;
  * {@link MarkdownRenderer}.
  * <p>
  * The conversion never fails a build: any problem is logged at WARN and the caller gets an empty result, so the page
- * simply has no twin.
+ * simply has no twin. That includes {@link StackOverflowError}, which a page whose attribute value references its
+ * own name provokes in the parser, because a deeply recursive page must cost only its own twin.
  */
 public final class AsciidocMarkdownConverter {
 
@@ -73,7 +74,7 @@ public final class AsciidocMarkdownConverter {
             final MarkdownRenderer renderer = new MarkdownRenderer(attributes, fallbackTitle);
             renderer.visit(document);
             return Optional.of(renderer.result());
-        } catch (IOException | RuntimeException e) {
+        } catch (IOException | RuntimeException | StackOverflowError e) {
             LOG.warnf(e, "Markdown twin: AsciiDoc conversion failed for %s, skipping", source);
             return Optional.empty();
         }

@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.plugin.markdowntwin.deployment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -507,6 +508,21 @@ class MarkdownRendererTest {
     @Test
     void converterReturnsEmptyForAMissingFile() {
         assertThat(AsciidocMarkdownConverter.convert(tmp.resolve("absent.adoc"), Map.of(), null)).isEmpty();
+    }
+
+    @Test
+    void converterSurvivesAnAttributeThatReferencesItself() throws IOException {
+        // The parser evaluates attribute values lazily, so a value naming its own attribute recurses and the
+        // failure arrives as a StackOverflowError rather than an exception (yupiik/tools-maven-plugin#122).
+        // Whatever the parser does with such a page, the converter must not take the build down with it.
+        final Path page = tmp.resolve("self-reference.adoc");
+        Files.writeString(page, """
+                = Self reference
+                :a: {a}
+
+                See {a} here.
+                """);
+        assertThatCode(() -> AsciidocMarkdownConverter.convert(page, Map.of(), null)).doesNotThrowAnyException();
     }
 
     @Test
