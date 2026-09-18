@@ -55,6 +55,20 @@ public class AsciidocHeaderParser {
     // Matches attribute entries: :name: value, :!name: (unset), :name!: (unset)
     private static final Pattern ATTRIBUTE_ENTRY = Pattern.compile("^:(!?\\w[^:]*):(?:[ \\t]+(.*))?$");
 
+    // TODO: if https://github.com/yupiik/tools-maven-plugin/issues/100 is resolved, the
+    //  resolveAttributeReferences method and its three call sites in toPageData() can be
+    //  removed, reverting those lines to plain header.title() / attributes.get(...) calls.
+    //  Yupiik's Parser already has a private earlyAttributeReplacement(String, Map<String,String>)
+    //  method that does this — if it were package-visible we could call it directly instead.
+
+    // Matches an attribute reference such as {my-title}.
+    // Attribute names must start with a word character and may contain word characters and
+    // hyphens, per the AsciiDoc specification. This is intentionally stricter than Yupiik's
+    // own ATTRIBUTE_VALUE pattern (\{(?<name>[^ }]+)}), which accepts any non-space, non-}
+    // character. The tighter pattern avoids false matches on Qute expressions such as
+    // {data.field} or shell-style substitutions that may appear in content.
+    private static final Pattern ATTRIBUTE_REFERENCE = Pattern.compile("\\{(\\w[\\w-]*)}");
+
     public static RoqFrontMatterHeaderParserBuildItem createBuildItem(boolean qute, Predicate<TemplateContext> isApplicable) {
         return new RoqFrontMatterHeaderParserBuildItem(isApplicable, templateContext -> {
             Parser parser = new Parser();
@@ -92,10 +106,7 @@ public class AsciidocHeaderParser {
             }
         }
         if (!header.title().isBlank()) {
-            pageData.put(TITLE, header.title());
-        }
-        if (header.attributes().containsKey(DESCRIPTION) && !header.attributes().get(DESCRIPTION).isBlank()) {
-            pageData.put(DESCRIPTION, header.attributes().get("description"));
+            pageData.put(TITLE, resolveAttributeReferences(header.title(), attributes));
         }
 
         if ((header.author() != null) && !header.author().isEmpty()
@@ -112,12 +123,39 @@ public class AsciidocHeaderParser {
                     .put("remark", header.revision().revmark()));
         }
         if (attributes.containsKey("description")) {
-            pageData.put(DESCRIPTION, attributes.get("description"));
+            pageData.put(DESCRIPTION, resolveAttributeReferences(attributes.get("description"), attributes));
         }
         if (attributes.containsKey("image")) {
-            pageData.put("image", attributes.get("image"));
+            pageData.put("image", resolveAttributeReferences(attributes.get("image"), attributes));
         }
         return pageData;
+    }
+
+    // TODO: this method and its call sites in toPageData() can be deleted once
+    //  https://github.com/yupiik/tools-maven-plugin/issues/100 is resolved and Yupiik
+    //  substitutes attribute references in header fields (title, attribute values) itself.
+    //  (Yupiik's Parser already has a private earlyAttributeReplacement method for this purpose.)
+    //
+    // Resolves attribute references such as {my-attr} against the document header attributes.
+    // The Yupiik parser reads the title line before the header attribute entries (and before any
+    // include::_attributes.adoc[] in the header), so it never substitutes attribute references in
+    // the doctitle. Asciidoctor, by contrast, defers doctitle substitution until the whole header
+    // (includes and all) is parsed. We reproduce that here using the fully resolved header
+    // attributes. Unknown references are left untouched, matching Asciidoctor's default
+    // attribute-missing=skip behaviour.
+    static String resolveAttributeReferences(String value, Map<String, String> attributes) {
+        if (value == null || value.indexOf('{') < 0) {
+            return value;
+        }
+        Matcher matcher = ATTRIBUTE_REFERENCE.matcher(value);
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            String replacement = attributes.containsKey(name) ? attributes.get(name) : matcher.group();
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+        return result.toString();
     }
 
     public static Map<String, String> processAttributes(Map<String, String> input) {
@@ -139,6 +177,14 @@ public class AsciidocHeaderParser {
     // Pre-process ifdef/ifndef/endif/ifeval directives, evaluating conditions against
     // attributes defined so far in the header. This mirrors (in simplified form) what the
     // reference Asciidoctor preprocessor does before header parsing.
+    //
+    // NOTE: Yupiik 1.2.16 handles block-form ifdef/ifndef/ifeval in readAttributes() natively,
+    // but silently drops the inline form (ifdef::attr[content] on a single line) and stops header
+    // parsing there. This pre-pass is still required to cover that case correctly. Once
+    // https://github.com/yupiik/tools-maven-plugin/issues/102 is resolved the pre-pass and
+    // everything it uses (SIMPLE_CONDITIONAL, CONDITIONAL_DIRECTIVE, COMMA, PLUS, isIncluding,
+    // evaluateCondition, trackAttribute) can be removed entirely.
+    //
     // NOTE: attributes set externally (e.g. via quarkus.asciidoc.attributes in the pom or
     // environment variables) are not yet available here — only attributes defined within the
     // document header itself are tracked. Supporting external attributes would require threading
