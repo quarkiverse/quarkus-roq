@@ -14,9 +14,6 @@ nav:
   - title: "Roqers"
     path: "/roqers/"
     icon: "fa fa-guitar"
-  - title: "Sitemap"
-    path: "/sitemap/"
-    icon: "fa-solid fa-sitemap"
 doc:
   - title: "Getting Started"
     path: "/docs/getting-started/"
