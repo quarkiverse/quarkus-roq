@@ -1,0 +1,22 @@
+@layer components {
+    .toc-sidebar { @apply w-full lg:w-64 shrink-0 order-2 lg:order-1 mt-8 lg:mt-0; }
+    .toc-sticky { @apply static top-8 max-h-none lg:sticky lg:max-h-[calc(100vh-4rem)] rounded-lg p-5 bg-card border-card-border border overflow-y-auto; }
+    .toc-sticky::-webkit-scrollbar { @apply w-4; }
+    .toc-sticky::-webkit-scrollbar-track { @apply bg-transparent; }
+    .toc-sticky::-webkit-scrollbar-thumb { @apply rounded-sm bg-border-strong; }
+    .toc-sticky::-webkit-scrollbar-thumb:hover { @apply text-tertiary; }
+    .toc-header { @apply text-base font-bold mb-3 flex items-center gap-2 text-primary; }
+    .toc-emoji { @apply text-base; }
+    .toc-list { @apply space-y-0 list-none; }
+    .toc-item { @apply leading-normal; }
+    .toc-h2 { @apply mb-0; }
+    .toc-sublist { @apply ml-6 mt-1 space-y-0.5 pl-3 border-l-2 list-none; }
+    .toc-link { @apply transition-colors text-sm block py-0.5 no-underline; }
+    .toc-link:hover { @apply text-accent-300; }
+    .toc-link.active { @apply font-bold text-accent-400; }
+    .toc-number { @apply font-normal mr-1 text-tertiary; }
+    .toc-link.active .toc-number { @apply text-accent-400; }
+    .toc-bullet { @apply mr-1.5; }
+    .toc-h3 .toc-link { @apply text-xs; }
+    .toc-h3 .toc-link.active { @apply font-bold text-accent-400; }
+}
