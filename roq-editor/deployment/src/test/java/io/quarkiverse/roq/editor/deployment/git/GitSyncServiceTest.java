@@ -53,6 +53,7 @@ class GitSyncServiceTest {
         StoredConfig config = localRepository.getRepository().getConfig();
         config.setString("user", null, "name", "Test User");
         config.setString("user", null, "email", "test@test.com");
+        config.setInt("gc", null, "auto", 0);
         String branch = localRepository.getRepository().getBranch();
         config.setString("branch", branch, "remote", "origin");
         config.setString("branch", branch, "merge", "refs/heads/" + branch);
