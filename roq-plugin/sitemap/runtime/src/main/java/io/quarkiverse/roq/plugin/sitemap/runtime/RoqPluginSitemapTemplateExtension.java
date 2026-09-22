@@ -54,7 +54,7 @@ public class RoqPluginSitemapTemplateExtension {
      */
     public static List<RoqCollection> sitemapCollections(Site site) {
         return site.collections().list().stream()
-                .filter(c -> !c.hidden() && !c.derived() && !sitemapDocuments(c).isEmpty())
+                .filter(c -> !c.hidden() && !c.derived() && c.stream().anyMatch(RoqPluginSitemapTemplateExtension::sitemap))
                 .toList();
     }
 
