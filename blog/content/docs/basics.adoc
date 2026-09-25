@@ -562,7 +562,22 @@ Common values:
 * `nofollow` — don't follow links from this page
 * `noindex, nofollow` — combine both
 
-The `<meta name="robots">` tag is only rendered when the `robots` key is set on the page.
+The `<meta name="robots">` tag is rendered when the `robots` key is set on the page, or as `noindex` when the page sets `no-index-all: true` (see <<no-index-all>>).
+
+[[no-index-all]]
+==== Excluding a page from all indexes (per page)
+
+Set `no-index-all: true` in a page's (or document's) FrontMatter to keep it out of every index at once: the link:/plugin/sitemap/[sitemap], <<llmstxt,llms.txt>>, the link:/plugin/lunr-search/[search index], and any other indexation plugin. It also defaults the `robots` meta tag to `noindex`.
+
+[source,yaml]
+----
+---
+title: "Section Header"
+no-index-all: true
+---
+----
+
+A plugin key set on the same page wins over it. The check order is: the plugin key (`sitemap`, `llmstxt`, `search`), then `no-index-all`, then the default (indexed). For example, `no-index-all: true` with `llmstxt: true` keeps the page in llms.txt only, and `robots: "index, follow"` keeps that explicit `robots` value.
 
 Configure site-wide SEO defaults through the site index frontmatter:
 
@@ -669,7 +684,7 @@ To enable llms.txt generation, create the following content files:
 {#include fm/llms-full.html}
 ----
 
-To exclude a specific page, set `llmstxt: false` in its frontmatter.
+To exclude a specific page, set `llmstxt: false` in its frontmatter. A page with `no-index-all: true` (see <<no-index-all>>) is excluded too, unless it sets `llmstxt: true`.
 
 ==== Loading Roq context in your AI assistant
 
