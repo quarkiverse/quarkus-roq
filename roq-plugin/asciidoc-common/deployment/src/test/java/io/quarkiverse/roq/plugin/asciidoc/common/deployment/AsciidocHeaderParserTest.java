@@ -648,6 +648,185 @@ class AsciidocHeaderParserTest {
         }
     }
 
+    @Nested
+    class TitleAttributeReferences {
+
+        @Test
+        void shouldResolveTitleFromAttributeDefinedInHeader() {
+            // The Yupiik parser reads the title line before the attribute entries, so it never
+            // substitutes {attr} in the doctitle. We resolve it against the header attributes,
+            // matching Asciidoctor.
+            String content = """
+                    = {my-guide-title}
+                    :my-guide-title: Some parameterized title
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("title")).isEqualTo("Some parameterized title");
+        }
+
+        @Test
+        void shouldResolveTitleFromAttributeDefinedInHeaderInclude() {
+            // Mirrors the real guides: the title references an attribute defined via
+            // include::_attributes.adoc[] on the line immediately after the title.
+            String content = """
+                    = {my-guide-title}
+                    include::_attributes.adoc[]
+
+                    Body.
+                    """;
+
+            TemplateContext ctx = new TemplateContext(
+                    Path.of("src/test/resources/attribute-title/index.adoc").toAbsolutePath(),
+                    "attribute-title/index.adoc", content);
+            JsonObject result = buildItem.parse().apply(ctx);
+            assertThat(result.getString("title")).isEqualTo("Some parameterized title");
+        }
+
+        @Test
+        void shouldResolveTitleWithSurroundingLiteralText() {
+            String content = """
+                    = Using {my-thing} in Quarkus
+                    :my-thing: the TLS registry
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("title")).isEqualTo("Using the TLS registry in Quarkus");
+        }
+
+        @Test
+        void shouldLeaveUnknownAttributeReferenceUntouched() {
+            // Matches Asciidoctor's default attribute-missing=skip behaviour.
+            String content = """
+                    = {not-defined}
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("title")).isEqualTo("{not-defined}");
+        }
+
+        @Test
+        void shouldLeaveLiteralTitleUntouched() {
+            String content = """
+                    = My Title
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("title")).isEqualTo("My Title");
+        }
+    }
+
+    @Nested
+    class DescriptionAttributeReferences {
+
+        @Test
+        void shouldResolveDescriptionFromAttributeDefinedInHeader() {
+            String content = """
+                    = My Title
+                    :product: Quarkus
+                    :description: A guide to {product}.
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("description")).isEqualTo("A guide to Quarkus.");
+        }
+
+        @Test
+        void shouldResolveDescriptionWithMultipleReferences() {
+            String content = """
+                    = My Title
+                    :product: Quarkus
+                    :version: 3.x
+                    :description: Using {product} {version} in production.
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("description")).isEqualTo("Using Quarkus 3.x in production.");
+        }
+
+        @Test
+        void shouldLeaveUnknownReferenceInDescriptionUntouched() {
+            String content = """
+                    = My Title
+                    :description: Covers {not-defined} topics.
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("description")).isEqualTo("Covers {not-defined} topics.");
+        }
+
+        @Test
+        void shouldLeaveLiteralDescriptionUntouched() {
+            String content = """
+                    = My Title
+                    :description: A plain description with no references.
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("description")).isEqualTo("A plain description with no references.");
+        }
+    }
+
+    @Nested
+    class ImageAttributeReferences {
+
+        @Test
+        void shouldResolveImageFromAttributeDefinedInHeader() {
+            String content = """
+                    = My Title
+                    :imagesdir: /assets/images
+                    :image: {imagesdir}/hero.png
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("image")).isEqualTo("/assets/images/hero.png");
+        }
+
+        @Test
+        void shouldLeaveUnknownReferenceInImageUntouched() {
+            String content = """
+                    = My Title
+                    :image: {imagesdir}/hero.png
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("image")).isEqualTo("{imagesdir}/hero.png");
+        }
+
+        @Test
+        void shouldLeaveLiteralImageUntouched() {
+            String content = """
+                    = My Title
+                    :image: /assets/images/hero.png
+
+                    Body.
+                    """;
+
+            JsonObject result = parse(content);
+            assertThat(result.getString("image")).isEqualTo("/assets/images/hero.png");
+        }
+    }
+
     // --- stripConditionalDirectives unit tests ---
 
     @Nested
