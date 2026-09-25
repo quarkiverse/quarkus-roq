@@ -79,6 +79,9 @@ search: false
 ---
 ```
 
+`no-index-all: true` keeps a page out of the search index and of every other index at once (sitemap, llms.txt, and it
+defaults the `robots` meta tag to `noindex`). Set `search: true` on the same page to index it anyway.
+
 You can also boost specific pages or layouts in the results using `search-boost`:
 
 ```yaml

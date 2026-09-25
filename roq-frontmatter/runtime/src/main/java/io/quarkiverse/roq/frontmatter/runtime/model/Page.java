@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.NO_INDEX_ALL;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl.isAbsolute;
@@ -75,6 +76,14 @@ public class Page {
      */
     public String id() {
         return source().id();
+    }
+
+    /**
+     * Whether this page is excluded from all indexes (`no-index-all` from FM data): sitemap, llms.txt, search index
+     * and any other indexation plugin. A plugin key set on the page (e.g. `sitemap: true`) wins over it.
+     */
+    public boolean noIndexAll() {
+        return data().getBoolean(NO_INDEX_ALL, false);
     }
 
     /**
