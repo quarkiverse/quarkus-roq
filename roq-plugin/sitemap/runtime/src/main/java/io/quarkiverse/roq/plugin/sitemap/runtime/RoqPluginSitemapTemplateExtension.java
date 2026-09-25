@@ -27,7 +27,7 @@ public class RoqPluginSitemapTemplateExtension {
     }
 
     public static boolean sitemap(Page page) {
-        return page.data().getBoolean(SITEMAP, true);
+        return page.data().getBoolean(SITEMAP, !page.noIndexAll());
     }
 
     /**

@@ -206,6 +206,30 @@ public interface RoqFrontMatterKeys {
      */
     String BODY_CLASS = "body-class";
 
+    // ── Indexation ──────────────────────────────────────────────────────
+
+    /**
+     * Exclude from all indexes at once — e.g. {@code no-index-all: true} (default: false).
+     * Skips the page in the sitemap, llms.txt, the search index and any other indexation plugin, and defaults
+     * {@code robots} to {@code noindex}. A plugin key ({@code sitemap}, {@code llmstxt}, {@code search}, ...) set on the
+     * page wins over it.
+     * <br>
+     * ▸ Scope: page / document
+     * <br>
+     * ▸ Access: {@code page.noIndexAll()}
+     */
+    String NO_INDEX_ALL = "no-index-all";
+
+    /**
+     * Include/exclude from llms.txt and llms-full.txt — e.g. {@code llmstxt: false} (default: true, or false when
+     * {@code no-index-all: true})
+     * <br>
+     * ▸ Scope: page / document
+     * <br>
+     * ▸ Access: {@code page.data.getBoolean("llmstxt")}
+     */
+    String LLMSTXT = "llmstxt";
+
     /**
      * Deprecated camelCase aliases, normalized to their hyphenated counterpart when assembling
      * a template's FrontMatter.
