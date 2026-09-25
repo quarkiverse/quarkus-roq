@@ -34,7 +34,7 @@ src/main/resources/
 
 ### FrontMatter Pages
 
-Pages in `content/` use YAML frontmatter between `---` delimiters. Supported formats: `.md` (Markdown), `.html`, `.adoc` (AsciiDoc).
+Pages in `content/` use YAML frontmatter between `---` delimiters. Supported formats: `.md` (Markdown), `.html`, `.adoc` (AsciiDoc). Data-like templates (`.json`, `.yaml`, `.yml`, `.xml`) are also processed. Other text files (e.g. `.txt`) must use the `.qute.` suffix: `content/llms.qute.txt` is generated as `/llms.txt` (the template suffixes are configured with `quarkus.qute.suffixes`).
 
 ```yaml
 ---
@@ -473,4 +473,5 @@ For advanced Qute template needs (e.g. `@TemplateExtension` to add custom method
 - **Layout resolution** — `layout: page` resolves local first, then theme fallback (themes require full `quarkus-roq`). Use `theme-layout: page` to explicitly target the theme layout.
 - **Date format in filenames** — Collection documents must use `YYYY-MM-DD-slug.md` format for date extraction.
 - **Image resolution** — Images can be: a full URL (`https://...`), a filename resolved from `public/images/`, or an attached file name for directory-based pages. Do NOT use the `images/` prefix in frontmatter or template calls (e.g. `image: photo.jpg`, not `image: images/photo.jpg`).
+- **Plain `.txt` files in `content/`** — A file like `content/llms.txt` is NOT a template and is NOT served (non-template files are only served as attachments of an `index` page in a subdirectory). Name it `content/llms.qute.txt` to render it as `/llms.txt`, or put a static file in `public/`. Adding `txt` to `quarkus.qute.suffixes` works but turns every `.txt` in `content/` (including page attachments) into a Qute template.
 - **Escaping Qute** — With alt syntax enabled, plain `{expression}` is not evaluated, so escaping is not needed. Without alt syntax, use `\{expression}` to escape Qute expressions that should be rendered literally. You can also add pages to `site.escaped-pages` config to skip Qute parsing entirely.
