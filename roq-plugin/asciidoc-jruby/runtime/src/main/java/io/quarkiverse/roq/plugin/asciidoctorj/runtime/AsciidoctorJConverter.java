@@ -32,20 +32,27 @@ public class AsciidoctorJConverter {
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
+    private final SafeMode safeMode;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
-        this(config.attributes());
+        this(config.attributes(), config.safeMode());
     }
 
     public AsciidoctorJConverter(Map<String, String> configuredAttributes) {
+        this(configuredAttributes, SafeMode.SAFE);
+    }
+
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, SafeMode safeMode) {
         this.configuredAttributes = configuredAttributes;
+        this.safeMode = safeMode;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
         asciidoctor.requireLibrary("asciidoctor-diagram");
         asciidoctor.javaExtensionRegistry().includeProcessor(new AsciidocJInclude());
-        LOG.infof("Asciidoctorj started in %sms", Duration.between(start, Instant.now()).toMillis());
+        LOG.infof("Asciidoctorj started in %sms with safe mode: %s", Duration.between(start, Instant.now()).toMillis(),
+                safeMode);
 
     }
 
@@ -92,7 +99,7 @@ public class AsciidoctorJConverter {
             attributes.attribute("docname", StringPaths.removeExtension(sourcePath.getFileName().toString()));
         }
         return optionsBuilder
-                .safe(SafeMode.SAFE)
+                .safe(safeMode)
                 .backend("html5")
                 .attributes(attributes.build())
                 .build();
