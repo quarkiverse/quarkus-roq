@@ -44,7 +44,7 @@ tags: qute, roq, tutorial
 == Content
 
 The `content/` directory contains the <<site-index, site index page>> and all the <<pages>> and <<collections>> (such as blog posts). It may also contain attached static files (<<page-files>>).
-Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or using <<Markup languages>>.
+Content templates can be written in `html`, `json`, `yaml`, `yml`, or `xml` or using <<Markup languages>>. Other text formats (such as `.txt`) need the <<qute-suffix, `.qute.` suffix>> to be processed.
 
 NOTE: We sometimes refer to pages in collections as documents, documents are just a special kind of pages.
 
@@ -111,6 +111,33 @@ __{=page.data.the-rope}!__ <3>
 <3> FM data is available through `page.data`.
 
 NOTE: By default, pages use the `page` layout and documents in collections use the `post` layout (from the theme if <<install-theme, using one>>). You can override this with `layout:` in the FrontMatter.
+
+[#qute-suffix]
+=== Other text files (`.qute.` suffix)
+
+Only files with a template extension are processed and served from `content/`. By default, these are `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, `xml` and the <<Markup languages, markup>> extensions (`md`, `adoc`, ...).
+
+To serve another text file as a template (e.g. `llms.txt`, `humans.txt`), insert `.qute` before its extension. The `.qute` part is removed from the generated file name:
+
+[source]
+----
+content/
+├── llms.qute.txt   // <1>
+└── humans.qute.txt // <2>
+----
+<1> generated as `/llms.txt`
+<2> generated as `/humans.txt`
+
+WARNING: A non-template file placed in `content/` is not a page. It is only served when it is <<page-files, attached to a page>> (next to an `index` page in a subdirectory). A file like `content/llms.txt` is *not* served. Use `content/llms.qute.txt` if it needs Qute, or put it in `public/` if it is a plain <<site-static, static file>>.
+
+If you prefer to keep the original file names, you can add extensions to the list of template suffixes in your `config/application.properties`. You must keep the default values in the list:
+
+[source,properties]
+----
+quarkus.qute.suffixes=html,xhtml,htm,json,yaml,yml,xml,qute.txt,txt
+----
+
+CAUTION: With `txt` in the list, *every* `.txt` file in `content/` is processed as a Qute template, including files attached to pages. This is why `txt` is not a default suffix. Any `{` in those files may be parsed as a Qute expression.
 
 === Markup languages
 
@@ -668,6 +695,8 @@ To enable llms.txt generation, create the following content files:
 ----
 {#include fm/llms-full.html}
 ----
+
+NOTE: The `.qute` part is required for `.txt` files to be processed as templates, it is removed from the generated file name (see <<qute-suffix>>).
 
 To exclude a specific page, set `llmstxt: false` in its frontmatter.
 
