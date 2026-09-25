@@ -136,8 +136,11 @@ public class RoqBlogTest {
 
     @Test
     public void testTwinOptOut() {
-        // markups/twin-optout.md sets `llmstxt: false`, reusing the existing llms.txt opt-out, so no twin is published.
+        // markups/twin-optout.md sets `mdtwin: false`, so no twin is published; the key is independent of `llmstxt`, so
+        // the page is still listed in llms.txt.
         RestAssured.when().get("/markups/twin-optout/index.md").then().statusCode(404);
+        RestAssured.when().get("/llms.txt").then().statusCode(200)
+                .body(containsString("[Twin Opt-Out Test](/markups/twin-optout/)"));
     }
 
     @Test

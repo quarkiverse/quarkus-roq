@@ -1,7 +1,7 @@
 ---
 title: Twin Opt-Out Test
-llmstxt: false
+mdtwin: false
 ---
 # Twin opt-out
 
-This page sets `llmstxt: false`, so the Markdown Twin plugin must not publish a `.md` twin for it.
+This page sets `mdtwin: false`, so the Markdown Twin plugin must not publish a `.md` twin for it.

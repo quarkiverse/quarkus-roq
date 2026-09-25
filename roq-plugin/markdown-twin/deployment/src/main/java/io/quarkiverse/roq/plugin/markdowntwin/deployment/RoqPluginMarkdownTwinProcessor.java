@@ -18,6 +18,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStatic
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.plugin.markdowntwin.runtime.RoqMarkdownTwinKeys;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -56,14 +57,15 @@ public class RoqPluginMarkdownTwinProcessor {
             List<RoqFrontMatterPageTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
         final Map<String, String> configuredAttributes = configuredAttributes();
+        int twins = 0;
         for (RoqFrontMatterPageTemplateBuildItem item : templates) {
             final PageSource source = item.source();
             // Only real content pages that render to HTML; skip the site index.
             if (!source.isTargetHtml() || source.isSiteIndex()) {
                 continue;
             }
-            // Reuse the existing llms.txt opt-out: `llmstxt: false` suppresses the twin too.
-            if (!item.data().getBoolean("llmstxt", true)) {
+            // `mdtwin: false` in the page's front matter opts it out.
+            if (!item.data().getBoolean(RoqMarkdownTwinKeys.MDTWIN, true)) {
                 continue;
             }
             final String twinPath = twinPath(item.url().resourcePath());
@@ -87,8 +89,10 @@ public class RoqPluginMarkdownTwinProcessor {
             }
             staticFiles.produce(new RoqFrontMatterStaticFileBuildItem(twinPath,
                     markdown.getBytes(StandardCharsets.UTF_8)));
-            LOG.infof("Markdown twin: /%s (from %s)", twinPath, markup);
+            twins++;
+            LOG.debugf("Markdown twin: /%s (from %s)", twinPath, markup);
         }
+        LOG.infof("Generated %d Markdown twins", twins);
     }
 
     /**
