@@ -66,3 +66,18 @@ with `.roq-sitemap-pages`, `.roq-sitemap-collection` or `[data-collection="posts
 
 Use `sitemap: false` in the FM data to keep a page or a document out of both sitemaps. The page holding the HTML
 include is left out of its own listing, but still appears in `sitemap.xml` so search engines can index it.
+
+## Last modified date
+
+Each `<lastmod>` uses the `last-modified-at` FM data when set, otherwise it is computed depending on
+`quarkus.roq.sitemap.last-modified`:
+
+- `git` (default): the date of the last git commit touching the file (the file system date for uncommitted files)
+- `fs`: the file system last modification date
+- `none`: not computed, the page date is used
+
+To keep dev mode fast on large sites, the plugin uses `fs` in dev mode. To use git dates in dev mode too:
+
+```properties
+%dev.quarkus.roq.sitemap.last-modified=git
+```
