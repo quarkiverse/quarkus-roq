@@ -1,0 +1,1 @@
+:my-guide-title: Some parameterized title
