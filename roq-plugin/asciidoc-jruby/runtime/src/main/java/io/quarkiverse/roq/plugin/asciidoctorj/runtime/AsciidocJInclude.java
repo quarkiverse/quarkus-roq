@@ -51,8 +51,7 @@ public class AsciidocJInclude extends IncludeProcessor {
         Charset charset = Charset.forName((String) document.getAttributes().getOrDefault("encoding", "UTF-8"));
         final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
         final Path rootDir = Path.of(document.getOptions().getOrDefault(ROOTDIR, "").toString());
-        Path p = Path.of(target);
-        Path targetPath = (p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target)).normalize();
+        Path targetPath = resolveTargetPath(baseDir, dir, target);
 
         if (safeLevel >= SafeMode.SAFE.getLevel()) {
             if (!targetPath.startsWith(rootDir.normalize())) {
@@ -60,7 +59,7 @@ public class AsciidocJInclude extends IncludeProcessor {
             }
         }
 
-        String resourcePath = StringPaths.toUnixPath(targetPath.toString());
+        String resourcePath = resolveResourcePath(targetPath, rootDir);
         try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
             if (resource != null) {
                 pushInclude(reader, new String(resource.readAllBytes(), charset), target, targetPath, attributes);
@@ -122,6 +121,18 @@ public class AsciidocJInclude extends IncludeProcessor {
             return (String) attrs.get("tags");
         }
         return null;
+    }
+
+    public static Path resolveTargetPath(Path baseDir, String dir, String target) {
+        Path p = Path.of(target);
+        return (p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target)).normalize();
+    }
+
+    public static String resolveResourcePath(Path targetPath, Path rootDir) {
+        String resolved = targetPath.startsWith(rootDir)
+                ? rootDir.relativize(targetPath).toString()
+                : targetPath.toString();
+        return StringPaths.toUnixPath(resolved);
     }
 
     static Set<String> collectTagNames(List<String> lines) {
