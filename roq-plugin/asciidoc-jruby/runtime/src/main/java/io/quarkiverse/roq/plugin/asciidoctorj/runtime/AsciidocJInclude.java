@@ -63,7 +63,7 @@ public class AsciidocJInclude extends IncludeProcessor {
         String resourcePath = StringPaths.toUnixPath(targetPath.toString());
         try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
             if (resource != null) {
-                pushInclude(reader, new String(resource.readAllBytes(), charset), target, attributes);
+                pushInclude(reader, new String(resource.readAllBytes(), charset), target, targetPath, attributes);
                 return;
             }
         } catch (IOException e) {
@@ -76,15 +76,15 @@ public class AsciidocJInclude extends IncludeProcessor {
             return;
         }
         try {
-            pushInclude(reader, Files.readString(targetPath, charset), target, attributes);
+            pushInclude(reader, Files.readString(targetPath, charset), target, targetPath, attributes);
         } catch (IOException e) {
             log(new LogRecord(Severity.ERROR, "Can't read '" + target + "'"));
         }
 
     }
 
-    private void pushInclude(PreprocessorReader reader, String content, String target, Map<String, Object> attributes)
-            throws IOException {
+    private void pushInclude(PreprocessorReader reader, String content, String target, Path targetPath,
+            Map<String, Object> attributes) throws IOException {
         String tagsValue = resolveTagsValue(attributes);
         final String processedContent = String.join("\n", processInclude(content, attributes));
 
@@ -99,9 +99,16 @@ public class AsciidocJInclude extends IncludeProcessor {
             }
         }
 
+        // The reader derives its dir from the `file` argument, and that dir is what the next level of
+        // include:: resolves against. Passing `target` -- which is relative to the *including* file --
+        // loses the directory after two levels of nesting: a.adoc includes sub/b.adoc (reader dir
+        // becomes "sub", still right), b.adoc includes c.adoc (reader dir becomes "." because `target`
+        // carries no directory of its own), and c.adoc's includes are then looked for in the top
+        // directory instead of in sub/. Pass the resolved file, which is right at every depth, and
+        // keep `target` as the displayed path.
         reader.pushInclude(
                 processedContent,
-                target,
+                targetPath.toString(),
                 target,
                 1,
                 attributes);
