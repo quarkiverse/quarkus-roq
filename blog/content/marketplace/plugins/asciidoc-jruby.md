@@ -64,6 +64,16 @@ quarkus.asciidoc.attributes.source-highlighter=highlight.js
 quarkus.asciidoc.attributes.icons=font
 ```
 
+For boolean AsciiDoc attributes (flags that are either on or off, such as `sectanchors` or `sectnums`), use `true` as the value:
+
+```properties
+quarkus.asciidoc.attributes.sectanchors=true
+quarkus.asciidoc.attributes.sectnums=true
+quarkus.asciidoc.attributes.experimental=true
+```
+
+> Roq converts `true` to an empty string before passing to AsciidoctorJ, so these behave the same as `:sectanchors:` in an AsciiDoc header. This convention is needed because SmallRye Config does not support empty-string map values.
+
 Or as an include file in the AsciiDoc headers, or as part of the Frontmatter data `asciidoc-attributes` in a page or layout:
 
 ```yaml
