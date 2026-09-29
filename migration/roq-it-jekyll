@@ -69,7 +69,7 @@ add_underscore_prefix() {
 }
 
 ## Build the converter
-mvn -f ${tools_dir}/pom.xml install -q -DskipTests
+mvn -f ${tools_dir}/pom.xml install -q -DskipTests -DskipITs
 
 ## Ensure a clean state in the starting project
 
