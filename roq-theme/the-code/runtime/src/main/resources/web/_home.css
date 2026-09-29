@@ -1,0 +1,17 @@
+@layer components {
+    .intro { @apply mt-4 mb-2; }
+    .intro h1 { @apply text-5xl font-bold mb-4; }
+    .intro p { @apply text-xl text-secondary; }
+
+    .homepage-tagline { @apply text-xl text-secondary dark:text-tertiary; }
+    .homepage-link-text { @apply text-secondary dark:text-tertiary; }
+    .homepage-link { @apply underline transition-colors dark:text-primary; }
+    .homepage-link:hover { @apply text-primary; }
+
+    /* Home content wrapper (from default theme codestart) */
+    .home-content { @apply max-w-5xl mx-auto; }
+    .home-content h2 { @apply text-2xl font-bold mt-12 mb-4; }
+    .home-content h3 { @apply text-lg font-bold mt-8 mb-2; }
+    .home-content p { @apply text-secondary mb-4; }
+    .home-content code { @apply px-1.5 py-0.5 rounded text-sm bg-code-bg text-code-text; }
+}

@@ -1,0 +1,20 @@
+---
+layout: default
+paginate:
+  collection: posts
+  size: 10
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}
+
+{#if site.collections.posts}
+<div class="posts">
+  <h2>{page.title}</h2>
+  <div class="posts-wrapper">
+    {#for post in site.collections.posts.paginated(page.paginator)}
+    {#roq/postCard post site /}
+    {/for}
+  </div>
+
+  {#include partials/roq-the-code/pagination.html /}
+</div>
+{/if}

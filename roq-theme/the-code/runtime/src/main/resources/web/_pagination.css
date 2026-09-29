@@ -1,0 +1,12 @@
+@layer components {
+    .pagination { @apply flex flex-col justify-center items-center gap-4 mt-12; }
+    .pagination-selector { @apply flex gap-4; }
+    .pagination-pages { @apply flex items-center gap-2; }
+    .pagination-btn { @apply px-4 py-2 rounded transition-colors no-underline bg-surface-3 text-primary; }
+    .pagination-btn:hover { @apply bg-border-strong; }
+    .pagination-btn-disabled { @apply px-4 py-2 rounded cursor-not-allowed text-tertiary; }
+    .pagination-page { @apply px-3 py-2 rounded transition-colors no-underline bg-surface-3 text-primary; }
+    .pagination-page:hover { @apply bg-border-strong; }
+    .pagination-page-active { @apply px-3 py-2 rounded font-bold bg-accent-600 text-white; }
+    .pagination-info { @apply text-center text-sm mt-4 text-tertiary; }
+}
