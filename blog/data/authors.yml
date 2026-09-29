@@ -19,3 +19,10 @@ mcruzdev:
   job: Senior Software Engineer
   nickname: "mcruzdev"
   bio: "I am a passionate learner, open-source enthusiast, and Java developer with a drive for continuous improvement. When I’m not coding, you can find me on the Brazilian Jiu Jitsu mats, playing the guitar, or exploring new challenges. I believe in the power of community, collaboration, and creativity—both in and outside of tech."
+and-y:
+  name: "Andreas Fertsch-Röver"
+  avatar: "https://github.com/and-y.png"
+  profile: "https://github.com/and-y"
+  job: Senior Software & AI Solution Architect
+  nickname: "and-y"
+  bio: "I build enterprise-grade software with Java and Quarkus, and LLM-powered agents are part of my daily workflow."
