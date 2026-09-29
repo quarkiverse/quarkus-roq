@@ -29,17 +29,24 @@ public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
     public static final String ROOTDIR = "root_dir";
+    public static final String PAGEDIR = "page_dir";
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
+    private final AsciidoctorJConfig.BaseDir baseDir;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
-        this(config.attributes());
+        this(config.attributes(), config.baseDir());
     }
 
     public AsciidoctorJConverter(Map<String, String> configuredAttributes) {
+        this(configuredAttributes, AsciidoctorJConfig.BaseDir.PAGE);
+    }
+
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, AsciidoctorJConfig.BaseDir baseDir) {
         this.configuredAttributes = configuredAttributes;
+        this.baseDir = baseDir;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
@@ -86,9 +93,14 @@ public class AsciidoctorJConverter {
         final OptionsBuilder optionsBuilder = Options.builder();
         if (templateAttributes.sourcePath() != null) {
             Path sourcePath = Paths.get(templateAttributes.sourcePath());
-            Path templateDir = sourcePath.getParent();
-            optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());
-            optionsBuilder.option(ROOTDIR, templateAttributes.sourceRootPath());
+            Path pageDir = sourcePath.getParent().toAbsolutePath();
+            String rootDir = templateAttributes.sourceRootPath();
+            optionsBuilder.option(PAGEDIR, pageDir.toString());
+            optionsBuilder.option(ROOTDIR, rootDir);
+            // base_dir doubles as the safe-mode jail: everything the Ruby side (asciidoctor-diagram in
+            // particular) reads or writes has to live below it. Rooting it at the site directory lets
+            // diagrams share sources and write their images outside the page's own folder.
+            optionsBuilder.option(BASEDIR, resolveBaseDir(pageDir, rootDir).toString());
             attributes.attribute("docname", StringPaths.removeExtension(sourcePath.getFileName().toString()));
         }
         return optionsBuilder
@@ -96,6 +108,13 @@ public class AsciidoctorJConverter {
                 .backend("html5")
                 .attributes(attributes.build())
                 .build();
+    }
+
+    private Path resolveBaseDir(Path pageDir, String rootDir) {
+        if (baseDir == AsciidoctorJConfig.BaseDir.SITE && rootDir != null && !rootDir.isBlank()) {
+            return Paths.get(rootDir).toAbsolutePath();
+        }
+        return pageDir;
     }
 
     public String apply(String asciidoc,
