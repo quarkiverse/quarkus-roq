@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.plugin.sitemap.deployment;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LAST_MODIFIED_AT;
+import static io.quarkiverse.roq.plugin.sitemap.runtime.RoqSitemapKeys.SITEMAP;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.eclipse.jgit.lib.Constants;
@@ -41,6 +43,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.runtime.LaunchMode;
+import io.vertx.core.json.JsonObject;
 
 public class RoqPluginSitemapProcessor {
     private static final Logger LOGGER = org.jboss.logging.Logger.getLogger(RoqPluginSitemapProcessor.class);
@@ -66,7 +69,7 @@ public class RoqPluginSitemapProcessor {
             case GIT -> {
                 // Resolve all the dates at once: a single history walk is much faster than a git log per file
                 final List<Path> files = scannedContent.stream()
-                        .filter(c -> !c.metadata().parsedHeaders().data().containsKey(LAST_MODIFIED_AT))
+                        .filter(c -> needsLastModified(c.metadata().parsedHeaders().data()))
                         .map(c -> c.metadata().filePath())
                         .filter(p -> p != null && p.getFileSystem() == FileSystems.getDefault())
                         .map(RoqPluginSitemapProcessor::normalize)
@@ -81,11 +84,11 @@ public class RoqPluginSitemapProcessor {
         };
     }
 
-    private static RoqFrontMatterDataModificationBuildItem lastModifiedModification(ZoneId zone,
+    static RoqFrontMatterDataModificationBuildItem lastModifiedModification(ZoneId zone,
             Function<Path, Instant> lastModified) {
         return new RoqFrontMatterDataModificationBuildItem(source -> {
             var fm = source.fm();
-            if (!source.isPage() || source.path() == null || fm.containsKey(LAST_MODIFIED_AT)) {
+            if (!source.isPage() || source.path() == null || !needsLastModified(fm)) {
                 return fm;
             }
             final Instant date = lastModified.apply(source.path());
@@ -95,6 +98,14 @@ public class RoqPluginSitemapProcessor {
             }
             return fm;
         });
+    }
+
+    /**
+     * Pages opting out with {@code sitemap: false} never appear in a sitemap, and an explicit {@code last-modified-at}
+     * wins over the computed date.
+     */
+    private static boolean needsLastModified(JsonObject fm) {
+        return fm.getBoolean(SITEMAP, true) && !fm.containsKey(LAST_MODIFIED_AT);
     }
 
     private static Instant fsLastModified(Path path) {
@@ -150,6 +161,11 @@ public class RoqPluginSitemapProcessor {
                 walk.setRevFilter(RevFilter.NO_MERGES);
                 walk.markStart(walk.parseCommit(head));
 
+                // In a shallow clone, the oldest fetched commits have no parents: every file still unresolved there
+                // is seen as added by them, so it gets their date instead of the date of its last change
+                final Set<ObjectId> shallowCommits = repository.getObjectDatabase().getShallowCommits();
+                int shallowBoundaryFiles = 0;
+
                 // Built once: already resolved files may still match, but remaining.remove() ignores them
                 final TreeFilter filter = AndTreeFilter.create(PathFilterGroup.createFromStrings(remaining.keySet()),
                         TreeFilter.ANY_DIFF);
@@ -165,15 +181,24 @@ public class RoqPluginSitemapProcessor {
                     }
                     treeWalk.addTree(commit.getTree());
                     final Instant date = Instant.ofEpochSecond(commit.getCommitTime());
+                    final boolean shallowBoundary = commit.getParentCount() == 0 && shallowCommits.contains(commit);
                     while (treeWalk.next()) {
                         final Path file = remaining.remove(treeWalk.getPathString());
                         if (file != null) {
                             result.put(file, date);
+                            if (shallowBoundary) {
+                                shallowBoundaryFiles++;
+                            }
                         }
                     }
                     if (remaining.isEmpty()) {
                         break;
                     }
+                }
+                if (shallowBoundaryFiles > 0) {
+                    LOGGER.warnf("The git repository is a shallow clone: %d file(s) may get the date of the oldest fetched"
+                            + " commit instead of their last change for the sitemap <lastmod>. Fetch the full history to fix"
+                            + " it (e.g. 'fetch-depth: 0' with actions/checkout).", shallowBoundaryFiles);
                 }
             }
         } catch (Exception e) {
