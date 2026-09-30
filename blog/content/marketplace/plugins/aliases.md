@@ -26,3 +26,5 @@ aliases: [first-roq-article-ever]
 Now, when you access `http://localhost:8080/first-roq-article-ever`, you will be redirected to the `2024-08-29-welcome-to-roq` blog post.
 
 > You can use link templating in aliases.
+
+An alias must not claim the path of an existing page or static file, and two pages must not declare the same alias. When that happens, the build fails with a "Path conflict" error naming both sources, as it does when two pages share a path. In dev mode, Roq logs a warning instead.

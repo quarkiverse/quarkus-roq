@@ -49,3 +49,9 @@
   │ Qute + routes    │
   └──────────────────┘
 ```
+
+## Url paths
+
+Every source serving a url path claims it with a `RoqPathBuildItem` (pages and static files in step 6, aliases in
+the aliases plugin, any plugin serving a path). Step 6 `bindSelectedPaths` checks that each path is claimed once,
+fails the build on a duplicate (a warning in dev mode) and selects the paths in Roq Generator.
