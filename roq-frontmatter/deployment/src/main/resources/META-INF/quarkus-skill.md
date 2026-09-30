@@ -34,7 +34,7 @@ src/main/resources/
 
 ### FrontMatter Pages
 
-Pages in `content/` use YAML frontmatter between `---` delimiters. Supported formats: `.md` (Markdown), `.html`, `.adoc` (AsciiDoc).
+Pages in `content/` use YAML frontmatter between `---` delimiters. Supported formats: `.md` (Markdown), `.html`, `.adoc` (AsciiDoc). Default template extensions: `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, `xml`, `qute.txt` (`llms.qute.txt` -> `/llms.txt`), configurable with `quarkus.qute.suffixes`.
 
 ```yaml
 ---
