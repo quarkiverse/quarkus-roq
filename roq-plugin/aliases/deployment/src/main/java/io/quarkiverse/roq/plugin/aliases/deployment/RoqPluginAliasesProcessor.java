@@ -7,18 +7,16 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeTrailingSlash;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import io.quarkiverse.roq.frontmatter.deployment.items.RoqPathBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
-import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.plugin.aliases.deployment.items.RoqFrontMatterAliasesBuildItem;
 import io.quarkiverse.roq.plugin.aliases.runtime.RoqFrontMatterAliasesRecorder;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -40,19 +38,21 @@ public class RoqPluginAliasesProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    // Collect the aliases declared in the front matter and register a redirect for each of them.
+    // Each alias claims its path (RoqPathBuildItem), so an alias colliding with a page, a static file
+    // or an alias of another page is reported by the frontmatter path check.
     @BuildStep
     public void consumeTemplates(
             RoqSiteConfig config,
             List<RoqFrontMatterPageTemplateBuildItem> templates,
             BuildProducer<RoqFrontMatterAliasesBuildItem> aliasesProducer,
-            BuildProducer<SelectedPathBuildItem> selectedPathsProducer,
+            BuildProducer<RoqPathBuildItem> pathProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer) {
 
         if (templates.isEmpty()) {
             return;
         }
 
-        HashMap<String, String> aliasMap = new HashMap<>();
         for (RoqFrontMatterPageTemplateBuildItem item : templates) {
 
             Set<String> aliasesName = getAliases(item.data());
@@ -60,20 +60,21 @@ public class RoqPluginAliasesProcessor {
                 continue;
             }
             RoqUrl url = item.url();
+            // The same page may declare the same alias twice (e.g. in 'aliases' and 'redirect_from')
+            final Set<String> aliasLinks = new HashSet<>();
             for (String alias : aliasesName) {
                 String aliasLink = TemplateLink.pageLink(config.pathPrefixOrEmpty(), alias, new TemplateLink.PageLinkData(
                         item.source(), item.raw().collectionId(), item.data()));
-                aliasMap.put(aliasLink, url.absolute());
+                if (!aliasLinks.add(aliasLink)) {
+                    continue;
+                }
+                aliasesProducer.produce(new RoqFrontMatterAliasesBuildItem(aliasLink, url.absolute()));
+                pathProducer.produce(new RoqPathBuildItem(aliasLink,
+                        "alias '%s' of page '%s'".formatted(alias, item.source().id())));
+                notFoundPageDisplayableEndpointProducer.produce(
+                        new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(aliasLink),
+                                "Roq URL alias for " + url.absolute() + " URL."));
             }
-        }
-
-        for (Map.Entry<String, String> alias : aliasMap.entrySet()) {
-            aliasesProducer.produce(new RoqFrontMatterAliasesBuildItem(alias.getKey(), alias.getValue()));
-            selectedPathsProducer.produce(new SelectedPathBuildItem(
-                    addTrailingSlash(alias.getKey()), null));
-            notFoundPageDisplayableEndpointProducer.produce(
-                    new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(alias.getKey()),
-                            "Roq URL alias for " + alias.getValue() + " URL."));
         }
     }
 

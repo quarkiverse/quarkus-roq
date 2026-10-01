@@ -18,10 +18,12 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictException;
+import io.quarkiverse.roq.frontmatter.deployment.items.RoqPathBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqLlmsTxtTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqNoOpBundleSectionHelperFactory;
@@ -47,9 +49,11 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.pkg.builditem.BuildSystemTargetBuildItem;
 import io.quarkus.deployment.util.FileUtil;
@@ -205,24 +209,32 @@ public class RoqFrontMatterStep6BindProcessor {
         additionalBeans.produce(builder.build());
     }
 
-    // Register page paths with Roq Generator (for static site generation)
-    // and with the dev-ui 404 page (for the endpoint listing)
+    // Claim the page paths for Roq Generator (for static site generation, see bindSelectedPaths)
+    // and register them with the dev-ui 404 page (for the endpoint listing)
     @BuildStep
     void bindEndpoints(
             RoqSiteConfig config,
-            BuildProducer<SelectedPathBuildItem> selectedPathProducer,
+            BuildProducer<RoqPathBuildItem> pathProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer,
-            RoqFrontMatterOutputBuildItem roqOutput) {
+            RoqFrontMatterOutputBuildItem roqOutput,
+            List<RoqFrontMatterRecordedPageBuildItem> pages) {
         if (roqOutput == null) {
             return;
         }
 
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
+            // The routed pages are the keys of allPagesByPath; the recorded page gives the id for the conflict message
+            final Map<String, String> pageIdByPath = new HashMap<>();
+            for (RoqFrontMatterRecordedPageBuildItem page : pages) {
+                if (!page.hidden()) {
+                    pageIdByPath.putIfAbsent(page.url().resourcePath(), page.id());
+                }
+            }
             for (String path : roqOutput.allPagesByPath().keySet()) {
                 // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
                 final String selectedPath = StringPaths.fileExtension(path) != null ? path : addTrailingSlash(path);
-                selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(selectedPath), null));
+                pathProducer.produce(new RoqPathBuildItem(selectedPath, "page '%s'".formatted(pageIdByPath.get(path))));
                 notFoundPageDisplayableEndpointProducer
                         .produce(new NotFoundPageDisplayableEndpointBuildItem(prefixWithSlash(path)));
             }
@@ -234,7 +246,7 @@ public class RoqFrontMatterStep6BindProcessor {
     @BuildStep
     void bindStaticFiles(
             LaunchModeBuildItem launchMode,
-            BuildProducer<SelectedPathBuildItem> selectedPathProducer,
+            BuildProducer<RoqPathBuildItem> pathProducer,
             List<RoqFrontMatterStaticFileBuildItem> staticFiles,
             BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
         Map<String, String> paths = new HashMap<>();
@@ -262,12 +274,41 @@ public class RoqFrontMatterStep6BindProcessor {
             }
 
             LOGGER.debugf("Published static file: '%s'", endpoint);
-            selectedPathProducer.produce(new SelectedPathBuildItem(endpoint, null));
+            pathProducer.produce(new RoqPathBuildItem(endpoint, "static file '%s'".formatted(sourceDescription)));
             if (staticFile.isFile()) {
                 staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(endpoint, staticFile.filePath()));
             } else {
                 staticResourcesProducer.produce(new GeneratedStaticResourceBuildItem(endpoint, staticFile.content()));
             }
+        }
+    }
+
+    // Check that each url path is claimed by one source only (a page, a static file, an alias...)
+    // and select the paths in Roq Generator (for static site generation).
+    // ServiceStartBuildItem keeps the check running when nothing consumes the selected paths (no Roq Generator).
+    @BuildStep
+    @Produce(ServiceStartBuildItem.class)
+    void bindSelectedPaths(
+            LaunchModeBuildItem launchMode,
+            List<RoqPathBuildItem> paths,
+            BuildProducer<SelectedPathBuildItem> selectedPathProducer) {
+        final Map<String, String> sourceByPath = new HashMap<>();
+        for (RoqPathBuildItem item : paths) {
+            final String prev = sourceByPath.putIfAbsent(item.path(), item.source());
+            if (prev != null) {
+                if (launchMode.getLaunchMode() == LaunchMode.DEVELOPMENT) {
+                    LOGGER.warnf(
+                            "Conflict detected: Duplicate path '%s' claimed by both %s and %s. In development, the first occurrence will be kept, but this will cause an exception in normal mode.",
+                            item.path(), prev, item.source());
+                    continue;
+                }
+                throw new RoqPathConflictException(
+                        RoqException.builder("Path conflict")
+                                .detail("Duplicate path '%s' claimed by both %s and %s.".formatted(item.path(), prev,
+                                        item.source()))
+                                .hint("Each path can be served by one source only: rename or move one of them, use 'link:' in the front matter of a page to change its path, or remove the alias."));
+            }
+            selectedPathProducer.produce(new SelectedPathBuildItem(prefixWithSlash(item.path()), null));
         }
     }
 
