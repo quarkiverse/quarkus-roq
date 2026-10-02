@@ -139,6 +139,7 @@ Frontmatter keys available to control page behavior per layout.
 | `body-class` | Custom CSS class on the body element | |
 | `page-class` | CSS class for page-specific styling | |
 | `robots` | Value rendered as `<meta name="robots">` via the built-in `\{#seo /}` tag. Use `noindex` to keep drafts/internal/staging pages out of search engines. | |
+| `no-index-all` | `true` keeps the page out of every index at once (sitemap, llms.txt, search) and defaults `robots` to `noindex`. A plugin key such as `sitemap: true` on the same page wins over it. | `false` |
 
 #### Page / Post
 
