@@ -30,6 +30,7 @@ export class QwcRoqEditor extends LitElement {
     // Track connection state for refreshing preview URL after hot reload
     _previousConnectionState = null;
     _pendingRefreshPages = false;
+    _writeInProgress = false;
 
     // Component style
     static styles = css`
@@ -54,6 +55,7 @@ export class QwcRoqEditor extends LitElement {
         "_visualEditorEnabled": {state: true},
         "_loadingContent": {state: true},
         "_pendingRefreshPages": {state: true},
+        "_writeInProgress": {state: true},
         "_dateFormat": {state: true},
         "_syncStatus": {state: true},
         "_syncing": {state: true},
@@ -68,6 +70,7 @@ export class QwcRoqEditor extends LitElement {
         this._fileContent = null;
         this._loadingContent = false;
         this._pendingRefreshPages = false;
+        this._writeInProgress = false;
         this._dateFormat = 'yyyy-MM-dd'; // Default, will be fetched from server
         this._syncStatus = null;
         this._syncing = false;
@@ -227,7 +230,7 @@ export class QwcRoqEditor extends LitElement {
 
         // Detect reconnection: was not connected, now connected
         if (!wasConnected && currentConnected) {
-            if (this._pendingRefreshPages) {
+            if (this._pendingRefreshPages && !this._writeInProgress) {
                 this._refreshPageInfo();
             }
             if (this._syncManager) {
@@ -281,6 +284,7 @@ export class QwcRoqEditor extends LitElement {
             this._pendingRefreshPages = false;
 
         }).catch(error => {
+            this._pendingRefreshPages = false;
             console.error('Error refreshing preview URL:', error);
         });
     }
@@ -414,9 +418,10 @@ export class QwcRoqEditor extends LitElement {
         const defaultMarkup = (collectionId ? config.docMarkup : config.pageMarkup).toLowerCase()
         showPrompt(`Add new ${collectionId ? 'document' : 'page'}` , { title: '', markup: defaultMarkup }, this._renderCreatePageForm).then(({title, markup}) => {
             if (title) {
+                this._pendingRefreshPages = true;
+                this._writeInProgress = true;
                 this._writeCall('createPage', {collectionId, title, markup}).then(jsonRpcResponse => {
                     const result = jsonRpcResponse.result;
-                    this._pendingRefreshPages = true;
                     if (collectionId) {
                         this._posts = [result.page].concat(this._posts);
                     } else {
@@ -426,8 +431,14 @@ export class QwcRoqEditor extends LitElement {
                     this._syncManager?.refreshStatus(true);
                     this._onPageOpen({detail: {page: result.page, content: result.content}});
                 }).catch(error => {
+                    this._pendingRefreshPages = false;
                     showNotification('Error creating page: ' + error.message);
                     console.error(error.message);
+                }).finally(() => {
+                    this._writeInProgress = false;
+                    if (this._pendingRefreshPages && connectionState.current?.isConnected) {
+                        this._refreshPageInfo();
+                    }
                 });
             }
         });
@@ -666,6 +677,8 @@ export class QwcRoqEditor extends LitElement {
         const detail = e.detail;
         const target = e.target;
 
+        this._pendingRefreshPages = true;
+        this._writeInProgress = true;
         this._writeCall('savePageContent', {path, content, date, title}).then(jsonRpcResponse => {
             const result = jsonRpcResponse.result;
             this._fileContent = content;
@@ -679,7 +692,6 @@ export class QwcRoqEditor extends LitElement {
                 };
             }
 
-            this._pendingRefreshPages = "background";
             this._syncManager?.markAsDirty();
             this._syncManager?.refreshStatus(true);
 
@@ -687,11 +699,17 @@ export class QwcRoqEditor extends LitElement {
                 target.markSaved();
             }
         }).catch(error => {
+            this._pendingRefreshPages = false;
             if (target && target.markSaveError) {
                 target.markSaveError();
             }
             showNotification('Error saving file: ' + error.message);
             console.error(error);
+        }).finally(() => {
+            this._writeInProgress = false;
+            if (this._pendingRefreshPages && connectionState.current?.isConnected) {
+                this._refreshPageInfo();
+            }
         });
     }
 
