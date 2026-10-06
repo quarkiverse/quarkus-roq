@@ -14,6 +14,30 @@ import io.smallrye.config.WithDefault;
 public interface AsciidoctorJConfig {
 
     /**
+     * Which directory to use as AsciidoctorJ's {@code base_dir}.
+     * <p>
+     * In {@link org.asciidoctor.SafeMode#SAFE} mode (the mode Roq renders with), {@code base_dir} is also the
+     * jail for every file access performed on the Ruby side. Paths that escape the jail are silently rewritten
+     * back into it, which limits where files can be read from or written to.
+     **/
+    @WithDefault("page")
+    BaseDir baseDir();
+
+    enum BaseDir {
+        /**
+         * The directory of the page being rendered. File operations on the Ruby side are restricted to this directory.
+         */
+        PAGE,
+
+        /**
+         * The Roq site directory, which is the boundary Roq already enforces for {@code include::} directives.
+         * This allows file operations anywhere below the site directory (for instance, writing generated content
+         * to {@code public/}).
+         */
+        SITE
+    }
+
+    /**
      * Defines the AsciidoctorJ attributes to be applied during rendering.
      * <p>
      * Default values:

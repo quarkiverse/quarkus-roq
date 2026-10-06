@@ -7,6 +7,29 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-base-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-base-dir[`+++quarkus.asciidoc.base-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoc.base-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Which directory to use as AsciidoctorJ's `base_dir`.
+
+In `org.asciidoctor.SafeMode++#++SAFE` mode (the mode Roq renders with), `base_dir` is also the jail for every file access performed on the Ruby side. Paths that escape the jail are silently rewritten back into it, which limits where files can be read from or written to.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_BASE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOC_BASE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`page`, `site`
+|`+++page+++`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes[`+++quarkus.asciidoc.attributes."attributes"+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.asciidoc.attributes."attributes"+++[]

@@ -14,19 +14,19 @@ public class AsciidocJIncludeResolveTest {
 
     // ── resolveTargetPath ───────────────────────────────────────────────
 
-    @ParameterizedTest(name = "target={2} => {3}")
+    @ParameterizedTest(name = "includeDir={0} target={1} => {2}")
     @CsvSource({
             // Same directory include
-            "/site/content/guides, /site/content/guides, _attributes.adoc, /site/content/guides/_attributes.adoc",
+            "/site/content/guides, _attributes.adoc, /site/content/guides/_attributes.adoc",
             // Include going up directories
-            "/site/content/guides, /site/content/guides, ../../includes/snippet.adoc, /site/includes/snippet.adoc",
+            "/site/content/guides, ../../includes/snippet.adoc, /site/includes/snippet.adoc",
             // Include in subdirectory
-            "/site/content/guides, /site/content/guides, _includes/foo.adoc, /site/content/guides/_includes/foo.adoc",
-            // Absolute target ignores baseDir
-            "/site/content/guides, /site/content/guides, /absolute/path.adoc, /absolute/path.adoc",
+            "/site/content/guides, _includes/foo.adoc, /site/content/guides/_includes/foo.adoc",
+            // Absolute target ignores includeDir
+            "/site/content/guides, /absolute/path.adoc, /absolute/path.adoc",
     })
-    void shouldResolveTargetPath(String baseDirStr, String dir, String target, String expected) {
-        Path result = AsciidocJInclude.resolveTargetPath(Path.of(baseDirStr), dir, target);
+    void shouldResolveTargetPath(String includeDirStr, String target, String expected) {
+        Path result = AsciidocJInclude.resolveTargetPath(Path.of(includeDirStr), target);
         assertThat(result).isEqualTo(Path.of(expected));
     }
 
@@ -68,20 +68,18 @@ public class AsciidocJIncludeResolveTest {
 
     @Test
     void shouldProduceValidClasspathPathForUpwardInclude() {
-        Path baseDir = Path.of("/project/target/classes/content/guides");
+        Path includeDir = Path.of("/project/target/classes/content/guides");
         Path rootDir = Path.of("/project/target/classes");
-        Path targetPath = AsciidocJInclude.resolveTargetPath(
-                baseDir, baseDir.toString(), "../../includes/snippet.adoc");
+        Path targetPath = AsciidocJInclude.resolveTargetPath(includeDir, "../../includes/snippet.adoc");
         String resourcePath = AsciidocJInclude.resolveResourcePath(targetPath, rootDir);
         assertThat(resourcePath).isEqualTo("includes/snippet.adoc");
     }
 
     @Test
     void shouldFallBackToAbsolutePathWhenOutsideRootDir() {
-        Path baseDir = Path.of("/project/target/classes/content/guides");
+        Path includeDir = Path.of("/project/target/classes/content/guides");
         Path rootDir = Path.of("/project/target/classes");
-        Path targetPath = AsciidocJInclude.resolveTargetPath(
-                baseDir, baseDir.toString(), "../../../outside/file.adoc");
+        Path targetPath = AsciidocJInclude.resolveTargetPath(includeDir, "../../../outside/file.adoc");
         String resourcePath = AsciidocJInclude.resolveResourcePath(targetPath, rootDir);
         assertThat(resourcePath).isEqualTo("/project/target/outside/file.adoc");
     }
@@ -91,8 +89,7 @@ public class AsciidocJIncludeResolveTest {
         // ../../etc/passwd resolves above rootDir, so startsWith is false
         // and the absolute path is returned (which the security check would block before we get here)
         Path rootDir = Path.of("/site");
-        Path targetPath = AsciidocJInclude.resolveTargetPath(
-                Path.of("/site/content"), "/site/content", "../../etc/passwd");
+        Path targetPath = AsciidocJInclude.resolveTargetPath(Path.of("/site/content"), "../../etc/passwd");
         assertThat(targetPath).isEqualTo(Path.of("/etc/passwd"));
         assertThat(targetPath.startsWith(rootDir)).isFalse();
         String resourcePath = AsciidocJInclude.resolveResourcePath(targetPath, rootDir);

@@ -29,23 +29,31 @@ public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
     public static final String ROOTDIR = "root_dir";
+    public static final String PAGEDIR = "page_dir";
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
     private final SafeMode safeMode;
+    private final AsciidoctorJConfig.BaseDir baseDir;
 
     @Inject
     public AsciidoctorJConverter(AsciidoctorJConfig config) {
-        this(config.attributes(), config.safeMode());
+        this(config.attributes(), config.safeMode(), config.baseDir());
     }
 
     public AsciidoctorJConverter(Map<String, String> configuredAttributes) {
-        this(configuredAttributes, SafeMode.SAFE);
+        this(configuredAttributes, SafeMode.SAFE, AsciidoctorJConfig.BaseDir.PAGE);
     }
 
-    public AsciidoctorJConverter(Map<String, String> configuredAttributes, SafeMode safeMode) {
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, AsciidoctorJConfig.BaseDir baseDir) {
+        this(configuredAttributes, SafeMode.SAFE, baseDir);
+    }
+
+    public AsciidoctorJConverter(Map<String, String> configuredAttributes, SafeMode safeMode,
+            AsciidoctorJConfig.BaseDir baseDir) {
         this.configuredAttributes = configuredAttributes;
         this.safeMode = safeMode;
+        this.baseDir = baseDir;
         LOG.info("Starting Asciidoctorj...");
         final Instant start = Instant.now();
         this.asciidoctor = Asciidoctor.Factory.create();
@@ -93,9 +101,13 @@ public class AsciidoctorJConverter {
         final OptionsBuilder optionsBuilder = Options.builder();
         if (templateAttributes.sourcePath() != null) {
             Path sourcePath = Paths.get(templateAttributes.sourcePath());
-            Path templateDir = sourcePath.getParent();
-            optionsBuilder.option(BASEDIR, templateDir.toAbsolutePath().toString());
-            optionsBuilder.option(ROOTDIR, templateAttributes.sourceRootPath());
+            Path pageDir = sourcePath.getParent().toAbsolutePath();
+            String rootDir = templateAttributes.sourceRootPath();
+            optionsBuilder.option(PAGEDIR, pageDir.toString());
+            optionsBuilder.option(ROOTDIR, rootDir);
+            // base_dir doubles as the safe-mode jail: file operations on the Ruby side must live below it.
+            // Rooting it at the site directory allows reading from and writing to any location under the site.
+            optionsBuilder.option(BASEDIR, resolveBaseDir(pageDir, rootDir).toString());
             attributes.attribute("docname", StringPaths.removeExtension(sourcePath.getFileName().toString()));
         }
         return optionsBuilder
@@ -103,6 +115,13 @@ public class AsciidoctorJConverter {
                 .backend("html5")
                 .attributes(attributes.build())
                 .build();
+    }
+
+    private Path resolveBaseDir(Path pageDir, String rootDir) {
+        if (baseDir == AsciidoctorJConfig.BaseDir.SITE && rootDir != null && !rootDir.isBlank()) {
+            return Paths.get(rootDir).toAbsolutePath();
+        }
+        return pageDir;
     }
 
     public String apply(String asciidoc,
