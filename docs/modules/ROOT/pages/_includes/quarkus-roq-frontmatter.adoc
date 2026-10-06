@@ -59,11 +59,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-Add new ignored files to the default list.
+Patterns of files that Roq ignores, in addition to the `site.default-ignored-files` list.
 
-The ignored files (relative to the site directory).
-
-Only the `content/`, `public/`, and `static/` directories are scanned.
+An ignored file is not published: it is neither a page, nor an attached file, nor a site static file. Roq matches each pattern against the whole path of each file relative to the content, public or static directory (`content/`, `public/` and `static/` by default), and applies each pattern to all of these directories; the layouts, and the other templates of a site in the project directory, are filtered the same way, relative to `templates/`. So `wip/++**++` ignores the files of `wip/` but not those of `notes/wip/`, and `wip` ignores nothing. Patterns are Java `PathMatcher` globs, where `++*++` stops at a `/`, or regular expressions with the `regex:` prefix, which lose their backslashes in the configuration. The value is a comma-separated list, so write `++**++.tmp,++**++.bak` rather than `++**++.++{++tmp,bak++}++`. A `!` at the start of a pattern is an ordinary character, so it does not publish an ignored file; to publish files that the default list ignores, set `site.default-ignored-files` instead.
 
 
 ifdef::add-copy-button-to-env-var[]
@@ -84,11 +82,9 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The default ignored files (relative to the site directory) include:
+Patterns of files that Roq ignores by default: all files and directories whose name starts with an underscore (`_`).
 
- - All files or directories starting with an underscore (`_`)
-
-
+Setting this property replaces the default list, for example to publish `public/_redirects` while the other files whose name starts with an underscore stay ignored, as the link:https://iamroq.dev/docs/basics/#ignored-files[Ignored files] section of the basics guide shows. The value cannot be empty: to ignore no file by default, give a pattern that matches nothing, such as `nomatch`. To add patterns to the default list, use `site.ignored-files`.
 
 These patterns are additional to the scanner's own OS-level defaults (e.g. `.DS_Store`, `Thumbs.db`, `++*++~`, `.class`).
 
