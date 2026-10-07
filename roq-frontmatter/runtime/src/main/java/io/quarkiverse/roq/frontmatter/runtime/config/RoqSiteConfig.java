@@ -109,8 +109,9 @@ public interface RoqSiteConfig {
     /**
      * The directory (dir name) which contains static files to be served (with 'static/' prefix).
      *
-     * @deprecated Use publicDir instead (Use 'public/static/...' to reproduce the same behaviour)
+     * @deprecated Use {@code site.public-dir} instead (use 'public/static/...' to reproduce the same behaviour)
      */
+    @Deprecated
     @WithDefault(STATIC_DIR)
     @Pattern(regexp = DIR_NAME_PATTERN)
     String staticDir();

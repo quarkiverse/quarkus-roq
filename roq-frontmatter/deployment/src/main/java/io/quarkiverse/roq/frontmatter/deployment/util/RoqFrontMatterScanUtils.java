@@ -183,6 +183,7 @@ public final class RoqFrontMatterScanUtils {
         return ScanQueryBuilder.mergeByScopedPath(localFiles, resourceFiles);
     }
 
+    @SuppressWarnings("deprecation")
     public static void scanSiteIndexAttachments(
             ProjectScannerBuildItem scanner,
             RoqProjectBuildItem roqProject,

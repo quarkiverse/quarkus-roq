@@ -72,6 +72,7 @@ public class RoqFrontMatterStep1ScanProcessor {
     // ── Dir declarations ─────────────────────────────────────────────────
 
     @BuildStep
+    @SuppressWarnings("deprecation")
     void declareAndScanDirs(RoqSiteConfig config, RoqProjectBuildItem roqProject,
             BuildProducer<ScanDeclarationBuildItem> declarations,
             BuildProducer<ScanLocalDirBuildItem> scanLocalDirProducer) {
