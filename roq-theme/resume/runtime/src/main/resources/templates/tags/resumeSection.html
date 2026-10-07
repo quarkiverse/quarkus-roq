@@ -5,7 +5,8 @@
 }
 <section {#if class??}class="{class}"{/if}>
   <div class="{borderClass}">
-    <h3 class="{headingClass}">{title}</h3>
+    <h3 class="{headingClass}" id="{title.slugify}">{title}</h3>
+    <!-- Slugified: {title.slugify} -->
   </div>
   <ul
     class="relative space-y-6 pl-6
