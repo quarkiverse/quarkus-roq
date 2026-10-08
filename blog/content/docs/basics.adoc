@@ -112,6 +112,18 @@ __{=page.data.the-rope}!__ <3>
 
 NOTE: By default, pages use the `page` layout and documents in collections use the `post` layout (from the theme if <<install-theme, using one>>). You can override this with `layout:` in the FrontMatter.
 
+[#template-extensions]
+=== Template extensions
+
+Content files are processed as templates when they use one of these extensions: `html`, `xhtml`, `htm`, `json`, `yaml`, `yml`, `xml`, `qute.txt` (plus the <<Markup languages, markup>> ones). A `.qute.txt` file is generated as `.txt` (e.g. `llms.qute.txt` -> `/llms.txt`).
+
+To change this list, set `quarkus.qute.suffixes` in `config/application.properties` (e.g. adding `txt`):
+
+[source,properties]
+----
+quarkus.qute.suffixes=html,xhtml,htm,json,yaml,yml,xml,qute.txt,txt
+----
+
 === Markup languages
 
 You can use different markup languages in Roq content.
