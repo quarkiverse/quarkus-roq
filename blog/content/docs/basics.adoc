@@ -1038,7 +1038,7 @@ For more details, see the https://quarkus.io/guides/qute#template-extension-meth
 [#site-static]
 == Site static files
 
-Site static files are served as-is without any additional processing. By default, all files in `public/` are scanned as static files.
+Site static files are served as-is without any additional processing. By default, all files in `public/` are scanned as static files, except the <<ignored-files,ignored files>>.
 
 [source]
 ----
@@ -1057,6 +1057,27 @@ TIP: `site.file(path)` also checks that the file exists on disk and will adapt o
 
 To improve SEO, all static files are *slugified*, Roq replaces non-URL-friendly characters with `-`. URL-friendly characters are alphanumeric, `-`, and `_` (multiple dots are also tolerated for files). Using `site.file` and `page.file` variables automatically applies this replacement on returned url (same for images). To disable this behavior, set `site.slugify-files=false` in Roq’s configuration.
 
+[#ignored-files]
+== Ignored files
+
+Roq ignores some files in the content, public and static directories (`content/`, `public/` and `static/` by default). An ignored file is not published: it is neither a page, nor an attached file, nor a site static file.
+By default, Roq ignores every file and directory whose name starts with an underscore (`_`), such as `content/_notes.html` or `public/_redirects`.
+
+To ignore more files, list patterns in `site.ignored-files`. Roq matches each pattern against the whole path of each file relative to the scanned directory, not relative to the site directory, and applies each pattern to all of these directories. The layouts, and the other templates of a site in the project directory, are filtered the same way, relative to `templates/`. So `wip/++**++` ignores the files of `content/wip/` but not those of `content/notes/wip/`, and `wip` or `wip/` ignores nothing, because a pattern matches files, not directories. To match at any depth, list both forms, as the default list does with `+++**/_**,_**+++`:
+
+[source,properties]
+----
+site.ignored-files=wip/**,**/wip/**
+----
+
+Patterns are Java `PathMatcher` globs, where `*` stops at a `/`, or regular expressions with the `regex:` prefix. The value is a comma-separated list, so a comma splits a pattern: write `++**++.tmp,++**++.bak` rather than `++**++.{tmp,bak}`. Avoid backslashes in a regular expression, because `application.properties` and the list conversion both remove them, and avoid `/` in a regular expression for a site built on Windows, where the path uses `\`.
+
+To publish files that the defaults ignore, set `site.default-ignored-files`: its value replaces the default list. The value cannot be empty, so to ignore no file by default, give a pattern that matches nothing, such as `nomatch`. A `!` at the start of a pattern is an ordinary character, so it does not publish an ignored file. For example, this value publishes `public/_redirects` and keeps the other files whose name starts with an underscore ignored:
+
+[source,properties]
+----
+site.default-ignored-files=**/_**,regex:_(?!redirects$).*
+----
 
 [#page-files]
 == Page attached static files

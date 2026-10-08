@@ -48,22 +48,33 @@ public interface RoqSiteConfig {
     int routeOrder();
 
     /**
-     * Add new ignored files to the default list.
+     * Patterns of files that Roq ignores, in addition to the <code>site.default-ignored-files</code> list.
      * <p>
-     * The ignored files (relative to the site directory).
-     *
-     * <p>
-     * Only the <code>content/</code>, <code>public/</code>, and <code>static/</code> directories are scanned.
+     * An ignored file is not published: it is neither a page, nor an attached file, nor a site static file. Roq matches
+     * each pattern against the whole path of each file relative to the content, public or static directory
+     * (<code>content/</code>, <code>public/</code> and <code>static/</code> by default), and applies each pattern to all
+     * of these directories; the layouts, and the other templates of a site in the project directory, are filtered the same
+     * way, relative to <code>templates/</code>. So <code>wip/**</code> ignores the files of <code>wip/</code> but not those
+     * of <code>notes/wip/</code>, and <code>wip</code> ignores nothing. Patterns are Java <code>PathMatcher</code> globs,
+     * where <code>*</code> stops at a <code>/</code>, or regular expressions with the <code>regex:</code> prefix, which lose
+     * their backslashes in the configuration. The value is a comma-separated list, so write <code>**.tmp,**.bak</code>
+     * rather than <code>**.{tmp,bak}</code>. A <code>!</code> at the start of a pattern is an ordinary character, so it
+     * does not publish an ignored file; to publish files that the default list ignores, set
+     * <code>site.default-ignored-files</code> instead.
      * </p>
      */
     Optional<List<String>> ignoredFiles();
 
     /**
-     * The default ignored files (relative to the site directory) include:
-     * <ul>
-     * <li>All files or directories starting with an underscore (<code>_</code>)</li>
-     * </ul>
-     *
+     * Patterns of files that Roq ignores by default: all files and directories whose name starts with an underscore
+     * (<code>_</code>).
+     * <p>
+     * Setting this property replaces the default list, for example to publish <code>public/_redirects</code> while the other
+     * files whose name starts with an underscore stay ignored, as the
+     * <a href="https://iamroq.dev/docs/basics/#ignored-files">Ignored files</a> section of the basics guide shows. The value
+     * cannot be empty: to ignore no file by default, give a pattern that matches nothing, such as <code>nomatch</code>. To
+     * add patterns to the default list, use <code>site.ignored-files</code>.
+     * </p>
      * <p>
      * These patterns are additional to the scanner's own OS-level defaults
      * (e.g. <code>.DS_Store</code>, <code>Thumbs.db</code>, <code>*~</code>, <code>.class</code>).
