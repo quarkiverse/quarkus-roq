@@ -14,18 +14,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConfig.BaseDir;
 import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 
 public class AsciidoctorJConverterTest {
 
     private final AsciidoctorJConverter converter = new AsciidoctorJConverter(Map.of());
+    private final AsciidoctorJConverter siteConverter = new AsciidoctorJConverter(Map.of(), BaseDir.SITE);
     private final Asciidoctor asciidoctor = Asciidoctor.Factory.create();
 
     @Test
-    void shouldSetDocnameFromSourcePath() {
+    void shouldSetDocnameFromSourcePath(@TempDir Path tempDir) {
+        Path siteDir = tempDir.resolve("site");
+        Path pageDir = siteDir.resolve("content").resolve("guides");
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
-                "/tmp/site",
-                "/tmp/site/content/guides/my-guide.adoc",
+                siteDir.toString(),
+                pageDir.resolve("my-guide.adoc").toString(),
                 null, null, null, null);
 
         Options options = converter.createOptions(Map.of(), attrs);
@@ -35,10 +39,12 @@ public class AsciidoctorJConverterTest {
     }
 
     @Test
-    void shouldSetDocnameWithMultipleDots() {
+    void shouldSetDocnameWithMultipleDots(@TempDir Path tempDir) {
+        Path siteDir = tempDir.resolve("site");
+        Path postsDir = siteDir.resolve("content").resolve("posts");
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
-                "/tmp/site",
-                "/tmp/site/content/posts/2024-01-01-foo.bar.adoc",
+                siteDir.toString(),
+                postsDir.resolve("2024-01-01-foo.bar.adoc").toString(),
                 null, null, null, null);
 
         Options options = converter.createOptions(Map.of(), attrs);
@@ -91,6 +97,53 @@ public class AsciidoctorJConverterTest {
 
         assertThat(result).contains("local-file-content");
         assertThat(result).contains("classpath-only snippet");
+    }
+
+    @Test
+    void shouldUsePageDirAsBaseDirByDefault(@TempDir Path tempDir) {
+        // Use @TempDir to get a proper absolute path on all platforms
+        Path siteDir = tempDir.resolve("site");
+        Path pageDir = siteDir.resolve("content").resolve("guides");
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                siteDir.toString(),
+                pageDir.resolve("my-guide.adoc").toString(),
+                null, null, null, null);
+
+        Options options = converter.createOptions(Map.of(), attrs);
+
+        assertThat(options.map().get(Options.BASEDIR)).isEqualTo(pageDir.toString());
+        assertThat(options.map().get(AsciidoctorJConverter.PAGEDIR)).isEqualTo(pageDir.toString());
+        assertThat(options.map().get(AsciidoctorJConverter.ROOTDIR)).isEqualTo(siteDir.toString());
+    }
+
+    @Test
+    void shouldUseSiteDirAsBaseDirWhenConfigured(@TempDir Path tempDir) {
+        // Use @TempDir to get a proper absolute path on all platforms
+        Path siteDir = tempDir.resolve("site");
+        Path pageDir = siteDir.resolve("content").resolve("guides");
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                siteDir.toString(),
+                pageDir.resolve("my-guide.adoc").toString(),
+                null, null, null, null);
+
+        Options options = siteConverter.createOptions(Map.of(), attrs);
+
+        assertThat(options.map().get(Options.BASEDIR)).isEqualTo(siteDir.toString());
+        // ...while includes stay relative to the page.
+        assertThat(options.map().get(AsciidoctorJConverter.PAGEDIR)).isEqualTo(pageDir.toString());
+        assertThat(options.map().get(AsciidoctorJConverter.ROOTDIR)).isEqualTo(siteDir.toString());
+    }
+
+    @Test
+    void shouldFallBackToPageDirWhenSiteDirIsUnknown(@TempDir Path tempDir) {
+        // Use @TempDir to get a proper absolute path on all platforms
+        Path pageDir = tempDir.resolve("site").resolve("content").resolve("guides");
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes("", pageDir.resolve("my-guide.adoc").toString(),
+                null, null, null, null);
+
+        Options options = siteConverter.createOptions(Map.of(), attrs);
+
+        assertThat(options.map().get(Options.BASEDIR)).isEqualTo(pageDir.toString());
     }
 
 }

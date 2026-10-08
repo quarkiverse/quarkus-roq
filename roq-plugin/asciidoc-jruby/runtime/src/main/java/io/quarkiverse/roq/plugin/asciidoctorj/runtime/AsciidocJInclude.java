@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
+import static io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter.PAGEDIR;
 import static io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter.ROOTDIR;
 import static org.asciidoctor.Options.BASEDIR;
 
@@ -49,9 +50,15 @@ public class AsciidocJInclude extends IncludeProcessor {
 
         final String dir = reader.getDir();
         Charset charset = Charset.forName((String) document.getAttributes().getOrDefault("encoding", "UTF-8"));
-        final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
         final Path rootDir = Path.of(document.getOptions().getOrDefault(ROOTDIR, "").toString());
-        Path targetPath = resolveTargetPath(baseDir, dir, target);
+        final Path baseDir = Path.of(document.getOptions().getOrDefault(BASEDIR, "").toString());
+        // Includes are always relative to the page, even when base_dir is rooted at the site directory.
+        final Path pageDir = Path.of(document.getOptions().getOrDefault(PAGEDIR, baseDir.toString()).toString());
+        // In the top-level document the reader dir is base_dir itself; anywhere else it is the directory of
+        // the file we are currently reading, which must keep winning so nested includes stay relative to it.
+        final Path readerDir = Path.of(dir);
+        final Path includeDir = readerDir.equals(baseDir) ? pageDir : pageDir.resolve(readerDir);
+        Path targetPath = resolveTargetPath(includeDir, target);
 
         if (safeLevel >= SafeMode.SAFE.getLevel()) {
             if (!targetPath.startsWith(rootDir.normalize())) {
@@ -123,9 +130,9 @@ public class AsciidocJInclude extends IncludeProcessor {
         return null;
     }
 
-    public static Path resolveTargetPath(Path baseDir, String dir, String target) {
+    public static Path resolveTargetPath(Path includeDir, String target) {
         Path p = Path.of(target);
-        return (p.isAbsolute() ? p : baseDir.resolve(dir).resolve(target)).normalize();
+        return (p.isAbsolute() ? p : includeDir.resolve(target)).normalize();
     }
 
     public static String resolveResourcePath(Path targetPath, Path rootDir) {
