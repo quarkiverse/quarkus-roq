@@ -651,6 +651,7 @@ class GitSyncServiceTest {
             }
 
             @Override
+            @SuppressWarnings("deprecation")
             public String staticDir() {
                 return "static";
             }

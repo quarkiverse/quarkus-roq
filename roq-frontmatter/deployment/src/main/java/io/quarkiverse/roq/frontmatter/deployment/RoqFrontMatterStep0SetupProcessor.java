@@ -83,6 +83,7 @@ public class RoqFrontMatterStep0SetupProcessor {
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
+    @SuppressWarnings("deprecation")
     void watch(RoqSiteConfig config, RoqProjectBuildItem roqProject,
             BuildProducer<WebBundlerWatchedDirBuildItem> webBundlerWatch,
             BuildProducer<HotDeploymentWatchedFileBuildItem> hotWatch) {

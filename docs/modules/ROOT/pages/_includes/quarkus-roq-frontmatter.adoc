@@ -174,7 +174,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |`+++content+++`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-static-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-static-dir[`+++site.static-dir+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-frontmatter_site-static-dir]] [.property-path]##link:#quarkus-roq-frontmatter_site-static-dir[[.line-through]#`+++site.static-dir+++`#]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++site.static-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -182,6 +182,8 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
+_This property is deprecated: Use `site.public-dir` instead (use 'public/static/...' to reproduce the same behaviour)._
+
 The directory (dir name) which contains static files to be served (with 'static/' prefix).
 
 
