@@ -9,7 +9,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 public class RoqPluginL10nAdocProcessor {
 
-    private static final String FEATURE = "roq-plugin-asciidoc-jruby-l10n";
+    private static final String FEATURE = "roq-plugin-asciidoc-l10n";
 
     @BuildStep
     FeatureBuildItem feature() {
