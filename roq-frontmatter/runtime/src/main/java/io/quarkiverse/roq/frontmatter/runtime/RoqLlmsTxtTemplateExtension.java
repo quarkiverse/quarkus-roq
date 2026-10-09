@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime;
 
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LLMSTXT;
+
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
@@ -11,7 +13,7 @@ import io.quarkus.qute.TemplateExtension;
 public class RoqLlmsTxtTemplateExtension {
 
     public static boolean llmstxt(Page page) {
-        return page.data().getBoolean("llmstxt", true);
+        return page.data().getBoolean(LLMSTXT, !page.noIndexAll());
     }
 
     /**
