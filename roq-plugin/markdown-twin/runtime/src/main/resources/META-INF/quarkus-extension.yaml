@@ -1,0 +1,24 @@
+name: Roq Plugin - Markdown Twin
+description: Publishes a Markdown twin of every page at <page-url>index.md for AI agents (Markdown source verbatim; AsciiDoc converted in-process).
+metadata:
+  keywords:
+    - website
+    - static
+    - generate
+    - site
+    - generator
+    - web
+    - roq
+    - ssg
+    - markdown
+    - llms
+    - ai
+    - agents
+    - plugin
+  guide: https://iamroq.dev/
+  icon-url: "https://raw.githubusercontent.com/quarkiverse/quarkus-roq/main/docs/modules/ROOT/assets/images/roq.svg"
+  categories:
+    - "web"
+  config:
+    - "site"
+  status: "experimental"
