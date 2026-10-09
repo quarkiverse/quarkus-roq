@@ -1,0 +1,16 @@
+---
+layout: default
+asciidoc-attributes:
+  notitle: true
+---
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+
+<article class="page-content-area">
+  <header>
+    <h1>{page.title}</h1>
+  </header>
+
+  <div class="page-content{#if page.source.markup} prose dark:prose-invert{/if}">
+    {#insert /}
+  </div>
+</article>

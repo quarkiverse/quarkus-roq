@@ -1,0 +1,8 @@
+@layer components {
+    .tag-pill { @apply px-3 py-1 rounded-full text-sm no-underline transition-colors bg-surface-3 text-primary dark:bg-surface-2 dark:text-primary; }
+    .tag-pill:hover { @apply bg-border-strong; }
+    .tag-list { @apply flex flex-wrap gap-3 mb-12; }
+    .tag-badge { @apply px-4 py-2 rounded-lg transition-colors no-underline inline-block bg-surface-3 text-primary dark:bg-surface-2 dark:text-primary; }
+    .tag-badge:hover { @apply bg-border-strong; }
+    .tag-count { @apply text-tertiary dark:text-secondary; }
+}

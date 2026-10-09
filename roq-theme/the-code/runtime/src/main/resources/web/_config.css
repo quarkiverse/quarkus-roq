@@ -1,0 +1,41 @@
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+    --color-primary: #111827;
+    --color-secondary: #4b5563;
+    --color-tertiary: #6b7280;
+    --color-surface: #ffffff;
+    --color-surface-2: #f9fafb;
+    --color-surface-3: #f3f4f6;
+    --color-card: #ffffff;
+    --color-card-border: #e5e7eb;
+    --color-border: #e5e7eb;
+    --color-border-strong: #d1d5db;
+    --color-code-bg: #f3f4f6;
+    --color-code-text: #db2777;
+    --color-pre-bg: #f8f9fa;
+    --color-pre-text: #24292e;
+    --color-accent-300: #c084fc;
+    --color-accent-400: #a855f7;
+    --color-accent-500: #9333ea;
+    --color-accent-600: #7e22ce;
+    --color-accent-700: #6b21a8;
+}
+
+.dark {
+    --color-primary: #e0e0e0;
+    --color-secondary: #a3a3a3;
+    --color-tertiary: #737373;
+    --color-surface: #1a1a1a;
+    --color-surface-2: #1f1f1f;
+    --color-surface-3: #262626;
+    --color-border: #404040;
+    --color-border-strong: #525252;
+    --color-card: #1f1f1f;
+    --color-card-border: #404040;
+    --color-code-bg: #262626;
+    --color-code-text: #ff79c6;
+    --color-pre-bg: #1a1b26;
+    --color-pre-text: #e0e0e0;
+}
