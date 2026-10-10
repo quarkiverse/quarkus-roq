@@ -137,7 +137,8 @@ public class GitSyncServiceImpl implements GitSyncService {
             return new int[] { trackingStatus.getAheadCount(), trackingStatus.getBehindCount() };
         }
 
-        Ref remoteRef = repository.findRef("refs/remotes/origin/" + branchName);
+        String remote = resolveTrackingRemote(repository, branchName);
+        Ref remoteRef = repository.findRef("refs/remotes/" + remote + "/" + branchName);
         if (remoteRef == null) {
             return new int[] { 0, 0 };
         }
@@ -241,7 +242,7 @@ public class GitSyncServiceImpl implements GitSyncService {
         }
 
         Iterable<PushResult> results = configureTransport(
-                git.push().setRemote("origin"), repository).call();
+                git.push().setRemote(resolveTrackingRemote(repository, repository.getBranch())), repository).call();
 
         for (PushResult pushResult : results) {
             for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
@@ -392,7 +393,8 @@ public class GitSyncServiceImpl implements GitSyncService {
     private GitSyncResult performPull(Git git, Repository repository) {
         try {
             PullResult pullResult = configureTransport(
-                    git.pull().setRemote("origin").setRemoteBranchName(repository.getBranch()),
+                    git.pull().setRemote(resolveTrackingRemote(repository, repository.getBranch()))
+                            .setRemoteBranchName(repository.getBranch()),
                     repository).call();
 
             if (!pullResult.isSuccessful()) {
@@ -448,8 +450,14 @@ public class GitSyncServiceImpl implements GitSyncService {
      * @throws Exception if an error occurs during fetch
      */
     private void performFetch(Git git) throws Exception {
-        LOG.debug("Performing Git fetch from origin...");
-        configureTransport(git.fetch().setRemote("origin"), git.getRepository()).call();
+        String remote = resolveTrackingRemote(git.getRepository(), git.getRepository().getBranch());
+        LOG.debugf("Performing Git fetch from %s...", remote);
+        configureTransport(git.fetch().setRemote(remote), git.getRepository()).call();
+    }
+
+    private String resolveTrackingRemote(Repository repository, String branchName) {
+        String remote = repository.getConfig().getString("branch", branchName, "remote");
+        return remote == null || remote.isBlank() ? "origin" : remote;
     }
 
     private <C extends TransportCommand<C, ?>> C configureTransport(C cmd, Repository repository) {
