@@ -67,6 +67,9 @@ with `.roq-sitemap-pages`, `.roq-sitemap-collection` or `[data-collection="posts
 Use `sitemap: false` in the FM data to keep a page or a document out of both sitemaps. The page holding the HTML
 include is left out of its own listing, but still appears in `sitemap.xml` so search engines can index it.
 
+`no-index-all: true` keeps a page out of both sitemaps and of every other index at once (llms.txt, search, and it
+defaults the `robots` meta tag to `noindex`). Set `sitemap: true` on the same page to list it in the sitemaps anyway.
+
 ## Last modified date
 
 Each `<lastmod>` uses the `last-modified-at` FM data when set, otherwise it is computed depending on

@@ -47,6 +47,7 @@ date: 2024-08-29 13:32:20 +0200
 tags: [blogging, quarkus]
 author: ia3andy
 robots: noindex
+no-index-all: false
 draft: false
 paginate:
   collection: posts
@@ -68,7 +69,8 @@ Key fields:
 - **author** — Author identifier
 - **lang** — Language/locale of the page (e.g. `fr`, `en-US`). Drives the rendered `<html lang="...">` attribute and the `og:locale` SEO meta tag. Resolution order: page `lang` → site `lang` (set in the index page frontmatter) → the JVM default locale. This is independent of `site.defaultLocale`, which only controls the fallback locale used for locale-aware date formatting (`page.date.shortDate`, etc.)
 - **html-class** / **body-class** — CSS classes rendered on `<html>` / `<body>` by `roq-base/default`. Can be set on a page, or on a layout to apply a default to every page using it; a page's own value replaces the layout's, like any other frontmatter key. No attribute is rendered when neither is set
-- **robots** — Value rendered as `<meta name="robots">` in the HTML head by the built-in `{#seo page site /}` tag (e.g. `noindex`, `nofollow`, `noindex, nofollow`). Use it to keep drafts, internal docs, or staging pages out of search engine indexes. The meta tag is only emitted when the key is set on the page
+- **robots** — Value rendered as `<meta name="robots">` in the HTML head by the built-in `{#seo page site /}` tag (e.g. `noindex`, `nofollow`, `noindex, nofollow`). Use it to keep drafts, internal docs, or staging pages out of search engine indexes. The meta tag is only emitted when the key is set on the page, or as `noindex` when `no-index-all` is `true`
+- **no-index-all** — `true` to keep the page out of every index at once: sitemap, llms.txt, search index and future indexation plugins. It also defaults `robots` to `noindex`. A plugin key on the same page (`sitemap: true`, `llmstxt: true`, `search: true`) wins over it
 - **draft** — `true` to mark as draft (hidden unless `site.draft=true`)
 - **paginate** — Enable pagination. Shorthand: `paginate: posts`. Full config: `collection`, `size`, `link`
 - **redirect_from** / **aliases** — Old URLs that redirect to this page (requires aliases plugin)
@@ -419,7 +421,7 @@ Add to root layout `<head>`:
 {#ga4 /}
 ```
 
-- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags. Also emits `<meta name="robots">` when the page frontmatter defines a `robots:` value
+- `{#seo page site /}` — generates `<title>`, `<meta>` author/description, Open Graph and Twitter card tags. Also emits `<meta name="robots">` when the page frontmatter defines a `robots:` value, or `noindex` when it sets `no-index-all: true`
 - `{#rss site /}` — adds the RSS `<link>` tag to the HTML head (does not generate the feed itself). Included by the base theme layout and all built-in themes
 - `{#favicon site /}` — auto-discovers favicon files from `public/` (favicon.svg, .ico, .png, apple-touch-icon.png)
 - `{#ga4 /}` — Google Analytics 4 (configure `analytics.ga4` in site index frontmatter)

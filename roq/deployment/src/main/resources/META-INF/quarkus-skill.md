@@ -63,7 +63,7 @@ And `content/llms-full.qute.txt`:
 ```
 {#include fm/llms-full.html}
 ```
-Exclude pages with `llmstxt: false` in frontmatter.
+Exclude pages with `llmstxt: false` in frontmatter, or with `no-index-all: true` to exclude them from every index at once (llms.txt, sitemap, search) and default their `robots` meta tag to `noindex`.
 
 ### Static Generation
 

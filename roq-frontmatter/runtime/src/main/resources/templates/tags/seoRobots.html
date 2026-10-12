@@ -3,4 +3,7 @@
 {#if page.data.robots??}
   <!-- SEO ROBOTS -->
   <meta name="robots" content="{page.data.robots}" />
+{#else if page.noIndexAll}
+  <!-- SEO ROBOTS -->
+  <meta name="robots" content="noindex" />
 {/if}

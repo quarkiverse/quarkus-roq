@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonObject;
 public class RoqPluginLunrTemplateExtension {
 
     public static boolean search(Page page) {
-        return page.source().isTargetHtml() && page.data().getBoolean(RoqLunrKeys.SEARCH, true);
+        return page.source().isTargetHtml() && page.data().getBoolean(RoqLunrKeys.SEARCH, !page.noIndexAll());
     }
 
     public static RawString searchIndex(Site site) {
