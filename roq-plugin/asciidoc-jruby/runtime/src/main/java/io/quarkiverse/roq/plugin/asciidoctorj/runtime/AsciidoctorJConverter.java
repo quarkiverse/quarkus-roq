@@ -1,29 +1,32 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.runtime;
 
-import static org.asciidoctor.Options.BASEDIR;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-
-import org.asciidoctor.*;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.Attributes;
+import org.asciidoctor.AttributesBuilder;
+import org.asciidoctor.Options;
+import org.asciidoctor.OptionsBuilder;
+import org.asciidoctor.SafeMode;
 import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
-import io.quarkiverse.tools.stringpaths.StringPaths;
+import static org.asciidoctor.Options.BASEDIR;
 
 @Singleton
 public class AsciidoctorJConverter {
 
     private static final Logger LOG = Logger.getLogger(AsciidoctorJConverter.class);
     public static final String ROOTDIR = "root_dir";
-    public static final String BLANK = "BLANK";
+    public static final String BLANK = "<<empty>>";
 
     private final Asciidoctor asciidoctor;
     private Map<String, String> configuredAttributes;

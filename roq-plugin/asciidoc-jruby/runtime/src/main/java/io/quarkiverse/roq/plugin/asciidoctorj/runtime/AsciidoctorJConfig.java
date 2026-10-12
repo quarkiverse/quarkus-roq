@@ -15,7 +15,7 @@ public interface AsciidoctorJConfig {
      * <p>
      * Use the special value {@code BLANK} to set an attribute to the empty string,
      * since SmallRye Config does not support empty map values.
-     * For example, {@code quarkus.asciidoc.attributes.idprefix=BLANK} sets {@code idprefix}
+     * For example, {@code quarkus.asciidoc.attributes.idprefix=<<empty>>} sets {@code idprefix}
      * to {@code ""}.
      * <p>
      * Default values:

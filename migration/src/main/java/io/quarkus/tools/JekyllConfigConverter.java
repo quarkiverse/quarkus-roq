@@ -30,8 +30,8 @@ public class JekyllConfigConverter {
     public static final String CONFIG_DIR = "config";
     public static final String DATA_DIR = "data";
     public static final String SITE_CONFIG_FILE = "siteConfig.yml";
-    // SmallRye Config rejects empty map values, so use BLANK as a special value
-    public static final String BLANK = "BLANK";
+    // SmallRye Config rejects empty map values, so use <<empty>> as a special value
+    public static final String EMPTY = "<<empty>>";
     private final YAMLMapper yamlMapper;
     private final ObjectMapper objectMapper;
     private boolean strictProperties;
@@ -396,7 +396,7 @@ public class JekyllConfigConverter {
         // SmallRye Config rejects empty map values, so idprefix uses BLANK (resolved by
         // the Roq asciidoc plugin to "").
         // Set before explicit attributes so _config.yml values can override.
-        properties.setProperty("quarkus.asciidoc.attributes.idprefix", BLANK);
+        properties.setProperty("quarkus.asciidoc.attributes.idprefix", EMPTY);
         properties.setProperty("quarkus.asciidoc.attributes.idseparator", "-");
 
         JsonNode asciidoctor = config.get("asciidoctor");
@@ -410,7 +410,7 @@ public class JekyllConfigConverter {
         attributes.fields().forEachRemaining(entry -> {
             String value = entry.getValue().asText();
             if (value.isEmpty()) {
-                value = BLANK;
+                value = EMPTY;
             }
             properties.setProperty("quarkus.asciidoc.attributes." + entry.getKey(), value);
         });

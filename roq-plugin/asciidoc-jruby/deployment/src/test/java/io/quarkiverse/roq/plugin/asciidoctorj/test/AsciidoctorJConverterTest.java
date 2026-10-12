@@ -1,16 +1,15 @@
 package io.quarkiverse.roq.plugin.asciidoctorj.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Map;
 
+import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
 import org.asciidoctor.ast.Document;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
-import io.quarkiverse.roq.plugin.asciidoctorj.runtime.AsciidoctorJConverter;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsciidoctorJConverterTest {
 
@@ -32,7 +31,7 @@ public class AsciidoctorJConverterTest {
 
     @Test
     void shouldApplyBLANKAttributeAsEmpty() {
-        AsciidoctorJConverter blankConverter = new AsciidoctorJConverter(Map.of("idprefix", "BLANK"));
+        AsciidoctorJConverter blankConverter = new AsciidoctorJConverter(Map.of("idprefix", "<<empty>>"));
         RoqTemplateAttributes attrs = new RoqTemplateAttributes(
                 "/tmp/site",
                 "/tmp/site/content/guides/test.adoc",

@@ -1,12 +1,5 @@
 package io.quarkus.tools;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,6 +8,13 @@ import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JekyllConfigConverterTest {
 
@@ -750,11 +750,11 @@ class JekyllConfigConverterTest {
                 "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
         assertEquals("highlightjs", props.getProperty("quarkus.asciidoc.attributes.source-highlighter"),
                 "Jekyll asciidoctor.attributes.source-highlighter should map to quarkus.asciidoc.attributes.source-highlighter");
-        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
+        assertEquals("<<empty>>", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
                 "Empty-string attributes should be emitted as BLANK (resolved to '' by the Roq plugin)");
-        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
+        assertEquals("<<empty>>", props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
                 "Empty-string attributes should be emitted as BLANK");
-        assertEquals("BLANK", props.getProperty("quarkus.asciidoc.attributes.idprefix"),
+        assertEquals("<<empty>>", props.getProperty("quarkus.asciidoc.attributes.idprefix"),
                 "jekyll-asciidoc defaults idprefix to '' — emitted as BLANK");
         assertEquals("-", props.getProperty("quarkus.asciidoc.attributes.idseparator"),
                 "jekyll-asciidoc defaults idseparator to '-' instead of Asciidoctor's '_'");
