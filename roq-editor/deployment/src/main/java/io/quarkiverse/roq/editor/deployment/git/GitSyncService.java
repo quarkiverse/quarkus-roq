@@ -43,7 +43,23 @@ public interface GitSyncService {
      * @param filePaths (optional) list of files to publish
      * @return the result of the publish operation
      */
-    GitSyncResult publish(String message, List<String> filePaths);
+    default GitSyncResult publish(String message, List<String> filePaths) {
+        return publish(message, filePaths, null);
+    }
+
+    /**
+     * Publishes local changes by staging, committing, and pushing them.
+     * <p>
+     * When PR mode is active and the current branch is the main branch, a new content branch
+     * is created. The caller may supply {@code branchNameOverride} to use a specific name
+     * (sanitised against the configured prefix); when {@code null}, a name is auto-generated.
+     *
+     * @param message the commit message
+     * @param filePaths (optional) list of files to publish
+     * @param branchNameOverride (optional) name for the new content branch when starting a PR cycle
+     * @return the result of the publish operation
+     */
+    GitSyncResult publish(String message, List<String> filePaths, String branchNameOverride);
 
     /**
      * Publishes local changes and then performs a full synchronization.
@@ -52,5 +68,18 @@ public interface GitSyncService {
      * @param filePaths (optional) list of files to publish
      * @return the combined result of publish and sync operations
      */
-    GitSyncResult publishAndSync(String message, List<String> filePaths);
+    default GitSyncResult publishAndSync(String message, List<String> filePaths) {
+        return publishAndSync(message, filePaths, null);
+    }
+
+    /**
+     * Publishes local changes (optionally creating a content branch in PR mode) and then
+     * performs a full synchronization.
+     *
+     * @param message the commit message
+     * @param filePaths (optional) list of files to publish
+     * @param branchNameOverride (optional) name for the new content branch when starting a PR cycle
+     * @return the combined result of publish and sync operations
+     */
+    GitSyncResult publishAndSync(String message, List<String> filePaths, String branchNameOverride);
 }
