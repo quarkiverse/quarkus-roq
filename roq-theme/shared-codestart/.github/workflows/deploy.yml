@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Full history for the git dates of the sitemap <lastmod>
       - name: Generate Roq Site
         uses: quarkiverse/quarkus-roq@v1.1
         with:

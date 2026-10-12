@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Full history for the git dates of the sitemap <lastmod>
 
       ####
       # We need to build Roq first because we use 999-SNAPSHOT (it's not needed in your website)
