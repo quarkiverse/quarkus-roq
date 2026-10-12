@@ -389,6 +389,12 @@ public class JekyllConfigConverter {
             "suffix", "prefix", "separator", "dir", "url", "path",
             "name", "format", "highlighter", "encoding", "file");
 
+    /**
+     *
+     * Checks if an attribute seems likely to represent a value.
+     * Note that this is a best guess based on the suffix of the attribute name,
+     * and so it's fragile. As this is migration code, best-effort is acceptable.
+     */
     static boolean looksLikeValueAttribute(String name) {
         for (String suffix : VALUE_ATTRIBUTE_SUFFIXES) {
             if (name.endsWith(suffix)) {

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -754,6 +755,23 @@ class JekyllConfigConverterTest {
                 "Boolean AsciiDoc attributes with empty value should be emitted as 'true'");
         assertNull(props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
                 "Non-boolean empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+    }
+
+    @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1298")
+    @Test
+    void testIconsAsciidoctorAttributesMappedToTrueQuarkusPropertiesFor() throws IOException {
+        String configYaml = """
+                title: Test Site
+                asciidoctor:
+                  base_dir: :docdir
+                  safe: unsafe
+                  attributes:
+                    icons:
+                """;
+        Properties props = converter.createApplicationProperties(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(configYaml));
+        assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.icons"),
+                "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
     }
 
     @Test
