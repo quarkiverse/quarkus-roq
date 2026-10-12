@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-plugin-relocations-parent</artifactId>
+        <version>999-SNAPSHOT</version>
+    </parent>
+    <artifactId>quarkus-roq-plugin-asciidoc-jruby-l10n-deployment</artifactId>
+    <name>Quarkus Roq - Plugin - Relocations - quarkus-roq-plugin-asciidoc-jruby-l10n-deployment</name>
+
+    <distributionManagement>
+        <relocation>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-plugin-asciidoc-l10n-deployment</artifactId>
+            <version>${project.version}</version>
+            <message>quarkus-roq-plugin-asciidoc-jruby-l10n-deployment was renamed to quarkus-roq-plugin-asciidoc-l10n-deployment. Update the artifactId in your project build file.</message>
+        </relocation>
+    </distributionManagement>
+</project>

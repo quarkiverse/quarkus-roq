@@ -7,7 +7,7 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-po-base-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-po-base-dir[`+++quarkus.roq.l10n-adoc.po-base-dir+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-po-base-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-po-base-dir[`+++quarkus.roq.l10n-adoc.po-base-dir+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.l10n-adoc.po-base-dir+++[]
 endif::add-copy-button-to-config-props[]
@@ -28,7 +28,7 @@ endif::add-copy-button-to-env-var[]
 |string
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-extract-on-build]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-extract-on-build[`+++quarkus.roq.l10n-adoc.extract-on-build+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-extract-on-build]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-extract-on-build[`+++quarkus.roq.l10n-adoc.extract-on-build+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.l10n-adoc.extract-on-build+++[]
 endif::add-copy-button-to-config-props[]
@@ -49,7 +49,7 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |
 
-a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-target-language]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby-l10n_quarkus-roq-l10n-adoc-target-language[`+++quarkus.roq.l10n-adoc.target-language+++`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-target-language]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-l10n_quarkus-roq-l10n-adoc-target-language[`+++quarkus.roq.l10n-adoc.target-language+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.roq.l10n-adoc.target-language+++[]
 endif::add-copy-button-to-config-props[]
