@@ -54,6 +54,7 @@ public interface AsciidoctorJConfig {
      * an empty string before passing to AsciidoctorJ.
      * <p>
      * Examples:
+     *
      * <pre>
      * quarkus.asciidoc.attributes.sectanchors=true
      * quarkus.asciidoc.attributes.sectnums=true

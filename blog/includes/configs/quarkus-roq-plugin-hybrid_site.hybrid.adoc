@@ -17,8 +17,8 @@ endif::add-copy-button-to-config-props[]
 --
 Cache store backend.
 
- - `filesystem`: rendered pages are written to disk (survives restarts, low memory usage)
- - `memory`: rendered pages are kept in memory using Caffeine (faster, lost on restart)
+ * `filesystem`: rendered pages are written to disk (survives restarts, low memory usage)
+ * `memory`: rendered pages are kept in memory using Caffeine (faster, lost on restart)
 
 
 ifdef::add-copy-button-to-env-var[]
