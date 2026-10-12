@@ -20,6 +20,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.URIish;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -178,6 +179,42 @@ class GitSyncServiceTest {
         GitSyncResult result = gitSyncService.publish("Add new post", null);
         assertThat(result.success()).isTrue();
         assertThat(result.message()).isEqualTo("Changes pushed successfully");
+    }
+
+    @Test
+    void shouldPublishAndReportSyncedWhenBranchTracksNonOriginRemote() throws Exception {
+        Path forkRemoteDirectory = Files.createTempDirectory("roq-git-fork-remote-");
+        Git.init().setDirectory(forkRemoteDirectory.toFile()).setBare(true).call().close();
+
+        try (Git forkRemote = Git.open(forkRemoteDirectory.toFile())) {
+            String branch = localRepository.getRepository().getBranch();
+            localRepository.remoteAdd()
+                    .setName("myfork")
+                    .setUri(new URIish(forkRemoteDirectory.toUri().toString()))
+                    .call();
+            localRepository.push().setRemote("myfork").call();
+
+            StoredConfig config = localRepository.getRepository().getConfig();
+            config.setString("branch", branch, "remote", "myfork");
+            config.setString("branch", branch, "merge", "refs/heads/" + branch);
+            config.save();
+
+            Files.writeString(localDirectory.resolve("content/fork-post.md"), "# Fork post");
+            GitSyncResult result = gitSyncService.publish("Publish to configured remote", null);
+
+            assertThat(result.success()).isTrue();
+            assertThat(forkRemote.getRepository().findRef("refs/heads/" + branch).getObjectId())
+                    .isEqualTo(localRepository.getRepository().resolve("HEAD"));
+            assertThat(localRepository.getRepository().findRef("refs/remotes/origin/" + branch).getObjectId())
+                    .isNotEqualTo(localRepository.getRepository().resolve("HEAD"));
+
+            GitStatusInfo status = gitSyncService.getStatus(true);
+            assertThat(status.upToDate()).isTrue();
+            assertThat(status.ahead()).isZero();
+            assertThat(status.behind()).isZero();
+        } finally {
+            cleanDirectory(forkRemoteDirectory);
+        }
     }
 
     @Test
