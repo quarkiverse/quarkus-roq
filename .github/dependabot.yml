@@ -9,6 +9,10 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    groups:
+      quarkus:
+        patterns:
+          - "io.quarkus*"
 
   - package-ecosystem: "github-actions"
     directories:
