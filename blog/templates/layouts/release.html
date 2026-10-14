@@ -3,9 +3,14 @@ layout: post
 link: /releases/:name/
 image: release.webp
 ---
-{#article-start}
-<div class="release-back-link">
+{#before-article}
+<div class="release-nav">
   <a href="{=site.url('/releases/')}"><i class="fa-solid fa-arrow-left"></i> All releases</a>
 </div>
-{/article-start}
+{/before-article}
+{#after-article}
+<div class="release-nav">
+  <a href="{=site.url('/releases/')}"><i class="fa-solid fa-arrow-left"></i> All releases</a>
+</div>
+{/after-article}
 {#insert /}

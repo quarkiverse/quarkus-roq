@@ -140,11 +140,11 @@
 }
 
 /* === Release post === */
-.release-back-link {
-    @apply mb-4;
+.release-nav {
+    @apply max-w-3xl mx-auto px-4 py-3;
 }
-.release-back-link a {
-    @apply text-sm text-accent-600 hover:text-accent-800 no-underline;
+.release-nav a {
+    @apply text-accent-600 hover:text-accent-800 no-underline font-medium;
 }
 
 /* === Releases page === */
