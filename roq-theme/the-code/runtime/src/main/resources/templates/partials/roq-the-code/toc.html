@@ -1,0 +1,23 @@
+{#if page.data.get('content-toc')??}
+<aside class="content-toc" data-title="{page.data.get('content-toc-title') ?: 'Table of Contents'}" data-levels="{page.data.get('content-toc-levels') ?: 2}">
+  <div class="toc-menu">
+    {#if page.toc?? && page.toc.size > 0}
+    <h3>{page.data.get('content-toc-title') ?: 'Table of Contents'}</h3>
+    <ul>
+      {#for entry in page.toc}
+      <li data-level="{entry.level - 1}">
+        <a href="#{entry.id}">{entry.title}</a>
+        {#if entry.children.size > 0}
+        <ul>
+          {#for child in entry.children}
+          <li data-level="{child.level - 1}"><a href="#{child.id}">{child.title}</a></li>
+          {/for}
+        </ul>
+        {/if}
+      </li>
+      {/for}
+    </ul>
+    {/if}
+  </div>
+</aside>
+{/if}

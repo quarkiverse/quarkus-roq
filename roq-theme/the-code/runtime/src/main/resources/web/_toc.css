@@ -1,0 +1,19 @@
+@layer components {
+    .content-toc { @apply w-full lg:w-64 shrink-0 order-2 lg:order-1 mt-8 lg:mt-0; }
+    .toc-menu { @apply static top-8 max-h-none lg:sticky lg:max-h-[calc(100vh-4rem)] rounded-lg p-5 bg-card border-card-border border overflow-y-auto; }
+    .toc-menu::-webkit-scrollbar { @apply w-4; }
+    .toc-menu::-webkit-scrollbar-track { @apply bg-transparent; }
+    .toc-menu::-webkit-scrollbar-thumb { @apply rounded-sm bg-border-strong; }
+    .toc-menu::-webkit-scrollbar-thumb:hover { @apply text-tertiary; }
+    .toc-menu h3 { @apply text-base font-bold mb-3 flex items-center gap-2 text-primary; }
+    .toc-menu ul { @apply space-y-0 list-none; }
+    .toc-menu li { @apply leading-normal; }
+    .toc-menu li[data-level="1"] { @apply mb-0; }
+    .toc-menu li[data-level="2"] ul,
+    .toc-menu li[data-level="1"] > ul { @apply ml-6 mt-1 space-y-0.5 pl-3 border-l-2 list-none; }
+    .toc-menu a { @apply transition-colors text-sm block py-0.5 no-underline; }
+    .toc-menu a:hover { @apply text-accent-300; }
+    .toc-menu a.is-active { @apply font-bold text-accent-400; }
+    .toc-menu li[data-level="2"] a,
+    .toc-menu li[data-level="3"] a { @apply text-xs; }
+}

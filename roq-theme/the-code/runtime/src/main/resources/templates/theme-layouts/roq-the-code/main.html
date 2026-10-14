@@ -1,0 +1,20 @@
+---
+layout: default
+---
+
+{#include partials/roq-the-code/header.html /}
+
+<div class="hidden">{#insert menu /}</div>
+
+<main class="site-main">
+    {#insert /}
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        {#insert footer}
+        <p>Powered by <a href="https://iamroq.com" target="_blank">Roq</a>!</p>
+        <p>&copy; {now.format('Y')} {site.title}. All rights reserved.</p>
+        {/insert}
+    </div>
+</footer>

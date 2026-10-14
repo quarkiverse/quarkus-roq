@@ -128,6 +128,17 @@ default                 // Base HTML structure
 └── 404                 // Error page
 ```
 
+### Theme Switching
+
+The default theme uses the same layout names and shared codestart as The Code theme. To switch, just swap the Maven dependency in your `pom.xml`:
+
+```xml
+<!-- Replace quarkus-roq-theme-default with: -->
+<artifactId>quarkus-roq-theme-the-code</artifactId>
+```
+
+Your pages, posts, and data files work with both themes out of the box. If you have customized partials or CSS, some adjustments may be needed to match the new theme's structure.
+
 ### Page Data
 
 Frontmatter keys available to control page behavior per layout.

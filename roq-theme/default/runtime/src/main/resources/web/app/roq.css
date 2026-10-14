@@ -40,15 +40,15 @@
 @import "./_gallery.css";
 @import "./_github-source.css";
 
-/* Typography */
-@import "./_prose.css";
-@import "./_content-prose.css";
+/* Typography (shared from blog-common) */
+@import "./blog-common/_prose.css";
+@import "./blog-common/_content-prose.css";
 @import "./_details.css";
 
 /* Responsive Styles */
 @import "./_responsive.css";
 
-@import "./_asciidoc-prose.css";
+@import "./blog-common/_asciidoc-prose.css";
 @import "./_alerts.css";
 
 @import "./_custom.css";

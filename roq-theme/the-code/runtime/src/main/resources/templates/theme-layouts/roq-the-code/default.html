@@ -1,0 +1,22 @@
+---
+layout: roq-base/default
+---
+
+{#head-meta}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{#seo page site /}
+{#favicon site/}
+{#rss site/}
+<script>
+  (function() {
+    const theme = localStorage.getItem('theme') || 'light';
+    if(theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+</script>
+{#bundle /}
+{/head-meta}
+
+{#insert /}

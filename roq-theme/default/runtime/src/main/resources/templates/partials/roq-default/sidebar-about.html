@@ -2,9 +2,9 @@
 <section class="about">
   {#if site.data.logo?? || site.image}
   <div class="site-logo">
-    <a href="{site.url}"><img src="{#if site.data.logo??}{site.image(site.data.logo)}{#else}{site.image}{/if}" alt="{site.data.name}"></a>
+    <a href="{site.url}"><img src="{#if site.data.logo??}{site.image(site.data.logo)}{#else}{site.image}{/if}" alt="{site.title}"></a>
   </div>
   {/if}
-  <div class="site-name">{site.data.name}</div>
+  <div class="site-name">{site.title}</div>
   {#insert description}<p>{site.description}</p>{/}
 </section>
