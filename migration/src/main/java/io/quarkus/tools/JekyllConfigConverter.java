@@ -384,6 +384,26 @@ public class JekyllConfigConverter {
         return false;
     }
 
+    // Suffixes that indicate the empty string IS the desired value, not a boolean flag.
+    private static final List<String> VALUE_ATTRIBUTE_SUFFIXES = List.of(
+            "suffix", "prefix", "separator", "dir", "url", "path",
+            "name", "format", "highlighter", "encoding", "file");
+
+    /**
+     *
+     * Checks if an attribute seems likely to represent a value.
+     * Note that this is a best guess based on the suffix of the attribute name,
+     * and so it's fragile. As this is migration code, best-effort is acceptable.
+     */
+    static boolean looksLikeValueAttribute(String name) {
+        for (String suffix : VALUE_ATTRIBUTE_SUFFIXES) {
+            if (name.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addAsciidoctorAttributes(JsonNode config, Properties properties) {
         if (config == null || !config.has("asciidoctor")) {
             return;
@@ -397,9 +417,18 @@ public class JekyllConfigConverter {
             return;
         }
         attributes.fields().forEachRemaining(entry -> {
+            String key = entry.getKey();
             String value = entry.getValue().asText();
             if (!value.isEmpty()) {
-                properties.setProperty("quarkus.asciidoc.attributes." + entry.getKey(), value);
+                properties.setProperty("quarkus.asciidoc.attributes." + key, value);
+            } else if (looksLikeValueAttribute(key)) {
+                // Empty string IS the value (e.g. outfilesuffix, idprefix) — skip,
+                // since SmallRye Config rejects empty map values
+                System.out.println("  [CONFIG] Skipping empty-string attribute '" + key
+                        + "' (looks like a value attribute, not a boolean flag)");
+            } else {
+                // Boolean flag (e.g. sectanchors) — emit as "true"
+                properties.setProperty("quarkus.asciidoc.attributes." + key, "true");
             }
         });
     }

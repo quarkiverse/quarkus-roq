@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -750,10 +751,45 @@ class JekyllConfigConverterTest {
                 "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
         assertEquals("highlightjs", props.getProperty("quarkus.asciidoc.attributes.source-highlighter"),
                 "Jekyll asciidoctor.attributes.source-highlighter should map to quarkus.asciidoc.attributes.source-highlighter");
-        assertNull(props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
-                "Empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+        assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
+                "Boolean AsciiDoc attributes with empty value should be emitted as 'true'");
         assertNull(props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
-                "Empty-string attributes should be skipped");
+                "Non-boolean empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+    }
+
+    @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1298")
+    @Test
+    void testIconsAsciidoctorAttributesMappedToTrueQuarkusPropertiesFor() throws IOException {
+        String configYaml = """
+                title: Test Site
+                asciidoctor:
+                  base_dir: :docdir
+                  safe: unsafe
+                  attributes:
+                    icons:
+                """;
+        Properties props = converter.createApplicationProperties(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(configYaml));
+        assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.icons"),
+                "Jekyll asciidoctor.attributes.icons should map to quarkus.asciidoc.attributes.icons");
+    }
+
+    @Test
+    void testLooksLikeValueAttribute() {
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("outfilesuffix"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("idprefix"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("idseparator"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("imagesdir"));
+        assertTrue(JekyllConfigConverter.looksLikeValueAttribute("source-highlighter"));
+
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("sectanchors"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("sectnums"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("experimental"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("toc"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("hardbreaks"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("linkcss"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("data-uri"));
+        assertFalse(JekyllConfigConverter.looksLikeValueAttribute("icons"));
     }
 
     @Test
