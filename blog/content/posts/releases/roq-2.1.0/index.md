@@ -1,11 +1,14 @@
 ---
-title: "Roq 2.1 is here!"
+title: "Roq 2.1.0"
+layout: release
 image: https://images.unsplash.com/photo-1470596914251-afb0b4510279?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-description: Roq 2.1 brings a standalone CLI, LLMs.txt generation, dynamic pages from data, custom error pages, and much more. This post kicks off a series covering all the new features.
+description: Roq 2.1 brings a standalone CLI, LLMs.txt generation, dynamic pages from data, custom error pages, and much more.
 author: ia3andy
-tags: release, cool-stuff
+tags: release, minor, breaking, cool-stuff
 series: roq-2.1
 date: 2026-05-01 10:00:00 +0200
+released-version: 2.1.0
+aliases: [/posts/roq-2-1-is-here]
 ---
 
 Hello fellow Roqers,
@@ -70,3 +73,26 @@ Upcoming posts will dive deeper into:
 Ready to try it? Check out the [Getting Started]({=site.page('docs/getting-started.html').url}) guide, or if you're already on Roq, see [how to update]({=site.page('docs/advanced.adoc').url}#updating-roq).
 
 Stay tuned and happy Roqing!
+
+## Migration guide
+
+| Applies to | Before | After | Action |
+|---|---|---|---|
+| All users | `io.quarkiverse.roq.util.PathUtils` | `io.quarkiverse.tools.stringpaths.StringPaths` | Update import and adapt usage |
+| All users | `layout: :theme/foo` | `layout: foo` or `theme-layout: foo` | Update layout references in front matter |
+| All users | Layouts in `templates/layouts/\{theme-name\}/` | `templates/layouts/` | Move custom layouts |
+| All users | `page.date` returns current date for all pages | Returns `null` for non-collection pages | Wrap with `\{#if page.date\}...\{/if\}` |
+| Theme users | `index.html` layout for blog listing | New `blog.html` layout (with pagination support) | If using `layout: blog` without pagination (`paginate: false`), add `paginate: posts`; if you have a custom `blog.html` override, use `\{#if page.paginator and page.paginator.isFirst\}` instead of `\{#if page.paginator.isFirst\}` |
+| Theme users | SCSS (`app.scss`) | CSS with TailwindCSS | Migrate custom styles |
+| Theme users | Custom SCSS/CSS overrides | Theme CSS completely rewritten | Review your overrides, some may be unnecessary now |
+| Theme users | Custom color variables | Three customizable palettes: `accent`, `pop`, `neutral` | See [Color Palettes]({=site.url('/theme/default-theme/')}) |
+| Theme users | No dark mode | Built-in with `dark:` variants | Good to know |
+| Theme users | `\{#author-card ...\}` (kebab-case) | `\{#roq/authorCard ...\}` (namespaced camelCase) | Update tag references |
+| Plugin authors | `RoqFrontMatterScanProcessor` | Step-based build items | Update plugin code |
+| Plugin authors | `deployment.scan.*` | `deployment.items.scan.*` (same for `data`, `publish`) | Update imports |
+| Plugin authors | Generated templates in `target/roq-templates/full/` | Now in `target/roq-templates/content/` | Update scripts or workflows referencing this path |
+| Plugin authors | `TemplateSource.generatedQuteContentTemplateId()` | Removed, use `\{#fragment RoqPageContent\}` | Update plugin code |
+| Plugin authors | `PAGINATE_KEY` in scan package | `RoqFrontMatterKeys` (runtime) | Update imports |
+| Plugin authors | `io.quarkiverse.roq.frontmatter.runtime.exception.RoqException` | `io.quarkiverse.roq.exception.RoqException` (in `roq-common`) | Update imports |
+| Plugin authors | `RoqException.Builder.source(TemplateSource)` | `RoqException.Builder.sourceInfo(new RoqSourceInfo(...))` | Update builder calls |
+| Plugin authors | `roq-data` exceptions extend `RuntimeException` | All extend `RoqException` with builder pattern | Update exception construction |

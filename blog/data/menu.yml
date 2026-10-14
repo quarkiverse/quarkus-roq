@@ -30,7 +30,6 @@ doc:
   - title: "Publishing"
     path: "/docs/publishing/"
     icon: "fa fa-rocket"
-
   - title: "Advanced stuff"
     path: "/docs/advanced/"
     icon: "fa-solid fa-truck-monster"

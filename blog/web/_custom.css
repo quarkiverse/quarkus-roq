@@ -139,6 +139,81 @@
     @apply max-w-[300px] block;
 }
 
+/* === Release post === */
+.release-back-link {
+    @apply mb-4;
+}
+.release-back-link a {
+    @apply text-sm text-accent-600 hover:text-accent-800 no-underline;
+}
+
+/* === Releases page === */
+.releases-list {
+    @apply flex flex-col gap-4;
+}
+
+.release-card {
+    @apply p-5 rounded-lg border transition-shadow duration-200;
+    @apply border-neutral-200 bg-white;
+    @apply dark:border-neutral-700 dark:bg-neutral-800;
+    @apply hover:shadow-md;
+}
+
+.release-header {
+    @apply flex flex-wrap items-center gap-3 mb-2;
+}
+
+.release-header h2 {
+    @apply text-xl font-semibold m-0;
+}
+
+.release-header h2 a {
+    @apply no-underline text-neutral-900 dark:text-neutral-100;
+    @apply hover:text-accent-600 dark:hover:text-accent-400;
+}
+
+.release-badges {
+    @apply flex gap-1.5;
+}
+
+.release-badge {
+    @apply text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide;
+}
+
+.release-badge-patch {
+    @apply bg-accent-100 text-accent-800;
+    @apply dark:bg-accent-900 dark:text-accent-200;
+}
+
+.release-badge-minor {
+    @apply bg-blue-100 text-blue-800;
+    @apply dark:bg-blue-900 dark:text-blue-200;
+}
+
+.release-badge-major {
+    @apply bg-purple-100 text-purple-800;
+    @apply dark:bg-purple-900 dark:text-purple-200;
+}
+
+.release-badge-breaking {
+    @apply bg-red-100 text-red-800;
+    @apply dark:bg-red-900 dark:text-red-200;
+}
+
+.release-description {
+    @apply text-neutral-600 dark:text-neutral-300 mb-3 mt-0;
+}
+
+.release-meta {
+    @apply flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400;
+}
+
+.release-gh-link {
+    @apply no-underline text-neutral-500 dark:text-neutral-400;
+    @apply hover:text-accent-600 dark:hover:text-accent-400;
+    @apply flex items-center gap-1.5;
+}
+
 /* === Pagination === */
 .pagination a {
     @apply text-accent-600;
