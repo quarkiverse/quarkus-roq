@@ -7,7 +7,7 @@ include::../../includes/edit-contrib.adoc[]
 Roq uses https://quarkus.io/guides/qute[Qute templates] and a different content model than Jekyll, Hugo, or other static site generators.
 This guide covers the workflow, syntax mappings, and Roq-specific pitfalls for migrating an existing static site to Roq.
 
-TIP: Already using Roq and looking to update to a newer version? See the link:{site-url}docs/advanced/#updating-roq[updating guide] and the link:{site-url}docs/releases/#migration-guide[migration guide].
+TIP: Already using Roq and looking to update to a newer version? See the link:{site-url}docs/advanced/#updating-roq[updating guide] and the link:{site-url}releases/[release notes].
 
 == Prerequisites
 

@@ -934,7 +934,7 @@ $ roq update
 
 This will update the Quarkus version and extensions (including Roq) and make sure they are compatible together.
 
-The releases and migration info can be found xref:releases.adoc[here].
+The releases and migration info can be found link:{site-url}releases/[here].
 
 == Site Configuration
 

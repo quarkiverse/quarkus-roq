@@ -394,10 +394,10 @@ public class RoqTemplateExtension {
      * Examples: "{page.date.style('long')}", "{page.date.style('yyyy, MMM dd')}".
      */
     @TemplateExtension(matchName = "style")
-    public static String dateStyle(ZonedDateTime date, String styleOrFormat,
+    public static String dateStyle(ZonedDateTime date, Object styleOrFormat,
             @TemplateAttribute(TemplateInstance.LOCALE) Object locale) {
         Locale loc = resolveLocale(locale);
-        String style = styleOrFormat == null || styleOrFormat.isEmpty() ? "medium" : styleOrFormat;
+        String style = styleOrFormat == null || styleOrFormat.toString().isEmpty() ? "medium" : styleOrFormat.toString();
         return switch (style.toLowerCase()) {
             case "short" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(loc));
             case "medium" -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(loc));

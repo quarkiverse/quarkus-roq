@@ -1,0 +1,40 @@
+---
+title: Releases
+description: Roq release notes and migration guides.
+layout: page
+aliases: [/docs/releases]
+page-class: page-alt page-wide
+---
+
+{#if site.collections.get('posts')}
+{#let releases=site.collections.get('posts').releasePosts}
+
+<div class="releases-list">
+  {#for post in releases}
+  <article class="release-card">
+    <div class="release-header">
+      <h2><a href="{=post.url}">{=post.title}</a></h2>
+      <div class="release-badges">
+        {#if post.releaseType??}
+        <span class="release-badge release-badge-{=post.releaseType}">{=post.releaseType}</span>
+        {/if}
+        {#if post.isBreaking}
+        <span class="release-badge release-badge-breaking">breaking</span>
+        {/if}
+      </div>
+    </div>
+    <p class="release-description">{=post.description}</p>
+    <div class="release-meta">
+      <span class="release-date">{=post.date.style(post.data('post-date-style'))}</span>
+      {#if post.data.get('released-version')??}
+      <a href="https://github.com/quarkiverse/quarkus-roq/releases/tag/{=post.data.get('released-version')}" class="release-gh-link" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-github"></i> GitHub Release
+      </a>
+      {/if}
+    </div>
+  </article>
+  {/for}
+</div>
+
+{/let}
+{/if}
