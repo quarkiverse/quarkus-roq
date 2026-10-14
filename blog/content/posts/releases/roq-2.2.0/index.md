@@ -11,6 +11,7 @@ released-version: 2.2.0
 **Highlights:**
 
 - **[The Code]({=site.url('/theme/the-code-theme/')}) theme**: a minimal, developer-focused theme with Tailwind v4, dark mode, syntax highlighting, TOC, and share links
+- **[Releases page]({=site.url('/releases/')})**: release notes are now tag-based blog posts with their own layout, badges, and a dedicated listing page
 - **`no-index-all` frontmatter key**: opt a page out of sitemap, llms.txt, search index, and robots in one go
 - **HTML sitemap** for visitors alongside the XML sitemap
 - **Configurable sitemap `lastmod`** source with faster git lookup
@@ -23,6 +24,12 @@ released-version: 2.2.0
 - **`asciidoc-l10n`** plugin renamed from `asciidoc-jruby-l10n` (relocation POMs provided)
 - **Nested AsciiDoc includes** processing fixed
 - **Editor fixes**: branch tracking for git sync, refresh race prevention, absolute image path handling
+
+## Releases page
+
+Release notes have moved from a single static page to individual blog posts, each tagged with `release` and using a dedicated `release` layout. The [releases page]({=site.url('/releases/')}) provides a browsable listing with version badges (major, minor, patch) and links to the corresponding GitHub releases.
+
+Each release post lives in `content/posts/releases/roq-X.Y.Z/index.md` with a `released-version` frontmatter key. The whole flow is automated: when a release is published, the CI generates a release post (with the correct version, date, and GitHub link) if one doesn't already exist. Draft release notes written ahead of time are preserved and updated with the final release metadata.
 
 ## Migration guide
 
