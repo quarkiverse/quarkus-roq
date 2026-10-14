@@ -1,0 +1,30 @@
+{#if page.paginator && page.paginator.total > 1}
+<nav role="navigation" class="pagination">
+  <div class="pagination-selector">
+    {#if page.paginator.previous}
+    <a href="{page.paginator.previous}" class="pagination-btn">&larr; Previous</a>
+    {#else}
+    <span class="pagination-btn-disabled">&larr; Previous</span>
+    {/if}
+
+    <div class="pagination-pages">
+      {#for url in page.paginator.pagesUrl}
+      {#if url_count == page.paginator.currentIndex}
+      <span class="pagination-page-active">{url_count}</span>
+      {#else}
+      <a href="{url}" class="pagination-page">{url_count}</a>
+      {/if}
+      {/for}
+    </div>
+
+    {#if page.paginator.next}
+    <a href="{page.paginator.next}" class="pagination-btn">&rarr; Next</a>
+    {#else}
+    <span class="pagination-btn-disabled">&rarr; Next</span>
+    {/if}
+  </div>
+  <div class="pagination-info">
+    Page {page.paginator.currentIndex} of {page.paginator.total}
+  </div>
+</nav>
+{/if}

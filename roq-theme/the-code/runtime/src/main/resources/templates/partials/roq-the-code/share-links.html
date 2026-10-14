@@ -1,0 +1,11 @@
+<div class="share-links">
+  <span class="share-label">Share</span>
+  <div class="share-icons">
+    {#for link in social:share(site.data)}
+      <a href="{link.url(page.title, page.url.absolute)}" title="Share on {link.label}"
+        aria-label="Share on {link.label}" rel="nofollow noopener noreferrer" target="_blank">
+        <span class="icon icon-{link.brand}" aria-hidden="true"></span>
+      </a>
+    {/for}
+  </div>
+</div>

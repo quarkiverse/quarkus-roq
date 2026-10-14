@@ -1,0 +1,41 @@
+<header class="site-header">
+  <div class="header-inner">
+    <a href="{site.url.relative}"
+       class="header-logo">
+      {site.title.toUpperCase}
+    </a>
+
+    <button id="mobile-menu-button" class="nav-item" aria-label="Menu">
+      <span class="icon icon-menu"></span>
+    </button>
+
+    {#fragment id=menu}
+    {@java.lang.String device = 'desktop'}
+    <div class="{device == 'desktop' ? 'desktop-nav' : 'mobile-nav hidden'}">
+      <nav>
+        {#for item in cdi:menu.items??}
+        <a href="{site.url(item.path)}" class="nav-item">
+          {item.title}
+        </a>
+        {/for}
+        <span class="nav-separator"></span>
+        {#for link in social:contact(site.data)}
+        <a href="{link.url}" class="nav-social" target="_blank" rel="noopener noreferrer">
+          <span class="icon icon-{link.brand}"></span>
+        </a>
+        {/for}
+      </nav>
+
+      {#insert nav-extra /}
+      <span class="nav-separator"></span>
+      <button class="nav-item theme-toggle" aria-label="Toggle theme">
+        <span class="hidden toggle-light icon icon-sun"></span>
+        <span class="hidden toggle-dark icon icon-moon"></span>
+        {#if device == 'mobile'}<span class="theme-text">LIGHT MODE</span>{/if}
+      </button>
+
+    </div>
+    {/fragment}
+  </div>
+  {#include $menu device='mobile'/}
+</header>

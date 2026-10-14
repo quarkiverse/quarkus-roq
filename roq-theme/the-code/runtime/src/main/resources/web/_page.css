@@ -1,0 +1,6 @@
+@layer components {
+    .page-content-area { @apply max-w-5xl mx-auto; }
+    .page-content-area .page-content { @apply max-w-none; }
+    .page-content-area header { @apply mb-8; }
+    .page-content-area header h1 { @apply text-4xl font-bold mb-4 text-primary; }
+}

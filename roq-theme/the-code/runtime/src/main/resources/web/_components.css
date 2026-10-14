@@ -1,0 +1,31 @@
+@layer components {
+    /* Hero */
+    .roq-hero { @apply py-16 text-center bg-surface; }
+    .roq-hero-main { @apply max-w-3xl mx-auto; }
+    .roq-hero-logo { @apply mx-auto mb-6 w-24 h-24; }
+    .roq-hero h1 { @apply text-5xl font-bold mb-4; }
+    .roq-hero-tagline { @apply text-xl text-secondary mb-4; }
+    .roq-hero-subtitle { @apply text-secondary; }
+    .roq-hero-actions { @apply flex gap-4 justify-center mt-8; }
+    .roq-hero-actions a { @apply px-6 py-3 rounded-lg no-underline transition-colors bg-accent-600 text-white; }
+    .roq-hero-actions a:hover { @apply bg-accent-700 text-white; }
+
+    /* Feature Cards */
+    .roq-features { @apply grid grid-cols-1 md:grid-cols-2 gap-5 mb-14; }
+    .roq-feature { @apply p-6 rounded-lg border border-border bg-card; }
+    .roq-feature-highlighted { @apply border-accent-500; }
+    .roq-feature-icon { @apply hidden; }
+    .roq-feature h3 { @apply text-lg font-bold mb-2; }
+    .roq-feature p { @apply text-secondary; }
+
+    /* Section */
+    .roq-section { @apply mb-14 py-8 px-6 rounded-lg bg-surface-2 text-center; }
+    .roq-section h2 { @apply text-xl font-bold mb-4 text-primary; }
+    .roq-section p { @apply text-secondary leading-relaxed max-w-2xl mx-auto mb-4; }
+    .roq-section code { @apply px-1.5 py-0.5 rounded text-sm bg-code-bg text-code-text; }
+    .roq-section a { @apply text-accent-500 underline; }
+
+    /* Author Card */
+    .author-card { @apply flex items-center gap-4 p-4 rounded-lg border border-border bg-card; }
+    .author-name { @apply text-lg font-bold; }
+}

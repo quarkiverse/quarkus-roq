@@ -86,10 +86,14 @@ public final class Site {
     }
 
     /**
-     * The site title
+     * The site title from the index page front matter {@code title} key, with a fallback to the {@code name} key.
      */
     public String title() {
-        return data().getString(TITLE);
+        String title = data().getString(TITLE);
+        if (title == null) {
+            title = data().getString("name");
+        }
+        return title;
     }
 
     /**

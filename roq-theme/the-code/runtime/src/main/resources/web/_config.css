@@ -1,0 +1,77 @@
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+    --color-primary: #111827;
+    --color-secondary: #4b5563;
+    --color-tertiary: #6b7280;
+    --color-surface: #ffffff;
+    --color-surface-2: #f9fafb;
+    --color-surface-3: #f3f4f6;
+    --color-card: #ffffff;
+    --color-card-border: #e5e7eb;
+    --color-border: #e5e7eb;
+    --color-border-strong: #d1d5db;
+    --color-code-bg: #f3f4f6;
+    --color-code-text: #db2777;
+    --color-pre-bg: #f8f9fa;
+    --color-pre-text: #24292e;
+    --color-accent-50: #faf5ff;
+    --color-accent-100: #f3e8ff;
+    --color-accent-200: #e9d5ff;
+    --color-accent-300: #c084fc;
+    --color-accent-400: #a855f7;
+    --color-accent-500: #9333ea;
+    --color-accent-600: #7e22ce;
+    --color-accent-700: #6b21a8;
+    --color-accent-800: #581c87;
+    --color-accent-900: #3b0764;
+    --color-accent-950: #2e1065;
+
+    --color-neutral-50: #fafafa;
+    --color-neutral-100: #f4f4f5;
+    --color-neutral-200: #e4e4e7;
+    --color-neutral-300: #d4d4d8;
+    --color-neutral-400: #a1a1aa;
+    --color-neutral-500: #71717a;
+    --color-neutral-600: #52525b;
+    --color-neutral-700: #3f3f46;
+    --color-neutral-800: #27272a;
+    --color-neutral-900: #18181b;
+    --color-neutral-950: #09090b;
+}
+
+:root {
+    --search-bg-color: rgba(0, 0, 0, 0.8);
+    --search-input-bg: var(--color-surface);
+    --search-input-color: var(--color-primary);
+    --search-border-radius: 8px;
+    --search-trigger-border-radius: 8px;
+    --search-highlight-bg: transparent;
+    --search-highlight-color: var(--color-accent-500);
+    --search-result-bg: var(--color-surface);
+    --search-hover-bg: var(--color-surface-3);
+    --search-result-text: var(--color-secondary);
+    --search-result-title: var(--color-primary);
+    --search-placeholder-color: var(--color-tertiary);
+    --search-border-color: var(--color-border);
+    --search-result-url-color: var(--color-tertiary);
+    --search-close-color: var(--color-primary);
+}
+
+.dark {
+    --color-primary: #e0e0e0;
+    --color-secondary: #a3a3a3;
+    --color-tertiary: #737373;
+    --color-surface: #1a1a1a;
+    --color-surface-2: #1f1f1f;
+    --color-surface-3: #262626;
+    --color-border: #404040;
+    --color-border-strong: #525252;
+    --color-card: #1f1f1f;
+    --color-card-border: #404040;
+    --color-code-bg: #262626;
+    --color-code-text: #ff79c6;
+    --color-pre-bg: #1a1b26;
+    --color-pre-text: #e0e0e0;
+}

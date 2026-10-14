@@ -13,7 +13,9 @@
     <name>Quarkus Roq - Themes</name>
 
     <modules>
+        <module>blog-common</module>
         <module>default</module>
+        <module>the-code</module>
         <module>resume</module>
         <module>linktree</module>
     </modules>

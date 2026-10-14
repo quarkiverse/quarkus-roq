@@ -1,0 +1,22 @@
+---
+title: Tags
+layout: page
+---
+
+{#if input.selected-extensions-ga.contains('io.quarkiverse.roq:quarkus-roq-plugin-tagging')}
+{|
+{#if site.collections.posts.tagsCount??}
+<div class="tag-list">
+  {#for tag in site.collections.posts.tagsCount}
+  <a href="{=site.url('/posts/tag/')}{=tag.name}" class="tag-badge">
+    {=tag.name} <span class="tag-count">({=tag.count})</span>
+  </a>
+  {/for}
+</div>
+{#else}
+<p>No tags found yet.</p>
+{/if}
+|}
+{#else}
+<p>Add the <a href="https://iamroq.dev/plugin/tagging/">tagging plugin</a> to enable this page.</p>
+{/if}

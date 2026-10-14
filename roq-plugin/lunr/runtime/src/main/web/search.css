@@ -37,14 +37,12 @@
 .search-button {
   appearance: none;
   -webkit-appearance: none;
-  width: 100%;
   height: var(--search-icon-size);
   padding: 0;
   background: var(--search-icon) no-repeat center;
   background-size: contain;
   border: none;
   cursor: pointer;
-  margin-bottom: 20px;
 }
 
 .search-trigger-input {
@@ -63,7 +61,6 @@
   border-radius: var(--search-trigger-border-radius);
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 20px;
 
   &:hover {
     border-color: var(--search-highlight-color);
