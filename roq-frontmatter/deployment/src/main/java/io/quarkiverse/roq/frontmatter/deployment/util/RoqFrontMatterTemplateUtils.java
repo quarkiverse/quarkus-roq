@@ -7,6 +7,7 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -148,9 +149,10 @@ public final class RoqFrontMatterTemplateUtils {
      */
     public static TransformedContent applyContentTransforms(String content, boolean escaped,
             RoqFrontMatterQuteMarkupBuildItem markup, String layoutId, boolean isPage) {
+        Objects.requireNonNull(content, "content must not be null"); // This should never happen :)
         WrapperFilter escapeFilter = getEscapeFilter(escaped);
         WrapperFilter includeFilter = getIncludeFilter(layoutId, isPage);
-        String escapedContent = escapeFilter.apply(content);
+        String escapedContent = content.isEmpty() ? content : escapeFilter.apply(content);
         String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
         String generatedTemplate = includeFilter.apply(contentWithMarkup);
         return new TransformedContent(generatedTemplate);
