@@ -7,6 +7,29 @@ h|[.header-title]##Configuration property##
 h|Type
 h|Default
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-base-dir]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-base-dir[`+++quarkus.asciidoc.base-dir+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoc.base-dir+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Which directory to use as AsciidoctorJ's `base_dir`.
+
+In `org.asciidoctor.SafeMode++#++SAFE` mode (the mode Roq renders with), `base_dir` is also the jail for every file access performed on the Ruby side. Paths that escape the jail are silently rewritten back into it, which limits where files can be read from or written to.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_BASE_DIR+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOC_BASE_DIR+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`page`, `site`
+|`+++page+++`
+
 a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-attributes-attributes[`+++quarkus.asciidoc.attributes."attributes"+++`]##
 ifdef::add-copy-button-to-config-props[]
 config_property_copy_button:+++quarkus.asciidoc.attributes."attributes"+++[]
@@ -25,6 +48,18 @@ Default values:
  * `showtitle=true`
 
 
+
+For boolean AsciiDoc attributes (flags that are either set or unset, such as `sectanchors` or `sectnums`), use the value `"true"`. SmallRye Config does not support empty-string map values, so `"true"` is converted to an empty string before passing to AsciidoctorJ.
+
+Examples:
+
+```
+quarkus.asciidoc.attributes.sectanchors=true
+quarkus.asciidoc.attributes.sectnums=true
+quarkus.asciidoc.attributes.icons=font
+```
+
+
 ifdef::add-copy-button-to-env-var[]
 Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++[]
 endif::add-copy-button-to-env-var[]
@@ -34,6 +69,40 @@ endif::add-copy-button-to-env-var[]
 --
 |Map<String,String>
 |
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-safe-mode]] [.property-path]##link:#quarkus-roq-plugin-asciidoc-jruby_quarkus-asciidoc-safe-mode[`+++quarkus.asciidoc.safe-mode+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoc.safe-mode+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Safe mode for AsciidoctorJ processing.
+
+Controls filesystem access and security restrictions:
+
+ * `UNSAFE` - Disables security features, allows access to any file (useful for static site generation)
+ * `SAFE` - Prevents access to files outside the parent directory of the source file
+ * `SERVER` - Disallows setting attributes that affect rendering
+ * `SECURE` - Disallows reading files from the filesystem
+
+
+
+Default: `SAFE`
+
+Note: For static site generation where content is trusted, `UNSAFE` is often more appropriate as it allows includes from outside the document directory. See https://docs.asciidoctor.org/asciidoctor/latest/safe-modes/
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_SAFE_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOC_SAFE_MODE+++`
+endif::add-copy-button-to-env-var[]
+--
+a|`unsafe`, `safe`, `server`, `secure`
+|`+++safe+++`
 
 |===
 

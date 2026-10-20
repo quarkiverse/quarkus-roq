@@ -23,7 +23,6 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayout
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
 import io.quarkiverse.roq.frontmatter.runtime.RoqLlmsTxtTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqNoOpBundleSectionHelperFactory;
@@ -216,22 +215,15 @@ public class RoqFrontMatterStep6BindProcessor {
             RoqSiteConfig config,
             BuildProducer<RoqPathBuildItem> pathProducer,
             BuildProducer<NotFoundPageDisplayableEndpointBuildItem> notFoundPageDisplayableEndpointProducer,
-            RoqFrontMatterOutputBuildItem roqOutput,
-            List<RoqFrontMatterRecordedPageBuildItem> pages) {
+            RoqFrontMatterOutputBuildItem roqOutput) {
         if (roqOutput == null) {
             return;
         }
 
         // Bind Roq Generator and dev-ui endpoints
         if (config.generator()) {
-            // The routed pages are the keys of allPagesByPath; the recorded page gives the id for the conflict message
-            final Map<String, String> pageIdByPath = new HashMap<>();
-            for (RoqFrontMatterRecordedPageBuildItem page : pages) {
-                if (!page.hidden()) {
-                    pageIdByPath.putIfAbsent(page.url().resourcePath(), page.id());
-                }
-            }
-            for (String path : roqOutput.allPagesByPath().keySet()) {
+            final Map<String, String> pageIdByPath = roqOutput.pageIdsByPath();
+            for (String path : pageIdByPath.keySet()) {
                 // If there is no extension, we add a trailing slash to make it detected as a html page (this is Roq Generator api)
                 final String selectedPath = StringPaths.fileExtension(path) != null ? path : addTrailingSlash(path);
                 pathProducer.produce(new RoqPathBuildItem(selectedPath, "page '%s'".formatted(pageIdByPath.get(path))));

@@ -1,8 +1,10 @@
 package io.quarkiverse.roq.plugin.hybrid.deployment;
 
+import io.quarkiverse.roq.EncodedJson;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterIncludeFuturePagesBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.utils.RecordedPages;
 import io.quarkiverse.roq.plugin.hybrid.runtime.RoqCacheManager;
 import io.quarkiverse.roq.plugin.hybrid.runtime.RoqHybridRecorder;
 import io.quarkiverse.tools.stringpaths.StringPaths;
@@ -41,10 +43,10 @@ class RoqHybridProcessor {
             RoqHybridRecorder recorder,
             HttpRootPathBuildItem httpRootPath,
             RoqFrontMatterOutputBuildItem roqFrontMatterOutput) {
-        if (roqFrontMatterOutput == null || roqFrontMatterOutput.allPagesByPath().isEmpty()) {
+        if (roqFrontMatterOutput == null || roqFrontMatterOutput.pageIdsByPath().isEmpty()) {
             return null;
         }
-        recorder.startupCache(roqFrontMatterOutput.allPagesByPath());
+        recorder.startupCache(EncodedJson.of(RecordedPages.encodePageIdsByPath(roqFrontMatterOutput.pageIdsByPath())));
         String routePath = httpRootPath.relativePath(StringPaths.join(siteConfig.pathPrefixOrEmpty(), "/*"));
         return httpRootPath.routeBuilder()
                 .routeFunction(routePath, recorder.initializeHybridRoute())

@@ -1,21 +1,26 @@
 package io.quarkiverse.roq.frontmatter.deployment.items.record;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
-import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RoqFrontMatterOutputBuildItem extends SimpleBuildItem {
 
-    private final Map<String, Supplier<? extends Page>> allPagesByPath;
+    private final Map<String, String> pageIdsByPath;
 
-    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<? extends Page>> allPagesByPath) {
-        this.allPagesByPath = allPagesByPath;
+    /**
+     * @param pageIdsByPath the routed page ids by resource path
+     */
+    public RoqFrontMatterOutputBuildItem(Map<String, String> pageIdsByPath) {
+        this.pageIdsByPath = pageIdsByPath;
     }
 
-    public Map<String, Supplier<? extends Page>> allPagesByPath() {
-        return allPagesByPath;
+    /**
+     * The routed page ids by resource path, use {@link io.quarkiverse.roq.frontmatter.runtime.model.Site#page(String)} to
+     * resolve the pages at runtime.
+     */
+    public Map<String, String> pageIdsByPath() {
+        return pageIdsByPath;
     }
 
 }
