@@ -97,9 +97,14 @@ public class RoqPluginMarkdownTwinProcessor {
      */
     @BuildStep
     void registerSeoAlternatesOverride(
+            MarkdownTwinConfig config,
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer) throws IOException {
+        if (!config.enabled()) {
+            // No twins, so nothing to advertise: leave the site's own seoAlternates tag in place.
+            return;
+        }
         try (InputStream in = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(SEO_ALTERNATES_OVERRIDE_RESOURCE)) {
             if (in == null) {
@@ -122,9 +127,15 @@ public class RoqPluginMarkdownTwinProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void generateTwins(MarkdownTwinRecorder recorder, RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
-            List<RoqFrontMatterPageTemplateBuildItem> templates, List<RoqFrontMatterQuteMarkupBuildItem> markups,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
+    void generateTwins(MarkdownTwinConfig twinConfig, MarkdownTwinRecorder recorder, RoqSiteConfig siteConfig,
+            RoqFrontMatterRootUrlBuildItem rootUrl, List<RoqFrontMatterPageTemplateBuildItem> templates,
+            List<RoqFrontMatterQuteMarkupBuildItem> markups, BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
+        if (!twinConfig.enabled()) {
+            // Still record the (empty) map so the template extension has something to read.
+            recorder.init(Map.of());
+            return;
+        }
+        final TwinScope scope = TwinScope.of(twinConfig);
         final QuteMarkupSection markdownSection = markupSection(markups, MARKDOWN_MARKUP);
         final Config config = ConfigProvider.getConfig();
         final Map<String, String> siteAttributes = configuredAttributes(config);
@@ -151,6 +162,10 @@ public class RoqPluginMarkdownTwinProcessor {
             final Object paginate = item.data().getValue(RoqFrontMatterKeys.PAGINATE);
             if (paginate != null && !Boolean.FALSE.equals(paginate)) {
                 LOG.debugf("Markdown twin: %s is a paginated listing, no twin", source.path());
+                continue;
+            }
+            // Configured include/exclude patterns, so a large archived tree can be kept out of the build.
+            if (!scope.includes(item.url().resourcePath())) {
                 continue;
             }
             final String twinPath = twinPath(item.url().resourcePath());

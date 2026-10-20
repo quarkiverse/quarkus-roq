@@ -1,0 +1,86 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-enabled]] [.property-path]##link:#quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-enabled[`+++quarkus.roq.plugin.markdown-twin.enabled+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.markdown-twin.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Whether Markdown twins are generated.
+
+Twins are built during augmentation, so they are rebuilt on every dev-mode restart. On a large site, such as quarkus.io with its thousands of pages, that is the slowest part of the plugin and multiplies the dev-mode startup time. Set `%dev.quarkus.roq.plugin.markdown-twin.enabled=false` to skip it while working on the site, keeping twins in the production build.
+
+When disabled, no twin files are written and no page advertises one, because the `link rel="alternate"` override is not registered either.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++true+++`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-include]] [.property-path]##link:#quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-include[`+++quarkus.roq.plugin.markdown-twin.include+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.markdown-twin.include+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Page paths to generate twins for. When unset, every eligible page gets a twin.
+
+Patterns are matched against the page's path relative to the site root, with or without a leading slash (`guides/http-reference` and `/guides/http-reference` are the same page). A pattern is a glob unless it carries an explicit `glob:` or `regex:` prefix, the same convention as `site.ignored-files`. In a glob, `++*++` stops at a slash and `++**++` crosses slashes, so `/guides/++**++` covers the whole guides tree.
+
+These are page paths rather than source paths so that the same patterns can be reused by a CDN rule that serves twins on content negotiation. A path in that rule but not here answers 404 instead of the page. A directory-style page such as `/guides/` also matches as `/guides/index`, so a tree pattern covers the landing page of the tree.
+
+The value is a comma-separated list, so a comma inside a glob alternation such as `/guides/++{++http,rest`-++*}++ must be escaped as `++\\++,` in the property value, or the patterns written as indexed properties (`include++[++0++]++=...`).
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_INCLUDE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_INCLUDE+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-exclude]] [.property-path]##link:#quarkus-roq-plugin-markdown-twin_quarkus-roq-plugin-markdown-twin-exclude[`+++quarkus.roq.plugin.markdown-twin.exclude+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.markdown-twin.exclude+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Page paths to skip. Applied after `include()`, so an excluded page never gets a twin.
+
+Use this to keep archived or generated trees out of the build. Pattern syntax is the same as `include()`. The per-page `mdtwin: false` front matter key still opts a single page out.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_EXCLUDE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_MARKDOWN_TWIN_EXCLUDE+++`
+endif::add-copy-button-to-env-var[]
+--
+|list of string
+|
+
+|===
+
