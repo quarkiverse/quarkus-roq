@@ -1,9 +1,14 @@
 package io.quarkiverse.roq.plugin.markdowntwin.deployment;
 
+import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.TEMPLATES_DIR;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
+import static io.quarkus.qute.deployment.TemplatePathBuildItem.ROOT_ARCHIVE_PRIORITY;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +19,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.LargeRecords;
+import io.quarkiverse.roq.deployment.items.LargeRecordBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
@@ -25,10 +32,19 @@ import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.utils.FuturePages;
+import io.quarkiverse.roq.plugin.markdowntwin.runtime.MarkdownTwinRecorder;
+import io.quarkiverse.roq.plugin.markdowntwin.runtime.MarkdownTwinTemplateExtension;
 import io.quarkiverse.roq.plugin.markdowntwin.runtime.RoqMarkdownTwinKeys;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.ExecutionTime;
+import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.qute.ParserConfig;
+import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -64,6 +80,11 @@ public class RoqPluginMarkdownTwinProcessor {
     private static final String ASCIIDOC_ATTRIBUTES = "asciidoc-attributes";
     private static final String SAFE_MODE = "quarkus.asciidoc.safe-mode";
     private static final String TRUE = Boolean.TRUE.toString();
+    // the seo tag's hook for alternate representations, overridden with the twin link (same mechanism as og-card)
+    private static final String SEO_ALTERNATES_TAG = "tags/seoAlternates.html";
+    private static final String SEO_ALTERNATES_OVERRIDE_RESOURCE = "templates/partials/markdown-twin/seoAlternates.html";
+    // keeps the twin map out of the recorded class, whose constant pool a large site would overflow
+    private static final String TWINS_RESOURCE = "roq-recorded/markdown-twins.ser";
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -71,15 +92,51 @@ public class RoqPluginMarkdownTwinProcessor {
     }
 
     @BuildStep
-    void generateTwins(RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
+    AdditionalBeanBuildItem templateExtension() {
+        return new AdditionalBeanBuildItem(MarkdownTwinTemplateExtension.class);
+    }
+
+    /**
+     * Replaces the seo tag's {@code seoAlternates} hook with the twin link, which renders only for pages recorded in
+     * {@code MarkdownTwins}, so a page whose twin was not generated never advertises one.
+     */
+    @BuildStep
+    void registerSeoAlternatesOverride(
+            BuildProducer<TemplatePathBuildItem> templatePathProducer,
+            BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer) throws IOException {
+        try (InputStream in = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(SEO_ALTERNATES_OVERRIDE_RESOURCE)) {
+            if (in == null) {
+                throw new IllegalStateException("Missing seoAlternates override template: " + SEO_ALTERNATES_OVERRIDE_RESOURCE);
+            }
+            final String content = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            final String targetPath = TEMPLATES_DIR + "/" + SEO_ALTERNATES_TAG;
+            generatedResourceProducer.produce(new GeneratedResourceBuildItem(targetPath,
+                    content.getBytes(StandardCharsets.UTF_8)));
+            nativeImageResourceProducer.produce(new NativeImageResourceBuildItem(targetPath));
+            templatePathProducer.produce(TemplatePathBuildItem.builder()
+                    .priority(ROOT_ARCHIVE_PRIORITY + 10)
+                    .path(SEO_ALTERNATES_TAG)
+                    .content(content)
+                    .parserConfig(ParserConfig.DEFAULT)
+                    .extensionInfo(FEATURE)
+                    .build());
+        }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void generateTwins(MarkdownTwinRecorder recorder, RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterPageTemplateBuildItem> templates, List<RoqFrontMatterQuteMarkupBuildItem> markups,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
+            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles, BuildProducer<LargeRecordBuildItem> largeRecords) {
         final QuteMarkupSection markdownSection = markupSection(markups, MARKDOWN_MARKUP);
         final Config config = ConfigProvider.getConfig();
         final Map<String, String> siteAttributes = configuredAttributes(config);
         siteAttributes.putIfAbsent("sitegen", "roq");
         final AsciidocMarkdownConverter converter = new AsciidocMarkdownConverter(siteAttributes, includes(config));
-        int twins = 0;
+        // page resource path -> twin resource path, for the pages that really got a twin
+        final Map<String, String> twins = new HashMap<>();
         for (RoqFrontMatterPageTemplateBuildItem item : templates) {
             final PageSource source = item.source();
             // Only real content pages that render to HTML; skip the site index.
@@ -136,10 +193,12 @@ public class RoqPluginMarkdownTwinProcessor {
             }
             staticFiles.produce(new RoqFrontMatterStaticFileBuildItem(twinPath,
                     markdown.getBytes(StandardCharsets.UTF_8)));
-            twins++;
+            twins.put(item.url().resourcePath(), twinPath);
             LOG.debugf("Markdown twin: /%s (from %s)", twinPath, markup);
         }
-        LOG.infof("Generated %d Markdown twins", twins);
+        LOG.infof("Generated %d Markdown twins", twins.size());
+        largeRecords.produce(new LargeRecordBuildItem(TWINS_RESOURCE, LargeRecords.serialize(twins)));
+        recorder.init(TWINS_RESOURCE);
     }
 
     /**

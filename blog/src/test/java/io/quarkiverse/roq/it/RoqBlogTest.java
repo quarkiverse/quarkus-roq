@@ -15,7 +15,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
@@ -170,6 +172,38 @@ public class RoqBlogTest {
         // markups/twin-no-index-all-kept.md also sets `mdtwin: true`, which wins over `no-index-all`.
         RestAssured.when().get("/markups/twin-no-index-all-kept/index.md").then().statusCode(200)
                 .body(startsWith("# Twin no-index-all kept\n\nThis page sets `no-index-all: true` and `mdtwin: true`"));
+    }
+
+    @Test
+    public void testAlternateLinkAdvertisesTheTwin() {
+        // A page with a twin carries a link rel="alternate" to it in its head, with the same absolute address as its
+        // canonical link, so the site URL and the root path reach the twin's href.
+        final String page = RestAssured.when().get("/docs/basics/").then().statusCode(200).extract().asString();
+        final String canonical = attributeValue(page, "<link rel=\"canonical\" href=\"");
+        assertNotNull(canonical, "the page has a canonical link");
+        assertTrue(canonical.endsWith("/docs/basics/"), canonical);
+        assertEquals(canonical + "index.md", attributeValue(page, "<link rel=\"alternate\" type=\"text/markdown\" href=\""));
+    }
+
+    private static String attributeValue(String html, String prefix) {
+        final int start = html.indexOf(prefix);
+        if (start < 0) {
+            return null;
+        }
+        final int end = html.indexOf('"', start + prefix.length());
+        return end < 0 ? null : html.substring(start + prefix.length(), end);
+    }
+
+    @Test
+    public void testNoAlternateLinkWithoutATwin() {
+        // The link is driven by the twins that were generated, never by the page type: neither the opted-out page nor
+        // the page whose conversion failed (markups/twin-broken.adoc, which asciidoc-java rejects and Asciidoctor
+        // renders without the block) advertises one, and neither has a twin.
+        RestAssured.when().get("/markups/twin-broken/index.md").then().statusCode(404);
+        RestAssured.when().get("/markups/twin-broken/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+        RestAssured.when().get("/markups/twin-optout/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
     }
 
     @Test
