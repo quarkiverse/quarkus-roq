@@ -13,4 +13,14 @@ public interface RoqMarkdownTwinKeys {
      * ▸ Access: {@code page.data.getBoolean("mdtwin")}
      */
     String MDTWIN = "mdtwin";
+
+    /**
+     * The URL of the page's Markdown twin, set by the plugin on each page that got a twin — e.g.
+     * {@code https://example.com/docs/basics/index.md}
+     * <br>
+     * ▸ Scope: page / document
+     * <br>
+     * ▸ Access: {@code page.data.markdownTwin}
+     */
+    String MARKDOWN_TWIN = "markdownTwin";
 }

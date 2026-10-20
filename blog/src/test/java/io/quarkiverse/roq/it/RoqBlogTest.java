@@ -15,7 +15,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
@@ -170,6 +172,57 @@ public class RoqBlogTest {
         // markups/twin-no-index-all-kept.md also sets `mdtwin: true`, which wins over `no-index-all`.
         RestAssured.when().get("/markups/twin-no-index-all-kept/index.md").then().statusCode(200)
                 .body(startsWith("# Twin no-index-all kept\n\nThis page sets `no-index-all: true` and `mdtwin: true`"));
+    }
+
+    @Test
+    public void testAlternateLinkAdvertisesTheTwin() {
+        // A page with a twin carries a link rel="alternate" to it in its head, with the same base as its canonical link.
+        final String page = RestAssured.when().get("/docs/basics/").then().statusCode(200).extract().asString();
+        final String canonical = attributeValue(page, "<link rel=\"canonical\" href=\"");
+        assertNotNull(canonical, "the page has a canonical link");
+        assertTrue(canonical.endsWith("/docs/basics/"), canonical);
+        assertEquals(canonical + "index.md", attributeValue(page, "<link rel=\"alternate\" type=\"text/markdown\" href=\""));
+    }
+
+    private static String attributeValue(String html, String prefix) {
+        final int start = html.indexOf(prefix);
+        if (start < 0) {
+            return null;
+        }
+        final int end = html.indexOf('"', start + prefix.length());
+        return end < 0 ? null : html.substring(start + prefix.length(), end);
+    }
+
+    @Test
+    public void testNoAlternateLinkWithoutATwin() {
+        // The link is driven by the twins that were generated, never by the page type: neither the opted-out page nor
+        // the empty page, whose twin would be empty and is not published, advertises one, and neither has a twin.
+        RestAssured.when().get("/markups/twin-empty/index.md").then().statusCode(404);
+        RestAssured.when().get("/markups/twin-empty/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+        RestAssured.when().get("/markups/twin-optout/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+    }
+
+    @Test
+    public void testSeoAlternatesFalseHidesTheLink() {
+        // markups/twin-no-alternate.md sets `seoAlternates: false`, which wins over the plugin's data: no link, but a twin.
+        RestAssured.when().get("/markups/twin-no-alternate/index.md").then().statusCode(200);
+        RestAssured.when().get("/markups/twin-no-alternate/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+    }
+
+    @Test
+    public void testOwnSeoAlternatesKeepTheTwinLink() {
+        // markups/twin-own-alternates.md sets its own seoAlternates list: the plugin adds the twin's entry after it.
+        final String page = RestAssured.when().get("/markups/twin-own-alternates/").then().statusCode(200).extract()
+                .asString();
+        final int own = page.indexOf("<link rel=\"alternate\" type=\"application/rss+xml\" href=\"/rss.xml\" />");
+        final int twin = page.indexOf("<link rel=\"alternate\" type=\"text/markdown\" href=\"");
+        assertTrue(own >= 0, "the page's own entry is rendered");
+        assertTrue(twin > own, "the twin's entry comes after the page's own entry");
+        assertTrue(attributeValue(page, "<link rel=\"alternate\" type=\"text/markdown\" href=\"")
+                .endsWith("/markups/twin-own-alternates/index.md"));
     }
 
     @Test

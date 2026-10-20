@@ -14,6 +14,7 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterExtraDataBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
@@ -29,6 +30,7 @@ import io.quarkiverse.roq.plugin.markdowntwin.runtime.RoqMarkdownTwinKeys;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -73,7 +75,8 @@ public class RoqPluginMarkdownTwinProcessor {
     @BuildStep
     void generateTwins(RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterPageTemplateBuildItem> templates, List<RoqFrontMatterQuteMarkupBuildItem> markups,
-            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles) {
+            BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles,
+            BuildProducer<RoqFrontMatterExtraDataBuildItem> extraData) {
         final QuteMarkupSection markdownSection = markupSection(markups, MARKDOWN_MARKUP);
         final Config config = ConfigProvider.getConfig();
         final Map<String, String> siteAttributes = configuredAttributes(config);
@@ -82,8 +85,8 @@ public class RoqPluginMarkdownTwinProcessor {
         int twins = 0;
         for (RoqFrontMatterPageTemplateBuildItem item : templates) {
             final PageSource source = item.source();
-            // Only real content pages that render to HTML; skip the site index.
-            if (!source.isTargetHtml() || source.isSiteIndex()) {
+            // Only real content pages that render to HTML on this site; skip the site index and external links.
+            if (!source.isTargetHtml() || source.isSiteIndex() || item.url().isExternal()) {
                 continue;
             }
             // `mdtwin: false` opts the page out, and so does `no-index-all: true` unless the page also sets `mdtwin: true`.
@@ -136,6 +139,8 @@ public class RoqPluginMarkdownTwinProcessor {
             }
             staticFiles.produce(new RoqFrontMatterStaticFileBuildItem(twinPath,
                     markdown.getBytes(StandardCharsets.UTF_8)));
+            extraData.produce(new RoqFrontMatterExtraDataBuildItem(source.id(),
+                    twinData(rootUrl.rootUrl().resolve(twinPath).absolute())));
             twins++;
             LOG.debugf("Markdown twin: /%s (from %s)", twinPath, markup);
         }
@@ -156,6 +161,17 @@ public class RoqPluginMarkdownTwinProcessor {
             return null;
         }
         return resourcePath.endsWith("/") ? resourcePath + "index.md" : resourcePath + ".md";
+    }
+
+    /**
+     * The data a page with a twin gets: {@code markdownTwin}, the twin's URL, and the {@code seoAlternates} entry the
+     * seo tag renders as {@code <link rel="alternate" type="text/markdown">}.
+     */
+    private JsonObject twinData(String twinUrl) {
+        return new JsonObject()
+                .put(RoqMarkdownTwinKeys.MARKDOWN_TWIN, twinUrl)
+                .put(RoqFrontMatterKeys.SEO_ALTERNATES, new JsonArray()
+                        .add(new JsonObject().put("type", "text/markdown").put("href", twinUrl)));
     }
 
     /**
