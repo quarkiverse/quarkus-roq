@@ -17,6 +17,15 @@ parsing HTML. A page at `/docs/basics/` gets its twin at `/docs/basics/index.md`
 - AsciiDoc pages: converted in-process to GitHub-Flavored Markdown, includes and attributes resolved.
 - HTML pages and paginated listing pages: no twin.
 
+Every page that got a twin advertises it in its head, so an agent that fetches the HTML page finds the Markdown:
+
+```html
+<link rel="alternate" type="text/markdown" href="https://example.com/docs/basics/index.md" />
+```
+
+The link comes from the `seoAlternates` tag inside the `seo` tag. A site that overrides `tags/seo.html` needs the
+line `{#seoAlternates page site /}` in its copy to show it.
+
 Nothing to configure: add the dependency and every page gets a twin. Use `mdtwin: false` in the FM data to keep a page out:
 
 ```yaml
