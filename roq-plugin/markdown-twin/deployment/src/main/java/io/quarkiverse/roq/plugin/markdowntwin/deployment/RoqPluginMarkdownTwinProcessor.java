@@ -76,10 +76,15 @@ public class RoqPluginMarkdownTwinProcessor {
     }
 
     @BuildStep
-    void generateTwins(RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
+    void generateTwins(MarkdownTwinConfig twinConfig, RoqSiteConfig siteConfig, RoqFrontMatterRootUrlBuildItem rootUrl,
             List<RoqFrontMatterPageTemplateBuildItem> templates, List<RoqFrontMatterQuteMarkupBuildItem> markups,
             BuildProducer<RoqFrontMatterStaticFileBuildItem> staticFiles,
             BuildProducer<RoqFrontMatterExtraDataBuildItem> extraData) {
+        if (!twinConfig.enabled()) {
+            // No twins, so no page gets the data that advertises one.
+            return;
+        }
+        final TwinScope scope = TwinScope.of(twinConfig);
         final QuteMarkupSection markdownSection = markupSection(markups, MARKDOWN_MARKUP);
         final Config config = ConfigProvider.getConfig();
         final Map<String, String> siteAttributes = configuredAttributes(config);
@@ -105,6 +110,10 @@ public class RoqPluginMarkdownTwinProcessor {
             final Object paginate = item.data().getValue(RoqFrontMatterKeys.PAGINATE);
             if (paginate != null && !Boolean.FALSE.equals(paginate)) {
                 LOG.debugf("Markdown twin: %s is a paginated listing, no twin", source.path());
+                continue;
+            }
+            // Configured include/exclude patterns, so a large archived tree can be kept out of the build.
+            if (!scope.includes(item.url().resourcePath())) {
                 continue;
             }
             final String twinPath = twinPath(item.url().resourcePath());
