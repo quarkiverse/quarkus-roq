@@ -17,6 +17,11 @@ parsing HTML. A page at `/docs/basics/` gets its twin at `/docs/basics/index.md`
 - AsciiDoc pages: converted in-process to GitHub-Flavored Markdown, includes and attributes resolved.
 - HTML pages and paginated listing pages: no twin.
 
+The conversion comes from the plugin that renders the page: the Markdown plugin and the AsciiDoc plugins each
+contribute the converter of their markup, and the twin plugin only decides which pages get a twin, where it lives,
+and publishes it. A plugin can add a converter for another markup with a `RoqMarkdownConverterBuildItem`, and can read
+every twin, converted once, from the `RoqPageMarkdownBuildItem` list.
+
 Every page that got a twin advertises it in its head, so an agent that fetches the HTML page finds the Markdown:
 
 ```html
