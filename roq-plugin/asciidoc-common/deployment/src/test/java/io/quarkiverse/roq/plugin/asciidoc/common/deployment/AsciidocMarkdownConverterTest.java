@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.plugin.markdowntwin.deployment;
+package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -14,11 +14,20 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.quarkiverse.roq.plugin.markdowntwin.deployment.AsciidocMarkdownConverter.Includes;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqMarkdownConverterBuildItem.MarkdownConversion;
+import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.plugin.asciidoc.common.deployment.AsciidocMarkdownConverter.Includes;
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfig;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Unit tests for the converter: what the plugin adds around Yupiik's {@code GithubFlavoredMarkdownRenderer} (includes,
- * site attributes, fallback title, links between twins, callouts the parser rejects, failures). Plain JUnit, no Quarkus.
+ * site attributes, fallback title, links between pages, callouts the parser rejects, failures) and what it reads from
+ * the site and the page (the typed {@code quarkus.asciidoc} configuration, the page URL, the front matter). Plain JUnit,
+ * no Quarkus.
  */
 class AsciidocMarkdownConverterTest {
 
@@ -311,7 +320,7 @@ class AsciidocMarkdownConverterTest {
         // The site sets a, the page attributes set a too: the site wins, as on the rendered page.
         assertThat(new AsciidocMarkdownConverter(Map.of("a", "site"), Includes.SITE)
                 .convert(page, tmp, Map.of("a", "page"), Map.of(), null)).hasValue("Value: site.\n");
-        // quarkus.asciidoc.attributes."!a"=true unsets a for the page, so the twin leaves the reference unresolved too.
+        // quarkus.asciidoc.attributes."!a"=true unsets a for the page, so the Markdown leaves the reference unresolved too.
         assertThat(new AsciidocMarkdownConverter(Map.of("!a", ""), Includes.SITE)
                 .convert(page, tmp, Map.of("a", "page"), Map.of(), null)).hasValue("Value: {a}.\n");
     }
@@ -326,5 +335,113 @@ class AsciidocMarkdownConverterTest {
                 .hasValue("Before.\n\nShared text from the classpath.\n\nAfter.\n");
         // Without a site directory the path is absolute and no resource matches: the include is missing, not fatal.
         assertThat(converter.convert(page, null, Map.of(), Map.of(), null)).hasValue("Before.\n\nAfter.\n");
+    }
+
+    @Test
+    void crossPageLinksPointAtTheOtherPagesMarkdown() throws IOException {
+        final Path page = tmp.resolve("basics.adoc");
+        Files.writeString(page, """
+                xref:advanced.adoc[A] xref:./advanced.adoc[B] xref:guides/advanced.adoc[C] xref:/docs/advanced.adoc[D]
+                """);
+        // Without a page URL the links are relative, as the AsciidoctorJ plugin falls back to `../`.
+        assertThat(converter.convert(page, tmp, Map.of(), Map.of(), null)).hasValue("[A](../advanced/index.md) "
+                + "[B](../advanced/index.md) [C](../guides/advanced/index.md) [D](/docs/advanced/index.md)\n");
+        // With the page URL /docs/basics/ the converter passes its parent path, so the links are site-absolute as on
+        // the HTML page.
+        assertThat(converter.convert(page, tmp, Map.of("relfileprefix", "/docs/"), Map.of(), null))
+                .hasValue("[A](/docs/advanced/index.md) "
+                        + "[B](/docs/advanced/index.md) [C](/docs/guides/advanced/index.md) [D](/docs/advanced/index.md)\n");
+        // The consumer says what a reference ends with; the twin convention is the default.
+        assertThat(converter.convert(page, tmp, Map.of("relfileprefix", "/docs/"), Map.of(), null, ".md"))
+                .hasValue(
+                        "[A](/docs/advanced.md) [B](/docs/advanced.md) [C](/docs/guides/advanced.md) [D](/docs/advanced.md)\n");
+    }
+
+    @Test
+    void aConversionCarriesThePageUrlTheSiteUrlAndTheFrontMatterAttributes() throws IOException {
+        final Path page = tmp.resolve("basics.adoc");
+        Files.writeString(page, """
+                ---
+                title: Front matter title
+                asciidoc-attributes:
+                  release: 2.2
+                ---
+                Release {release} at {page-url} ({page-path}) of {site-url} ({site-path}), {docname}: xref:advanced.adoc[A].
+                """);
+        final RootUrl root = new RootUrl("https://example.org", "/");
+        final JsonObject data = new JsonObject().put("title", "Front matter title")
+                .put("asciidoc-attributes", new JsonObject().put("release", 2.2));
+        assertThat(converter.convert(new MarkdownConversion(page, null, tmp, root, new RoqUrl(root, "docs/basics/"), data,
+                "/index.md")))
+                .hasValue("# Front matter title\n\nRelease 2.2 at <https://example.org/docs/basics/> (/docs/basics/) of "
+                        + "<https://example.org/> (/), basics: [A](/docs/advanced/index.md).\n");
+        // Without URLs the page attributes stay unset and the links relative.
+        assertThat(converter.convert(new MarkdownConversion(page, null, tmp, null, null, new JsonObject(), null)))
+                .hasValue("Release {release} at {page-url} ({page-path}) of {site-url} ({site-path}), basics: "
+                        + "[A](../advanced/index.md).\n");
+    }
+
+    @Test
+    void aConversionWithoutASourceFileGivesNoMarkdownAndDoesNotThrow() {
+        assertThat(converter.convert(new MarkdownConversion(null, "{#asciidoc}\nText.\n{/asciidoc}", tmp, null, null,
+                new JsonObject(), null))).isEmpty();
+        assertThat(converter.convert(new MarkdownConversion(tmp.resolve("absent.adoc"), null, tmp, null, null,
+                new JsonObject(), null))).isEmpty();
+    }
+
+    @Test
+    void frontMatterAttributesAreWrittenAsText() {
+        final JsonObject data = new JsonObject().put("asciidoc-attributes",
+                new JsonObject().put("icons", "image").put("release", 2.2).put("sectanchors", true));
+        assertThat(converter.frontMatterAttributes(data))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("icons", "image", "release", "2.2", "sectanchors", "true"));
+        // A list is written as the page writes it, from the raw map, not as JSON.
+        assertThat(converter.frontMatterAttributes(new JsonObject().put("asciidoc-attributes",
+                new JsonObject().put("list", List.of("a", "b"))))).containsExactlyEntriesOf(Map.of("list", "[a, b]"));
+        assertThat(converter.frontMatterAttributes(new JsonObject())).isEmpty();
+        assertThat(converter.frontMatterAttributes(null)).isEmpty();
+        assertThat(converter.frontMatterAttributes(new JsonObject().put("asciidoc-attributes", "not a map"))).isEmpty();
+    }
+
+    @Test
+    void siteAttributesTrueBecomesAnEmptyValueAndUnsetMarkersAreKept() {
+        assertThat(AsciidocMarkdownConverter.siteAttributes(Map.of("sectanchors", "true", "icons", "font", "!toc", "")))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "icons", "font", "!toc", ""));
+        assertThat(AsciidocMarkdownConverter.siteAttributes(null)).isEmpty();
+    }
+
+    @Test
+    void includesFollowTheSafeMode() {
+        assertThat(AsciidocMarkdownConverter.includes("UNSAFE")).isEqualTo(Includes.ANY);
+        assertThat(AsciidocMarkdownConverter.includes("unsafe")).isEqualTo(Includes.ANY);
+        assertThat(AsciidocMarkdownConverter.includes("SECURE")).isEqualTo(Includes.NONE);
+        assertThat(AsciidocMarkdownConverter.includes("SAFE")).isEqualTo(Includes.SITE);
+        assertThat(AsciidocMarkdownConverter.includes("SERVER")).isEqualTo(Includes.SITE);
+        assertThat(AsciidocMarkdownConverter.includes(null)).isEqualTo(Includes.SITE);
+    }
+
+    @Test
+    void theTypedConfigurationReadsTheSameQuarkusAsciidocProperties() {
+        final SmallRyeConfig config = new SmallRyeConfigBuilder()
+                .withMapping(AsciidocCommonConfig.class)
+                .withSources(new PropertiesConfigSource(Map.of(
+                        "quarkus.asciidoc.attributes.sectanchors", "true",
+                        "quarkus.asciidoc.attributes.icons", "font",
+                        "quarkus.asciidoc.attributes.\"!toc\"", "true",
+                        "quarkus.asciidoc.safe-mode", "unsafe"), "test", 100))
+                .build();
+        final AsciidocCommonConfig mapping = config.getConfigMapping(AsciidocCommonConfig.class);
+        assertThat(mapping.attributes())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "true", "icons", "font", "!toc", "true"));
+        // What the converter gets from it: the flag set, the unset marker kept for the conversion to apply.
+        assertThat(AsciidocMarkdownConverter.siteAttributes(mapping.attributes()))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "icons", "font", "!toc", ""));
+        assertThat(mapping.safeMode()).isEqualTo("unsafe");
+        assertThat(mapping.qute()).isFalse();
+        // The defaults when nothing is set.
+        final AsciidocCommonConfig defaults = new SmallRyeConfigBuilder().withMapping(AsciidocCommonConfig.class).build()
+                .getConfigMapping(AsciidocCommonConfig.class);
+        assertThat(defaults.attributes()).isEmpty();
+        assertThat(defaults.safeMode()).isEqualTo("SAFE");
     }
 }

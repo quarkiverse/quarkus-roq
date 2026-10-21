@@ -25,12 +25,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-qute-deployment</artifactId>
         </dependency>
-        <!-- Build-time only: the pure-Java AsciiDoc parser never reaches the site's runtime classpath. -->
-        <dependency>
-            <groupId>io.yupiik.maven</groupId>
-            <artifactId>asciidoc-java</artifactId>
-            <version>${asciidoc-java.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
