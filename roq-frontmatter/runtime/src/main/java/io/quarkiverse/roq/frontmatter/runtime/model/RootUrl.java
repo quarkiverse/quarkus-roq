@@ -3,6 +3,8 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlashIfNoExt;
 import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
+import java.io.Serializable;
+
 import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkiverse.tools.stringpaths.StringPaths;
@@ -22,7 +24,7 @@ public record RootUrl(
         /**
          * The application root path (e.g. "/my-root")
          */
-        String rootPath) {
+        String rootPath) implements Serializable {
     public RootUrl(String url, String rootPath) {
         this.url = url;
         this.rootPath = prefixWithSlash(addTrailingSlashIfNoExt(rootPath));

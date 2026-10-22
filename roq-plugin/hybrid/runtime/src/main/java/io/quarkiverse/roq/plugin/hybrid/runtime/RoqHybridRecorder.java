@@ -1,11 +1,11 @@
 package io.quarkiverse.roq.plugin.hybrid.runtime;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
-import io.quarkiverse.roq.EncodedJson;
+import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.utils.RecordedPages;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
@@ -42,10 +42,11 @@ public class RoqHybridRecorder {
         return new RoqHybridHandler(cacheManager, siteConfig, compressMediaTypes, cachingEnabled);
     }
 
-    public void startupCache(EncodedJson pageIdsByPath) {
+    public void startupCache(String pageIdsByPathResource) {
         if (io.quarkus.runtime.LaunchMode.current().isDevOrTest() && !config.cacheInDevMode()) {
             return;
         }
-        new RoqHybridStartup(RecordedPages.decodePageIdsByPath(pageIdsByPath), siteConfig).cacheStartupPages();
+        Map<String, String> pageIdsByPath = LargeRecords.deserialize(pageIdsByPathResource);
+        new RoqHybridStartup(pageIdsByPath, siteConfig).cacheStartupPages();
     }
 }

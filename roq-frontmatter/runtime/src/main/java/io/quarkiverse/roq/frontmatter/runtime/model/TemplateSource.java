@@ -3,6 +3,7 @@ package io.quarkiverse.roq.frontmatter.runtime.model;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_PAGE_QUTE_PREFIX;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_GENERATED_QUTE_PREFIX;
 
+import java.io.Serializable;
 import java.util.function.Function;
 
 import jakarta.enterprise.inject.Vetoed;
@@ -40,7 +41,7 @@ public record TemplateSource(
         boolean isTargetHtml,
         boolean isIndex,
         boolean isSiteIndex,
-        String targetExtension) {
+        String targetExtension) implements Serializable {
 
     public static TemplateSource create(
             String id,

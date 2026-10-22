@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -22,7 +23,7 @@ import io.quarkus.qute.TemplateData;
 @Vetoed
 public record RoqUrl(
         RootUrl root,
-        String resourcePath) {
+        String resourcePath) implements Serializable {
 
     /**
      * The accepted URI schemes (lowercase) considered as full/external paths. Any link with one of

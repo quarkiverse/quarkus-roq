@@ -7,23 +7,21 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import io.quarkiverse.roq.EncodedJson;
+import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
-import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
+import io.quarkiverse.roq.frontmatter.runtime.model.SerializedPage;
 import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkiverse.roq.frontmatter.runtime.model.Sources;
-import io.quarkiverse.roq.frontmatter.runtime.utils.RecordedPages;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -49,13 +47,18 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<List<NormalPage>> createPages(RootUrl rootUrl, EncodedJson pages) {
-        return new LazyValue<>(() -> RecordedPages.decodeNormalPages(rootUrl, pages.get()))::get;
+    public Supplier<List<NormalPage>> createPages(String resourcePath) {
+        return new LazyValue<>(() -> {
+            List<SerializedPage> serialized = LargeRecords.deserialize(resourcePath);
+            return serialized.stream().map(s -> (NormalPage) s.toPage()).toList();
+        })::get;
     }
 
-    public Supplier<List<DocumentPage>> createDocuments(RootUrl rootUrl, String collection, boolean hidden,
-            EncodedJson documents) {
-        return new LazyValue<>(() -> RecordedPages.decodeDocuments(rootUrl, collection, hidden, documents.get()))::get;
+    public Supplier<List<DocumentPage>> createDocuments(String resourcePath) {
+        return new LazyValue<>(() -> {
+            List<SerializedPage> serialized = LargeRecords.deserialize(resourcePath);
+            return serialized.stream().map(s -> (DocumentPage) s.toPage()).toList();
+        })::get;
     }
 
     public Supplier<Map<String, DocumentPage>> createDocumentsById(List<Supplier<List<DocumentPage>>> documents) {
@@ -71,12 +74,11 @@ public class RoqFrontMatterRecorder {
     }
 
     public Supplier<List<DocumentPage>> createDerivedDocuments(Supplier<Map<String, DocumentPage>> documentsById,
-            EncodedJson documentIds) {
+            List<String> documentIds) {
         return () -> {
-            final JsonArray ids = documentIds.get();
-            final List<DocumentPage> docs = new ArrayList<>(ids.size());
-            for (int i = 0; i < ids.size(); i++) {
-                docs.add(documentsById.get().get(ids.getString(i)));
+            final List<DocumentPage> docs = new ArrayList<>(documentIds.size());
+            for (String id : documentIds) {
+                docs.add(documentsById.get().get(id));
             }
             return docs;
         };
@@ -92,8 +94,8 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Supplier<Sources> createSources(EncodedJson sources) {
-        return () -> new Sources(RecordedPages.decodeTemplateSources(sources.get()));
+    public Supplier<Sources> createSources(String resourcePath) {
+        return new LazyValue<>(() -> new Sources(LargeRecords.deserialize(resourcePath)))::get;
     }
 
     public Consumer<Route> initializeResolverRoute() {
@@ -112,8 +114,8 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Handler<RoutingContext> pageResolver(EncodedJson pageIdsByPath) {
-        return new RoqPageResolverHandler(RecordedPages.decodePageIdsByPath(pageIdsByPath));
+    public Handler<RoutingContext> pageResolver(String resourcePath) {
+        return new RoqPageResolverHandler(LargeRecords.deserialize(resourcePath));
     }
 
     public Handler<RoutingContext> renderHandler() {
