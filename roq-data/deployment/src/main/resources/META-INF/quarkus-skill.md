@@ -27,7 +27,10 @@ john:
 **Template access**:
 ```html
 {=cdi:authors.ia3andy.name}
+{=data:authors.ia3andy.name}
 ```
+
+`data:` is an alias for `cdi:` (resolves any named CDI bean). If no bean matches, it falls back to Qute's built-in `data:` namespace (root template data, e.g. `data:page`).
 
 ### Data Directories
 
