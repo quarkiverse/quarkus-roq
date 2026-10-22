@@ -1,6 +1,9 @@
 
 package io.quarkiverse.roq.it;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import io.quarkiverse.roq.testing.RoqAndRoll;
 import io.quarkiverse.roq.testing.RoqLinks;
 import io.quarkus.test.junit.QuarkusTest;
@@ -12,7 +15,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
@@ -95,6 +100,110 @@ public class RoqBlogTest {
         RestAssured.when().get("/sitemap.xml").then().statusCode(200).body(containsString("<urlset"))
                 .body(containsString("<loc>/</loc>")).body(containsString("<loc>/posts/tag/plugin/</loc>"))
                 .body(not(containsString("<loc>/404.html</loc>"))).body(containsString("</urlset>"));
+    }
+
+    @Test
+    public void testMarkdownTwinFromMarkdownSource() {
+        // A Markdown page publishes its verbatim source at <page-url>index.md (not the rendered HTML page, which carries
+        // the "&copy; ROQ" site footer).
+        RestAssured.when().get("/posts/welcome-to-roq/index.md").then().statusCode(200)
+                .body(startsWith("# Welcome to Roq!\n\nHello folks,"))
+                .body(not(containsString("&copy; ROQ")));
+        // Qute's {| ... |} escape delimiters are removed, as on the page.
+        RestAssured.when().get("/plugin/toc/index.md").then().statusCode(200)
+                .body(containsString("Add `{page.tocHtml}` to a layout:"))
+                .body(not(containsString("{|")));
+    }
+
+    @Test
+    public void testMarkdownTwinFromAsciidocSource() {
+        // An AsciiDoc page (docs/basics.adoc uses include::) is converted in-process to Markdown at <page-url>index.md:
+        // includes resolved (no include:: left), content from an included file is inlined, attributes substituted, source
+        // blocks fenced, and it is Markdown, not HTML.
+        RestAssured.when().get("/docs/basics/index.md").then().statusCode(200)
+                .body(startsWith("# Roq the basics"))
+                .body(containsString("## Directory Structure"))
+                .body(containsString("```yaml"))
+                .body(containsString("blog/content/docs/basics.adoc"))
+                .body(not(containsString("include::")))
+                .body(not(containsString(":imagesdir:")))
+                .body(not(containsString("{doc-name}")))
+                .body(not(containsString("&copy; ROQ")));
+        // The twin sits inside the page's directory, never beside it: a sibling basics.md lets hosts that resolve an
+        // extensionless request to a file (surge.sh does) answer /docs/basics with the twin instead of the page.
+        RestAssured.when().get("/docs/basics.md").then().statusCode(404);
+    }
+
+    @Test
+    public void testTwinTitleIgnoresACommentInACodeBlock() {
+        // The aliases plugin page has no heading of its own, only a `# content/...` comment inside a yaml code block.
+        RestAssured.when().get("/plugin/aliases/index.md").then().statusCode(200)
+                .body(startsWith("# Aliases\n\nCreate one or many aliases"));
+    }
+
+    @Test
+    public void testTwinUsesThePageAsciidocAttributes() {
+        // markups/twin-attributes.adoc sets asciidoc-attributes in its front matter; the twin resolves them as the page.
+        RestAssured.when().get("/markups/twin-attributes/").then().statusCode(200)
+                .body(containsString("Release 2.2 of Roq."));
+        RestAssured.when().get("/markups/twin-attributes/index.md").then().statusCode(200)
+                .body(containsString("Release 2.2 of Roq."));
+    }
+
+    @Test
+    public void testTwinWrittenToDisk() {
+        Path twin = RoqLinks.outputDir().resolve("posts/welcome-to-roq/index.md");
+        assertTrue(Files.exists(twin), "Markdown twin should be written to the generated site: " + twin);
+    }
+
+    @Test
+    public void testTwinOptOut() {
+        // markups/twin-optout.md sets `mdtwin: false`, so no twin is published; the key is independent of `llmstxt`, so
+        // the page is still listed in llms.txt.
+        RestAssured.when().get("/markups/twin-optout/index.md").then().statusCode(404);
+        RestAssured.when().get("/llms.txt").then().statusCode(200)
+                .body(containsString("[Twin Opt-Out Test](/markups/twin-optout/)"));
+    }
+
+    @Test
+    public void testTwinNoIndexAll() {
+        // markups/twin-no-index-all.md sets `no-index-all: true`, so no twin is published.
+        RestAssured.when().get("/markups/twin-no-index-all/index.md").then().statusCode(404);
+        // markups/twin-no-index-all-kept.md also sets `mdtwin: true`, which wins over `no-index-all`.
+        RestAssured.when().get("/markups/twin-no-index-all-kept/index.md").then().statusCode(200)
+                .body(startsWith("# Twin no-index-all kept\n\nThis page sets `no-index-all: true` and `mdtwin: true`"));
+    }
+
+    @Test
+    public void testAlternateLinkAdvertisesTheTwin() {
+        // A page with a twin carries a link rel="alternate" to it in its head, with the same absolute address as its
+        // canonical link, so the site URL and the root path reach the twin's href.
+        final String page = RestAssured.when().get("/docs/basics/").then().statusCode(200).extract().asString();
+        final String canonical = attributeValue(page, "<link rel=\"canonical\" href=\"");
+        assertNotNull(canonical, "the page has a canonical link");
+        assertTrue(canonical.endsWith("/docs/basics/"), canonical);
+        assertEquals(canonical + "index.md", attributeValue(page, "<link rel=\"alternate\" type=\"text/markdown\" href=\""));
+    }
+
+    private static String attributeValue(String html, String prefix) {
+        final int start = html.indexOf(prefix);
+        if (start < 0) {
+            return null;
+        }
+        final int end = html.indexOf('"', start + prefix.length());
+        return end < 0 ? null : html.substring(start + prefix.length(), end);
+    }
+
+    @Test
+    public void testNoAlternateLinkWithoutATwin() {
+        // The link is driven by the twins that were generated, never by the page type: neither the opted-out page nor
+        // the page whose conversion failed (markups/twin-broken.adoc, which asciidoc-java rejects and Asciidoctor
+        // renders without the block) advertises one, and neither has a twin.
+        RestAssured.when().get("/markups/twin-broken/index.md").then().statusCode(404);
+        RestAssured.when().get("/markups/twin-broken/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
+        RestAssured.when().get("/markups/twin-optout/").then().statusCode(200)
+                .body(not(containsString("text/markdown")));
     }
 
     @Test

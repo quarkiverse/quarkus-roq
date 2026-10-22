@@ -1,0 +1,16 @@
+package io.quarkiverse.roq.plugin.markdowntwin.runtime;
+
+import java.util.Map;
+
+import io.quarkus.runtime.annotations.Recorder;
+
+/**
+ * Carries the set of generated twins from the build to {@link MarkdownTwins}.
+ */
+@Recorder
+public class MarkdownTwinRecorder {
+
+    public void init(Map<String, String> twins) {
+        MarkdownTwins.init(twins);
+    }
+}
