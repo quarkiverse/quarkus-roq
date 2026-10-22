@@ -178,4 +178,30 @@ public class RoqFrontMatterTemplateUtilsTest {
         assertEquals("content", filter.apply("content"),
                 "Non-escaped content should not be modified");
     }
+
+    // ── applyContentTransforms ──────────────────────────────────────────
+
+    @Test
+    @DisplayName("Empty escaped content is not wrapped in an empty Qute unparsed block")
+    void emptyEscapedContentNotWrapped() {
+        String result = RoqFrontMatterTemplateUtils.applyContentTransforms("", true, null, null, true)
+                .generatedTemplate();
+        assertFalse(result.contains("{||}"), "Empty content must not produce {||}: " + result);
+    }
+
+    @Test
+    @DisplayName("Non-empty escaped content is still wrapped in a Qute unparsed block")
+    void nonEmptyEscapedContentWrapped() {
+        String result = RoqFrontMatterTemplateUtils.applyContentTransforms("hello", true, null, null, true)
+                .generatedTemplate();
+        assertEquals("{|hello|}", result);
+    }
+
+    @Test
+    @DisplayName("Whitespace-only escaped content is still wrapped")
+    void blankEscapedContentWrapped() {
+        String result = RoqFrontMatterTemplateUtils.applyContentTransforms("\n", true, null, null, true)
+                .generatedTemplate();
+        assertEquals("{|\n|}", result);
+    }
 }
