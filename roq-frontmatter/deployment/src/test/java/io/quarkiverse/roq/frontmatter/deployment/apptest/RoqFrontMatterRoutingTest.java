@@ -38,7 +38,7 @@ public class RoqFrontMatterRoutingTest {
                 .body("html.head.meta.findAll { it.@name == 'twitter:url' }.@content",
                         equalTo("https://mywebsite.com/foo/bar/"))
                 .body("html.body.article.h1", equalTo("A cool blog post"))
-                .body("html.body.article.p", equalTo("bar hello"))
+                .body("html.body.article.p", equalTo("bar hello hello bar"))
                 .body("html.body.div.h2", equalTo("My Cool Post"))
                 .body("html.body.div.p", equalTo("bar bar bar"));
     }
