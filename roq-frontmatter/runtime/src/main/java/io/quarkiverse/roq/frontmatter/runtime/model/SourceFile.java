@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.io.Serializable;
+
 import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkiverse.roq.exception.RoqSourceInfo;
@@ -15,7 +17,7 @@ import io.quarkus.qute.TemplateData;
  */
 @TemplateData
 @Vetoed
-public record SourceFile(String siteDirPath, String relativePath) {
+public record SourceFile(String siteDirPath, String relativePath) implements Serializable {
 
     public String absolutePath() {
         return StringPaths.join(siteDirPath, relativePath);

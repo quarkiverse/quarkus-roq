@@ -1,21 +1,36 @@
 package io.quarkiverse.roq.frontmatter.deployment.items.record;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
-import io.quarkiverse.roq.frontmatter.runtime.model.Page;
 import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RoqFrontMatterOutputBuildItem extends SimpleBuildItem {
 
-    private final Map<String, Supplier<? extends Page>> allPagesByPath;
+    private final Map<String, String> pageIdsByPath;
+    private final String pageIdsByPathResource;
 
-    public RoqFrontMatterOutputBuildItem(Map<String, Supplier<? extends Page>> allPagesByPath) {
-        this.allPagesByPath = allPagesByPath;
+    /**
+     * @param pageIdsByPath the routed page ids by resource path
+     * @param pageIdsByPathResource the classpath resource containing the serialized pageIdsByPath map
+     */
+    public RoqFrontMatterOutputBuildItem(Map<String, String> pageIdsByPath, String pageIdsByPathResource) {
+        this.pageIdsByPath = pageIdsByPath;
+        this.pageIdsByPathResource = pageIdsByPathResource;
     }
 
-    public Map<String, Supplier<? extends Page>> allPagesByPath() {
-        return allPagesByPath;
+    /**
+     * The routed page ids by resource path, use {@link io.quarkiverse.roq.frontmatter.runtime.model.Site#page(String)} to
+     * resolve the pages at runtime.
+     */
+    public Map<String, String> pageIdsByPath() {
+        return pageIdsByPath;
+    }
+
+    /**
+     * The classpath resource path for the serialized pageIdsByPath map.
+     */
+    public String pageIdsByPathResource() {
+        return pageIdsByPathResource;
     }
 
 }

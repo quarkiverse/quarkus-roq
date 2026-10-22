@@ -5,11 +5,13 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.removeLeadingSlash;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.vertx.http.runtime.RoutingUtils;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -20,12 +22,17 @@ public class RoqPageResolverHandler implements Handler<RoutingContext> {
 
     public static final String ROQ_PAGE_KEY = "roq.page";
 
-    private final Map<String, Supplier<? extends Page>> pages;
+    private final Map<String, String> pageIdsByPath;
     private final Map<String, Page> extractedPaths;
+    private final LazyValue<Site> site;
 
-    public RoqPageResolverHandler(Map<String, Supplier<? extends Page>> pages) {
-        this.pages = pages;
+    /**
+     * @param pageIdsByPath the routed page ids by resource path, pages are resolved from the {@link Site} bean
+     */
+    public RoqPageResolverHandler(Map<String, String> pageIdsByPath) {
+        this.pageIdsByPath = pageIdsByPath;
         this.extractedPaths = new ConcurrentHashMap<>();
+        this.site = new LazyValue<>(() -> Arc.container().instance(Site.class).get());
     }
 
     @Override
@@ -42,9 +49,7 @@ public class RoqPageResolverHandler implements Handler<RoutingContext> {
     private Page extractTemplatePath(String path) {
         path = removeLeadingSlash(path);
         final String link = addTrailingSlashIfNoExt(path);
-        if (pages.containsKey(link)) {
-            return pages.get(link).get();
-        }
-        return null;
+        final String id = pageIdsByPath.get(link);
+        return id == null ? null : site.get().page(id);
     }
 }

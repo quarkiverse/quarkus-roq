@@ -8,10 +8,11 @@ import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.roq.EncodedJson;
+import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBeanBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.data.runtime.RoqDataRecorder;
+import io.quarkiverse.roq.deployment.items.LargeRecordBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -40,6 +41,7 @@ class RoqDataBeanProcessor {
             List<RoqDataJsonBuildItem> roqDataJsonBuildItems,
             List<RoqDataBeanBuildItem> dataBeanBuildItems,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
+            BuildProducer<LargeRecordBuildItem> resourceProducer,
             RoqDataRecorder recorder) {
 
         reflectiveClassProducer.produce(
@@ -56,10 +58,14 @@ class RoqDataBeanProcessor {
             } else {
                 throw new IllegalStateException("Unsupported Json data bean type for %s".formatted(roqData.getName()));
             }
+            String resourcePath = "roq-recorded/data-" + roqData.getName() + ".ser";
+            resourceProducer
+                    .produce(new LargeRecordBuildItem(resourcePath,
+                            LargeRecords.serializeJson(roqData.getData())));
             beansProducer.produce(SyntheticBeanBuildItem.configure(cl)
                     .scope(ApplicationScoped.class)
                     .named(roqData.getName())
-                    .runtimeValue(recorder.createRoqDataJson(EncodedJson.of(roqData.getData())))
+                    .runtimeValue(recorder.createRoqDataJson(resourcePath))
                     .unremovable()
                     .done());
             beans.add("    - %s[name=%s]*".formatted(cl.getName(), roqData.getName()));

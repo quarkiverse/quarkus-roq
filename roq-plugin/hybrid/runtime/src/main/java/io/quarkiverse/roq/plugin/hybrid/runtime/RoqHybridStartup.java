@@ -1,13 +1,13 @@
 package io.quarkiverse.roq.plugin.hybrid.runtime;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqRouteHandler;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.Page;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.qute.Template;
@@ -17,12 +17,12 @@ public class RoqHybridStartup {
 
     private static final Logger LOG = Logger.getLogger(RoqHybridStartup.class);
 
-    private final Map<String, Supplier<? extends Page>> pages;
+    private final Map<String, String> pageIdsByPath;
     private final RoqSiteConfig siteConfig;
 
-    public RoqHybridStartup(Map<String, Supplier<? extends Page>> pages,
+    public RoqHybridStartup(Map<String, String> pageIdsByPath,
             RoqSiteConfig siteConfig) {
-        this.pages = pages;
+        this.pageIdsByPath = pageIdsByPath;
         this.siteConfig = siteConfig;
     }
 
@@ -31,8 +31,10 @@ public class RoqHybridStartup {
                 () -> Arc.container().instance(TemplateProducer.class).get());
         RoqCacheManager cacheManager = Arc.container().instance(RoqCacheManager.class).get();
 
-        for (var entry : pages.entrySet()) {
-            Page page = entry.getValue().get();
+        Site site = Arc.container().instance(Site.class).get();
+
+        for (String id : pageIdsByPath.values()) {
+            Page page = site.page(id);
             RoqHybridConfig.CacheMode cacheMode = cacheManager.getCacheMode(page);
             if (cacheMode != RoqHybridConfig.CacheMode.STARTUP) {
                 continue;

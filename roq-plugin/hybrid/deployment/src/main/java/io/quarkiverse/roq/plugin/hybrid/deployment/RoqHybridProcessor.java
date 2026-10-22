@@ -41,10 +41,10 @@ class RoqHybridProcessor {
             RoqHybridRecorder recorder,
             HttpRootPathBuildItem httpRootPath,
             RoqFrontMatterOutputBuildItem roqFrontMatterOutput) {
-        if (roqFrontMatterOutput == null || roqFrontMatterOutput.allPagesByPath().isEmpty()) {
+        if (roqFrontMatterOutput == null || roqFrontMatterOutput.pageIdsByPath().isEmpty()) {
             return null;
         }
-        recorder.startupCache(roqFrontMatterOutput.allPagesByPath());
+        recorder.startupCache(roqFrontMatterOutput.pageIdsByPathResource());
         String routePath = httpRootPath.relativePath(StringPaths.join(siteConfig.pathPrefixOrEmpty(), "/*"));
         return httpRootPath.routeBuilder()
                 .routeFunction(routePath, recorder.initializeHybridRoute())

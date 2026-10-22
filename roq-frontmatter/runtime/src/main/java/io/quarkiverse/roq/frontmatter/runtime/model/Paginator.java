@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.io.Serializable;
+
 import jakarta.enterprise.inject.Vetoed;
 
 import io.quarkus.qute.TemplateData;
@@ -32,7 +34,7 @@ public record Paginator(
         Integer previousIndex,
         RoqUrl previous,
         Integer nextIndex,
-        RoqUrl next, java.util.List<RoqUrl> pagesUrl) {
+        RoqUrl next, java.util.List<RoqUrl> pagesUrl) implements Serializable {
 
     public Integer prevIndex() {
         return previousIndex();

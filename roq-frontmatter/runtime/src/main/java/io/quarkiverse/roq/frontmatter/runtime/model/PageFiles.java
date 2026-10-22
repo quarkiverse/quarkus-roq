@@ -4,9 +4,10 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.fileExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
 
+import java.io.Serializable;
 import java.util.List;
 
-public record PageFiles(List<String> names, boolean slugified) {
+public record PageFiles(List<String> names, boolean slugified) implements Serializable {
 
     public static final PageFiles EMPTY = new PageFiles(List.of(), false);
 

@@ -9,9 +9,9 @@ import io.quarkus.builder.item.MultiBuildItem;
 
 public final class RoqFrontMatterRecordedCollectionBuildItem extends MultiBuildItem {
     private final ConfiguredCollection collection;
-    private final List<Supplier<DocumentPage>> documents;
+    private final Supplier<List<DocumentPage>> documents;
 
-    public RoqFrontMatterRecordedCollectionBuildItem(ConfiguredCollection collection, List<Supplier<DocumentPage>> documents) {
+    public RoqFrontMatterRecordedCollectionBuildItem(ConfiguredCollection collection, Supplier<List<DocumentPage>> documents) {
         this.collection = collection;
         this.documents = documents;
     }
@@ -20,7 +20,7 @@ public final class RoqFrontMatterRecordedCollectionBuildItem extends MultiBuildI
         return collection;
     }
 
-    public List<Supplier<DocumentPage>> documents() {
+    public Supplier<List<DocumentPage>> documents() {
         return documents;
     }
 }

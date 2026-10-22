@@ -7,10 +7,17 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import io.quarkiverse.roq.EncodedJson;
+import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
-import io.quarkiverse.roq.frontmatter.runtime.model.*;
+import io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection;
+import io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections;
+import io.quarkiverse.roq.frontmatter.runtime.model.SerializedPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.Site;
+import io.quarkiverse.roq.frontmatter.runtime.model.Sources;
+import io.quarkus.arc.impl.LazyValue;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.vertx.core.Handler;
@@ -30,44 +37,65 @@ public class RoqFrontMatterRecorder {
     }
 
     public Supplier<RoqCollections> createRoqCollections(
-            Map<ConfiguredCollection, List<Supplier<DocumentPage>>> collectionSuppliers) {
+            Map<ConfiguredCollection, Supplier<List<DocumentPage>>> collectionSuppliers) {
         return () -> {
             final var c = new HashMap<String, RoqCollection>();
-            for (Map.Entry<ConfiguredCollection, List<Supplier<DocumentPage>>> e : collectionSuppliers.entrySet()) {
-                List<DocumentPage> docs = new ArrayList<>();
-                for (Supplier<DocumentPage> v : e.getValue()) {
-                    docs.add(v.get());
-                }
-                c.put(e.getKey().id(), new RoqCollection(e.getKey(), docs));
+            for (Map.Entry<ConfiguredCollection, Supplier<List<DocumentPage>>> e : collectionSuppliers.entrySet()) {
+                c.put(e.getKey().id(), new RoqCollection(e.getKey(), e.getValue().get()));
             }
             return new RoqCollections(Map.copyOf(c));
         };
     }
 
-    public Supplier<NormalPage> createPage(RoqUrl url, PageSource source, EncodedJson data, Paginator paginator) {
-        return () -> new NormalPage(url, source, data.get(), paginator);
+    public Supplier<List<NormalPage>> createPages(String resourcePath) {
+        return new LazyValue<>(() -> {
+            List<SerializedPage> serialized = LargeRecords.deserialize(resourcePath);
+            return serialized.stream().map(s -> (NormalPage) s.toPage()).toList();
+        })::get;
     }
 
-    public Supplier<DocumentPage> createDocument(String collection, RoqUrl url, PageSource source, EncodedJson data,
-            boolean hidden) {
-        return () -> new DocumentPage(collection, url, source, data.get(), hidden);
+    public Supplier<List<DocumentPage>> createDocuments(String resourcePath) {
+        return new LazyValue<>(() -> {
+            List<SerializedPage> serialized = LargeRecords.deserialize(resourcePath);
+            return serialized.stream().map(s -> (DocumentPage) s.toPage()).toList();
+        })::get;
     }
 
-    public Supplier<Site> createSite(RootUrl rootUrl, Supplier<NormalPage> indexPage,
-            List<Supplier<NormalPage>> normalPagesSuppliers,
-            Supplier<RoqCollections> roqCollectionsSupplier) {
-        return () -> {
-            final List<NormalPage> pages = new ArrayList<>();
-            for (Supplier<NormalPage> pagesSupplier : normalPagesSuppliers) {
-                pages.add(pagesSupplier.get());
+    public Supplier<Map<String, DocumentPage>> createDocumentsById(List<Supplier<List<DocumentPage>>> documents) {
+        return new LazyValue<>(() -> {
+            final Map<String, DocumentPage> byId = new HashMap<>();
+            for (Supplier<List<DocumentPage>> supplier : documents) {
+                for (DocumentPage document : supplier.get()) {
+                    byId.put(document.id(), document);
+                }
             }
-            return new Site(indexPage.get().url(), config.imagesPath(),
-                    indexPage.get().data(), pages, roqCollectionsSupplier.get());
+            return byId;
+        })::get;
+    }
+
+    public Supplier<List<DocumentPage>> createDerivedDocuments(Supplier<Map<String, DocumentPage>> documentsById,
+            List<String> documentIds) {
+        return () -> {
+            final List<DocumentPage> docs = new ArrayList<>(documentIds.size());
+            for (String id : documentIds) {
+                docs.add(documentsById.get().get(id));
+            }
+            return docs;
         };
     }
 
-    public Supplier<Sources> createSources(List<TemplateSource> list) {
-        return () -> new Sources(list);
+    public Supplier<Site> createSite(Supplier<List<NormalPage>> pagesSupplier,
+            Supplier<RoqCollections> roqCollectionsSupplier) {
+        return () -> {
+            final List<NormalPage> pages = pagesSupplier.get();
+            final NormalPage indexPage = pages.stream().filter(p -> p.source().isSiteIndex()).findFirst().orElseThrow();
+            return new Site(indexPage.url(), config.imagesPath(),
+                    indexPage.data(), pages, roqCollectionsSupplier.get());
+        };
+    }
+
+    public Supplier<Sources> createSources(String resourcePath) {
+        return new LazyValue<>(() -> new Sources(LargeRecords.deserialize(resourcePath)))::get;
     }
 
     public Consumer<Route> initializeResolverRoute() {
@@ -86,16 +114,11 @@ public class RoqFrontMatterRecorder {
         };
     }
 
-    public Handler<RoutingContext> pageResolver(Map<String, Supplier<? extends Page>> pageSuppliers) {
-        return new RoqPageResolverHandler(pageSuppliers);
+    public Handler<RoutingContext> pageResolver(String resourcePath) {
+        return new RoqPageResolverHandler(LargeRecords.deserialize(resourcePath));
     }
 
     public Handler<RoutingContext> renderHandler() {
         return new RoqRouteHandler(httpConfig, config);
     }
-
-    public Handler<RoutingContext> aliasRoute(String target) {
-        return ctx -> ctx.redirect(target);
-    }
-
 }

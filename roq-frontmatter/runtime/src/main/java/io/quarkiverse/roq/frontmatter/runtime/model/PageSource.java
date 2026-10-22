@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 import jakarta.enterprise.inject.Vetoed;
@@ -22,7 +23,7 @@ public record PageSource(
         boolean draft,
         String dateString,
         PageFiles files,
-        boolean generated) {
+        boolean generated) implements Serializable {
 
     public PageSource generated(String newId) {
         return new PageSource(template().changeId(newId), draft, dateString, isSiteIndex() ? null : files, true);
