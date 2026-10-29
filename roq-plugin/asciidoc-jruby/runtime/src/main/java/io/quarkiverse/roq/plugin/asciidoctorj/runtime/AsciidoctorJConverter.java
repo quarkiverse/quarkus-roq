@@ -31,6 +31,10 @@ public class AsciidoctorJConverter {
     public static final String ROOTDIR = "root_dir";
     public static final String PAGEDIR = "page_dir";
     public static final String TRUE = Boolean.TRUE.toString();
+    // Marker for an empty attribute value, since SmallRye Config rejects empty map values.
+    // TODO document it in AsciidoctorJConfig javadoc once https://github.com/quarkusio/quarkus/pull/57909
+    // is released (until then the generated config docs would render <<empty>> as a broken xref)
+    public static final String EMPTY = "<<empty>>";
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
@@ -99,7 +103,8 @@ public class AsciidoctorJConverter {
         // SmallRye Config cannot represent empty-string map values, so boolean
         // AsciiDoc attributes (e.g. sectanchors) are stored as "true" in config.
         // Convert back to "" so AsciidoctorJ sees them as boolean flags.
-        configuredAttributes.forEach((k, v) -> attributes.attribute(k, TRUE.equals(v) ? "" : v));
+        // Value attributes that must be empty (e.g. idprefix) use the EMPTY marker instead.
+        configuredAttributes.forEach((k, v) -> attributes.attribute(k, TRUE.equals(v) || EMPTY.equals(v) ? "" : v));
         asciidocAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();

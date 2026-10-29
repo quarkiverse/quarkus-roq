@@ -30,6 +30,8 @@ public class JekyllConfigConverter {
     public static final String CONFIG_DIR = "config";
     public static final String DATA_DIR = "data";
     public static final String SITE_CONFIG_FILE = "siteConfig.yml";
+    // SmallRye Config rejects empty map values, so the Roq asciidoc plugin resolves <<empty>> to ""
+    public static final String EMPTY = "<<empty>>";
     private final YAMLMapper yamlMapper;
     private final ObjectMapper objectMapper;
     private boolean strictProperties;
@@ -408,6 +410,13 @@ public class JekyllConfigConverter {
         if (config == null || !config.has("asciidoctor")) {
             return;
         }
+
+        // jekyll-asciidoc overrides Asciidoctor's idprefix/idseparator defaults ('_'/'_')
+        // to ''/'-', producing web-friendly IDs (e.g. 'my-section' instead of '_my_section').
+        // Set before explicit attributes so _config.yml values can override.
+        properties.setProperty("quarkus.asciidoc.attributes.idprefix", EMPTY);
+        properties.setProperty("quarkus.asciidoc.attributes.idseparator", "-");
+
         JsonNode asciidoctor = config.get("asciidoctor");
         if (!asciidoctor.has("attributes")) {
             return;
@@ -422,10 +431,9 @@ public class JekyllConfigConverter {
             if (!value.isEmpty()) {
                 properties.setProperty("quarkus.asciidoc.attributes." + key, value);
             } else if (looksLikeValueAttribute(key)) {
-                // Empty string IS the value (e.g. outfilesuffix, idprefix) — skip,
-                // since SmallRye Config rejects empty map values
-                System.out.println("  [CONFIG] Skipping empty-string attribute '" + key
-                        + "' (looks like a value attribute, not a boolean flag)");
+                // Empty string IS the value (e.g. outfilesuffix, idprefix) — emit the
+                // marker, since SmallRye Config rejects empty map values
+                properties.setProperty("quarkus.asciidoc.attributes." + key, EMPTY);
             } else {
                 // Boolean flag (e.g. sectanchors) — emit as "true"
                 properties.setProperty("quarkus.asciidoc.attributes." + key, "true");
