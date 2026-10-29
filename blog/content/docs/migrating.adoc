@@ -834,6 +834,9 @@ If you are migrating manually, consider adding them to `config/application.prope
 
 | `quarkus.asciidoc.attributes.sectanchors=true`
 | Enables section anchor links (use `true` for any boolean AsciiDoc attribute since SmallRye Config does not support empty-string map values; Roq converts `true` to an empty string before passing to AsciidoctorJ)
+
+| `quarkus.asciidoc.attributes.idprefix=++<<empty>>++`
+| Sets an AsciiDoc attribute whose value must be the empty string. SmallRye Config cannot represent empty map values, so use the special value `++<<empty>>++`; Roq converts it to an empty string before passing to AsciidoctorJ. The migration tool also sets `idprefix` (empty) and `idseparator=-`, matching jekyll-asciidoc so section ids look like `my-section` rather than `_my_section` and existing anchor links keep working
 |===
 
 === LLM prompt for configuration

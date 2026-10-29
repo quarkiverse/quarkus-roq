@@ -753,8 +753,25 @@ class JekyllConfigConverterTest {
                 "Jekyll asciidoctor.attributes.source-highlighter should map to quarkus.asciidoc.attributes.source-highlighter");
         assertEquals("true", props.getProperty("quarkus.asciidoc.attributes.sectanchors"),
                 "Boolean AsciiDoc attributes with empty value should be emitted as 'true'");
-        assertNull(props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
-                "Non-boolean empty-string attributes should be skipped (SmallRye Config rejects empty map values)");
+        assertEquals("<<empty>>", props.getProperty("quarkus.asciidoc.attributes.outfilesuffix"),
+                "Non-boolean empty-string attributes should be emitted as <<empty>> (SmallRye Config rejects empty map values)");
+        assertEquals("<<empty>>", props.getProperty("quarkus.asciidoc.attributes.idprefix"),
+                "jekyll-asciidoc defaults idprefix to '' — emitted as <<empty>>");
+        assertEquals("-", props.getProperty("quarkus.asciidoc.attributes.idseparator"),
+                "jekyll-asciidoc defaults idseparator to '-' instead of Asciidoctor's '_'");
+    }
+
+    @Test
+    void testNoAsciidoctorBlockOmitsIdAttributes() throws IOException {
+        String configYaml = """
+                title: Test Site
+                """;
+        Properties props = converter.createApplicationProperties(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(configYaml));
+        assertNull(props.getProperty("quarkus.asciidoc.attributes.idseparator"),
+                "idseparator should only be set when asciidoctor config is present");
+        assertNull(props.getProperty("quarkus.asciidoc.attributes.idprefix"),
+                "idprefix should only be set when asciidoctor config is present");
     }
 
     @Disabled("See https://github.com/quarkiverse/quarkus-roq/issues/1298")

@@ -53,6 +53,9 @@ public interface AsciidoctorJConfig {
      * Config does not support empty-string map values, so {@code "true"} is converted to
      * an empty string before passing to AsciidoctorJ.
      * <p>
+     * Value attributes that need to be empty (such as {@code idprefix}) use a dedicated
+     * "empty" marker value, described in the Jekyll migration guide.
+     * <p>
      * Examples:
      *
      * <pre>
