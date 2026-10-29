@@ -52,4 +52,34 @@ public class ConfigMappingIntegrationTest {
         // Note: We can't actually test CDI injection here without a full Quarkus test harness
         // but we can verify the files are syntactically correct and have the right annotations
     }
+
+    @Test
+    void generatedConfigMappingSkipsExistingFiles(@TempDir Path tempDir) throws IOException {
+        String configYaml = """
+                title: Test Site
+                search:
+                  script-mode: cached
+                  host: https://search.example.com
+                """;
+        Files.writeString(tempDir.resolve("_config.yml"), configYaml);
+
+        Path searchConfigDir = tempDir.resolve("src/main/java/io/testsite/search/config");
+        Files.createDirectories(searchConfigDir);
+
+        String customContent = "// hand-crafted SearchConfig\npublic interface SearchConfig {}";
+        Path searchConfig = searchConfigDir.resolve("SearchConfig.java");
+        Files.writeString(searchConfig, customContent);
+
+        String customProducer = "// hand-crafted producer\npublic class SearchConfigProducer {}";
+        Path producer = searchConfigDir.resolve("SearchConfigProducer.java");
+        Files.writeString(producer, customProducer);
+
+        JekyllConfigConverter converter = new JekyllConfigConverter();
+        converter.convertProject(tempDir);
+
+        assertEquals(customContent, Files.readString(searchConfig),
+                "Existing SearchConfig.java should not be overwritten");
+        assertEquals(customProducer, Files.readString(producer),
+                "Existing SearchConfigProducer.java should not be overwritten");
+    }
 }
