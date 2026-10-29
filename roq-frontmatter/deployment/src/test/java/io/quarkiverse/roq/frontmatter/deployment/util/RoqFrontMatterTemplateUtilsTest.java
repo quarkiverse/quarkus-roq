@@ -2,10 +2,14 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.function.Function;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
+import io.quarkus.qute.Engine;
 
 /**
  * Pure unit tests for template utility methods in {@link RoqFrontMatterTemplateUtils}.
@@ -166,7 +170,7 @@ public class RoqFrontMatterTemplateUtilsTest {
     @Test
     @DisplayName("Escaped content is wrapped with Qute escape delimiters")
     void escapeFilterWraps() {
-        WrapperFilter filter = RoqFrontMatterTemplateUtils.getEscapeFilter(true);
+        Function<String, String> filter = RoqFrontMatterTemplateUtils.getEscapeFilter(true);
         String result = filter.apply("content");
         assertNotEquals("content", result, "Escaped content should be wrapped");
     }
@@ -174,9 +178,25 @@ public class RoqFrontMatterTemplateUtilsTest {
     @Test
     @DisplayName("Non-escaped content is returned unchanged")
     void escapeFilterNoOp() {
-        WrapperFilter filter = RoqFrontMatterTemplateUtils.getEscapeFilter(false);
+        Function<String, String> filter = RoqFrontMatterTemplateUtils.getEscapeFilter(false);
         assertEquals("content", filter.apply("content"),
                 "Non-escaped content should not be modified");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "plain content",
+            "{name} and {#if foo}{/if} stay literal",
+            "Qute escapes look like `{|` and `|}`, e.g. {| x |}",
+            "runs of pipes: a||}b |}|} c|||}",
+            "| a | b |\n|---|---|\n| 1 | 2 |",
+            "ends with a pipe |",
+            "||}",
+    })
+    @DisplayName("Escaped content renders back verbatim, even when it contains Qute escape delimiters")
+    void escapedContentRoundTrips(String content) {
+        String escaped = RoqFrontMatterTemplateUtils.escape(content);
+        assertEquals(content, Engine.builder().addDefaults().build().parse(escaped).render());
     }
 
     // ── applyContentTransforms ──────────────────────────────────────────

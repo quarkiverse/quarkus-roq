@@ -441,6 +441,13 @@ public class RoqPluginTocTemplateExtensionTest {
     }
 
     @Test
+    void shouldReadTocLevelsFromEscapedAsciidocSourceWithWiderWrapper() {
+        // Roq adds pipes to the escape wrapper when the content itself contains "|}"
+        String source = "{||:toclevels: 1\n\n== Section\n\nUse `|}` to close.\n||}";
+        assertThat(resolveMaxLevel(new JsonObject(), "asciidoc", () -> source)).isEqualTo(2);
+    }
+
+    @Test
     void shouldPreferFrontmatterAsciidocAttributesOverHeader() {
         JsonObject data = new JsonObject().put("asciidoc-attributes", new JsonObject().put("toclevels", "1"));
         assertThat(resolveMaxLevel(data, "asciidoc", () -> "= Title\n:toclevels: 4\n")).isEqualTo(2);

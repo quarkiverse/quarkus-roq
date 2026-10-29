@@ -8,6 +8,7 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterTemplateUtils {
 
-    private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
     private static final Pattern COMPLETE_HTML_PATTERN = Pattern.compile("^\\s*(?:<!--.*?-->\\s*)*(<!doctype|<html)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
@@ -130,11 +130,37 @@ public final class RoqFrontMatterTemplateUtils {
     public record TransformedContent(String generatedTemplate) {
     }
 
-    static WrapperFilter getEscapeFilter(boolean escaped) {
+    static Function<String, String> getEscapeFilter(boolean escaped) {
         if (!escaped) {
             return WrapperFilter.EMPTY;
         }
-        return ESCAPE_FILTER;
+        return RoqFrontMatterTemplateUtils::escape;
+    }
+
+    /**
+     * Wrap content in a Qute unparsed block ({@code {|...|}}) that the content itself cannot close.
+     * Qute closes an unparsed block opened with N pipes only on N pipes followed by {@code }}, so the
+     * block uses one more pipe than the longest such run in the content (e.g. a literal {@code |}} in a
+     * code sample). Leading pipes (e.g. a Markdown table) are emitted before the block, since they would
+     * otherwise be read as part of the opening delimiter; outside a block a pipe is plain text.
+     */
+    static String escape(String content) {
+        int leadingPipes = 0;
+        while (leadingPipes < content.length() && content.charAt(leadingPipes) == '|') {
+            leadingPipes++;
+        }
+        String body = content.substring(leadingPipes);
+        int longestRun = 0;
+        int run = 0;
+        for (int i = 0; i < body.length(); i++) {
+            char c = body.charAt(i);
+            if (c == '}') {
+                longestRun = Math.max(longestRun, run);
+            }
+            run = c == '|' ? run + 1 : 0;
+        }
+        String pipes = "|".repeat(longestRun + 1);
+        return content.substring(0, leadingPipes) + "{" + pipes + body + pipes + "}";
     }
 
     static String getMarkup(boolean isHtml, RoqFrontMatterQuteMarkupBuildItem markup) {
@@ -150,7 +176,7 @@ public final class RoqFrontMatterTemplateUtils {
     public static TransformedContent applyContentTransforms(String content, boolean escaped,
             RoqFrontMatterQuteMarkupBuildItem markup, String layoutId, boolean isPage) {
         Objects.requireNonNull(content, "content must not be null"); // This should never happen :)
-        WrapperFilter escapeFilter = getEscapeFilter(escaped);
+        Function<String, String> escapeFilter = getEscapeFilter(escaped);
         WrapperFilter includeFilter = getIncludeFilter(layoutId, isPage);
         String escapedContent = content.isEmpty() ? content : escapeFilter.apply(content);
         String contentWithMarkup = markup != null ? markup.toWrapperFilter().apply(escapedContent) : escapedContent;
