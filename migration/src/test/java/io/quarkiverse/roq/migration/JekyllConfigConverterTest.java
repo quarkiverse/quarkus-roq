@@ -617,8 +617,8 @@ class JekyllConfigConverterTest {
         String propsContent = Files.readString(tempDir.resolve("config/application.properties"));
         assertFalse(propsContent.contains("site.collections.posts="),
                 "Posts should not be enabled as a collection: " + propsContent);
-        assertTrue(propsContent.contains("site.collections.posts.link=/blog/:name/"),
-                "Posts permalink should be translated to link: " + propsContent);
+        assertTrue(propsContent.contains("site.collections.posts.link=/blog/:Name/"),
+                "Posts permalink should be translated to link with case-preserving :Name: " + propsContent);
     }
 
     @Test
