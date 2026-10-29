@@ -59,6 +59,11 @@ public class LiquidToQuteConverter {
         content = convertFilters(content);
         content = convertLoops(content);
         content = convertConditionals(content);
+        // Handle the pre-loop {% break %} early-return guard now that {% unless %} and
+        // {% for %} are already Qute {#if}/{#for}. Must run before the assign-scoping
+        // passes (convertMutableAssigns/convertAssignments) so their scope analysis
+        // accounts for the {#if} wrapper this inserts.
+        content = convertBreakContinue(content);
         content = convertPaginator(content);
         content = convertIncludes(content);
         content = convertIncludeParamAccess(content);
@@ -1183,6 +1188,55 @@ public class LiquidToQuteConverter {
         return content;
     }
 
+    /**
+     * Convert the one {% break %} idiom used in this site: a pre-loop early-return guard.
+     * Jekyll's {% unless VAR %}{% break %}{% endunless %} placed before a {% for %} loop has,
+     * by this point in the pipeline, already become {#if !VAR}{% break %}{/if}. Qute has no
+     * break tag, so translate it to a faithful early return — gate the rest of the template on
+     * the positive condition:
+     * {#if !VAR}{% break %}{/if} &lt;rest to EOF&gt; -> {#if VAR}&lt;rest to EOF&gt;{/if}
+     *
+     * Only the narrow, unambiguous case is handled: a single-variable negated guard that is NOT
+     * inside a {#for}. A {% break %} inside a loop, or one with a compound condition, is left
+     * untouched (Qute cannot express an in-loop break, and inverting a compound condition risks
+     * silent logic errors). Any leftover is caught loudly by the break/continue guard in
+     * roq-it-jekyll rather than shipped as broken output.
+     */
+    private String convertBreakContinue(String content) {
+        Pattern guard = Pattern.compile(
+                "\\{#if\\s+!\\s*([a-zA-Z_][a-zA-Z0-9_.]*)\\s*\\}\\{%\\s*break\\s*%\\}\\{/if\\}");
+        boolean changed = false;
+        while (true) {
+            Matcher m = guard.matcher(content);
+            if (!m.find()) {
+                break;
+            }
+            String before = content.substring(0, m.start());
+            // Only a pre-loop guard qualifies: the break must not sit inside an open {#for}.
+            if (countLiteral(before, "{#for") != countLiteral(before, "{/for}")) {
+                break;
+            }
+            String positiveCond = m.group(1);
+            String rest = content.substring(m.end());
+            content = before + "{#if " + positiveCond + "}" + rest + "{/if}";
+            changed = true;
+        }
+        if (changed) {
+            conversionsApplied.add("Converted pre-loop {% break %} guard to early-return {#if}");
+        }
+        return content;
+    }
+
+    private static int countLiteral(String haystack, String needle) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = haystack.indexOf(needle, idx)) != -1) {
+            count++;
+            idx += needle.length();
+        }
+        return count;
+    }
+
     private int findMatchingEndFor(String content, int startPos) {
         int depth = 1;
         Pattern tagPattern = Pattern.compile("\\{#for\\s|\\{/for\\}");
@@ -1562,6 +1616,14 @@ public class LiquidToQuteConverter {
             expressions.add(m.group(2).trim());
         }
 
+        // When converting partials, there are no assigns in the partial itself,
+        // but variables may be assigned as mutable in the parent template.
+        // Partials should reference potentially-mutable variables via _m.read() with
+        // a fallback to the direct variable name (for non-mutable variables).
+        if (positions.isEmpty() && convertingPartials) {
+            return convertPartialVariablesToMutableReads(content);
+        }
+
         if (positions.isEmpty()) {
             return content;
         }
@@ -1702,6 +1764,58 @@ public class LiquidToQuteConverter {
 
         if (!content.equals(original)) {
             conversionsApplied.add("Converted mutable assigns to mut:map()");
+        }
+        return content;
+    }
+
+    /**
+     * When converting partials (includes), variables may be assigned as mutable in the parent
+     * template but the partial doesn't know which variables are mutable. This method converts
+     * variable references to use _m.read('var').or(var) pattern, which reads from the mutable
+     * map if the variable exists there, otherwise falls back to the direct variable.
+     *
+     * However, this is complex and error-prone. A simpler approach is to convert only variables
+     * that match a known pattern of being assigned in parent templates (e.g., *_script, *_src).
+     */
+    private String convertPartialVariablesToMutableReads(String content) {
+        String original = content;
+
+        // Pattern: variables that are commonly assigned in parent templates before includes
+        // These typically end with _script, _src, _style, _content, etc.
+        Pattern potentialMutableVarPattern = Pattern.compile(
+                "(?<![.\\w'\"])([a-z][a-z0-9]*_(?:script|src|style|content|data|config))\\b(?!['\"])");
+
+        Set<String> potentialMutableVars = new LinkedHashSet<>();
+
+        // Find all potential mutable variables in the content
+        Matcher m = potentialMutableVarPattern.matcher(content);
+        while (m.find()) {
+            potentialMutableVars.add(m.group(1));
+        }
+
+        if (potentialMutableVars.isEmpty()) {
+            return content;
+        }
+
+        // Replace references to potentially mutable vars with _m.read('VAR').or(VAR)
+        // This way, if the variable is in the mutable map (from parent), use that value,
+        // otherwise fall back to the direct variable (if it exists in the partial's scope)
+        for (String var : potentialMutableVars) {
+            String qVar = Pattern.quote(var);
+            // Only replace standalone references, not property access or string literals
+            Pattern refPattern = Pattern.compile(
+                    "(?<![.\\w'\"])" + qVar + "\\b(?!['\"])");
+            content = replaceInQuteBlocksWithMatcher(content, refPattern, ref -> {
+                return "_m.read('" + var + "')";
+            });
+        }
+
+        // Partials using mutable variables need access to _m from the parent
+        // Since includes are _unisolated, _m should be available from parent scope
+        // No need to wrap with {#let _m=mut:map()} — that's in the parent
+
+        if (!content.equals(original)) {
+            conversionsApplied.add("Converted partial variables to use _m.read() for mutable map access");
         }
         return content;
     }
@@ -2677,17 +2791,23 @@ public class LiquidToQuteConverter {
     }
 
     private String collapseTagsCountExtractionPattern(String content) {
-        // Detect the push/uniq pattern from quarkusio/quarkusio.github.io#2853:
-        //   {#let TAG_KEYS=str:split("", "")}
-        //   {#for STATS in ...tagsCount...}{#let TAG_KEYS=TAG_KEYS.push(STATS.name...)}{/let}{/for}
-        //   {#let TAG_WORDS=TAG_KEYS | uniq.sort}
-        // Collapse to:
-        //   {#let TAG_WORDS=...tagsCount.distinct.sort('name')}
-        //   {#for STATS in TAG_WORDS...}
+        // Detect the push/uniq pattern and collapse to tagsCount.distinct.sort('name').
+        // Two forms exist in the wild:
+        //   Form A (single-step push):
+        //     {#let TAG_KEYS=str:split("", "")}
+        //     {#for STATS in ...tagsCount...}{#let TAG_KEYS=TAG_KEYS.push(STATS.name...)}{/let}{/for}
+        //     {#let TAG_WORDS=TAG_KEYS.distinct.sort}
+        //   Form B (two-step push via intermediate variable):
+        //     {#let TAG_KEYS=str:split("", "")}
+        //     {#for STATS in ...tagsCount...}
+        //       {#let TEMP=STATS.name...}{#let TAG_KEYS=TAG_KEYS.push(TEMP)}{/let}{/let}
+        //     {/for}
+        //     {#let TAG_WORDS=TAG_KEYS.distinct.sort}
 
         String original = content;
 
         while (true) {
+            // Form A: direct push of STATS.name
             Pattern pattern = Pattern.compile(
                     "\\{#let (\\w+)=str:split\\(\"\", \"\"\\)\\}" +
                             "\\s*\\{#for (\\w+) in ([^}]*tagsCount[^}]*)\\}" +
@@ -2695,14 +2815,29 @@ public class LiquidToQuteConverter {
                             "\\s*\\{/let\\}\\{/for\\}" +
                             "\\s*\\{#let (\\w+)=\\1(?:\\.distinct| \\| uniq)?(?:\\.sort)?\\}");
 
+            // Form B: intermediate {#let TEMP=STATS.name...}{#let ACCUM=ACCUM.push(TEMP)}
+            Pattern patternB = Pattern.compile(
+                    "\\{#let (\\w+)=str:split\\(\"\", \"\"\\)\\}" +
+                            "\\s*\\{#for (\\w+) in ([^}]*tagsCount[^}]*)\\}" +
+                            "\\s*\\{#let (\\w+)=\\2\\.name([^}]*)\\}" +
+                            "\\s*\\{#let \\1=\\1\\.push\\(\\4\\)\\}" +
+                            "\\s*\\{/let\\}\\{/let\\}\\{/for\\}" +
+                            "\\s*\\{#let (\\w+)=\\1(?:\\.distinct| \\| uniq)?(?:\\.sort)?\\}");
+
             Matcher m = pattern.matcher(content);
+            Matcher mB = patternB.matcher(content);
+            boolean isFormB = false;
             if (!m.find()) {
-                break;
+                if (!mB.find()) {
+                    break;
+                }
+                m = mB;
+                isFormB = true;
             }
 
             String loopVar = m.group(2); // stats
             String tagsCountExpr = m.group(3); // site.collections.get('posts').tagsCount.orEmpty
-            String finalVar = m.group(5); // tag_words
+            String finalVar = isFormB ? m.group(6) : m.group(5); // tag_words
 
             String collectionExpr = tagsCountExpr.replaceFirst("\\.orEmpty$", "");
 
@@ -2731,9 +2866,11 @@ public class LiquidToQuteConverter {
 
                 String afterFor = content.substring(iterEnd + "{/for}".length());
 
-                // Remove 2 {/let} closers that matched the collapsed {#let} opens.
+                // Remove {/let} closers that matched the collapsed {#let} opens.
+                // Form A has 2 (init + final), Form B has 3 (init + intermediate + final).
                 // They may not be adjacent — HTML like </div> can sit between them.
-                for (int i = 0; i < 2; i++) {
+                int letsToRemove = isFormB ? 3 : 2;
+                for (int i = 0; i < letsToRemove; i++) {
                     int idx = afterFor.indexOf("{/let}");
                     if (idx >= 0) {
                         afterFor = afterFor.substring(0, idx) + afterFor.substring(idx + "{/let}".length());
