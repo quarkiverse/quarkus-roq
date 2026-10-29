@@ -65,9 +65,9 @@ public class RoqPluginTocTemplateExtension {
     static final List<String> ASCIIDOC_ATTRIBUTE_KEYS = List.of("asciidoc-attributes", "attributes");
 
     // Matches an AsciiDoc attribute entry such as ":toclevels: 3", optionally soft-set as ":toclevels: 3@".
-    // The optional "{|" allows for the Qute escape wrapper Roq adds around escaped page content.
+    // The optional "{|" (with one or more pipes) allows for the Qute escape wrapper Roq adds around escaped page content.
     private static final Pattern ASCIIDOC_TOC_LEVELS = Pattern
-            .compile("(?m)^(?:\\{\\|)?:toclevels:[ \\t]*(\\d+)@?[ \\t]*$");
+            .compile("(?m)^(?:\\{\\|+)?:toclevels:[ \\t]*(\\d+)@?[ \\t]*$");
     // The first section title ends the document header; attribute entries below it are body content.
     private static final Pattern ASCIIDOC_FIRST_SECTION = Pattern.compile("(?m)^={2,6}[ \\t]");
 
