@@ -44,6 +44,7 @@ import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.qute.ParserConfig;
@@ -345,7 +346,8 @@ public class RoqFrontMatterStep1ScanProcessor {
             BuildProducer<TemplatePathBuildItem> templatePathProducer,
             BuildProducer<GeneratedResourceBuildItem> generatedResourceProducer,
             BuildProducer<NativeImageResourceBuildItem> nativeImageResourceProducer,
-            BuildProducer<TemplateRootBuildItem> templateRootProducer) throws IOException {
+            BuildProducer<TemplateRootBuildItem> templateRootProducer,
+            LaunchModeBuildItem launchMode) throws IOException {
         if (!roqProject.isActive()) {
             return;
         }
@@ -396,6 +398,26 @@ public class RoqFrontMatterStep1ScanProcessor {
                     .extensionInfo(RoqFrontMatterStep6BindProcessor.FEATURE)
                     .build());
 
+        }
+
+        if (launchMode.getLaunchMode().isDev()) {
+            // Qute loads dependency templates through the classloader, which doesn't see files added to a local
+            // dependency directory (e.g. a theme module in the same Maven reactor) after dev mode started.
+            // Publishing them as generated resources makes new theme partials available after a reload.
+            List<ProjectFile> dependencyFiles = scanner.query()
+                    .scopeDir(TEMPLATES_DIR)
+                    .origin(ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                    .matching(buildTemplateGlob(quteConfig))
+                    .exclude("glob:" + LAYOUTS_DIR + "**")
+                    .exclude("glob:" + THEME_LAYOUTS_DIR + "**")
+                    .addExcluded(buildIgnoredPatterns(config))
+                    .list();
+            for (ProjectFile file : filterLocalDependencyTemplates(dependencyFiles, files)) {
+                LOGGER.debugf("Roq template scan found in local dependency dir: scopedPath=%s, path=%s",
+                        file.scopedPath(), file.file());
+                generatedResourceProducer.produce(new GeneratedResourceBuildItem(
+                        "templates/" + toUnixPath(file.scopedPath()), file.content()));
+            }
         }
     }
 }
