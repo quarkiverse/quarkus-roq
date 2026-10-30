@@ -15,9 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -41,11 +45,19 @@ import io.quarkiverse.tools.projectscanner.ScanDeclarationBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanLocalDirBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanQueryBuilder;
 import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.quarkus.deployment.ApplicationArchive;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Produce;
+import io.quarkus.deployment.builditem.ApplicationArchivesBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.builditem.LiveReloadBuildItem;
+import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.SuppressNonRuntimeConfigChangedWarningBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
+import io.quarkus.maven.dependency.ArtifactKey;
+import io.quarkus.maven.dependency.ResolvedDependency;
 import io.quarkus.qute.ParserConfig;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.deployment.TemplateRootBuildItem;
@@ -106,7 +118,8 @@ public class RoqFrontMatterStep1ScanProcessor {
     @BuildStep
     RoqFrontMatterDependencyParserConfigsBuildItem scanDependencyParserConfigs(
             RoqProjectBuildItem roqProject,
-            ProjectScannerBuildItem scanner) throws IOException {
+            ProjectScannerBuildItem scanner,
+            QuteConfig quteConfig) throws IOException {
         if (!roqProject.isActive()) {
             return new RoqFrontMatterDependencyParserConfigsBuildItem(Map.of());
         }
@@ -149,7 +162,79 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
         }
 
+        warnAboutAltExpressionsWithoutAltSyntax(scanner, quteConfig, result);
+
         return new RoqFrontMatterDependencyParserConfigsBuildItem(result);
+    }
+
+    // Dependency templates only use the alt syntax when their jar enables it in templates/.qute: the site's
+    // quarkus.qute.alt-expr-syntax doesn't apply to them, so {=...} expressions would be rendered as text.
+    private static void warnAboutAltExpressionsWithoutAltSyntax(ProjectScannerBuildItem scanner, QuteConfig quteConfig,
+            Map<Path, ParserConfig> depParserConfigs) throws IOException {
+        List<ProjectFile> dependencyTemplates = scanner.query()
+                .scopeDir(TEMPLATES_DIR)
+                .origin(ProjectFile.Origin.DEPENDENCY_RESOURCE)
+                .matching(buildTemplateGlob(quteConfig))
+                .list();
+        Map<String, List<String>> filesByOrigin = new TreeMap<>();
+        for (ProjectFile file : dependencyTemplates) {
+            Path templateRoot = resolveTemplateRoot(file);
+            if (templateRoot == null || depParserConfigs.containsKey(templateRoot)
+                    || !usesAltExpressions(new String(file.content(), file.charset()))) {
+                continue;
+            }
+            filesByOrigin.computeIfAbsent(describeTemplateRoot(templateRoot), k -> new ArrayList<>())
+                    .add(toUnixPath(file.scopedPath()));
+        }
+        filesByOrigin.forEach((origin, files) -> LOGGER.warnf(
+                "Templates from %s use {=...} expressions, but the alternative expression syntax isn't enabled for them, "
+                        + "so these expressions are rendered as text: %s. "
+                        + "Add 'alt-expr-syntax=true' to templates/.qute in that jar (the site's quarkus.qute.alt-expr-syntax "
+                        + "doesn't apply to dependency templates).",
+                origin, files));
+    }
+
+    // ── Theme dependency checks ──────────────────────────────────────────
+
+    // Jars which are neither Quarkus extensions nor application archives (no META-INF/beans.xml or Jandex index)
+    // are not scanned, so a theme packaged that way is silently ignored.
+    // ServiceStartBuildItem keeps the check running as nothing consumes it.
+    @BuildStep
+    @Produce(ServiceStartBuildItem.class)
+    void checkThemeDependencies(RoqProjectBuildItem roqProject,
+            ApplicationArchivesBuildItem applicationArchives,
+            CurateOutcomeBuildItem curateOutcome,
+            LiveReloadBuildItem liveReload) {
+        if (!roqProject.isActive()) {
+            return;
+        }
+        // Results for dependency archives are kept across dev mode reloads
+        ThemeResourceDirsCache cache = liveReload.getContextObject(ThemeResourceDirsCache.class);
+        if (cache == null) {
+            cache = new ThemeResourceDirsCache(new ConcurrentHashMap<>());
+            liveReload.setContextObject(ThemeResourceDirsCache.class, cache);
+        }
+        Set<ArtifactKey> applicationArchiveKeys = new HashSet<>();
+        for (ApplicationArchive archive : applicationArchives.getAllApplicationArchives()) {
+            if (archive.getKey() != null) {
+                applicationArchiveKeys.add(archive.getKey());
+            }
+        }
+        for (ResolvedDependency dependency : curateOutcome.getApplicationModel().getRuntimeDependencies()) {
+            if (dependency.isRuntimeExtensionArtifact() || applicationArchiveKeys.contains(dependency.getKey())) {
+                continue;
+            }
+            List<String> themeDirs = findThemeResourceDirs(dependency, cache.archives());
+            if (!themeDirs.isEmpty()) {
+                LOGGER.warnf(
+                        "Dependency %s contains Roq theme resources (%s) which are ignored because it is not an application "
+                                + "archive. Add an empty META-INF/beans.xml to that jar.",
+                        dependency.toCompactCoords(), String.join(", ", themeDirs));
+            }
+        }
+    }
+
+    private record ThemeResourceDirsCache(Map<List<Path>, List<String>> archives) {
     }
 
     // ── Content scanning ─────────────────────────────────────────────────
