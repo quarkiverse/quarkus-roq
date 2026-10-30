@@ -125,6 +125,7 @@ Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured fo
 - `roq generate` — build static site to `target/roq/`
 - `roq serve` — preview generated site (default port 8181, use `-p` to change)
 - `roq add plugin:tagging` — add a plugin or theme
+- `roq theme init my-theme` — scaffold a theme packaged as a jar for other sites, in `theme/`: in a Maven site it is added to the site resources, elsewhere a new preview site with starter layouts is created
 - `roq update` — update the Roq/Quarkus project to latest versions
 - `roq blog` — list blog posts from a Roq site RSS feed
 

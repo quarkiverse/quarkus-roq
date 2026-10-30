@@ -242,6 +242,19 @@ site.theme=roq-default // <1>
 ----
 <1> This allows site referencing the theme to default to this theme.
 
+[#theme-alongside-site]
+=== Developing a theme alongside your site
+
+[#roq-theme-init]
+==== Scaffolding a theme with `roq theme init`
+
+[source,shell]
+----
+roq theme init my-theme
+----
+
+When run in an existing Roq site, the theme is added to the site. Elsewhere, a new preview site is created for the theme, with starter layouts.
+
 [#links]
 == Links & Urls
 
@@ -804,6 +817,10 @@ Extension prefixes:
 | `<group:artifact>`
 | Full GAV coordinate
 |===
+
+=== `roq theme init`
+
+Scaffold a theme packaged as a jar for other sites. See <<roq-theme-init>>.
 
 === Other commands
 

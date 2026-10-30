@@ -20,7 +20,8 @@ import picocli.CommandLine.Command;
 @QuarkusMain
 @Command(name = "roq", mixinStandardHelpOptions = true, versionProvider = RoqVersionProvider.class, subcommands = {
         StartCommand.class, ServeCommand.class,
-        CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class })
+        CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class,
+        ThemeCommand.class })
 public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputProvider {
 
     @Inject
@@ -61,7 +62,10 @@ public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputPro
     }
 
     static boolean isRoqProject() {
-        Path dir = Paths.get(System.getProperty("user.dir"));
+        return isRoqProject(Paths.get(System.getProperty("user.dir")));
+    }
+
+    static boolean isRoqProject(Path dir) {
         for (String buildFile : new String[] { "pom.xml", "build.gradle", "build.gradle.kts" }) {
             Path path = dir.resolve(buildFile);
             if (Files.exists(path)) {
