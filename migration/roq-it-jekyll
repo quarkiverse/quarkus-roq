@@ -2,6 +2,30 @@
 
 set -ex
 
+# Refuse to run on anything that isn't an unconverted Jekyll site: the conversion starts by
+# deleting content/, data/, templates/, public/ and web/, and removes _config.yml and _layouts/
+# when it finishes, so a second run on an already-converted site would wipe the converted output.
+if [ "$1" = "--verify" ]; then
+    VERIFY_MODE=true
+    shift
+fi
+if [ -z "$1" ]; then
+    echo "Usage: roq-it-jekyll [--verify] <jekyll-project-dir>"
+    exit 1
+fi
+if [ ! -f "$1/_config.yml" ]; then
+    echo "ERROR: No _config.yml found in $1 — this is not a Jekyll site, or it has already been converted."
+    exit 1
+fi
+if [ ! -d "$1/_layouts" ]; then
+    echo "ERROR: No _layouts directory found in $1 — this is not a Jekyll site, or it has already been converted."
+    exit 1
+fi
+if [ -f "$1/config/application.properties" ]; then
+    echo "ERROR: $1/config/application.properties already exists — this site appears to have already been converted."
+    exit 1
+fi
+
 # Add .jbang/bin to PATH if jbang is not already available
 if ! command -v jbang >/dev/null 2>&1; then
     if [ -f "$HOME/.jbang/bin/jbang" ]; then
@@ -68,6 +92,37 @@ add_underscore_prefix() {
     fi
 }
 
+# Map a content-relative path to the URL path used by its collection.
+# Reads collection link patterns from application.properties to handle cases where
+# the URL prefix differs from the content directory name
+# (e.g., content/versions/ → /version/ when link=/version/:dir[1]/:name).
+# Falls back to the content path if no mapping is found.
+collection_url_path() {
+    local rel_path="$1"
+    local first_segment="${rel_path%%/*}"
+
+    local props_file="${project_dir}/config/application.properties"
+    if [ -f "$props_file" ]; then
+        # e.g. site.collections.versions.link=/version/:dir[1]/:name → /version/:dir[1]/:name
+        local link_pattern
+        link_pattern=$(grep "^site\\.collections\\.${first_segment}\\.link=" "$props_file" | head -1 | sed 's/^[^=]*=//')
+        if [ -n "$link_pattern" ]; then
+            # Extract first path segment: /version/:dir[1]/:name → version
+            local url_prefix
+            url_prefix=$(echo "$link_pattern" | sed 's|^/||' | cut -d'/' -f1)
+            if [ -n "$url_prefix" ] && [[ "$url_prefix" != :* ]] && [ "$url_prefix" != "$first_segment" ]; then
+                if [[ "$rel_path" == */* ]]; then
+                    echo "${url_prefix}/${rel_path#*/}"
+                else
+                    echo "${url_prefix}"
+                fi
+                return
+            fi
+        fi
+    fi
+    echo "$rel_path"
+}
+
 ## Build the converter
 mvn -f ${tools_dir}/pom.xml install -q -DskipTests
 
@@ -77,6 +132,8 @@ mvn -f ${tools_dir}/pom.xml install -q -DskipTests
 rm -rf ${project_dir}/content/
 rm -rf ${project_dir}/data/
 rm -rf ${project_dir}/templates/
+rm -rf ${project_dir}/public/
+rm -rf ${project_dir}/web/
 
 rm -f ${project_dir}/application.properties
 
@@ -90,15 +147,37 @@ fi
 ## Generate Roq project skeleton via roq create
 mkdir -p ${tmp_dir}
 
+# Derive artifact ID from Jekyll config title/name
+# Extract title from _config.yml and convert to kebab-case for artifact ID
+if [ -f "${project_dir}/_config.yml" ]; then
+    # Try to get title or name from config
+    artifact_id=$(grep -E "^(title|name):" "${project_dir}/_config.yml" | head -1 | sed 's/^[^:]*: *//' | sed 's/["'\'']//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//; s/-$//')
+
+    # Fallback to directory name if no title found
+    if [ -z "$artifact_id" ]; then
+        artifact_id=$(basename "${project_dir}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+    fi
+else
+    # No config file, use directory name
+    artifact_id=$(basename "${project_dir}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+fi
+
+# add -website to the name, since otherwise the pom can end up with the name of the product, which is confusing and potentially conflict-causing
+artifact_id=${artifact_id}-website
+
 # Generate pom.xml via jbang + roq create in a temp directory
+# Use roq-create-$$ for temp dir (unique per process), but use artifact_id for the actual project name
 roq_tmp="${tmp_dir}/roq-create-$$"
 rm -rf ${roq_tmp}
 # Use local jar for 999-SNAPSHOT to avoid downloading from Maven Central
 if [ "${ROQ_VERSION}" = "999-SNAPSHOT" ] && [ -f "${tools_dir}/../roq-cli/target/quarkus-roq-cli-999-SNAPSHOT-runner.jar" ]; then
-    (cd ${tmp_dir} && jbang "${tools_dir}/../roq-cli/target/quarkus-roq-cli-999-SNAPSHOT-runner.jar" create "roq-create-$$" --no-code -x theme:base --roq-version ${ROQ_VERSION})
+    (cd ${tmp_dir} && jbang "${tools_dir}/../roq-cli/target/quarkus-roq-cli-999-SNAPSHOT-runner.jar" create "${artifact_id}" --no-code -x theme:base --roq-version ${ROQ_VERSION})
 else
-    (cd ${tmp_dir} && jbang roq@quarkiverse/quarkus-roq create "roq-create-$$" --no-code -x theme:base --roq-version ${ROQ_VERSION})
+    (cd ${tmp_dir} && jbang roq@quarkiverse/quarkus-roq create "${artifact_id}" --no-code -x theme:base --roq-version ${ROQ_VERSION})
 fi
+
+# Move the created project to our temp location and extract pom.xml
+mv "${tmp_dir}/${artifact_id}" ${roq_tmp}
 cp ${roq_tmp}/pom.xml ${project_dir}/pom.xml
 rm -rf ${roq_tmp}
 
@@ -121,6 +200,11 @@ rm -rf ${project_dir}/.jekyll-cache
 mkdir -p ${project_dir}/content
 mv ${project_dir}/*md ${project_dir}/content/
 mv ${project_dir}/*.adoc ${project_dir}/content/ 2>/dev/null || true
+
+# Move project files back to root (not site content)
+for f in README.md CONTRIBUTING.md CLAUDE.md LICENSE.md; do
+    [ -f "${project_dir}/content/$f" ] && mv "${project_dir}/content/$f" "${project_dir}/$f"
+done
 
 
 mkdir -p ${project_dir}/templates
@@ -196,6 +280,13 @@ fi
 mkdir -p ${project_dir}/public
 mv ${project_dir}/assets ${project_dir}/public
 
+# Move well-known static files to public/ so they are still served at the site root
+for static_file in favicon.ico llms.txt robots.txt .well-known; do
+    if [ -e "${project_dir}/${static_file}" ]; then
+        mv "${project_dir}/${static_file}" ${project_dir}/public/
+    fi
+done
+
 # Move any remaining top-level directories to public/ (e.g., newsletter, downloads, archive).
 # These are typically static asset directories that Jekyll served directly.
 # Excludes: Jekyll reserved dirs (any starting with _), Roq dirs, build artifacts, and config files.
@@ -251,12 +342,7 @@ done
 # (e.g. content(1) → content-1) during the build, but does not update
 # HTML references, so images 404 at runtime.
 # Fix: rename source files and update HTML references to match.
-# (Optional - only if ParenthesisFileRenamerCommand exists)
-if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public" 2>/dev/null; then
-    true
-else
-    echo "INFO: ParenthesisFileRenamerCommand not available, skipping parenthesis file renaming"
-fi
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public"
 
 # Convert Jekyll XML templates (feed.xml, sitemap.xml) to Qute
 # Strip frontmatter, stage in _includes for the converter, serve from content/
@@ -281,30 +367,31 @@ if [ -f "${project_dir}/config/.migration-config-mappings" ]; then
     CONFIG_MAPPINGS="--config-mappings $(paste -sd, "${project_dir}/config/.migration-config-mappings")"
 fi
 
-# Add index pages for image directories so Roq serves them as attachments.
-# Without an index page, non-template files in content/ are orphaned and silently dropped.
-# This handles both top-level collections (guides/images) and nested ones (versions/3.33/guides/images).
-find ${project_dir}/content -type d -name 'images' | while read -r img_dir; do
-    if [ ! -f "${img_dir}/index.html" ]; then
-        # Extract the path relative to content/ (e.g., "guides" or "versions/3.33/guides")
-        rel_path=$(echo "${img_dir}" | sed "s|${project_dir}/content/||" | sed 's|/images$||')
-        printf '%s\n' '---' "link: /${rel_path}/images/" '---' '<html><body></body></html>' > "${img_dir}/index.html"
-    fi
-done
-
-# Same for javascript directories.
-find ${project_dir}/content -type d -name 'javascript' | while read -r js_dir; do
-    if [ ! -f "${js_dir}/index.html" ]; then
-        # Extract the path relative to content/ (e.g., "guides" or "versions/3.33/guides")
-        rel_path=$(echo "${js_dir}" | sed "s|${project_dir}/content/||" | sed 's|/javascript$||')
-        printf '%s\n' '---' "link: /${rel_path}/javascript/" '---' '<html><body></body></html>' > "${js_dir}/index.html"
-    fi
-done
+# Index pages for static asset directories are created after config conversion
+# (see "Add index pages for static asset directories" below) so that collection
+# link patterns from application.properties can be used to compute correct URLs.
 
 # Convert Liquid to Qute; this has the side effect of renaming directories to adjust the structure
 mkdir -p ${project_dir}/templates/partials
 mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_includes ${project_dir}/templates/partials --partials ${CONFIG_MAPPINGS}"
 mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts ${CONFIG_MAPPINGS}"
+
+# Fail loudly if any Liquid loop-control tag survived conversion. Qute has no
+# {% break %}/{% continue %}: the converter translates the known pre-loop {% break %}
+# guard, but any other occurrence would ship as a broken template. Mirror the SCSS
+# Liquid guard above and stop the migration so a human handles it.
+echo "Checking for unconverted Liquid loop-control tags in templates..."
+LEFTOVER_LOOP_TAGS=$(grep -rlE '\{%[[:space:]]*(break|continue)[[:space:]]*%\}' ${project_dir}/templates 2>/dev/null || true)
+if [ -n "$LEFTOVER_LOOP_TAGS" ]; then
+    echo "ERROR: Found unconverted Liquid {% break %}/{% continue %} in converted templates:"
+    echo "$LEFTOVER_LOOP_TAGS" | while read -r file; do
+        echo "  $file"
+        grep -nE '\{%[[:space:]]*(break|continue)[[:space:]]*%\}' "$file" | head -3 | sed 's/^/    /'
+    done
+    echo "Qute has no break/continue tag. Fix the source template (e.g. wrap the loop body in"
+    echo "{% if %}) or extend convertBreakContinue in LiquidToQuteConverter.java."
+    exit 1
+fi
 
 # Now delete the old includes and layouts
 rm -rf ${project_dir}/_includes
@@ -321,14 +408,18 @@ if [ -d "${project_dir}/_guides" ]; then
     fi
 fi
 
-# Add index.html to stylesheet directories so files are served as attachments
-# This runs after copying to handle all stylesheet dirs (guides and versions)
-find ${project_dir}/content -type d -name 'stylesheet' | while read -r css_dir; do
-    if [ ! -f "${css_dir}/index.html" ]; then
-        # Extract the path relative to content/ (e.g., "guides" or "versions/3.33/guides")
-        rel_path=$(echo "${css_dir}" | sed "s|${project_dir}/content/||" | sed 's|/stylesheet$||')
-        printf '%s\n' '---' "link: /${rel_path}/stylesheet/" '---' '<html><body></body></html>' > "${css_dir}/index.html"
-    fi
+# Add index pages for static asset directories so Roq serves their contents as attachments.
+# Without an index page, non-template files in content/ are orphaned and silently dropped.
+# Uses collection link patterns from application.properties to compute correct URLs — e.g.,
+# content/versions/ serves at /version/ when the collection link uses a different prefix.
+for dir_name in images javascript stylesheet assets; do
+    find ${project_dir}/content -type d -name "${dir_name}" | while read -r asset_dir; do
+        if [ ! -f "${asset_dir}/index.html" ]; then
+            rel_path=$(echo "${asset_dir}" | sed "s|${project_dir}/content/||" | sed "s|/${dir_name}\$||")
+            url_path=$(collection_url_path "${rel_path}")
+            printf '%s\n' '---' "link: /${url_path}/${dir_name}/" '---' '<html><body></body></html>' > "${asset_dir}/index.html"
+        fi
+    done
 done
 
 # Copy Jekyll filter extensions ONLY if they don't already exist
@@ -343,12 +434,7 @@ else
 fi
 
 # Convert Jekyll plugins (_plugins/*.rb) to Roq equivalents
-# (Optional - only if JekyllPluginCommand exists)
-if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllPluginCommand" -Dexec.args="${project_dir}" 2>/dev/null; then
-    true
-else
-    echo "INFO: JekyllPluginCommand not available, skipping plugin conversion"
-fi
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllPluginCommand" -Dexec.args="${project_dir}"
 
 # Convert AsciiDoc link: macros to xref: for cross-document references.
 #
@@ -372,12 +458,7 @@ fi
 #
 # NOTE: This must run AFTER the Liquid converter, which moves _guides → content/guides
 # and _versions → content/versions as a side effect of the directory renaming.
-# (Optional - only if AsciiDocLinkToXrefCommand exists)
-if mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content" 2>/dev/null; then
-    true
-else
-    echo "INFO: AsciiDocLinkToXrefCommand not available, skipping AsciiDoc link conversion"
-fi
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content"
 
 # Make all extends optional
 # Use bash to run sed_inplace for each file since find -exec doesn't have access to functions
@@ -460,5 +541,14 @@ else
     (
         cd ${project_dir}
         QUARKUS_ROQ_GENERATOR_BATCH=true mvn -B package quarkus:run -DskipTests 2>&1
-    ) || echo "WARNING: SSG build failed (may need a profile to exclude conflicting pages)"
+    ) || {
+        # The batch build fails on the first page that doesn't render, so this catches
+        # template errors that dev mode only shows when a page is visited.
+        # Pass --verify (or set VERIFY_MODE=true) to make that fatal instead of a warning.
+        if [ "${VERIFY_MODE:-false}" = "true" ]; then
+            echo "ERROR: SSG build failed"
+            exit 1
+        fi
+        echo "WARNING: SSG build failed (may need a profile to exclude conflicting pages)"
+    }
 fi
