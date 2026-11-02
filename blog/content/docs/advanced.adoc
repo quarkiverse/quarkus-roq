@@ -240,7 +240,68 @@ You need to create an application.properties:
 ----
 site.theme=roq-default // <1>
 ----
-<1> This allows site referencing the theme to default to this theme.
+<1> This allows a site referencing the theme to default to this theme (theme inheritance).
+
+[#theme-alongside-site]
+=== Developing a theme alongside your site
+
+==== Resources pattern
+
+When a site already has its own look and other sites should reuse it, you can share a theme without creating an independent project or second repository.
+The theme sources should live in a `theme/` directory which the site adds to its resources: dev mode needs no pre-build, and theme templates and styles hot-reload like the rest of the site.
+A separate `theme/pom.xml` packages the same sources as a jar for other sites.
+
+[source]
+----
+my-site/
+├── pom.xml                            // <1>
+├── content/, templates/, web/...      // the site, unchanged
+└── theme/
+    ├── pom.xml                        // <2>
+    └── src/main/resources/
+        ├── META-INF/beans.xml         // <3>
+        ├── application.properties     // <4>
+        ├── templates/
+        │   ├── .qute                  // <5>
+        │   ├── partials/my-theme/
+        │   └── theme-layouts/my-theme/
+        └── web/app/                   // <6>
+----
+<1> The site adds the theme sources to its resources (see below).
+<2> Packages the theme as a jar for other sites. It is not a module of the site build.
+<3> An empty `beans.xml` makes the jar an application archive. Without it, the jar's templates and web assets are ignored (theme layouts are reported as not found, styles are silently missing).
+<4> `site.theme=my-theme`, so sites using the jar default to this theme.
+<5> Only needed if the theme templates use the <<Alternative expression syntax>>: `quarkus.qute.alt-expr-syntax` only applies to the site's own templates, a jar enables it with `alt-expr-syntax=true` in `templates/.qute`.
+<6> Files in `web/app/` join the site's `app` bundle: a non-partial file (e.g. `my-theme.scss`) is included automatically, and partials (`_name.scss`) can be used from the site's own styles (e.g. `@use "includes/name"` for `web/app/includes/_name.scss`).
+
+Add the theme sources to the site's resources, keeping out the files that only make sense in the packaged jar:
+
+.pom.xml
+[source,xml]
+----
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+        <resource>
+            <directory>theme/src/main/resources</directory>
+            <excludes>
+                <exclude>META-INF/**</exclude> <!--1-->
+                <exclude>application.properties</exclude> <!--2-->
+            </excludes>
+        </resource>
+    </resources>
+</build>
+----
+<1> Would clash with the site's own `META-INF` files.
+<2> Would clash with the site's own `application.properties`. Set `site.theme=my-theme` in the site configuration instead.
+
+TIP: Since the site uses the theme sources directly, it never exercises the packaged jar. It is a good idea to add a CI job which builds a minimal site depending on the jar, so packaging mistakes (a missing `beans.xml` or `.qute`) are caught before other sites hit them.
+
+==== Multi-module pattern
+
+The theme can also be a module of a multi-module build, next to the site module. In that case, run dev mode from the aggregator directory; changes to the theme module, including new partials, are picked up on reload. Note that in this case, the site content must then live in the site module directory.
 
 [#links]
 == Links & Urls

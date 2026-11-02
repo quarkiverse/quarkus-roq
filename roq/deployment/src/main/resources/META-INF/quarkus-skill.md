@@ -40,6 +40,8 @@ src/main/resources/
 
 **Theme layout resolution**: `layout: page` resolves local first (`templates/layouts/page.html`), then falls back to the theme layout (`theme-layouts/<theme-name>/page`) when `site.theme` is configured. Use `theme-layout: page` to explicitly target the theme layout. The base theme (`roq-base`, the default) provides: `default`, `page`, `post`. The full default theme (`roq-default`, installed via `roq create`) provides: `default`, `main`, `post`, `page`, `index`, `blog`, `home`, `tag`, `404`. Override any theme layout by placing a file at `templates/layouts/<layout>.html` with `theme-layout: <layout>` in frontmatter to inherit from the theme version.
 
+**Developing a theme alongside a site**: keep the theme in `theme/src/main/resources` (`templates/partials/<theme>/`, `templates/theme-layouts/<theme>/`, `web/app/`) and add it to the site's `pom.xml` `<resources>` (excluding `META-INF/**` and `application.properties`), so dev mode hot-reloads it with no pre-build. A separate `theme/pom.xml` packages it as a jar; the jar needs `META-INF/beans.xml` (otherwise its templates and web assets are ignored) and, for alt syntax templates, `templates/.qute` with `alt-expr-syntax=true`.
+
 ### RSS Feed
 
 Create `content/rss.xml`:
