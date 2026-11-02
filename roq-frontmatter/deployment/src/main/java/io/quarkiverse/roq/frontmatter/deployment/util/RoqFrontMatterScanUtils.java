@@ -2,6 +2,7 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterConstants.*;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils.*;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.THEME_LAYOUTS_DIR;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.fileName;
@@ -9,6 +10,7 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.removeExtension;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import org.jboss.logging.Logger;
 
@@ -35,6 +38,9 @@ import io.quarkiverse.tools.projectscanner.ProjectFile;
 import io.quarkiverse.tools.projectscanner.ProjectScannerBuildItem;
 import io.quarkiverse.tools.projectscanner.ScanQueryBuilder;
 import io.quarkiverse.tools.stringpaths.StringPaths;
+import io.quarkus.maven.dependency.ResolvedDependency;
+import io.quarkus.paths.PathTree;
+import io.quarkus.paths.PathTreeUtils;
 import io.quarkus.qute.ParserConfig;
 import io.quarkus.qute.deployment.TemplatePathBuildItem;
 import io.quarkus.qute.runtime.QuteConfig;
@@ -45,6 +51,54 @@ public final class RoqFrontMatterScanUtils {
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanUtils.class);
 
     private RoqFrontMatterScanUtils() {
+    }
+
+    // ── Theme dependency checks ─────────────────────────────────────────
+
+    private static final List<Path> THEME_RESOURCE_DIRS = List.of(Path.of(TEMPLATES_DIR, THEME_LAYOUTS_DIR),
+            Path.of("web", "app"));
+    private static final Pattern ALT_EXPRESSION = Pattern.compile("\\{=[^\\s}]");
+
+    /**
+     * Return the Roq theme resource directories (theme layouts, Web Bundler app assets) found in a dependency.
+     */
+    public static List<String> findThemeResourceDirs(PathTree tree) {
+        return THEME_RESOURCE_DIRS.stream()
+                // PathTree takes resource names, separated by '/'
+                .map(dir -> toUnixPath(dir.toString()))
+                .filter(dir -> PathTreeUtils.containsCaseSensitivePath(tree, dir))
+                .toList();
+    }
+
+    /**
+     * Return the Roq theme resource directories found in a dependency. Results for archives are kept in
+     * {@code archiveCache} (archives don't change during a dev session), while local directories, such as a module
+     * of the same reactor, are always checked again.
+     */
+    public static List<String> findThemeResourceDirs(ResolvedDependency dependency,
+            Map<List<Path>, List<String>> archiveCache) {
+        List<Path> paths = new ArrayList<>();
+        dependency.getResolvedPaths().forEach(paths::add);
+        if (paths.isEmpty() || !paths.stream().allMatch(Files::isRegularFile)) {
+            return findThemeResourceDirs(dependency.getContentTree());
+        }
+        return archiveCache.computeIfAbsent(paths, k -> findThemeResourceDirs(dependency.getContentTree()));
+    }
+
+    /**
+     * Whether a template contains alternative syntax output expressions ({@code {=expr}}).
+     */
+    public static boolean usesAltExpressions(String content) {
+        return ALT_EXPRESSION.matcher(content).find();
+    }
+
+    /**
+     * Describe where a template root comes from: its directory, or the archive containing it.
+     */
+    public static String describeTemplateRoot(Path templateRoot) {
+        return ProjectFile.isLocalFileSystem(templateRoot)
+                ? templateRoot.toString()
+                : templateRoot.getFileSystem().toString();
     }
 
     // ── Ignored patterns & globs ────────────────────────────────────────

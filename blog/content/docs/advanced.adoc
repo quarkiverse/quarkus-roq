@@ -242,6 +242,8 @@ site.theme=roq-default // <1>
 ----
 <1> This allows site referencing the theme to default to this theme.
 
+NOTE: Roq logs a build warning when a dependency contains theme resources but is ignored because it isn't an application archive (add an empty `META-INF/beans.xml` to the jar), and when dependency templates use `{=...}` expressions without enabling the <<Alternative expression syntax>> for them (add `alt-expr-syntax=true` to `templates/.qute` in the jar).
+
 [#links]
 == Links & Urls
 
