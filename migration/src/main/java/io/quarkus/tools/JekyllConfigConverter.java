@@ -498,7 +498,7 @@ public class JekyllConfigConverter {
     static String translatePermalinkPlaceholders(String permalink) {
         return permalink
                 .replace(":path", ":dir[1]/:name")
-                .replace(":title", ":name")
+                .replace(":title", ":Name")
                 .replace(":categories", ":collection");
     }
 
@@ -820,7 +820,13 @@ public class JekyllConfigConverter {
                     .data("properties", properties)
                     .render();
 
-            Files.writeString(javaDir.resolve(interfaceName + ".java"), interfaceCode);
+            Path interfaceFile = javaDir.resolve(interfaceName + ".java");
+            if (Files.exists(interfaceFile)) {
+                System.out.println("  [CONFIG] SKIP (already exists): " + interfaceFile);
+            } else {
+                Files.writeString(interfaceFile, interfaceCode);
+                System.out.println("  [CONFIG] Generated ConfigMapping: " + packageName + "." + interfaceName);
+            }
 
             // Generate CDI producer for template access
             String producerCode = configBeanTemplate
@@ -830,10 +836,14 @@ public class JekyllConfigConverter {
                     .data("interfaceName", interfaceName)
                     .render();
 
-            Files.writeString(javaDir.resolve(producerClassName + ".java"), producerCode);
+            Path producerFile = javaDir.resolve(producerClassName + ".java");
+            if (Files.exists(producerFile)) {
+                System.out.println("  [CONFIG] SKIP (already exists): " + producerFile);
+            } else {
+                Files.writeString(producerFile, producerCode);
+                System.out.println("  [CONFIG] Generated CDI producer: " + packageName + "." + producerClassName);
+            }
 
-            System.out.println("  [CONFIG] Generated ConfigMapping: " + packageName + "." + interfaceName);
-            System.out.println("  [CONFIG] Generated CDI producer: " + packageName + "." + producerClassName);
             System.out.println("  [CONFIG] Template access: {cdi:" + beanName + ".propertyName}");
         }
 
