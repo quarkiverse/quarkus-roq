@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
@@ -45,6 +46,23 @@ public final class RoqFrontMatterScanUtils {
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterScanUtils.class);
 
     private RoqFrontMatterScanUtils() {
+    }
+
+    // ── Local dependency templates ──────────────────────────────────────
+
+    /**
+     * Select the dependency templates located in a local directory (e.g. a theme module of the same Maven reactor
+     * in dev mode), skipping templates from archives and templates overridden by a local template with the same path.
+     */
+    public static List<ProjectFile> filterLocalDependencyTemplates(List<ProjectFile> dependencyFiles,
+            List<ProjectFile> localFiles) {
+        Set<String> localPaths = localFiles.stream()
+                .map(f -> toUnixPath(f.scopedPath()))
+                .collect(Collectors.toSet());
+        return dependencyFiles.stream()
+                .filter(ProjectFile::isLocalFile)
+                .filter(f -> !localPaths.contains(toUnixPath(f.scopedPath())))
+                .toList();
     }
 
     // ── Ignored patterns & globs ────────────────────────────────────────

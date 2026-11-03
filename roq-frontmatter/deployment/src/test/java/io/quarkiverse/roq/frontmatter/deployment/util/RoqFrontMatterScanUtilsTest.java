@@ -3,13 +3,18 @@ package io.quarkiverse.roq.frontmatter.deployment.util;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.TemplateContext;
+import io.quarkiverse.tools.projectscanner.ClasspathProjectFile;
+import io.quarkiverse.tools.projectscanner.LocalProjectFile;
+import io.quarkiverse.tools.projectscanner.ProjectFile;
 
 /**
  * Pure unit tests for scanning utility methods in {@link RoqFrontMatterScanUtils}.
@@ -207,6 +212,44 @@ public class RoqFrontMatterScanUtilsTest {
         var owners = new java.util.HashMap<Path, java.util.List<RoqFrontMatterAttachment>>();
 
         assertNull(RoqFrontMatterScanUtils.findNearestOwner(owners, Path.of("orphan/photo.png")));
+    }
+
+    // ── filterLocalDependencyTemplates ──────────────────────────────────
+
+    private static ProjectFile localFile(String scopedPath, ProjectFile.Origin origin) {
+        return new LocalProjectFile("templates/" + scopedPath, scopedPath, Path.of("/theme/templates", scopedPath), null,
+                origin, "templates/" + scopedPath, StandardCharsets.UTF_8);
+    }
+
+    private static ProjectFile archiveFile(String scopedPath) {
+        return new ClasspathProjectFile("templates/" + scopedPath, scopedPath, null, ProjectFile.Origin.DEPENDENCY_RESOURCE,
+                "templates/" + scopedPath, new byte[0], StandardCharsets.UTF_8);
+    }
+
+    @Test
+    @DisplayName("filterLocalDependencyTemplates keeps templates from a local dependency directory")
+    void filterLocalDependencyTemplatesKeepsLocalDirs() {
+        ProjectFile themePartial = localFile("partials/theme/footer.html", ProjectFile.Origin.DEPENDENCY_RESOURCE);
+        assertEquals(List.of(themePartial),
+                RoqFrontMatterScanUtils.filterLocalDependencyTemplates(List.of(themePartial), List.of()));
+    }
+
+    @Test
+    @DisplayName("filterLocalDependencyTemplates skips templates from archives")
+    void filterLocalDependencyTemplatesSkipsArchives() {
+        assertTrue(RoqFrontMatterScanUtils.filterLocalDependencyTemplates(
+                List.of(archiveFile("partials/theme/footer.html")), List.of()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("filterLocalDependencyTemplates skips templates overridden by the site")
+    void filterLocalDependencyTemplatesSkipsOverrides() {
+        ProjectFile themeFooter = localFile("partials/theme/footer.html", ProjectFile.Origin.DEPENDENCY_RESOURCE);
+        ProjectFile themeHeader = localFile("partials/theme/header.html", ProjectFile.Origin.DEPENDENCY_RESOURCE);
+        ProjectFile siteFooter = localFile("partials/theme/footer.html", ProjectFile.Origin.LOCAL_PROJECT_FILE);
+        assertEquals(List.of(themeHeader),
+                RoqFrontMatterScanUtils.filterLocalDependencyTemplates(List.of(themeFooter, themeHeader),
+                        List.of(siteFooter)));
     }
 
 }
