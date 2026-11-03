@@ -36,17 +36,19 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
 
-        <!-- Qute template extensions -->
+        <!-- The Qute engine library (not the Quarkus extension): renders the ConfigMapping templates -->
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-qute</artifactId>
+            <groupId>io.quarkus.qute</groupId>
+            <artifactId>qute-core</artifactId>
         </dependency>
-
-        <!-- Roq frontmatter utilities (YAML parsing, frontmatter handling) -->
+        <!--
+          Only for JekyllFiltersExtension, which is copied into migrated sites as source (see the resources below).
+          Provided, so the migration library does not bring Vert.x into applications that embed it.
+        -->
         <dependency>
-            <groupId>io.quarkiverse.roq</groupId>
-            <artifactId>quarkus-roq-frontmatter-deployment</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Testing -->
@@ -94,6 +96,18 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- JekyllFiltersExtension is copied into migrated sites, so ship its source too -->
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>io/quarkus/tools/migration/JekyllFiltersExtension.java</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
