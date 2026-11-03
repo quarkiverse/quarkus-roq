@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import io.quarkiverse.roq.LargeRecords;
+import io.quarkiverse.roq.deployment.items.LargeRecordBuildItem;
 import io.quarkiverse.roq.generator.deployment.items.SelectedPathBuildItem;
 import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
 import io.quarkiverse.roq.generator.runtime.Origin;
@@ -48,6 +50,8 @@ import io.quarkus.vertx.http.runtime.GeneratedStaticResourcesRecorder;
 class RoqGeneratorProcessor {
 
     private static final String FEATURE = "roq-generator";
+    private static final String SELECTION_RESOURCE = "roq-recorded/generator-selection.ser";
+    private static final String STATIC_FILES_RESOURCE = "roq-recorded/generator-static-files.ser";
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -108,8 +112,14 @@ class RoqGeneratorProcessor {
     @Record(ExecutionTime.STATIC_INIT)
     void initStaticFiles(
             BuildSelectionBuildItem buildSelection,
+            BuildProducer<LargeRecordBuildItem> largeRecords,
             RoqGeneratorRecorder recorder) {
-        recorder.setStaticFiles(buildSelection.staticFiles());
+        // Large sites have tens of thousands of entries: recorded, they would exceed the
+        // constant pool of one generated class.
+        largeRecords.produce(new LargeRecordBuildItem(STATIC_FILES_RESOURCE,
+                LargeRecords.serialize(new HashMap<>(buildSelection.staticFiles())),
+                StaticFile.class, StaticFile.FetchType.class));
+        recorder.setStaticFiles(STATIC_FILES_RESOURCE);
     }
 
     @BuildStep
@@ -117,8 +127,12 @@ class RoqGeneratorProcessor {
     void initSelection(
             BuildSelectionBuildItem buildSelection,
             OutputTargetBuildItem outputTarget,
+            BuildProducer<LargeRecordBuildItem> largeRecords,
             RoqGeneratorRecorder recorder) {
-        recorder.setBuildSelectedPaths(buildSelection.selectedPaths());
+        RoqSelection selection = new RoqSelection(new ArrayList<>(buildSelection.selectedPaths().paths()));
+        largeRecords.produce(new LargeRecordBuildItem(SELECTION_RESOURCE, LargeRecords.serialize(selection),
+                RoqSelection.class, SelectedPath.class, Origin.class));
+        recorder.setBuildSelectedPaths(SELECTION_RESOURCE);
         recorder.setOutputTarget(outputTarget.getOutputDirectory().toAbsolutePath().toString());
     }
 
