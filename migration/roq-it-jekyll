@@ -140,7 +140,7 @@ rm -f ${project_dir}/application.properties
 # Replace /assets/css/ links with {#bundle /} tag using Java converter
 # Handles multiple CSS files, preserves non-assets CSS, fixes TBT regression
 if [ -f "${project_dir}/_layouts/base.html" ]; then
-    mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllLayoutCommand" -Dexec.args="${project_dir}/_layouts/base.html"
+    mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.JekyllLayoutCommand" -Dexec.args="${project_dir}/_layouts/base.html"
 fi
 
 
@@ -342,7 +342,7 @@ done
 # (e.g. content(1) → content-1) during the build, but does not update
 # HTML references, so images 404 at runtime.
 # Fix: rename source files and update HTML references to match.
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.ParenthesisFileRenamerCommand" -Dexec.args="${project_dir}/public"
 
 # Convert Jekyll XML templates (feed.xml, sitemap.xml) to Qute
 # Strip frontmatter, stage in _includes for the converter, serve from content/
@@ -355,10 +355,10 @@ for xml_file in feed.xml sitemap.xml; do
 done
 
 # Convert frontmatter (permalinks → link, pagination → paginate, excerpt → description)
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.jekyll.JekyllFrontMatterCommand" -Dexec.args="${project_dir}"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.jekyll.JekyllFrontMatterCommand" -Dexec.args="${project_dir}"
 
 # Convert Jekyll config to Roq (creates config/application.properties, data/siteConfig.yml, and ConfigMapping classes)
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllConfigCommand" -Dexec.args="${project_dir}"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.JekyllConfigCommand" -Dexec.args="${project_dir}"
 rm -rf ${project_dir}/_config.yml
 
 # Read discovered ConfigMapping sections (written by JekyllConfigConverter)
@@ -373,8 +373,8 @@ fi
 
 # Convert Liquid to Qute; this has the side effect of renaming directories to adjust the structure
 mkdir -p ${project_dir}/templates/partials
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_includes ${project_dir}/templates/partials --partials ${CONFIG_MAPPINGS}"
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts ${CONFIG_MAPPINGS}"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.LiquidToQuteCommand" -Dexec.args="${project_dir}/_includes ${project_dir}/templates/partials --partials ${CONFIG_MAPPINGS}"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.LiquidToQuteCommand" -Dexec.args="${project_dir}/_layouts ${project_dir}/templates/layouts ${CONFIG_MAPPINGS}"
 
 # Fail loudly if any Liquid loop-control tag survived conversion. Qute has no
 # {% break %}/{% continue %}: the converter translates the known pre-loop {% break %}
@@ -434,7 +434,7 @@ else
 fi
 
 # Convert Jekyll plugins (_plugins/*.rb) to Roq equivalents
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.JekyllPluginCommand" -Dexec.args="${project_dir}"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.JekyllPluginCommand" -Dexec.args="${project_dir}"
 
 # Convert AsciiDoc link: macros to xref: for cross-document references.
 #
@@ -458,7 +458,7 @@ mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.Jeky
 #
 # NOTE: This must run AFTER the Liquid converter, which moves _guides → content/guides
 # and _versions → content/versions as a side effect of the directory renaming.
-mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content"
+mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.command.AsciiDocLinkToXrefCommand" -Dexec.args="${project_dir}/content"
 
 # Make all extends optional
 # Use bash to run sed_inplace for each file since find -exec doesn't have access to functions
@@ -513,7 +513,7 @@ fi
 # This preserves redirects when the redirects/ directory is deleted.
 if [ -d "${project_dir}/content/redirects" ]; then
     echo "Merging redirect files into target files as aliases..."
-    mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkus.tools.migration.command.RedirectMergerCommand" -Dexec.args="${project_dir}"
+    mvn -f ${tools_dir}/pom.xml -q exec:java -Dexec.mainClass="io.quarkiverse.roq.migration.command.RedirectMergerCommand" -Dexec.args="${project_dir}"
 fi
 
 # Delete redirects/ directory if it's empty after merging.
