@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
+import io.quarkiverse.roq.migration.FrontMatter;
+
 /**
  * Converts Jekyll frontmatter in content files to Roq equivalents.
  * Handles pagination and permalink transformations.
@@ -100,7 +102,8 @@ public class JekyllFrontMatterConverter {
     public void convertPermalinks(Path contentDir, String pathPrefix) throws IOException {
         for (Path file : findContentFiles(contentDir)) {
             String content = Files.readString(file);
-            Matcher matcher = PERMALINK_LINE.matcher(content);
+            String frontMatter = FrontMatter.block(content);
+            Matcher matcher = PERMALINK_LINE.matcher(frontMatter);
             if (!matcher.find()) {
                 continue;
             }
@@ -115,14 +118,15 @@ public class JekyllFrontMatterConverter {
                     ? relativePathNoExt
                     : pathPrefix + "/" + relativePathNoExt;
 
+            String converted;
             if (normalized.equals(effectivePath)) {
-                content = PERMALINK_LINE.matcher(content).replaceFirst("");
+                converted = PERMALINK_LINE.matcher(frontMatter).replaceFirst("");
             } else {
-                content = PERMALINK_LINE.matcher(content)
+                converted = PERMALINK_LINE.matcher(frontMatter)
                         .replaceFirst("link: " + Matcher.quoteReplacement(matcher.group(1)) + "\n");
             }
 
-            Files.writeString(file, content);
+            Files.writeString(file, replaceFrontMatter(content, frontMatter, converted));
         }
     }
 
@@ -133,15 +137,16 @@ public class JekyllFrontMatterConverter {
     public void convertNewUrlToAliases(Path contentDir) throws IOException {
         for (Path file : findContentFiles(contentDir)) {
             String content = Files.readString(file);
-            Matcher matcher = NEWURL_LINE.matcher(content);
+            String frontMatter = FrontMatter.block(content);
+            Matcher matcher = NEWURL_LINE.matcher(frontMatter);
             if (!matcher.find()) {
                 continue;
             }
 
             String newUrlValue = matcher.group(1).trim();
-            content = NEWURL_LINE.matcher(content)
+            String converted = NEWURL_LINE.matcher(frontMatter)
                     .replaceFirst("aliases:\n  - " + Matcher.quoteReplacement(newUrlValue) + "\n");
-            Files.writeString(file, content);
+            Files.writeString(file, replaceFrontMatter(content, frontMatter, converted));
         }
     }
 
@@ -152,14 +157,15 @@ public class JekyllFrontMatterConverter {
     public void convertExcerpts(Path contentDir) throws IOException {
         for (Path file : findContentFiles(contentDir)) {
             String content = Files.readString(file);
-            if (!EXCERPT_LINE.matcher(content).find()) {
+            String frontMatter = FrontMatter.block(content);
+            if (!EXCERPT_LINE.matcher(frontMatter).find()) {
                 continue;
             }
-            if (Pattern.compile("^description:[ \\t]", Pattern.MULTILINE).matcher(content).find()) {
+            if (Pattern.compile("^description:[ \\t]", Pattern.MULTILINE).matcher(frontMatter).find()) {
                 continue;
             }
-            content = EXCERPT_LINE.matcher(content).replaceFirst("description: $1\n");
-            Files.writeString(file, content);
+            String converted = EXCERPT_LINE.matcher(frontMatter).replaceFirst("description: $1\n");
+            Files.writeString(file, replaceFrontMatter(content, frontMatter, converted));
         }
     }
 
@@ -174,7 +180,8 @@ public class JekyllFrontMatterConverter {
 
         for (Path file : findContentFiles(contentDir)) {
             String content = Files.readString(file);
-            if (!PAGINATION_BLOCK.matcher(content).find()) {
+            String frontMatter = FrontMatter.block(content);
+            if (!PAGINATION_BLOCK.matcher(frontMatter).find()) {
                 continue;
             }
 
@@ -184,8 +191,8 @@ public class JekyllFrontMatterConverter {
                     + "  size: " + size + "\n"
                     + "  link: " + pageSlug + "/page/:page\n";
 
-            content = PAGINATION_BLOCK.matcher(content).replaceFirst(replacement);
-            Files.writeString(file, content);
+            String converted = PAGINATION_BLOCK.matcher(frontMatter).replaceFirst(replacement);
+            Files.writeString(file, replaceFrontMatter(content, frontMatter, converted));
         }
     }
 
@@ -211,8 +218,9 @@ public class JekyllFrontMatterConverter {
                 String htmlContent = Files.readString(entry.getValue());
                 String mdContent = Files.readString(mdFile);
 
-                Matcher htmlPermalink = PERMALINK_LINE.matcher(htmlContent);
-                Matcher mdPermalink = PERMALINK_LINE.matcher(mdContent);
+                String htmlFrontMatter = FrontMatter.block(htmlContent);
+                Matcher htmlPermalink = PERMALINK_LINE.matcher(htmlFrontMatter);
+                Matcher mdPermalink = PERMALINK_LINE.matcher(FrontMatter.block(mdContent));
 
                 if (!htmlPermalink.find() || !mdPermalink.find()) {
                     continue;
@@ -221,10 +229,10 @@ public class JekyllFrontMatterConverter {
                 String htmlPl = htmlPermalink.group(1).trim().replaceAll("^['\"]|['\"]$", "");
                 String mdPl = mdPermalink.group(1).trim().replaceAll("^['\"]|['\"]$", "");
 
-                String merged = PERMALINK_LINE.matcher(htmlContent)
+                String merged = PERMALINK_LINE.matcher(htmlFrontMatter)
                         .replaceFirst("aliases:\n  - " + htmlPl + "\n  - " + mdPl + "\n");
 
-                Files.writeString(entry.getValue(), merged);
+                Files.writeString(entry.getValue(), replaceFrontMatter(htmlContent, htmlFrontMatter, merged));
                 Files.delete(mdFile);
             }
         }
@@ -308,6 +316,13 @@ public class JekyllFrontMatterConverter {
                     })
                     .toArray(Path[]::new);
         }
+    }
+
+    /**
+     * The key patterns only ever apply to the front matter, never to the page body.
+     */
+    private static String replaceFrontMatter(String content, String frontMatter, String converted) {
+        return converted + content.substring(frontMatter.length());
     }
 
     private static String stripExtension(String filename) {
