@@ -99,6 +99,14 @@ public final class SourceSite {
         }
     }
 
+    public byte[] readBytes(String path) throws MigrationException {
+        try {
+            return Files.readAllBytes(resolve(path));
+        } catch (IOException e) {
+            throw new MigrationException("Cannot read " + path + ": " + e.getMessage(), e);
+        }
+    }
+
     /**
      * @return the names of the entries directly inside a directory ({@code ""} for the site root), sorted;
      *         empty if it is not a directory
