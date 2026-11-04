@@ -589,7 +589,7 @@ no-index-all: true
 ---
 ----
 
-A plugin key set on the same page wins over it. The check order is: the plugin key (`sitemap`, `llmstxt`, `search`), then `no-index-all`, then the default (indexed). For example, `no-index-all: true` with `llmstxt: true` keeps the page in llms.txt only, and `robots: "index, follow"` keeps that explicit `robots` value.
+A plugin key set on the same page wins over it. The check order is: the plugin key (`sitemap`, `llmstxt`, `search`, `mdtwin`), then `no-index-all`, then the default (indexed). For example, `no-index-all: true` with `llmstxt: true` keeps the page in llms.txt only, and `robots: "index, follow"` keeps that explicit `robots` value.
 
 Configure site-wide SEO defaults through the site index frontmatter:
 

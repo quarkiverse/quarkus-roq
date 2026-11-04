@@ -1,0 +1,13 @@
+---
+title: Twin Attributes Test
+no-index-all: true
+mdtwin: true
+asciidoc-attributes:
+  release: 2.2
+  product: Roq
+---
+= Twin attributes
+
+This page sets `asciidoc-attributes` in its front matter, and its Markdown twin resolves them as the page does.
+
+Release {release} of {product}.
