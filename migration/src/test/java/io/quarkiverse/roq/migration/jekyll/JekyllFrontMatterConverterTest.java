@@ -705,4 +705,85 @@ class JekyllFrontMatterConverterTest {
         assertTrue(result.contains("paginate:"));
         assertTrue(result.contains("link: blog/page/:page"));
     }
+
+    // --- Only the front matter is converted ---
+
+    private static final String BODY_WITH_JEKYLL_KEYS = """
+            Example Jekyll front matter:
+
+            permalink: /docs/example/
+            newUrl: /docs/elsewhere
+            excerpt: An example
+            pagination:
+              enabled: true
+            """;
+
+    @Test
+    void testBodyLinesThatLookLikeKeysAreNotConverted(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        String page = "---\ntitle: Jekyll keys\n---\n" + BODY_WITH_JEKYLL_KEYS;
+        Files.writeString(contentDir.resolve("keys.md"), page);
+
+        converter.convertPermalinks(contentDir);
+        converter.convertNewUrlToAliases(contentDir);
+        converter.convertExcerpts(contentDir);
+        converter.convertPagination(contentDir, null);
+
+        assertEquals(page, Files.readString(contentDir.resolve("keys.md")));
+    }
+
+    @Test
+    void testFilesWithoutFrontMatterAreNotConverted(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("keys.md"), BODY_WITH_JEKYLL_KEYS);
+
+        converter.convertPermalinks(contentDir);
+        converter.convertNewUrlToAliases(contentDir);
+        converter.convertExcerpts(contentDir);
+        converter.convertPagination(contentDir, null);
+
+        assertEquals(BODY_WITH_JEKYLL_KEYS, Files.readString(contentDir.resolve("keys.md")));
+    }
+
+    @Test
+    void testFrontMatterIsConvertedAndBodyKept(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("keys.md"),
+                "---\npermalink: /company/keys/\nexcerpt: Keys\n---\n" + BODY_WITH_JEKYLL_KEYS);
+
+        converter.convertPermalinks(contentDir);
+        converter.convertExcerpts(contentDir);
+
+        assertEquals("---\nlink: /company/keys/\ndescription: Keys\n---\n" + BODY_WITH_JEKYLL_KEYS,
+                Files.readString(contentDir.resolve("keys.md")));
+    }
+
+    @Test
+    void testDescriptionInBodyDoesNotBlockExcerptConversion(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        Files.writeString(contentDir.resolve("post.md"), "---\nexcerpt: Short\n---\ndescription: in the body\n");
+
+        converter.convertExcerpts(contentDir);
+
+        assertEquals("---\ndescription: Short\n---\ndescription: in the body\n",
+                Files.readString(contentDir.resolve("post.md")));
+    }
+
+    @Test
+    void testMergeRedirectDuplicatesIgnoresPermalinksInTheBody(@TempDir Path tempDir) throws IOException {
+        Path contentDir = tempDir.resolve("content");
+        Files.createDirectories(contentDir);
+        String html = "---\ntitle: Foo\n---\npermalink: /foo.html\n";
+        Files.writeString(contentDir.resolve("foo.html"), html);
+        Files.writeString(contentDir.resolve("foo.md"), "---\npermalink: /foo/\n---\n");
+
+        converter.mergeRedirectDuplicates(contentDir);
+
+        assertEquals(html, Files.readString(contentDir.resolve("foo.html")));
+        assertTrue(Files.exists(contentDir.resolve("foo.md")));
+    }
 }

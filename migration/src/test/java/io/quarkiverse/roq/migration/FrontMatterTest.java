@@ -25,6 +25,15 @@ class FrontMatterTest {
     }
 
     @Test
+    void returnsTheFrontMatterBlock() {
+        String content = "---\ntitle: A\n---\nBody\n";
+
+        assertThat(FrontMatter.block(content)).isEqualTo("---\ntitle: A\n---\n");
+        assertThat(FrontMatter.block(content) + FrontMatter.strip(content)).isEqualTo(content);
+        assertThat(FrontMatter.block("Body\n")).isEmpty();
+    }
+
+    @Test
     void readsFieldsInOrder() throws Exception {
         var data = FrontMatter.read(mapper, "---\ntitle: A\naliases:\n  - /a\n  - /b\n---\nBody");
 
