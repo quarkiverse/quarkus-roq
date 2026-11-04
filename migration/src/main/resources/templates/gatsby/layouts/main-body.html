@@ -1,0 +1,14 @@
+${header}
+<div class="site-body">
+  <nav>
+    <ul>
+    {#for p in site.pages}
+      {#if p.url != site.url${notHome}}<li><a href="{=p.url}">{=p.data.title ?: p.baseFileName.replace('-', ' ')}</a></li>{/if}
+    {/for}
+    </ul>
+  </nav>
+  <main>
+    {#insert /}
+  </main>
+</div>
+${footer}
