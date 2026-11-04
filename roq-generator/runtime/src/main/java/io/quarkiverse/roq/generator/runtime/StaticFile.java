@@ -1,6 +1,8 @@
 package io.quarkiverse.roq.generator.runtime;
 
-public record StaticFile(String path, FetchType type) {
+import java.io.Serializable;
+
+public record StaticFile(String path, FetchType type) implements Serializable {
     public enum FetchType {
         FILE,
         CLASSPATH,

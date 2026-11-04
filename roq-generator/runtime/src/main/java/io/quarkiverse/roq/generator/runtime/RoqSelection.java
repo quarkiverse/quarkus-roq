@@ -1,11 +1,12 @@
 package io.quarkiverse.roq.generator.runtime;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public record RoqSelection(List<SelectedPath> paths) {
+public record RoqSelection(List<SelectedPath> paths) implements Serializable {
 
     public static List<SelectedPath> prepare(RoqGeneratorConfig config, List<RoqSelection> selection) {
         Set<String> seenPaths = new HashSet<>();

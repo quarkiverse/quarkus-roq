@@ -3,9 +3,10 @@ package io.quarkiverse.roq.generator.runtime;
 import static io.quarkiverse.tools.stringpaths.StringPaths.addTrailingSlash;
 import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
 
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
-public record SelectedPath(String path, String outputPath, Origin source) {
+public record SelectedPath(String path, String outputPath, Origin source) implements Serializable {
 
     private SelectedPath(SelectedPathBuilder builder) {
         this(prefixWithSlash(builder.path), builder.outputPath, builder.source);
