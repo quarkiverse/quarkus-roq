@@ -10,7 +10,8 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.quarkiverse.roq.migration.LiquidToQuteCommand;
+import io.quarkiverse.roq.migration.LiquidToQuteConverter;
+import io.quarkiverse.roq.migration.LiquidToQuteDirectoryConverter;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.TemplateException;
 
@@ -21,9 +22,7 @@ class CrossFileMergeTest {
         Path inputDir = copyTestFixtures(tempDir);
         Path outputDir = tempDir.resolve("output");
 
-        int exitCode = new picocli.CommandLine(new LiquidToQuteCommand())
-                .execute(inputDir.toString(), outputDir.toString());
-        assertEquals(0, exitCode, "Command should exit successfully");
+        convert(inputDir, outputDir);
 
         String partial = Files.readString(outputDir.resolve("_includes/merge-items.html"));
         assertTrue(partial.contains(".mergeTypes("),
@@ -37,9 +36,7 @@ class CrossFileMergeTest {
         Path inputDir = copyTestFixtures(tempDir);
         Path outputDir = tempDir.resolve("output");
 
-        int exitCode = new picocli.CommandLine(new LiquidToQuteCommand())
-                .execute(inputDir.toString(), outputDir.toString());
-        assertEquals(0, exitCode);
+        convert(inputDir, outputDir);
 
         String parent = Files.readString(outputDir.resolve("_includes/parent-docs.html"));
 
@@ -60,8 +57,7 @@ class CrossFileMergeTest {
         Path inputDir = copyTestFixtures(tempDir);
         Path outputDir = tempDir.resolve("output");
 
-        new picocli.CommandLine(new LiquidToQuteCommand())
-                .execute(inputDir.toString(), outputDir.toString());
+        convert(inputDir, outputDir);
 
         String parent = Files.readString(outputDir.resolve("_includes/parent-docs.html"));
 
@@ -71,6 +67,11 @@ class CrossFileMergeTest {
         } catch (TemplateException e) {
             fail("Parent output is not valid Qute:\n" + e.getMessage() + "\n\nOutput:\n" + parent);
         }
+    }
+
+    private static void convert(Path inputDir, Path outputDir) throws IOException {
+        var result = new LiquidToQuteDirectoryConverter(new LiquidToQuteConverter()).convertDirectory(inputDir, outputDir);
+        assertEquals(0, result.failed(), "All files should convert");
     }
 
     private Path copyTestFixtures(Path tempDir) throws Exception {
