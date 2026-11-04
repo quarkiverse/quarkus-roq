@@ -12,11 +12,13 @@ import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
-import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import io.quarkiverse.roq.migration.FrontMatter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -40,7 +42,10 @@ public class RedirectMergerCommand implements Callable<Integer> {
     private Path projectDir;
 
     private static final String FM_DELIMITER = "---\n";
-    private static final YAMLMapper YAML_MAPPER = new YAMLMapper();
+    // No "---" document start marker: the front matter delimiters are written separately
+    private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder()
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+            .build();
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new RedirectMergerCommand()).execute(args);
@@ -78,13 +83,13 @@ public class RedirectMergerCommand implements Callable<Integer> {
     private boolean mergeRedirect(Path contentDir, Path redirectsDir, Path redirectFile) throws IOException {
         String content = Files.readString(redirectFile);
 
-        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
+        if (!FrontMatter.isPresent(content)) {
             return false;
         }
 
-        JsonObject data;
+        ObjectNode data;
         try {
-            data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
+            data = FrontMatter.read(YAML_MAPPER, content);
         } catch (JsonProcessingException e) {
             System.out.println("  Warning: failed to parse frontmatter in " + redirectFile + ": " + e.getMessage());
             return false;
@@ -94,14 +99,15 @@ public class RedirectMergerCommand implements Callable<Integer> {
         String target = null;
 
         // Try aliases: first (if JekyllFrontMatterCommand already converted it)
-        JsonArray aliases = data.getJsonArray("aliases");
-        if (aliases != null && !aliases.isEmpty()) {
-            target = aliases.getString(0);
+        JsonNode aliases = data.get("aliases");
+        if (aliases != null && aliases.isArray() && !aliases.isEmpty()) {
+            target = aliases.get(0).asText();
         }
 
         // Fall back to newUrl: (if not yet converted)
-        if (target == null) {
-            target = data.getString("newUrl");
+        JsonNode newUrl = data.get("newUrl");
+        if (target == null && newUrl != null && !newUrl.isNull()) {
+            target = newUrl.asText();
         }
 
         if (target == null || target.isEmpty()) {
@@ -188,12 +194,11 @@ public class RedirectMergerCommand implements Callable<Integer> {
 
     private boolean hasLinkFrontmatter(Path file) throws IOException {
         String content = Files.readString(file);
-        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
+        if (!FrontMatter.isPresent(content)) {
             return false;
         }
         try {
-            JsonObject data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
-            return data.containsKey("link");
+            return FrontMatter.read(YAML_MAPPER, content).has("link");
         } catch (JsonProcessingException e) {
             return false;
         }
@@ -202,35 +207,41 @@ public class RedirectMergerCommand implements Callable<Integer> {
     private void addAliasToFile(Path file, String alias) throws IOException {
         String content = Files.readString(file);
 
-        if (!RoqFrontMatterTemplateUtils.hasFrontMatter(content)) {
+        if (!FrontMatter.isPresent(content)) {
             content = FM_DELIMITER + "aliases:\n  - " + alias + "\n" + FM_DELIMITER + content;
             Files.writeString(file, content);
             return;
         }
 
-        JsonObject data;
+        ObjectNode data;
         try {
-            data = RoqFrontMatterTemplateUtils.readFM(YAML_MAPPER, content);
+            data = FrontMatter.read(YAML_MAPPER, content);
         } catch (JsonProcessingException e) {
             return;
         }
 
-        String body = RoqFrontMatterTemplateUtils.stripFrontMatter(content);
+        String body = FrontMatter.strip(content);
 
-        JsonArray existingAliases = data.getJsonArray("aliases");
-        if (existingAliases == null) {
-            existingAliases = new JsonArray();
+        JsonNode existing = data.get("aliases");
+        ArrayNode aliases = data.arrayNode();
+        if (existing != null && existing.isArray()) {
+            aliases = (ArrayNode) existing;
+        } else if (existing != null && existing.isTextual()) {
+            // A single alias written as a string
+            aliases.add(existing.asText());
         }
 
-        if (existingAliases.contains(alias)) {
-            return;
+        for (JsonNode existingAlias : aliases) {
+            if (alias.equals(existingAlias.asText())) {
+                return;
+            }
         }
 
-        existingAliases.add(alias);
-        data.put("aliases", existingAliases);
+        aliases.add(alias);
+        data.set("aliases", aliases);
 
         // Serialize back to YAML frontmatter
-        String yaml = YAML_MAPPER.writeValueAsString(data.getMap());
+        String yaml = YAML_MAPPER.writeValueAsString(data);
         content = FM_DELIMITER + yaml + FM_DELIMITER + body;
 
         Files.writeString(file, content);
