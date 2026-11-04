@@ -22,7 +22,8 @@ import io.vertx.core.json.JsonObject;
 
 public final class RoqFrontMatterTemplateUtils {
 
-    private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{|", "|}");
+    // Extra pipes so that a literal "{|" or "|}" (or a few pipes in a row) in the content can't end the escape early
+    private static final WrapperFilter ESCAPE_FILTER = new WrapperFilter("{||||||", "||||||}");
     private static final Pattern COMPLETE_HTML_PATTERN = Pattern.compile("^\\s*(?:<!--.*?-->\\s*)*(<!doctype|<html)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 

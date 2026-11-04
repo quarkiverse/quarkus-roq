@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
+import io.quarkus.qute.Engine;
 
 /**
  * Pure unit tests for template utility methods in {@link RoqFrontMatterTemplateUtils}.
@@ -179,6 +182,21 @@ public class RoqFrontMatterTemplateUtilsTest {
                 "Non-escaped content should not be modified");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "plain content",
+            "{name} and {#if foo}{/if} stay literal",
+            "Qute escapes look like `{|` and `|}`, e.g. {| x |}",
+            "a||}b |}|} c|||}",
+            "a | b |\n|---|---|\n| 1 | 2 |",
+            "ends with a pipe |",
+    })
+    @DisplayName("Escaped content renders back verbatim, even when it contains Qute escape delimiters")
+    void escapedContentRoundTrips(String content) {
+        String escaped = RoqFrontMatterTemplateUtils.getEscapeFilter(true).apply(content);
+        assertEquals(content, Engine.builder().addDefaults().build().parse(escaped).render());
+    }
+
     // ── applyContentTransforms ──────────────────────────────────────────
 
     @Test
@@ -194,7 +212,7 @@ public class RoqFrontMatterTemplateUtilsTest {
     void nonEmptyEscapedContentWrapped() {
         String result = RoqFrontMatterTemplateUtils.applyContentTransforms("hello", true, null, null, true)
                 .generatedTemplate();
-        assertEquals("{|hello|}", result);
+        assertEquals("{||||||hello||||||}", result);
     }
 
     @Test
@@ -202,6 +220,6 @@ public class RoqFrontMatterTemplateUtilsTest {
     void blankEscapedContentWrapped() {
         String result = RoqFrontMatterTemplateUtils.applyContentTransforms("\n", true, null, null, true)
                 .generatedTemplate();
-        assertEquals("{|\n|}", result);
+        assertEquals("{||||||\n||||||}", result);
     }
 }
