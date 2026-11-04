@@ -17,10 +17,14 @@ import java.util.stream.Stream;
  * <p>
  * The runner also owns the rules that keep the original site safe: the output directory is checked before anything
  * runs, and the site is copied to it only after the read-only stages have passed.
+ * <p>
+ * Action items reported with {@link MigrationReport#todo(String)} are written to the converted site before it is
+ * built, and listed again at the end.
  */
 public final class MigrationRunner {
 
-    public record MigrationResult(Path siteDir, SiteAnalysis analysis, List<MigrationReport.Warning> warnings) {
+    public record MigrationResult(Path siteDir, SiteAnalysis analysis, List<MigrationReport.Warning> warnings,
+            List<MigrationReport.ActionItem> actionItems) {
     }
 
     @FunctionalInterface
@@ -75,10 +79,13 @@ public final class MigrationRunner {
         stage(report, "assets", "Fix static assets and stylesheets", () -> migrator.convertAssets(site));
         stage(report, "code", "Generate Java code for site-specific extensions", () -> migrator.generateCode(site));
         stage(report, "check", "Check the converted site", () -> migrator.checkResult(site));
+        // Before the build, so the list is there even if the build fails
+        report.writeActionItems(siteDir, migrator.type());
         if (build) {
             stage(report, "build", "Build the site", () -> builder.build(site));
         }
-        return new MigrationResult(siteDir, analysis, report.warnings());
+        report.printActionItems();
+        return new MigrationResult(siteDir, analysis, report.warnings(), report.actionItems());
     }
 
     private void stage(MigrationReport report, String name, String description, Stage stage)

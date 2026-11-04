@@ -1,4 +1,4 @@
-package io.quarkiverse.roq.migration.command;
+package io.quarkiverse.roq.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,9 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import picocli.CommandLine;
-
-class RedirectMergerCommandTest {
+class RedirectMergerTest {
 
     @TempDir
     Path project;
@@ -138,12 +136,23 @@ class RedirectMergerCommandTest {
     void doesNothingWithoutARedirectsDirectory() throws IOException {
         write("page.md", "---\ntitle: Page\n---\n");
 
-        assertThat(new CommandLine(new RedirectMergerCommand()).execute(project.toString())).isZero();
+        assertThat(new RedirectMerger().merge(content)).isZero();
         assertThat(read("page.md")).isEqualTo("---\ntitle: Page\n---\n");
     }
 
-    private void run() {
-        assertThat(new CommandLine(new RedirectMergerCommand()).execute(project.toString())).isZero();
+    @Test
+    void countsMergedAndDeletedRedirects() throws IOException {
+        write("redirects/merged.md", "---\nnewUrl: /target\n---\n");
+        write("redirects/conflict.md", "---\nnewUrl: /target\n---\n");
+        write("redirects/external.md", "---\nnewUrl: https://example.org/\n---\n");
+        write("target.md", "Target\n");
+        write("conflict.md", "Conflict\n");
+
+        assertThat(new RedirectMerger().merge(content)).isEqualTo(2);
+    }
+
+    private void run() throws IOException {
+        new RedirectMerger().merge(content);
     }
 
     private void write(String path, String text) throws IOException {
