@@ -170,6 +170,71 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("README.md")).exists();
     }
 
+    /**
+     * A 64x64 PNG.
+     */
+    static byte[] png() {
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        try {
+            javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(64, 64, java.awt.image.BufferedImage.TYPE_INT_ARGB),
+                    "png", png);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+        return png.toByteArray();
+    }
+
+    @Test
+    void makesTheFaviconAndManifestFromTheManifestPluginsIcon() throws Exception {
+        Files.write(repo.resolve("site/src/images/logo.png"), png());
+        List<String> items = actionItems(migrate());
+
+        // Under the names {#favicon} discovers, at the size the icon is
+        assertThat(out.resolve("public/images/favicon.png")).hasBinaryContent(png());
+        assertThat(out.resolve("public/images/apple-touch-icon.png")).hasBinaryContent(png());
+        assertThat(out.resolve("public/manifest.webmanifest")).hasContent("""
+                {
+                  "name": "gatsby-starter-default",
+                  "icons": [
+                    { "src": "images/favicon.png", "sizes": "64x64", "type": "image/png" }
+                  ]
+                }
+                """);
+        assertThat(out.resolve("templates/layouts/main.html")).content().contains("""
+                  {#favicon site /}
+                  <link rel="manifest" href="{=site.url('manifest.webmanifest')}">
+                  {#bundle /}
+                """);
+        assertThat(items).contains("Give public/manifest.webmanifest the site's name: it has the Gatsby starter's "
+                + "(gatsby-starter-default, ), as the site's gatsby-plugin-manifest options did; or delete it and its link "
+                + "in templates/layouts/main.html if the site is not meant to be installed as an app");
+        assertThat(items).noneMatch(item -> item.startsWith("Add a web app manifest"));
+    }
+
+    @Test
+    void givesTheManifestTheIconsSizeWhenItCanBeRead() throws Exception {
+        Path icons = Files.createDirectories(tmp.resolve("icons"));
+        Files.write(icons.resolve("icon.png"), png());
+        Files.writeString(icons.resolve("icon.svg"), "<svg viewBox=\"0 0 10 10\"/>");
+        Files.write(icons.resolve("icon.ico"), new byte[] { 0, 0, 1, 0 });
+
+        assertThat(GatsbyIcons.sizes(icons.resolve("icon.png"))).isEqualTo("64x64");
+        // An SVG scales; the JDK cannot read an ICO
+        assertThat(GatsbyIcons.sizes(icons.resolve("icon.svg"))).isEqualTo("any");
+        assertThat(GatsbyIcons.sizes(icons.resolve("icon.ico"))).isEqualTo("any");
+    }
+
+    @Test
+    void saysWhenTheManifestPluginsIconIsMissing() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        assertThat(items).contains("Add a favicon to public/images/: the icon src/images/logo.png that "
+                + "gatsby-plugin-manifest made the favicon from was not found");
+        assertThat(out.resolve("public/manifest.webmanifest")).doesNotExist();
+        // Without a blank line where the favicon would be
+        assertThat(out.resolve("templates/layouts/main.html")).content().contains("  {/if}\n  {#bundle /}\n</head>");
+    }
+
     @Test
     void showsTheHomePageAtTheRootWithTheSiteMetadata() throws Exception {
         migrate();

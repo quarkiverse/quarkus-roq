@@ -2,6 +2,8 @@ package io.quarkiverse.roq.migration.gatsby;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
 class GatsbyConfigTest {
@@ -53,6 +55,14 @@ class GatsbyConfigTest {
                 ],
             }
             """;
+
+    @Test
+    void readsTheStringOptionsOfThePlugins() {
+        assertThat(GatsbyConfig.parse(CONFIG).pluginOptions().get("gatsby-plugin-manifest"))
+                .containsExactly(Map.entry("name", "gatsby-starter-default"), Map.entry("icon", "src/images/logo.png"));
+        // The first of the filesystem sources
+        assertThat(GatsbyConfig.parse(CONFIG).pluginOptions().get("gatsby-source-filesystem")).containsKey("path");
+    }
 
     @Test
     void readsSiteMetadata() {
