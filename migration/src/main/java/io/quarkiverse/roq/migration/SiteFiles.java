@@ -72,6 +72,13 @@ public final class SiteFiles {
     }
 
     /**
+     * @return {@code file} relative to {@code dir}, with {@code /} separators on every OS, for messages to the user
+     */
+    public static String relativePath(Path dir, Path file) {
+        return dir.relativize(file).toString().replace('\\', '/');
+    }
+
+    /**
      * @return the regular files under {@code dir} that match, sorted; empty if {@code dir} is not a directory
      */
     public static List<Path> files(Path dir, Predicate<Path> filter) throws IOException {

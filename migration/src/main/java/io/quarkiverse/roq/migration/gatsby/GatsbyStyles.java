@@ -49,7 +49,7 @@ final class GatsbyStyles {
         }
         for (Path css : SiteFiles.files(src, p -> p.toString().endsWith(".css"))) {
             if (css.toString().endsWith(".module.css")) {
-                site.report().todo("Convert the CSS module " + dir.relativize(css) + " to plain CSS in web/; "
+                site.report().todo("Convert the CSS module " + SiteFiles.relativePath(dir, css) + " to plain CSS in web/; "
                         + "its class names were scoped to a component");
             } else if (!styles.contains(css)) {
                 styles.add(css);

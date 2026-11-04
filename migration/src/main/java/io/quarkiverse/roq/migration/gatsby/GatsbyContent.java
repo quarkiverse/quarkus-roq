@@ -48,7 +48,7 @@ final class GatsbyContent {
                 Files.createDirectories(destination.getParent());
                 Files.move(file, destination);
             }
-            report.info("Moved the Markdown pages in " + sourceDir + "/ to " + dir.relativize(to) + "/");
+            report.info("Moved the Markdown pages in " + sourceDir + "/ to " + SiteFiles.relativePath(dir, to) + "/");
             if (SiteFiles.files(from, p -> true).isEmpty()) {
                 SiteFiles.deleteTree(from);
             } else {

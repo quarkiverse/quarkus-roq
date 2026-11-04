@@ -29,7 +29,7 @@ final class GatsbyWorkflows {
         Path dir = site.dir();
         for (Path workflow : SiteFiles.files(dir.resolve(".github/workflows"), p -> p.toString().matches(".*\\.ya?ml"))) {
             String text = Files.readString(workflow);
-            String file = dir.relativize(workflow).toString();
+            String file = SiteFiles.relativePath(dir, workflow);
             if (!project.root().isEmpty() && text.contains(project.root() + "/")) {
                 site.report().todo("Update " + file + ": it builds the Gatsby site in " + project.root()
                         + "/; the site is now built with Maven (QUARKUS_ROQ_GENERATOR_BATCH=true mvn package "

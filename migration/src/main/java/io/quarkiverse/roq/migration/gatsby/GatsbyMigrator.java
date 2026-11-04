@@ -102,7 +102,7 @@ public class GatsbyMigrator extends SiteMigrator {
     @Override
     protected void convertContent(TargetSite site) throws Exception {
         for (Path mdx : SiteFiles.files(site.dir().resolve("content"), p -> p.toString().endsWith(".mdx"))) {
-            site.report().todo("Convert " + site.dir().relativize(mdx) + ": Roq has no MDX support");
+            site.report().todo("Convert " + SiteFiles.relativePath(site.dir(), mdx) + ": Roq has no MDX support");
         }
     }
 

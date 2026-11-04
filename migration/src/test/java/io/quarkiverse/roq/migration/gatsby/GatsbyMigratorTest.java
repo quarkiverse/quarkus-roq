@@ -107,7 +107,8 @@ class GatsbyMigratorTest {
                 Map.entry("site/public/index.html", "<html>Gatsby build output</html>"),
                 Map.entry("site/static/CNAME", "hub.example.org\n"),
                 Map.entry("docs/Home.md", "# Welcome to the hub!\n\nSee [the checklist](checklist).\n"),
-                Map.entry("docs/Infrastructure-for-Quarkus-3.x:-Manual-upgrade.md", "Upgrade by hand.\n"),
+                // No ":" in file names, which Windows does not allow; the Hub has one, and Roq slugifies it away
+                Map.entry("docs/Infrastructure-for-Quarkus-3.x-Manual-upgrade.md", "Upgrade by hand.\n"),
                 Map.entry("docs/With-Slug.md", "---\ntitle: Has a slug\nslug: /custom/place\n---\nBody\n"),
                 Map.entry("docs/_Footer.md", "Footer\n"),
                 Map.entry(".github/workflows/wikisync.yml", "on:\n  push:\n    paths:\n      - \"docs/**\"\n"),
@@ -135,7 +136,7 @@ class GatsbyMigratorTest {
         migrate();
 
         assertThat(out.resolve("content/Home.md")).exists();
-        assertThat(out.resolve("content/Infrastructure-for-Quarkus-3.x:-Manual-upgrade.md")).exists();
+        assertThat(out.resolve("content/Infrastructure-for-Quarkus-3.x-Manual-upgrade.md")).exists();
         assertThat(out.resolve("content/_Footer.md")).hasContent("Footer");
         assertThat(out.resolve("docs")).doesNotExist();
         assertThat(out.resolve("README.md")).exists();
@@ -162,7 +163,7 @@ class GatsbyMigratorTest {
 
         // So that whatever else uses them, such as a GitHub wiki sync, sees the same files
         assertThat(out.resolve("content/Home.md")).hasContent("# Welcome to the hub!\n\nSee [the checklist](checklist).");
-        assertThat(out.resolve("content/Infrastructure-for-Quarkus-3.x:-Manual-upgrade.md")).hasContent("Upgrade by hand.");
+        assertThat(out.resolve("content/Infrastructure-for-Quarkus-3.x-Manual-upgrade.md")).hasContent("Upgrade by hand.");
     }
 
     @Test
