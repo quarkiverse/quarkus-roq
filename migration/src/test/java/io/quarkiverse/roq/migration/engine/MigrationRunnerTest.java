@@ -290,4 +290,113 @@ class MigrationRunnerTest {
                 });
         assertThat(warnings).containsExactly("  newsletter/ looks like content");
     }
+
+    /**
+     * Leaves two templates and a Ruby plugin for the user.
+     */
+    class MigratorWithActionItems extends RecordingMigrator {
+        @Override
+        protected void convertTemplates(TargetSite site) {
+            site.report().todo("Convert templates/layouts/gallery.html, which uses a Liquid tag Qute has no equivalent for");
+            site.report().todo("Check the date format in templates/partials/footer.html");
+        }
+
+        @Override
+        protected void generateCode(TargetSite site) {
+            site.report().todo("Migrate _plugins/reading_time.rb by hand");
+        }
+    }
+
+    @Test
+    void writesNoActionItemsFileWhenThereIsNothingToDo() throws Exception {
+        MigrationResult result = run(inPlace());
+
+        assertThat(result.actionItems()).isEmpty();
+        assertThat(source.resolve(MigrationReport.ACTION_ITEMS_FILE)).doesNotExist();
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void writesActionItemsToAChecklistGroupedByStage() throws Exception {
+        MigrationResult result = run(new MigratorWithActionItems(), inPlace());
+
+        assertThat(result.actionItems()).extracting(MigrationReport.ActionItem::stage)
+                .containsExactly("templates", "templates", "code");
+        assertThat(source.resolve(MigrationReport.ACTION_ITEMS_FILE)).hasContent("""
+                # Finishing the migration to Roq
+
+                The migration from Jekyll left these for you to do by hand.
+                Tick them off as you go, and delete this file when you are done.
+
+                ## templates
+
+                - [ ] Convert templates/layouts/gallery.html, which uses a Liquid tag Qute has no equivalent for
+                - [ ] Check the date format in templates/partials/footer.html
+
+                ## code
+
+                - [ ] Migrate _plugins/reading_time.rb by hand
+                """);
+    }
+
+    @Test
+    void listsActionItemsAtTheEnd() throws Exception {
+        run(new MigratorWithActionItems(), inPlace());
+
+        assertThat(output).contains("  To do: Migrate _plugins/reading_time.rb by hand");
+        assertThat(warnings).containsExactly(
+                "3 things need your attention:",
+                "  [templates] Convert templates/layouts/gallery.html, which uses a Liquid tag Qute has no equivalent for",
+                "  [templates] Check the date format in templates/partials/footer.html",
+                "  [code] Migrate _plugins/reading_time.rb by hand");
+        assertThat(output).last().isEqualTo("They are listed in "
+                + source.toAbsolutePath().resolve(MigrationReport.ACTION_ITEMS_FILE) + ".");
+        // The summary comes after the build
+        assertThat(calls).last().isEqualTo("build");
+    }
+
+    @Test
+    void writesActionItemsEvenIfTheBuildFails() {
+        SiteBuilder failingBuilder = site -> {
+            throw new MigrationException("Build failed");
+        };
+
+        assertThatThrownBy(() -> new MigrationRunner(new MigratorWithActionItems(), source, scaffolder, failingBuilder,
+                inPlace()).run()).hasMessage("Build failed");
+        assertThat(source.resolve(MigrationReport.ACTION_ITEMS_FILE)).exists();
+    }
+
+    @Test
+    void doesNotOverwriteAnExistingActionItemsFile() throws Exception {
+        Files.writeString(source.resolve(MigrationReport.ACTION_ITEMS_FILE), "Mine\n");
+
+        MigrationResult result = run(new MigratorWithActionItems(), inPlace());
+
+        assertThat(source.resolve(MigrationReport.ACTION_ITEMS_FILE)).hasContent("Mine");
+        assertThat(result.warnings()).extracting(MigrationReport.Warning::message)
+                .containsExactly(MigrationReport.ACTION_ITEMS_FILE
+                        + " already exists, so the action items were not written to it");
+        assertThat(warnings).contains("3 things need your attention:");
+        assertThat(output).noneMatch(line -> line.startsWith("They are listed in"));
+    }
+
+    @Test
+    void writesActionItemsWithQuteAndLiquidSyntaxAsIs() throws Exception {
+        List<String> messages = List.of(
+                "Remove the {| and |} Roq added around templates/partials/code.html",
+                "Check the nested {||escape||} and the {|||| opener in content/docs/qute.md",
+                "Replace {% break %} in templates/layouts/list.html",
+                "Check {#for post in site.collections.posts} {post.title} {/for} in templates/layouts/home.html");
+        SiteMigrator migrator = new RecordingMigrator() {
+            @Override
+            protected void convertTemplates(TargetSite site) {
+                messages.forEach(site.report()::todo);
+            }
+        };
+
+        run(migrator, inPlace());
+
+        assertThat(Files.readString(source.resolve(MigrationReport.ACTION_ITEMS_FILE)))
+                .contains(messages.stream().map(message -> "- [ ] " + message + "\n").toList());
+    }
 }
