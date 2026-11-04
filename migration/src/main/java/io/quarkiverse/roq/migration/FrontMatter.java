@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,6 +30,15 @@ public final class FrontMatter {
      */
     public static String strip(String content) {
         return PATTERN.matcher(content).replaceFirst("");
+    }
+
+    /**
+     * @return the front matter at the start of the content, delimiters included, so that
+     *         {@code block(content) + strip(content)} is the content; empty if there is none
+     */
+    public static String block(String content) {
+        Matcher matcher = PATTERN.matcher(content);
+        return matcher.find() ? matcher.group() : "";
     }
 
     /**
