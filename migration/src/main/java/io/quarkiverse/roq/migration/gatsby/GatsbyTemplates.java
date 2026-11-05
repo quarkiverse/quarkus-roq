@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +17,7 @@ import io.quarkiverse.roq.migration.engine.TargetSite;
  * Writes minimal Roq layouts for a migrated Gatsby site, and reports the React components and pages to port.
  * <p>
  * The layouts are Qute templates already, so they are copied from {@code templates/gatsby/layouts/} as they are, apart
- * from the {@code ${notHome}} placeholder.
+ * from the {@code ${head}} and {@code ${notHome}} placeholders.
  */
 final class GatsbyTemplates {
 
@@ -32,7 +33,11 @@ final class GatsbyTemplates {
         // The home page is also shown at /, so the navigation leaves it out
         String notHome = homePage == null || homePage.equals("index.md") ? ""
                 : " && !p.sourcePath.equals('" + homePage + "')";
-        Files.writeString(layouts.resolve("main.html"), layout("main.html").replace("${notHome}", notHome));
+        // The favicon and web app manifest, which Gatsby's manifest plugin added to the head
+        List<String> head = GatsbyIcons.convert(project, site);
+        String main = head.isEmpty() ? layout("main.html").replace("  ${head}\n", "")
+                : layout("main.html").replace("${head}", String.join("\n  ", head));
+        Files.writeString(layouts.resolve("main.html"), main.replace("${notHome}", notHome));
         Files.writeString(layouts.resolve("page.html"), layout("page.html"));
         site.report().info("Wrote a minimal templates/layouts/main.html and page.html, so the site can be browsed; "
                 + "pages without a title get one from their file name");

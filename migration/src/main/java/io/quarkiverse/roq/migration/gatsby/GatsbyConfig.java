@@ -17,8 +17,11 @@ import java.util.regex.Pattern;
  * @param siteMetadata the string values of {@code siteMetadata}, e.g. {@code title} and {@code siteUrl}
  * @param plugins the names of the plugins used, including nested ones such as remark plugins
  * @param sources the {@code gatsby-source-filesystem} sources, with paths relative to the Gatsby project
+ * @param pluginOptions the string values of the options of the plugins configured with
+ *        {@code resolve: ..., options: {...}}, by plugin; the first configuration of a plugin used more than once
  */
-public record GatsbyConfig(Map<String, String> siteMetadata, Set<String> plugins, List<Source> sources) {
+public record GatsbyConfig(Map<String, String> siteMetadata, Set<String> plugins, List<Source> sources,
+        Map<String, Map<String, String>> pluginOptions) {
 
     public record Source(String name, String path) {
     }
@@ -33,6 +36,8 @@ public record GatsbyConfig(Map<String, String> siteMetadata, Set<String> plugins
             "(?m)(?:resolve\\s*:\\s*|^\\s*)" + QUOTE + "(gatsby-[\\w-]+)" + QUOTE + "\\s*(?:,|$)");
     private static final Pattern FILESYSTEM_SOURCE = Pattern.compile(
             "resolve\\s*:\\s*" + QUOTE + "gatsby-source-filesystem" + QUOTE + "\\s*,\\s*options\\s*:\\s*" + OBJECT_BODY);
+    private static final Pattern PLUGIN_OPTIONS = Pattern.compile(
+            "resolve\\s*:\\s*" + QUOTE + "(gatsby-[\\w-]+)" + QUOTE + "\\s*,\\s*options\\s*:\\s*" + OBJECT_BODY);
     private static final Pattern DIRNAME_PREFIX = Pattern.compile("^\\$\\{__dirname}/|^\\./");
 
     public static GatsbyConfig parse(String javascript) {
@@ -66,7 +71,19 @@ public record GatsbyConfig(Map<String, String> siteMetadata, Set<String> plugins
                 sources.add(new Source(options.getOrDefault("name", ""), DIRNAME_PREFIX.matcher(path).replaceFirst("")));
             }
         }
-        return new GatsbyConfig(siteMetadata, plugins, sources);
+        Map<String, Map<String, String>> pluginOptions = new LinkedHashMap<>();
+        Matcher configured = PLUGIN_OPTIONS.matcher(js);
+        while (configured.find()) {
+            if (!pluginOptions.containsKey(configured.group(1))) {
+                Map<String, String> options = new LinkedHashMap<>();
+                Matcher entry = STRING_ENTRY.matcher(configured.group(2));
+                while (entry.find()) {
+                    options.put(entry.group(1), entry.group(2));
+                }
+                pluginOptions.put(configured.group(1), options);
+            }
+        }
+        return new GatsbyConfig(siteMetadata, plugins, sources, pluginOptions);
     }
 
     private static String stripComments(String js) {
