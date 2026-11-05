@@ -871,6 +871,7 @@ Extension prefixes:
 * `roq generate` -- Generate the static site output.
 * `roq serve` -- Serve a previously generated static site directory.
 * `roq update` -- Update the Quarkus and Roq versions. See <<Updating Roq>>.
+* `roq migrate` -- Migrate a site from another static site generator. See xref:migrating.adoc#roq-migrate[Migrating with `roq migrate`].
 
 [#editor]
 == Editor
