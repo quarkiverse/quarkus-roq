@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration.gatsby;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -48,12 +49,20 @@ final class GatsbyPlugins {
 
     /**
      * @param siteDir the site being converted, where local plugins live in the Gatsby project's plugins/
+     * @param components the site's React components, to leave out what their conversion already did
      * @return one action item per thing to do, in the order the plugins are configured
      */
-    static Set<String> actionItems(GatsbyProject project, Path siteDir) {
+    static Set<String> actionItems(GatsbyProject project, Path siteDir, GatsbyComponents components)
+            throws IOException {
         Set<String> actions = new LinkedHashSet<>();
+        // Not what only the Markdown route uses, which Roq's page layout replaces
+        Set<String> replaced = GatsbyRoutes.replacedByRoq(project, siteDir).keySet();
         for (String plugin : project.config().plugins()) {
             if (HANDLED.contains(plugin) || NOTES.containsKey(plugin)) {
+                continue;
+            }
+            if (plugin.equals("gatsby-plugin-image") && !unconvertedComponentsUse(components, replaced, plugin)) {
+                // The converted components' images are plain <img> tags already
                 continue;
             }
             String local = project.path("plugins/" + plugin);
@@ -74,5 +83,11 @@ final class GatsbyPlugins {
      */
     static List<String> notes(GatsbyProject project) {
         return project.config().plugins().stream().filter(NOTES::containsKey).map(NOTES::get).toList();
+    }
+
+    private static boolean unconvertedComponentsUse(GatsbyComponents components, Set<String> replaced, String module) {
+        return components.outcomes().values().stream()
+                .filter(o -> o.converted() == null && !replaced.contains(o.component().file()))
+                .anyMatch(o -> o.component().imports().values().stream().anyMatch(i -> i.from().equals(module)));
     }
 }
