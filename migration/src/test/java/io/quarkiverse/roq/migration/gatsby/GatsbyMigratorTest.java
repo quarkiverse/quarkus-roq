@@ -145,6 +145,9 @@ class GatsbyMigratorTest {
                 Map.entry("site/public/index.html", "<html>Gatsby build output</html>"),
                 Map.entry("site/static/CNAME", "hub.example.org\n"),
                 Map.entry("docs/Home.md", "# Welcome to the hub!\n\nSee [the checklist](checklist).\n"),
+                // Shortcodes, a known one and not, and ones that are not shortcodes: in code, and a time
+                Map.entry("docs/Checklist.md", "| :exclamation: IMPORTANT :octocat: |\n\n`:not-this:` at 10:30:45\n\n"
+                        + "```\nmvn io.quarkus:quarkus-maven-plugin:create\n```\n"),
                 // No ":" in file names, which Windows does not allow; the Hub has one, and Roq slugifies it away
                 Map.entry("docs/Infrastructure-for-Quarkus-3.x-Manual-upgrade.md", "Upgrade by hand.\n"),
                 Map.entry("docs/With-Slug.md", "---\ntitle: Has a slug\nslug: /custom/place\n---\nBody\n"),
@@ -282,6 +285,19 @@ class GatsbyMigratorTest {
         Files.write(repo.resolve("site/src/images/photo.jpg"), new byte[1200 * 1024]);
         assertThat(actionItems(migrate())).contains("Resize the large images in public/, which gatsby-plugin-sharp and "
                 + "gatsby-transformer-sharp resized and Roq does not: images/photo.jpg (1.2 MB)");
+    }
+
+    @Test
+    void turnsTheCommonEmojiShortcodesIntoEmoji() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        assertThat(Files.readString(out.resolve("content/Checklist.md"))).isEqualTo(
+                "| ❗ IMPORTANT :octocat: |\n\n`:not-this:` at 10:30:45\n\n"
+                        + "```\nmvn io.quarkus:quarkus-maven-plugin:create\n```\n");
+        assertThat(INFO).contains("Turned emoji shortcodes into emoji, as gatsby-remark-emoji did and Roq does not: "
+                + ":exclamation: in content/Checklist.md");
+        assertThat(items).contains("Replace these emoji shortcodes with the emoji, which gatsby-remark-emoji turned them "
+                + "into and Roq does not; the migration only knows the common ones: :octocat: in content/Checklist.md");
     }
 
     @Test

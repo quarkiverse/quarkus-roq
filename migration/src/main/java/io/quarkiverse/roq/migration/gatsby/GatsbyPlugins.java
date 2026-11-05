@@ -20,7 +20,8 @@ final class GatsbyPlugins {
     /**
      * Plugins whose job the migration already does.
      */
-    static final List<String> HANDLED = List.of("gatsby-source-filesystem", "gatsby-transformer-remark");
+    static final List<String> HANDLED = List.of("gatsby-source-filesystem", "gatsby-transformer-remark",
+            GatsbyEmoji.PLUGIN);
 
     /**
      * The plugins that resized and converted the site's images, which Roq does not.
@@ -47,8 +48,6 @@ final class GatsbyPlugins {
                     + "the images were copied to public/images/, and Roq does not resize them"),
             Map.entry("gatsby-plugin-manifest", "Add a web app manifest and icons to public/ if the site needs "
                     + "them (gatsby-plugin-manifest)"),
-            Map.entry("gatsby-remark-emoji", "Emoji shortcodes such as :smile: are not converted any more "
-                    + "(gatsby-remark-emoji); replace them with the characters"),
             Map.entry("gatsby-remark-prismjs", "Add syntax highlighting to code blocks (gatsby-remark-prismjs), "
                     + "for example with highlight.js in web/main.js"));
 
