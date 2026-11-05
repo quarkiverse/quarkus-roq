@@ -40,10 +40,10 @@ public class MigrateCommand implements Callable<Integer> {
 
     static class Destination {
         @Option(names = { "-o", "--output-directory" }, description = "Where to write the migrated site (default: <site>-roq "
-                + "next to the site)")
+                + "next to the site). The output directory must be new or empty.")
         Path outputDir;
 
-        @Option(names = "--in-place", description = "Migrate the site in its own directory")
+        @Option(names = "--in-place", description = "Migrate the site in its own directory. This is destructive, so make sure to commit first.")
         boolean inPlace;
     }
 
