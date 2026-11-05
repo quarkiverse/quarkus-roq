@@ -162,4 +162,18 @@ public class AsciidoctorJConverterTest {
         assertThat(doc.getAttribute("icons")).isEqualTo("font");
     }
 
+    @Test
+    void shouldConvertEmptyMarkerToEmptyString() {
+        AsciidoctorJConverter converter = new AsciidoctorJConverter(Map.of("idprefix", "<<empty>>"));
+        RoqTemplateAttributes attrs = new RoqTemplateAttributes(
+                "/tmp/site",
+                "/tmp/site/content/guides/test.adoc",
+                null, null, null, null);
+
+        Options options = converter.createOptions(Map.of(), attrs);
+        Document doc = asciidoctor.load("= Test\n\n== My Section", options);
+
+        assertThat(doc.getAttribute("idprefix")).isEqualTo("");
+    }
+
 }
