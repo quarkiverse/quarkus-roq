@@ -63,7 +63,7 @@ endif::add-copy-button-to-config-props[]
 
 [.description]
 --
-The safe mode the pages are rendered with, which also bounds what a build-time conversion to Markdown may include: `UNSAFE` allows any file, `SAFE` and `SERVER` the files inside the site directory, `SECURE` none. The same property configures the AsciidoctorJ plugin, see its `safe-mode`.
+The safe mode that bounds what a build-time conversion to Markdown may include: `UNSAFE` allows any file, `SAFE` and `SERVER` the files inside the site directory, `SECURE` none. The AsciidoctorJ plugin also renders its pages with this property, see its `safe-mode`.
 
 
 ifdef::add-copy-button-to-env-var[]
