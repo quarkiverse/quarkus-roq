@@ -3,6 +3,7 @@ package io.quarkiverse.roq.plugin.markdowntwin.deployment;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +81,7 @@ class TwinPathTest {
         assertThat(pages).extracting(RoqPageMarkdownBuildItem::markdown).containsExactly("# Basics\n", "# Kept\n");
         assertThat(conversions).hasSize(2);
         final MarkdownConversion first = conversions.get(0);
-        assertThat(first.source().toString()).endsWith("content/docs/basics.md");
+        assertThat(first.source()).endsWithRaw(Path.of("content", "docs", "basics.md"));
         assertThat(first.generatedTemplate()).isEqualTo("{#markdown}\nBasics\n{/markdown}");
         assertThat(first.siteDir().toString()).endsWith("site");
         assertThat(first.rootUrl()).isEqualTo(root);

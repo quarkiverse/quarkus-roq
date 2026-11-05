@@ -33,9 +33,9 @@ public interface AsciidocCommonConfig {
     Map<String, String> attributes();
 
     /**
-     * The safe mode the pages are rendered with, which also bounds what a build-time conversion to Markdown may
-     * include: {@code UNSAFE} allows any file, {@code SAFE} and {@code SERVER} the files inside the site directory,
-     * {@code SECURE} none. The same property configures the AsciidoctorJ plugin, see its {@code safe-mode}.
+     * The safe mode that bounds what a build-time conversion to Markdown may include: {@code UNSAFE} allows any
+     * file, {@code SAFE} and {@code SERVER} the files inside the site directory, {@code SECURE} none. The
+     * AsciidoctorJ plugin also renders its pages with this property, see its {@code safe-mode}.
      */
     @WithDefault("SAFE")
     String safeMode();
