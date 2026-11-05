@@ -19,6 +19,8 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUr
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.QuteMarkupSection;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem.WrapperFilter;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
@@ -39,8 +41,9 @@ import io.vertx.core.json.JsonObject;
  * The twin is produced from the <em>source</em>, at build time, and handed to Roq as a static file
  * ({@link RoqFrontMatterStaticFileBuildItem}), which Roq both serves and writes to the generated site.
  * <ul>
- * <li>Markdown pages: the Markdown source, with the front matter title as its heading when the source has none and
- * without the Qute {@code {|...|}} escape delimiters, which the rendered page does not show either.</li>
+ * <li>Markdown pages: the Markdown source, with the front matter title as its heading when the source has none. On a
+ * page that is a Qute template, the twin drops the Qute {@code {|...|}} escape delimiters, which the rendered page does
+ * not show either; an escaped page shows them, and so does its twin.</li>
  * <li>AsciiDoc pages: parsed in-process with the pure-Java {@code asciidoc-java} parser, which resolves includes while
  * parsing, then rendered to Markdown by its {@code GithubFlavoredMarkdownRenderer}, see
  * {@link AsciidocMarkdownConverter}. Source-to-source, never through HTML.</li>
@@ -56,7 +59,7 @@ public class RoqPluginMarkdownTwinProcessor {
     private static final String FEATURE = "roq-plugin-markdown-twin";
 
     private static final String MARKDOWN_MARKUP = "markdown";
-    // the escape delimiters of RoqFrontMatterTemplateUtils, which wraps an escaped page body in them
+    // a Qute unparsed section, which an author writes in a page that is a Qute template
     private static final String ESCAPE_OPEN = "{|";
     private static final String ESCAPE_CLOSE = "|}";
     private static final String ATTRIBUTES_PREFIX = "quarkus.asciidoc.attributes.";
@@ -172,12 +175,14 @@ public class RoqPluginMarkdownTwinProcessor {
 
     /**
      * Recover the Markdown body from the generated Qute template, which wraps it in the markup's section ({@code
-     * {#markdown}}, a line feed, the body, a line feed, {@code {/markdown}}), the body itself inside {@code {| ... |}}
-     * escape delimiters when the page sets {@code escape: true}. Only those wrapper characters go, so the body keeps
-     * its own indentation; it ends with one line feed, as an AsciiDoc twin does. The author's own {@code {| ... |}}
-     * delimiters are removed, as Qute removes them from the page; other Qute expressions the author wrote stay as
-     * written, since a Markdown page is a Qute template by default. A source saved with CRLF line endings gets a twin
-     * with line feeds, as an AsciiDoc twin has. Null when the template has no such section.
+     * {#markdown}}, a line feed, the body, a line feed, {@code {/markdown}}), the body itself inside the escape wrapper
+     * of {@link RoqFrontMatterTemplateUtils#getEscapeFilter(boolean)} when the page is escaped: it sets {@code escape:
+     * true} or {@code qute: false}, or it matches the site's {@code escaped-pages} patterns. Only those wrapper
+     * characters go, so the body keeps its own indentation; it ends with one line feed, as an AsciiDoc twin does. An
+     * escaped page shows its text as written, {@code {| ... |}} included, and so does its twin. A Markdown page is a Qute
+     * template by default: then the author's own {@code {| ... |}} delimiters are removed, as Qute removes them from the
+     * page, and other Qute expressions stay as written. A source saved with CRLF line endings gets a twin with line
+     * feeds, as an AsciiDoc twin has. Null when the template has no such section.
      */
     String extractMarkdownSource(String generatedTemplate, QuteMarkupSection section) {
         if (generatedTemplate == null || section == null) {
@@ -191,20 +196,27 @@ public class RoqPluginMarkdownTwinProcessor {
         }
         final String inner = template.substring(start + section.open().length(), end);
         final String wrapped = unwrap(inner, "\n", "\n");
-        final String body = unwrap(wrapped, ESCAPE_OPEN, ESCAPE_CLOSE);
-        final String unescaped = unescape(body);
-        return unescaped.endsWith("\n") ? unescaped : unescaped + "\n";
+        final WrapperFilter escape = RoqFrontMatterTemplateUtils.getEscapeFilter(true);
+        final String body = isWrapped(wrapped, escape.prefix(), escape.suffix())
+                ? wrapped.substring(escape.prefix().length(), wrapped.length() - escape.suffix().length())
+                : unescape(wrapped);
+        return body.endsWith("\n") ? body : body + "\n";
+    }
+
+    private boolean isWrapped(String text, String prefix, String suffix) {
+        return text.length() >= prefix.length() + suffix.length() && text.startsWith(prefix) && text.endsWith(suffix);
     }
 
     /** The text between the prefix and the suffix, or the text itself when it does not carry both. */
     private String unwrap(String text, String prefix, String suffix) {
-        if (text.startsWith(prefix) && text.endsWith(suffix) && text.length() >= prefix.length() + suffix.length()) {
-            return text.substring(prefix.length(), text.length() - suffix.length());
-        }
-        return text;
+        return isWrapped(text, prefix, suffix) ? text.substring(prefix.length(), text.length() - suffix.length()) : text;
     }
 
-    /** Removes each {@code {| ... |}} pair, keeping its content; an unclosed {@code {|} stays as written. */
+    /**
+     * Removes the delimiters of each Qute unparsed section, keeping its content. Qute matches the pipe count: {@code {|}
+     * closes at {@code |}}, and {@code {||} at {@code ||}}, so a section with two or more pipes may contain {@code |}} as
+     * text. An unclosed section stays as written.
+     */
     String unescape(String body) {
         if (!body.contains(ESCAPE_OPEN)) {
             return body;
@@ -213,13 +225,23 @@ public class RoqPluginMarkdownTwinProcessor {
         int from = 0;
         while (true) {
             final int open = body.indexOf(ESCAPE_OPEN, from);
-            final int close = open < 0 ? -1 : body.indexOf(ESCAPE_CLOSE, open + ESCAPE_OPEN.length());
-            if (close < 0) {
+            if (open < 0) {
                 result.append(body, from, body.length());
                 return result.toString();
             }
-            result.append(body, from, open).append(body, open + ESCAPE_OPEN.length(), close);
-            from = close + ESCAPE_CLOSE.length();
+            int contentStart = open + ESCAPE_OPEN.length();
+            while (contentStart < body.length() && body.charAt(contentStart) == '|') {
+                contentStart++;
+            }
+            final int pipes = contentStart - open - 1;
+            final String close = "|".repeat(pipes - 1) + ESCAPE_CLOSE;
+            final int closeAt = body.indexOf(close, contentStart);
+            if (closeAt < 0) {
+                result.append(body, from, body.length());
+                return result.toString();
+            }
+            result.append(body, from, open).append(body, contentStart, closeAt);
+            from = closeAt + close.length();
         }
     }
 

@@ -131,7 +131,7 @@ public final class RoqFrontMatterTemplateUtils {
     public record TransformedContent(String generatedTemplate) {
     }
 
-    static WrapperFilter getEscapeFilter(boolean escaped) {
+    public static WrapperFilter getEscapeFilter(boolean escaped) {
         if (!escaped) {
             return WrapperFilter.EMPTY;
         }
