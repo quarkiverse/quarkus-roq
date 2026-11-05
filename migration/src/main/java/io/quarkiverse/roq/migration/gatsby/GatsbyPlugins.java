@@ -21,6 +21,14 @@ final class GatsbyPlugins {
             + "gatsby-transformer-sharp); resize the images in public/images/ if they are large";
 
     /**
+     * Plugins whose job Roq does in part, and what is left out, which nothing has to be done about.
+     */
+    static final Map<String, String> NOTES = Map.of(
+            "gatsby-remark-autolink-headers", "Headings keep the ids that gatsby-remark-autolink-headers gave them, "
+                    + "in the same GitHub style, so links to them still work; the link icon it showed on hover is not "
+                    + "migrated");
+
+    /**
      * Plugins with a known Roq counterpart, or none.
      */
     static final Map<String, String> ACTIONS = Map.ofEntries(
@@ -30,8 +38,6 @@ final class GatsbyPlugins {
             Map.entry("gatsby-transformer-sharp", SHARP),
             Map.entry("gatsby-plugin-manifest", "Add a web app manifest and icons to public/ if the site needs "
                     + "them (gatsby-plugin-manifest)"),
-            Map.entry("gatsby-remark-autolink-headers", "Check that headings get anchor links as they did with "
-                    + "gatsby-remark-autolink-headers"),
             Map.entry("gatsby-remark-emoji", "Emoji shortcodes such as :smile: are not converted any more "
                     + "(gatsby-remark-emoji); replace them with the characters"),
             Map.entry("gatsby-remark-prismjs", "Add syntax highlighting to code blocks (gatsby-remark-prismjs), "
@@ -47,7 +53,7 @@ final class GatsbyPlugins {
     static Set<String> actionItems(GatsbyProject project, Path siteDir) {
         Set<String> actions = new LinkedHashSet<>();
         for (String plugin : project.config().plugins()) {
-            if (HANDLED.contains(plugin)) {
+            if (HANDLED.contains(plugin) || NOTES.containsKey(plugin)) {
                 continue;
             }
             String local = project.path("plugins/" + plugin);
@@ -61,5 +67,12 @@ final class GatsbyPlugins {
             }
         }
         return actions;
+    }
+
+    /**
+     * @return what the site's plugins do that Roq does in part, in the order the plugins are configured
+     */
+    static List<String> notes(GatsbyProject project) {
+        return project.config().plugins().stream().filter(NOTES::containsKey).map(NOTES::get).toList();
     }
 }

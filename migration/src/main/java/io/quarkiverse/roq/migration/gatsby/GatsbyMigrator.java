@@ -91,6 +91,7 @@ public class GatsbyMigrator extends SiteMigrator {
         properties.append("quarkus.qute.alt-expr-syntax=true\n");
         Files.writeString(config, properties);
 
+        GatsbyPlugins.notes(project).forEach(site.report()::info);
         GatsbyPlugins.actionItems(project, site.dir()).forEach(site.report()::todo);
     }
 
