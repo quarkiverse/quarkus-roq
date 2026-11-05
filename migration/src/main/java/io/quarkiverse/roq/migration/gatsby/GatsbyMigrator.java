@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
+import io.quarkiverse.roq.migration.MvnpmDependencies;
 import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.MigrationException;
 import io.quarkiverse.roq.migration.engine.SiteAnalysis;
@@ -59,6 +60,12 @@ public class GatsbyMigrator extends SiteMigrator {
     @Override
     protected void analyze(SourceSite source, SiteAnalysis analysis) throws MigrationException {
         project = GatsbyProject.read(source);
+        // Fonts and other npm packages gatsby-browser.js loads, which the web bundler resolves from mvnpm
+        project.npmVersions().forEach((npm, version) -> {
+            if (version != null) {
+                analysis.dependencies().add(MvnpmDependencies.dependency(npm, version));
+            }
+        });
         String slug = slugify(project.config().siteMetadata().getOrDefault("title", source.name()));
         analysis.projectName((slug.isEmpty() ? slugify(source.name()) : slug) + "-website");
     }

@@ -13,6 +13,7 @@ public class SiteAnalysis {
 
     private String projectName;
     private final Set<String> extensions = new LinkedHashSet<>();
+    private final Set<ProjectDependency> dependencies = new LinkedHashSet<>();
     private final List<String> configMappings = new ArrayList<>();
 
     /**
@@ -35,6 +36,13 @@ public class SiteAnalysis {
 
     public boolean hasExtension(String extension) {
         return extensions.contains(extension);
+    }
+
+    /**
+     * @return other libraries to add to the project, such as mvnpm packages for the web bundler
+     */
+    public Set<ProjectDependency> dependencies() {
+        return dependencies;
     }
 
     /**
