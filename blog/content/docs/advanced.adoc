@@ -303,6 +303,19 @@ TIP: Since the site uses the theme sources directly, it never exercises the pack
 
 The theme can also be a module of a multi-module build, next to the site module. In that case, run dev mode from the aggregator directory; changes to the theme module, including new partials, are picked up on reload. Note that in this case, the site content must then live in the site module directory.
 
+[#theme-alongside-site]
+=== Developing a theme alongside your site
+
+[#roq-theme-init]
+==== Scaffolding a theme with `roq theme init`
+
+[source,shell]
+----
+roq theme init my-theme
+----
+
+When run in an existing Roq site, the theme is added to the site. Elsewhere, a new preview site is created for the theme, with starter layouts.
+
 [#links]
 == Links & Urls
 
@@ -865,6 +878,10 @@ Extension prefixes:
 | `<group:artifact>`
 | Full GAV coordinate
 |===
+
+=== `roq theme init`
+
+Scaffold a theme packaged as a jar for other sites. See <<roq-theme-init>>.
 
 === Other commands
 
