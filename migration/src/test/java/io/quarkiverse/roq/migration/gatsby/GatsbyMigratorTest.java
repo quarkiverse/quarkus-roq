@@ -228,6 +228,18 @@ class GatsbyMigratorTest {
     }
 
     @Test
+    void asksToResizeOnlyTheLargeImages() throws Exception {
+        write(Map.of("site/gatsby-config.js", GatsbyConfigTest.CONFIG.replace("`gatsby-plugin-image`,",
+                "`gatsby-plugin-image`,\n`gatsby-plugin-sharp`,\n`gatsby-transformer-sharp`,")));
+        assertThat(actionItems(migrate())).noneMatch(item -> item.contains("Resize"));
+
+        io.quarkiverse.roq.migration.SiteFiles.deleteTree(out);
+        Files.write(repo.resolve("site/src/images/photo.jpg"), new byte[1200 * 1024]);
+        assertThat(actionItems(migrate())).contains("Resize the large images in public/, which gatsby-plugin-sharp and "
+                + "gatsby-transformer-sharp resized and Roq does not: images/photo.jpg (1.2 MB)");
+    }
+
+    @Test
     void saysWhatRoqDoesOfThePluginsItDoesInPart() throws Exception {
         List<String> items = actionItems(migrate());
 
