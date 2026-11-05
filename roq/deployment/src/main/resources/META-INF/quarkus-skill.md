@@ -129,6 +129,7 @@ Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured fo
 - `roq add plugin:tagging` — add a plugin or theme
 - `roq update` — update the Roq/Quarkus project to latest versions
 - `roq blog` — list blog posts from a Roq site RSS feed
+- `roq migrate my-site` — migrate a site from another static site generator, which it detects, to `my-site-roq/`; `-o dir` to set an output directory or `--in-place` to destructively overwrite the target project, `--no-build` to skip the build. It writes what it could not convert to `ROQ-MIGRATION.md`. It says so when it cannot migrate a generator yet
 
 ### AI Agent Integration
 
