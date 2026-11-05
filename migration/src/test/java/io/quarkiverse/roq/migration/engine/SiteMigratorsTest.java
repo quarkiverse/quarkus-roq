@@ -71,6 +71,10 @@ class SiteMigratorsTest {
         @Override
         protected void checkResult(TargetSite site) {
         }
+
+        @Override
+        protected void validate(TargetSite site, ReferenceSite reference) {
+        }
     }
 
     final SiteMigrators migrators = new SiteMigrators(Map.of(

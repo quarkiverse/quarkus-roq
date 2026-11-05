@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration.engine;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ public class SiteAnalysis {
     private String projectName;
     private final Set<String> extensions = new LinkedHashSet<>();
     private final List<String> configMappings = new ArrayList<>();
+    private URI referenceSite;
 
     /**
      * @return the artifact id for the Roq project, e.g. {@code my-blog-website}
@@ -42,5 +44,16 @@ public class SiteAnalysis {
      */
     public List<String> configMappings() {
         return configMappings;
+    }
+
+    /**
+     * @return where the site is published, from its configuration, to compare the built site with; null if unknown
+     */
+    public URI referenceSite() {
+        return referenceSite;
+    }
+
+    public void referenceSite(URI referenceSite) {
+        this.referenceSite = referenceSite;
     }
 }
