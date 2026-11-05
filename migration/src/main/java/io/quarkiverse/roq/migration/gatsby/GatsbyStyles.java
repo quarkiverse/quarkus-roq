@@ -113,7 +113,7 @@ final class GatsbyStyles {
                     + (packages.isEmpty() ? "" : " and the npm packages " + String.join(", ", packages)));
         }
         List<String> unconverted = components.outcomes().values().stream()
-                .filter(o -> !o.isConverted() && usesStyledComponents(dir.resolve(o.component().file())))
+                .filter(o -> o.needsPorting() && usesStyledComponents(dir.resolve(o.component().file())))
                 .map(o -> o.component().file()).toList();
         if (!unconverted.isEmpty()) {
             site.report().todo("Move the styles written with styled-components in " + String.join(", ", unconverted)

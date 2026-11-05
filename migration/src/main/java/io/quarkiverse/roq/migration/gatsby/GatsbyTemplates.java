@@ -188,6 +188,12 @@ final class GatsbyTemplates {
             }
             return;
         }
+        if (outcome.headOf() != null) {
+            report.info(file + " renders the <head> of the pages that use it in their Head ("
+                    + String.join(", ", outcome.headOf()) + "); Roq does that for every page with {#seo} in "
+                    + "templates/layouts/main.html, from the page's title and description, and the site's");
+            return;
+        }
         if (outcome.converted() != null) {
             if (outcome.template().equals(GatsbyComponents.MAIN_LAYOUT)) {
                 return;

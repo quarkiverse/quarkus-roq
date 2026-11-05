@@ -69,7 +69,7 @@ final class GatsbyPlugins {
     }
 
     private static boolean unconvertedComponentsUse(GatsbyComponents components, String module) {
-        return components.outcomes().values().stream().filter(o -> !o.isConverted())
+        return components.outcomes().values().stream().filter(GatsbyComponents.Outcome::needsPorting)
                 .anyMatch(o -> o.component().imports().values().stream().anyMatch(i -> i.from().equals(module)));
     }
 }

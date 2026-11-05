@@ -232,6 +232,14 @@ public record ReactComponent(String file, String name, Kind kind, List<String> r
             }
         }
         String jsx = JsSource.unwrap(returned.replaceFirst(";\\s*$", ""));
+        if (jsx.startsWith("<")) {
+            try {
+                // An arrow function's body without parentheses runs on to the rest of the file
+                jsx = jsx.substring(0, Jsx.parse(jsx, 0).end());
+            } catch (Jsx.JsxException e) {
+                // Left for the conversion to say it cannot read it
+            }
+        }
         return new Definition(props(params), prelude, jsx.startsWith("<") ? jsx : null);
     }
 

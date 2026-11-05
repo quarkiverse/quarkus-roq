@@ -29,9 +29,15 @@ class GatsbyMigratorTest {
     Path repo;
     Path out;
 
+    /**
+     * What the migration said, apart from warnings.
+     */
+    static final List<String> INFO = new java.util.ArrayList<>();
+
     static final MigrationOutput QUIET = new MigrationOutput() {
         @Override
         public void info(String message) {
+            INFO.add(message.strip());
         }
 
         @Override
@@ -253,10 +259,22 @@ class GatsbyMigratorTest {
                 Map.entry("site/src/pages/404.js", """
                         import * as React from "react"
                         import Layout from "../components/layout"
+                        import Seo from "../components/seo"
                         const NotFoundPage = () => <Layout><h1>404: Not Found</h1></Layout>
                         export const Head = () => <Seo title="404: Not Found" />
                         export default NotFoundPage
                         """),
+                // Only rendered in the pages' Head, which {#seo} replaces
+                Map.entry("site/src/components/seo.js",
+                        """
+                                import * as React from "react"
+                                import {useStaticQuery, graphql} from "gatsby"
+                                function Seo({description, title}) {
+                                    const {site} = useStaticQuery(graphql`query { site { siteMetadata { title author } } }`)
+                                    return <><title>{title} | {site.siteMetadata.title}</title><meta name="description" content={description}/></>
+                                }
+                                export default Seo
+                                """),
                 Map.entry("site/plugins/gatsby-frontmatter-defaults/gatsby-node.js", "exports.onCreateNode = () => {}\n"),
                 Map.entry("site/public/index.html", "<html>Gatsby build output</html>"),
                 Map.entry("site/static/CNAME", "hub.example.org\n"),
@@ -293,6 +311,7 @@ class GatsbyMigratorTest {
             """;
 
     MigrationResult migrate() throws MigrationException {
+        INFO.clear();
         return new MigrationRunner(new GatsbyMigrator(), repo, site -> Files.writeString(site.dir().resolve("pom.xml"), POM),
                 site -> {
                 }, new MigrationOptions(out, false, QUIET)).run();
@@ -316,6 +335,30 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("content/_Footer.md")).hasContent("Footer");
         assertThat(out.resolve("docs")).doesNotExist();
         assertThat(out.resolve("README.md")).exists();
+    }
+
+    @Test
+    void givesTheSiteTheAuthorOfItsMetadata() throws Exception {
+        write(Map.of("site/gatsby-config.js", GatsbyConfigTest.CONFIG.replace("siteUrl:", "author: `@quarkusio`,\n siteUrl:")));
+        migrate();
+
+        // Gatsby's starters give the site's Twitter handle as its author
+        assertThat(out.resolve("content/index.html")).content().contains("twitter: \"quarkusio\"\n");
+        assertThat(GatsbyFrontMatter.withIndexMetadata("", Map.of("author", "Jane Doe")))
+                .startsWith("author: \"Jane Doe\"\n");
+        assertThat(GatsbyFrontMatter.withIndexMetadata("twitter: other\n", Map.of("author", "@quarkusio")))
+                .doesNotContain("quarkusio");
+    }
+
+    @Test
+    void leavesThePagesHeadToSeo() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        assertThat(INFO).contains("site/src/components/seo.js renders the <head> of the pages that use it in their "
+                + "Head (site/src/pages/404.js); Roq does that for every page with {#seo} in templates/layouts/main.html, "
+                + "from the page's title and description, and the site's");
+        assertThat(items).noneMatch(item -> item.contains("seo.js"));
+        assertThat(out.resolve("templates/partials/seo.html")).doesNotExist();
     }
 
     @Test
@@ -453,8 +496,8 @@ class GatsbyMigratorTest {
     void writesALayoutTheSiteBuildsWith() throws Exception {
         migrate();
 
-        assertThat(out.resolve("templates/layouts/main.html")).content().contains("{#seo page site /}", "{#bundle /}",
-                "{=page.baseFileName.replace('-', ' ')} - {=site.title}");
+        assertThat(out.resolve("templates/layouts/main.html")).content().contains("  {#seo page site /}\n", "{#bundle /}")
+                .doesNotContain("{#if page.data.containsKey('title')}");
         assertThat(out.resolve("templates/layouts/page.html")).content().contains("layout: main",
                 "{=page.data.title ?: page.baseFileName.replace('-', ' ')}");
     }

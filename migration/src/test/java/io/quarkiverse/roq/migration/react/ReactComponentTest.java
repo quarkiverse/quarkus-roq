@@ -19,7 +19,8 @@ class ReactComponentTest {
 
         assertThat(page.pageQuery()).isEqualTo("query { site { siteMetadata { title } } }");
         assertThat(page.head()).startsWith("<Seo title=\"404: Not Found\" />");
-        assertThat(page.jsx()).startsWith("<Layout>");
+        // Only the element, not the rest of the file after an arrow function without parentheses
+        assertThat(page.jsx()).isEqualTo("<Layout><h1>{data.site.siteMetadata.title}</h1></Layout>");
         assertThat(ReactComponent.read("c.js", "const C = () => <p/>\nexport default C").head()).isNull();
     }
 

@@ -69,6 +69,13 @@ final class GatsbyFrontMatter {
         if (!has(yaml, "description") && metadata.containsKey("description")) {
             index.append("description: ").append(quote(metadata.get("description"))).append("\n");
         }
+        String author = metadata.getOrDefault("author", "").strip();
+        // Credited on every page, as Gatsby's starters do; their Seo puts this handle in twitter:creator, e.g. @gatsbyjs
+        if (author.startsWith("@") && author.length() > 1 && !has(yaml, "twitter")) {
+            index.append("twitter: ").append(quote(author.substring(1))).append("\n");
+        } else if (!author.isEmpty() && !author.startsWith("@") && !has(yaml, "author")) {
+            index.append("author: ").append(quote(author)).append("\n");
+        }
         if (!has(yaml, "layout")) {
             // The home page shows its content without repeating the site title as a heading
             index.append("layout: main\n");

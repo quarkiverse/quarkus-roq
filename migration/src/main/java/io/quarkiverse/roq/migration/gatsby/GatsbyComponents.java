@@ -43,12 +43,21 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
      * @param converted the conversion of a component; null if it was not converted, or for a page
      * @param convertedPage the conversion of a page; null if it was not converted, or for a component
      * @param reason why it was not converted; null if it was, or for the pages Roq renders itself
+     * @param headOf for a component pages only render in their {@code Head}, which Roq's {@code {#seo}} replaces,
+     *        those pages; null for the others
      */
     record Outcome(ReactComponent component, boolean page, String template, JsxToQuteConverter.Converted converted,
-            JsxToQuteConverter.ConvertedPage convertedPage, String reason) {
+            JsxToQuteConverter.ConvertedPage convertedPage, String reason, Set<String> headOf) {
 
         boolean isConverted() {
             return converted != null || convertedPage != null;
+        }
+
+        /**
+         * @return true if the site still needs what it renders: it was not converted, and Roq does not replace it
+         */
+        boolean needsPorting() {
+            return !isConverted() && headOf == null && reason != null;
         }
 
         boolean icons() {
@@ -79,6 +88,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
     static final Pattern MARKDOWN_ROUTE = Pattern.compile("\\{markdownRemark\\.(\\w+)}\\.(jsx?|tsx?)",
             Pattern.CASE_INSENSITIVE);
     static final Pattern FRONT_MATTER_FIELD = Pattern.compile("frontmatter\\.(\\w+)");
+    static final Pattern JSX_ROOT = Pattern.compile("<([A-Z][\\w.]*)");
     static final Pattern FRONT_MATTER_ENTRY = Pattern.compile("([\\w-]+):[ \\t]*(\\S.*)");
     /**
      * Gatsby's Markdown pages are the Markdown files of a Roq site.
@@ -145,6 +155,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
         private final Map<String, Set<String>> guessedFields = new LinkedHashMap<>();
         private String rootLayout;
         private String pagePath;
+        private Map<String, Set<String>> headOnly;
         private List<MarkdownPage> markdownPages;
 
         Reader(SourceSite source, GatsbyProject project, Map<String, ReactComponent> components) {
@@ -156,6 +167,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
         GatsbyComponents read() {
             rootLayout = rootLayout();
             pagePath = pagePath();
+            headOnly = headOnly();
             for (String file : components.keySet()) {
                 outcome(file);
             }
@@ -184,14 +196,16 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
             Outcome outcome;
             if (page && file.substring(file.lastIndexOf('/') + 1).startsWith("{")) {
                 // A File System Route, which Roq's page layout replaces
-                outcome = new Outcome(component, true, null, null, null, null);
+                outcome = new Outcome(component, true, null, null, null, null, null);
+            } else if (headOnly.containsKey(file)) {
+                outcome = new Outcome(component, false, null, null, null, null, headOnly.get(file));
             } else if (page) {
                 Outcome result;
                 try {
                     JsxToQuteConverter.ConvertedPage converted = JsxToQuteConverter.convertPage(component, this);
-                    result = new Outcome(component, true, contentPage(file), null, converted, null);
+                    result = new Outcome(component, true, contentPage(file), null, converted, null, null);
                 } catch (JsxToQuteConverter.Unsupported e) {
-                    result = new Outcome(component, true, null, null, null, e.getMessage());
+                    result = new Outcome(component, true, null, null, null, e.getMessage(), null);
                 }
                 outcome = result;
             } else if (!converting.add(file)) {
@@ -203,9 +217,9 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
                     JsxToQuteConverter.Converted converted = layout ? JsxToQuteConverter.convertLayout(component, this)
                             : JsxToQuteConverter.convert(component, this);
                     String template = layout ? MAIN_LAYOUT : "partials/" + baseName(file);
-                    result = new Outcome(component, false, template, converted, null, null);
+                    result = new Outcome(component, false, template, converted, null, null, null);
                 } catch (JsxToQuteConverter.Unsupported e) {
-                    result = new Outcome(component, false, null, null, null, e.getMessage());
+                    result = new Outcome(component, false, null, null, null, e.getMessage(), null);
                 }
                 outcome = result;
             }
@@ -403,6 +417,49 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
                 }
             }
             return null;
+        }
+
+        /**
+         * @return the components that pages only render in their {@code Head}, with those pages: Gatsby renders a
+         *         page's head with it, which Roq does for every page with {@code {#seo}} in its layout
+         */
+        private Map<String, Set<String>> headOnly() {
+            Map<String, Set<String>> renderedInHead = new LinkedHashMap<>();
+            for (ReactComponent page : components.values()) {
+                Matcher root = page.head() == null ? null : JSX_ROOT.matcher(page.head());
+                if (!page.file().startsWith(project.path("src/pages/")) || root == null || !root.lookingAt()) {
+                    continue;
+                }
+                ReactComponent.Import imported = page.imports().get(root.group(1));
+                String file = imported != null && imported.isLocal() ? resolve(page.file(), imported.from()) : null;
+                if (file != null && (page.jsx() == null || !page.jsx().contains("<" + root.group(1)))) {
+                    renderedInHead.computeIfAbsent(file, f -> new TreeSet<>()).add(page.file());
+                }
+            }
+            Map<String, Set<String>> importers = importers();
+            Map<String, Set<String>> headOnly = new LinkedHashMap<>();
+            renderedInHead.forEach((file, pages) -> {
+                if (pages.equals(importers.get(file))) {
+                    headOnly.put(file, pages);
+                }
+            });
+            return headOnly;
+        }
+
+        /**
+         * @return the components and pages that import each component
+         */
+        private Map<String, Set<String>> importers() {
+            Map<String, Set<String>> importers = new LinkedHashMap<>();
+            for (ReactComponent component : components.values()) {
+                for (ReactComponent.Import imported : component.imports().values()) {
+                    String file = imported.isLocal() ? resolve(component.file(), imported.from()) : null;
+                    if (file != null && !file.equals(component.file())) {
+                        importers.computeIfAbsent(file, f -> new TreeSet<>()).add(component.file());
+                    }
+                }
+            }
+            return importers;
         }
 
         /**

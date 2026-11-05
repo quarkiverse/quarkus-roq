@@ -1,15 +1,9 @@
-{! A page without a title is titled after its file name, as Gatsby wikis do: Some-Page.md is "Some Page". !}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {#if page.data.containsKey('title')}
   {#seo page site /}
-  {#else}
-  <title>{=page.baseFileName.replace('-', ' ')} - {=site.title}</title>
-  <meta name="description" content="{=site.description}">
-  {/if}
   {#bundle /}
 </head>
 <body>
