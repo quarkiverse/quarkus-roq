@@ -15,7 +15,8 @@ final class GatsbyPlugins {
     /**
      * Plugins whose job the migration already does.
      */
-    static final List<String> HANDLED = List.of("gatsby-source-filesystem", "gatsby-transformer-remark");
+    static final List<String> HANDLED = List.of("gatsby-source-filesystem", "gatsby-transformer-remark",
+            GatsbyEmoji.PLUGIN);
 
     private static final String SHARP = "Roq does not resize or convert images (gatsby-plugin-sharp, "
             + "gatsby-transformer-sharp); resize the images in public/images/ if they are large";
@@ -38,8 +39,6 @@ final class GatsbyPlugins {
             Map.entry("gatsby-transformer-sharp", SHARP),
             Map.entry("gatsby-plugin-manifest", "Add a web app manifest and icons to public/ if the site needs "
                     + "them (gatsby-plugin-manifest)"),
-            Map.entry("gatsby-remark-emoji", "Emoji shortcodes such as :smile: are not converted any more "
-                    + "(gatsby-remark-emoji); replace them with the characters"),
             Map.entry("gatsby-remark-prismjs", "Add syntax highlighting to code blocks (gatsby-remark-prismjs), "
                     + "for example with highlight.js in web/main.js"));
 
