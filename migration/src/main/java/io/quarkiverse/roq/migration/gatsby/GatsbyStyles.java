@@ -70,7 +70,10 @@ final class GatsbyStyles {
             Files.writeString(web.resolve("main.js"), String.join("\n", imports) + "\n");
             site.report().info("Copied " + imports.size() + " stylesheets to web/ and imported them from web/main.js");
         }
-        if (!SiteFiles.files(src, GatsbyStyles::usesStyledComponents).isEmpty()) {
+        // Not in what only the Markdown route uses, which Roq's page layout replaces
+        Set<String> replaced = GatsbyRoutes.replacedByRoq(project, site.dir()).keySet();
+        if (SiteFiles.files(src, GatsbyStyles::usesStyledComponents).stream()
+                .anyMatch(file -> !replaced.contains(SiteFiles.relativePath(site.dir(), file)))) {
             site.report().todo("Move the styles written with styled-components into CSS in web/");
         }
     }

@@ -28,9 +28,15 @@ class GatsbyMigratorTest {
     Path repo;
     Path out;
 
+    /**
+     * What the migration said, apart from warnings.
+     */
+    static final List<String> INFO = new java.util.ArrayList<>();
+
     static final MigrationOutput QUIET = new MigrationOutput() {
         @Override
         public void info(String message) {
+            INFO.add(message.strip());
         }
 
         @Override
@@ -101,7 +107,28 @@ class GatsbyMigratorTest {
                 Map.entry("site/src/components/header.test.js", "it('renders', () => {})\n"),
                 Map.entry("site/src/images/logo.svg", "<svg/>"),
                 Map.entry("site/src/pages/index.jsx", "export default HomePage\n"),
-                Map.entry("site/src/pages/{markdownRemark.fields__slug}.jsx", "export default DocsPage\n"),
+                Map.entry("site/src/pages/{markdownRemark.fields__slug}.jsx", """
+                        import * as React from "react"
+                        import Layout from "../components/layout"
+                        import Page from "../components/page"
+                        const DocsPage = ({data}) => <Layout><Page markdownRemark={data.markdownRemark}/></Layout>
+                        export default DocsPage
+                        """),
+                // Only the Markdown route uses it, and what it uses
+                Map.entry("site/src/components/page.js", """
+                        import * as React from "react"
+                        import Title from "./page-title"
+                        const Page = ({markdownRemark}) => {
+                            const {fields, html} = markdownRemark
+                            return <><Title title={fields.title}/><div dangerouslySetInnerHTML={{__html: html}}/></>
+                        }
+                        export default Page
+                        """),
+                Map.entry("site/src/components/page-title.js", """
+                        import * as React from "react"
+                        const Title = ({title}) => <h1>{title}</h1>
+                        export default Title
+                        """),
                 Map.entry("site/src/pages/404.js", "export default NotFoundPage\n"),
                 Map.entry("site/plugins/gatsby-frontmatter-defaults/gatsby-node.js", "exports.onCreateNode = () => {}\n"),
                 Map.entry("site/public/index.html", "<html>Gatsby build output</html>"),
@@ -117,6 +144,7 @@ class GatsbyMigratorTest {
     }
 
     MigrationResult migrate() throws MigrationException {
+        INFO.clear();
         return new MigrationRunner(new GatsbyMigrator(), repo, site -> {
         }, site -> {
         }, new MigrationOptions(out, false, QUIET)).run();
@@ -228,6 +256,18 @@ class GatsbyMigratorTest {
 
         assertThat(out.resolve("site")).doesNotExist();
         assertThat(repo.resolve("site/gatsby-config.js")).exists();
+    }
+
+    @Test
+    void leavesWhatOnlyTheMarkdownRouteUsesToRoqsPageLayout() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        assertThat(items).noneMatch(item -> item.contains("components/page"));
+        assertThat(INFO).contains(
+                "site/src/components/page.js renders the Markdown pages for {markdownRemark.fields__slug}.jsx; Roq does "
+                        + "that with templates/layouts/page.html",
+                "site/src/components/page-title.js renders the Markdown pages for {markdownRemark.fields__slug}.jsx; Roq "
+                        + "does that with templates/layouts/page.html");
     }
 
     @Test

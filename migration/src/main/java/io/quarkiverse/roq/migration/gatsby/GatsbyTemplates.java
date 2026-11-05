@@ -6,6 +6,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
 
 import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.TargetSite;
@@ -35,10 +37,14 @@ final class GatsbyTemplates {
         site.report().info("Wrote a minimal templates/layouts/main.html and page.html, so the site can be browsed; "
                 + "pages without a title get one from their file name");
 
+        Map<String, Set<String>> replaced = GatsbyRoutes.replacedByRoq(project, site.dir());
         for (Path component : SiteFiles.files(site.dir().resolve(project.path("src")), GatsbyProject::isReactSource)) {
             String file = site.dir().relativize(component).toString().replace('\\', '/');
             String name = component.getFileName().toString();
-            if (file.contains("/pages/") && name.startsWith("{")) {
+            if (replaced.containsKey(file)) {
+                site.report().info(file + " renders the Markdown pages for " + String.join(", ", replaced.get(file))
+                        + "; Roq does that with templates/layouts/page.html");
+            } else if (file.contains("/pages/") && name.startsWith("{")) {
                 site.report().info(file + " renders the Markdown pages; Roq does that with templates/layouts/page.html");
             } else if (file.contains("/pages/") && name.matches("index\\.(jsx?|tsx?)")) {
                 site.report().todo("Port the home page " + file + " to templates/layouts/main.html or content/index.md");
