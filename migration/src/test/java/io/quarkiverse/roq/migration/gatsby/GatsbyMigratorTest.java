@@ -28,9 +28,15 @@ class GatsbyMigratorTest {
     Path repo;
     Path out;
 
+    /**
+     * What the migration said, apart from warnings.
+     */
+    static final List<String> INFO = new java.util.ArrayList<>();
+
     static final MigrationOutput QUIET = new MigrationOutput() {
         @Override
         public void info(String message) {
+            INFO.add(message.strip());
         }
 
         @Override
@@ -117,6 +123,7 @@ class GatsbyMigratorTest {
     }
 
     MigrationResult migrate() throws MigrationException {
+        INFO.clear();
         return new MigrationRunner(new GatsbyMigrator(), repo, site -> {
         }, site -> {
         }, new MigrationOptions(out, false, QUIET)).run();
@@ -197,6 +204,15 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("public/images/logo.svg")).exists();
         assertThat(out.resolve("public/CNAME")).hasContent("hub.example.org");
         assertThat(out.resolve("public/index.html")).doesNotExist();
+    }
+
+    @Test
+    void saysWhatRoqDoesOfThePluginsItDoesInPart() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        assertThat(INFO).contains("Headings keep the ids that gatsby-remark-autolink-headers gave them, in the same "
+                + "GitHub style, so links to them still work; the link icon it showed on hover is not migrated");
+        assertThat(items).noneMatch(item -> item.contains("autolink-headers"));
     }
 
     @Test
