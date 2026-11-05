@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -12,6 +15,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.sun.net.httpserver.HttpServer;
 
 import io.quarkiverse.roq.migration.engine.MigrationRunner.MigrationResult;
 
@@ -36,7 +41,16 @@ class MigrationRunnerTest {
         }
     };
     final Scaffolder scaffolder = site -> calls.add("scaffold");
-    final SiteBuilder builder = site -> calls.add("build");
+    final List<String> references = new ArrayList<>();
+    final SiteBuilder builder = site -> {
+        calls.add("build");
+        // Like roq generate: a page per directory, and a 404 page
+        for (String page : List.of("index.html", "about/index.html", "posts/hello/index.html", "404.html")) {
+            Path file = site.dir().resolve(SiteBuilder.GENERATED_SITE).resolve(page);
+            Files.createDirectories(file.getParent());
+            Files.writeString(file, "<html></html>");
+        }
+    };
 
     @BeforeEach
     void createSource() throws IOException {
@@ -108,6 +122,12 @@ class MigrationRunnerTest {
         protected void checkResult(TargetSite site) {
             calls.add("check");
         }
+
+        @Override
+        protected void validate(TargetSite site, ReferenceSite reference) throws Exception {
+            calls.add("validate");
+            references.add(reference == null ? "none" : reference.url() + " " + reference.missingPages());
+        }
     }
 
     MigrationOptions inPlace() {
@@ -131,7 +151,7 @@ class MigrationRunnerTest {
         run(inPlace());
 
         assertThat(calls).containsExactly("preflight", "analyze", "scaffold", "restructure", "frontmatter", "config",
-                "templates", "content", "assets", "code", "check", "build");
+                "templates", "content", "assets", "code", "check", "build", "validate");
     }
 
     @Test
@@ -140,7 +160,7 @@ class MigrationRunnerTest {
 
         assertThat(output).filteredOn(l -> l.startsWith("[")).extracting(l -> l.substring(1, l.indexOf(']')))
                 .containsExactly("preflight", "analyze", "scaffold", "restructure", "frontmatter", "config",
-                        "templates", "content", "assets", "code", "check", "build");
+                        "templates", "content", "assets", "code", "check", "build", "validate");
     }
 
     @Test
@@ -192,8 +212,92 @@ class MigrationRunnerTest {
     void noBuildSkipsTheBuilder() throws Exception {
         run(new MigrationOptions(source, false, recordingOutput));
 
-        assertThat(calls).last().isEqualTo("check");
+        assertThat(calls).last().isEqualTo("validate");
         assertThat(output).noneMatch(l -> l.startsWith("[build]"));
+    }
+
+    /**
+     * Serves the given paths, and answers 404 for the others.
+     */
+    static HttpServer referenceSite(String... paths) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        server.createContext("/", exchange -> {
+            boolean found = List.of(paths).contains(exchange.getRequestURI().getPath());
+            exchange.sendResponseHeaders(found ? 200 : 404, -1);
+            exchange.close();
+        });
+        server.start();
+        return server;
+    }
+
+    static URI url(HttpServer server) {
+        return URI.create("http://localhost:" + server.getAddress().getPort());
+    }
+
+    @Test
+    void comparesTheBuiltPagesWithTheReferenceSite() throws Exception {
+        HttpServer server = referenceSite("/", "/about/");
+        try {
+            run(new MigrationOptions(source, true, recordingOutput, url(server)));
+        } finally {
+            server.stop(0);
+        }
+
+        // Not the 404 page
+        assertThat(references).containsExactly(url(server) + " [/posts/hello/ (404)]");
+        assertThat(output).contains("  Comparing the site with " + url(server));
+    }
+
+    @Test
+    void comparesWithTheReferenceSiteTheMigratorFound() throws Exception {
+        HttpServer server = referenceSite("/", "/about/", "/posts/hello/");
+        try {
+            run(new RecordingMigrator() {
+                @Override
+                protected void analyze(SourceSite source, SiteAnalysis analysis) throws MigrationException {
+                    super.analyze(source, analysis);
+                    analysis.referenceSite(url(server));
+                }
+            }, inPlace());
+        } finally {
+            server.stop(0);
+        }
+
+        assertThat(references).containsExactly(url(server) + " []");
+    }
+
+    @Test
+    void validatesWithoutAReferenceSiteThatCannotBeReached() throws Exception {
+        HttpServer server = referenceSite();
+        server.stop(0);
+
+        MigrationResult result = run(new MigrationOptions(source, true, recordingOutput, url(server)));
+
+        assertThat(references).containsExactly("none");
+        assertThat(result.warnings()).extracting(MigrationReport.Warning::stage).containsExactly("validate");
+        assertThat(warnings).anyMatch(w -> w.startsWith("  Cannot reach " + url(server) + " (")
+                && w.endsWith("), so the site was not compared with it"));
+    }
+
+    @Test
+    void validatesWithoutAReferenceSiteWhenNotBuilt() throws Exception {
+        run(new MigrationOptions(source, false, recordingOutput, URI.create("http://localhost:1")));
+
+        assertThat(references).containsExactly("none");
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void writesTheActionItemsOfTheValidation() throws Exception {
+        run(new RecordingMigrator() {
+            @Override
+            protected void validate(TargetSite site, ReferenceSite reference) {
+                site.report().todo("Check the page URLs against the old site");
+            }
+        }, inPlace());
+
+        assertThat(Files.readString(source.resolve(MigrationReport.ACTION_ITEMS_FILE)))
+                .contains("## validate\n\n- [ ] Check the page URLs against the old site\n");
     }
 
     @Test
@@ -351,8 +455,8 @@ class MigrationRunnerTest {
                 "  [code] Migrate _plugins/reading_time.rb by hand");
         assertThat(output).last().isEqualTo("They are listed in "
                 + source.toAbsolutePath().resolve(MigrationReport.ACTION_ITEMS_FILE) + ".");
-        // The summary comes after the build
-        assertThat(calls).last().isEqualTo("build");
+        // The summary comes after the build and the comparison with the reference site
+        assertThat(calls).last().isEqualTo("validate");
     }
 
     @Test
