@@ -32,13 +32,15 @@ public class RoqEditorGitBuildActions {
         actions.actionBuilder().methodName("publishContent").function(parameters -> {
             String commitMessage = parseString(parameters.get("message"));
             List<String> filePaths = extractList(parameters.get("filePaths"));
-            return CompletableFuture.supplyAsync(() -> gitService.publish(commitMessage, filePaths));
+            String branchName = parseString(parameters.get("branchName"));
+            return CompletableFuture.supplyAsync(() -> gitService.publish(commitMessage, filePaths, branchName));
         }).build();
 
         actions.actionBuilder().methodName("publishAndSync").function(parameters -> {
             String commitMessage = parseString(parameters.get("message"));
             List<String> filePaths = extractList(parameters.get("filePaths"));
-            return CompletableFuture.supplyAsync(() -> gitService.publishAndSync(commitMessage, filePaths));
+            String branchName = parseString(parameters.get("branchName"));
+            return CompletableFuture.supplyAsync(() -> gitService.publishAndSync(commitMessage, filePaths, branchName));
         }).build();
 
         return actions;
