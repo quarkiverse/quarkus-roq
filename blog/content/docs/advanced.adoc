@@ -749,13 +749,15 @@ public class RoqSiteTest {
 }
 ----
 
+Each `@RoqAndRoll` class regenerates the whole site, so it's best to have a small number, usually one.
 The RestAssured port will automatically use the Roq static test server, running on port 8082 by default.
 
 TIP: The Roq test server port could be modified by an annotation parameter like this `@RoqAndRoll(port=9090)`.
 
 === Using standard Quarkus test
 
-It's possible to use the standard Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then pages will be rendered dynamically on demand at runtime:
+It's possible to use the standard Quarkus test support (https://quarkus.io/guides/getting-started-testing[Testing Your Application]) to check the content, but then pages will be rendered dynamically on demand at runtime.
+This means only pages directly visited by a test will be rendered, and rendering problems in other pages could go unnoticed:
 
 .src/test/java/QuteWebSiteTest.java
 [source,java]
@@ -776,6 +778,8 @@ public class QuteWebSiteTest {
 ----
 
 In this case the RestAssured port will automatically use the Quarkus dynamic test server, running on port 8081 by default.
+
+`@QuarkusTest` tests will be quick to run, and are well suited for unit-test style validation of single pages.
 
 == Roq CLI
 
