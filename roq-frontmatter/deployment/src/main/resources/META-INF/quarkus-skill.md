@@ -343,8 +343,9 @@ paginate:
 <a href="{=site.url('posts/my-post')}">Link</a>
 <a href="{=site.url('docs', 'getting-started')}">Docs</a>
 
-{! CDI beans (data files) !}
+{! CDI beans (data files), `data:` is an alias for `cdi:` !}
 {=cdi:authors.ia3andy.name}
+{=data:authors.ia3andy.name}
 {#for item in cdi:contributors.contributors}{=item.name}{/for}
 
 {! Let bindings !}
