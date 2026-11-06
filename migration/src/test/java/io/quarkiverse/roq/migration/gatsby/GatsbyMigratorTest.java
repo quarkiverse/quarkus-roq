@@ -155,6 +155,19 @@ class GatsbyMigratorTest {
     }
 
     @Test
+    void commitsPublicAndIgnoresTarget() throws Exception {
+        Files.writeString(repo.resolve(".gitignore"), "# gatsby files\n.cache/\npublic\n\n.DS_Store\n");
+
+        migrate();
+
+        // public/ has the images and static files now
+        assertThat(out.resolve(".gitignore")).hasContent("# gatsby files\n.cache/\n\n.DS_Store\n\n"
+                + "# Roq builds the site in target/\ntarget/");
+        assertThat(GatsbyContent.BUILD_OUTPUT.matcher("/public/").matches()).isTrue();
+        assertThat(GatsbyContent.BUILD_OUTPUT.matcher("site/public").matches()).isFalse();
+    }
+
+    @Test
     void namesTheProjectAfterTheSiteTitle() throws Exception {
         assertThat(migrate().analysis().projectName()).isEqualTo("quarkiverse-hub-website");
     }
