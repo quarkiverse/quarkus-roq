@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.editor.runtime.devui;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -74,6 +75,7 @@ public class RoqEditorImageResource {
 
             Path targetDir;
             String resultPath;
+            String newPagePath = null;
 
             if ("page".equals(location)) {
                 if (pagePath == null || pagePath.isEmpty()) {
@@ -85,12 +87,16 @@ public class RoqEditorImageResource {
                     sendError(ctx, "Page not found: " + pagePath);
                     return;
                 }
-                if (!page.source().isIndex()) {
-                    sendError(ctx, "Page-level images are only supported for index pages");
-                    return;
-                }
                 Path pageFilePath = getPageAbsolutePath(page);
-                targetDir = pageFilePath.getParent();
+                if (page.source().isIndex()) {
+                    targetDir = pageFilePath.getParent();
+                } else {
+                    // The page is a single file, convert it to a directory page
+                    // (e.g. posts/my-post.md -> posts/my-post/index.md) so files can be attached to it
+                    ConvertedPage converted = convertToDirectoryPage(page, pageFilePath);
+                    targetDir = converted.dir();
+                    newPagePath = converted.sourcePath();
+                }
                 resultPath = sanitizedFilename;
             } else if ("public".equals(location)) {
                 Path siteDir = resolveSiteDir();
@@ -140,7 +146,7 @@ public class RoqEditorImageResource {
 
             LOG.infof("Successfully uploaded image: %s to %s", sanitizedFilename, targetDir);
 
-            sendSuccess(ctx, resultPath);
+            sendSuccess(ctx, resultPath, newPagePath);
 
         } catch (Exception e) {
             LOG.errorf(e, "Error uploading image");
@@ -156,12 +162,43 @@ public class RoqEditorImageResource {
         }
     }
 
-    private void sendSuccess(RoutingContext ctx, String path) {
+    private void sendSuccess(RoutingContext ctx, String path, String newPagePath) {
         JsonObject response = new JsonObject()
                 .put("path", path);
+        if (newPagePath != null) {
+            response.put("newPagePath", newPagePath);
+        }
         ctx.response()
                 .putHeader("Content-Type", "application/json")
                 .end(response.encode());
+    }
+
+    /**
+     * Converts a single-file page into a directory page so files can be attached to it
+     * (e.g. posts/my-post.md becomes posts/my-post/index.md).
+     */
+    private ConvertedPage convertToDirectoryPage(Page page, Path pageFilePath) throws IOException {
+        String fileName = pageFilePath.getFileName().toString();
+        int dotIndex = fileName.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+        String extension = dotIndex > 0 ? fileName.substring(dotIndex) : "";
+        Path pageDir = pageFilePath.getParent().resolve(baseName);
+        Path indexFile = pageDir.resolve("index" + extension);
+        if (Files.exists(indexFile)) {
+            throw new IOException("Cannot convert page to a directory, file already exists: " + indexFile);
+        }
+        Files.createDirectories(pageDir);
+        Files.move(pageFilePath, indexFile);
+        // sourcePath is relative to the content dir and uses '/' separators
+        String sourcePath = page.sourcePath();
+        int slash = sourcePath.lastIndexOf('/');
+        String parentPath = slash >= 0 ? sourcePath.substring(0, slash + 1) : "";
+        String newSourcePath = parentPath + baseName + "/index" + extension;
+        LOG.infof("Converted page '%s' to directory page '%s'", sourcePath, newSourcePath);
+        return new ConvertedPage(pageDir, newSourcePath);
+    }
+
+    private record ConvertedPage(Path dir, String sourcePath) {
     }
 
     private void sendError(RoutingContext ctx, String message) {
