@@ -20,6 +20,7 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqPathConflictExcept
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteIndexNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterExtraDataBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUrlBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDerivedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDocumentPageBuildItem;
@@ -42,6 +43,7 @@ import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
+import io.vertx.core.json.JsonObject;
 
 class RoqFrontMatterStep5RecordProcessor {
     private static final Logger LOGGER = Logger.getLogger(RoqFrontMatterStep5RecordProcessor.class);
@@ -80,6 +82,7 @@ class RoqFrontMatterStep5RecordProcessor {
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
             List<RoqFrontMatterPublishDerivedCollectionBuildItem> generatedCollections,
+            List<RoqFrontMatterExtraDataBuildItem> extraDataItems,
             BuildProducer<RoqFrontMatterRecordedCollectionBuildItem> collectionsProducer,
             BuildProducer<RoqFrontMatterRecordedPageBuildItem> pagesProducer,
             BuildProducer<LargeRecordBuildItem> resourceProducer,
@@ -88,6 +91,7 @@ class RoqFrontMatterStep5RecordProcessor {
             return;
         }
 
+        final Map<String, List<RoqFrontMatterExtraDataBuildItem>> extraByPageId = indexExtraData(extraDataItems);
         final Map<ConfiguredCollection, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
                 .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
         final Set<String> documentIds = new HashSet<>();
@@ -96,7 +100,8 @@ class RoqFrontMatterStep5RecordProcessor {
             final ConfiguredCollection collection = e.getKey();
             final List<SerializedPage> serialized = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
-                serialized.add(SerializedPage.ofDocument(collection.id(), item.url(), item.source(), item.data(),
+                final JsonObject data = mergeExtraData(item.data(), item.source().id(), extraByPageId);
+                serialized.add(SerializedPage.ofDocument(collection.id(), item.url(), item.source(), data,
                         collection.hidden()));
                 documentIds.add(item.source().id());
                 pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(item.source().id(), item.url(),
@@ -131,6 +136,7 @@ class RoqFrontMatterStep5RecordProcessor {
     void bindPages(
             RoqFrontMatterRootUrlBuildItem rootUrlItem,
             List<RoqFrontMatterPublishNormalPageBuildItem> pages,
+            List<RoqFrontMatterExtraDataBuildItem> extraDataItems,
             BuildProducer<RoqFrontMatterRecordedNormalPagesBuildItem> normalPagesProducer,
             BuildProducer<RoqFrontMatterRecordedPageBuildItem> pagesProducer,
             BuildProducer<LargeRecordBuildItem> resourceProducer,
@@ -138,10 +144,12 @@ class RoqFrontMatterStep5RecordProcessor {
         if (rootUrlItem == null) {
             return;
         }
+        final Map<String, List<RoqFrontMatterExtraDataBuildItem>> extraByPageId = indexExtraData(extraDataItems);
         List<RoqFrontMatterPublishNormalPageBuildItem> siteIndexPages = new ArrayList<>();
         final List<SerializedPage> serialized = new ArrayList<>();
         for (RoqFrontMatterPublishNormalPageBuildItem page : pages) {
-            serialized.add(SerializedPage.ofNormal(page.url(), page.source(), page.data(), page.paginator()));
+            final JsonObject data = mergeExtraData(page.data(), page.source().id(), extraByPageId);
+            serialized.add(SerializedPage.ofNormal(page.url(), page.source(), data, page.paginator()));
             pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(page.source().id(), page.url(), false));
             if (page.source().isSiteIndex()) {
                 siteIndexPages.add(page);
@@ -250,5 +258,31 @@ class RoqFrontMatterStep5RecordProcessor {
                 .handler(recorder.renderHandler())
                 .build();
         return List.of(resolverRoute, renderRoute);
+    }
+
+    private static Map<String, List<RoqFrontMatterExtraDataBuildItem>> indexExtraData(
+            List<RoqFrontMatterExtraDataBuildItem> items) {
+        return items.stream().collect(Collectors.groupingBy(RoqFrontMatterExtraDataBuildItem::pageId));
+    }
+
+    /**
+     * Merge extra data into the page's data. Extra data keys are added only when the page's own front matter
+     * does not already define them (user FM wins).
+     */
+    private static JsonObject mergeExtraData(JsonObject pageData, String pageId,
+            Map<String, List<RoqFrontMatterExtraDataBuildItem>> extraByPageId) {
+        final List<RoqFrontMatterExtraDataBuildItem> extras = extraByPageId.get(pageId);
+        if (extras == null || extras.isEmpty()) {
+            return pageData;
+        }
+        final JsonObject merged = pageData.copy();
+        for (RoqFrontMatterExtraDataBuildItem extra : extras) {
+            for (String key : extra.data().fieldNames()) {
+                if (!merged.containsKey(key)) {
+                    merged.put(key, extra.data().getValue(key));
+                }
+            }
+        }
+        return merged;
     }
 }
