@@ -4,13 +4,8 @@ import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Allows plugins to contribute additional data to a page's front matter at build time.
- * <p>
- * The extra data is merged into the page's {@code data()} in the recording step, with lower priority than
- * the user's own front matter (user FM keys always win). This lets plugins provide defaults that users can override.
- * <p>
- * Plugins produce this build item after Step 3 (when page URLs are resolved), and the merge happens in Step 5
- * (before pages are serialized), so it has no effect on layout resolution, date parsing, or draft filtering.
+ * Contribute extra data to a page during recording (after URLs are resolved). Cannot override user FM.
+ * To modify data that affects layout, link, date or draft resolution, use {@link RoqFrontMatterDataModificationBuildItem}.
  */
 public final class RoqFrontMatterExtraDataBuildItem extends MultiBuildItem {
 

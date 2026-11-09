@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
-import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterExtraDataBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishDocumentPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
@@ -100,6 +100,40 @@ public class RoqPluginOgCardProcessor {
     }
 
     @BuildStep
+    void injectOgCardExtraData(
+            RoqProjectBuildItem roqProject,
+            OgCardConfig config,
+            List<RoqFrontMatterPublishDocumentPageBuildItem> documents,
+            List<RoqFrontMatterPublishNormalPageBuildItem> normalPages,
+            BuildProducer<RoqFrontMatterExtraDataBuildItem> extraDataProducer) {
+        if (!roqProject.isActive()) {
+            return;
+        }
+
+        OgCardTargetResolver.ResolvedTargets resolved = resolveTargets(config, normalPages, documents);
+        if (resolved.byPngPath().isEmpty()) {
+            return;
+        }
+
+        for (RoqFrontMatterPublishDocumentPageBuildItem document : documents) {
+            OgCardTarget target = resolved.byRelativePath()
+                    .get(toUnixPath(document.source().path()));
+            if (target != null) {
+                extraDataProducer.produce(new RoqFrontMatterExtraDataBuildItem(
+                        document.source().id(), ogCardData(target)));
+            }
+        }
+        for (RoqFrontMatterPublishNormalPageBuildItem page : normalPages) {
+            OgCardTarget target = resolved.byRelativePath()
+                    .get(toUnixPath(page.source().path()));
+            if (target != null) {
+                extraDataProducer.produce(new RoqFrontMatterExtraDataBuildItem(
+                        page.source().id(), ogCardData(target)));
+            }
+        }
+    }
+
+    @BuildStep
     void generateOgCards(
             RoqProjectBuildItem roqProject,
             OgCardConfig config,
@@ -125,26 +159,12 @@ public class RoqPluginOgCardProcessor {
         }
     }
 
-    @BuildStep
-    RoqFrontMatterDataModificationBuildItem injectOgCardMetadata(OgCardConfig config) {
-        return new RoqFrontMatterDataModificationBuildItem(source -> {
-            OgCardTargetResolver.PageContext pageContext = OgCardTargetResolver.pageContextFromSource(source);
-            if (!OgCardTargetResolver.matchesSource(config, source, pageContext.pagePath(), pageContext.collectionId(),
-                    pageContext.siteIndex())) {
-                return source.fm();
-            }
-            OgCardTarget target = OgCardTargetResolver.targetFromSource(config, source, pageContext.pagePath(),
-                    pageContext.collectionId(), pageContext.slug(), pageContext.siteIndex());
-            if (target == null) {
-                return source.fm();
-            }
-            JsonObject fm = source.fm().copy();
-            fm.put(OgCardKeys.IMAGE_PATH, target.pngPath());
-            fm.put(OgCardKeys.WIDTH, target.width());
-            fm.put(OgCardKeys.HEIGHT, target.height());
-            fm.put(OgCardKeys.ALT, target.imageAlt());
-            return fm;
-        });
+    private static JsonObject ogCardData(OgCardTarget target) {
+        return new JsonObject()
+                .put(OgCardKeys.IMAGE_PATH, target.pngPath())
+                .put(OgCardKeys.WIDTH, target.width())
+                .put(OgCardKeys.HEIGHT, target.height())
+                .put(OgCardKeys.ALT, target.imageAlt());
     }
 
     private static OgCardTargetResolver.ResolvedTargets resolveTargets(
