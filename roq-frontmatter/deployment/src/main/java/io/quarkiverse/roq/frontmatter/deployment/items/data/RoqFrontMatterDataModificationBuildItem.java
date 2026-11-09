@@ -7,7 +7,8 @@ import io.quarkus.builder.item.MultiBuildItem;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Allow to modify the FrontMatter data just before it is produced (and before it is merged with parents).
+ * Modify front matter data during assembly (before layout, link, date and draft resolution). Can override user FM.
+ * For extra data with no side effects, use {@link RoqFrontMatterExtraDataBuildItem}.
  */
 public final class RoqFrontMatterDataModificationBuildItem extends MultiBuildItem {
     private final DataModifier modifier;
