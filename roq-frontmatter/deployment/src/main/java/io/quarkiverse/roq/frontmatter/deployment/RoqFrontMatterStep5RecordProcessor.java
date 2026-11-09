@@ -43,6 +43,7 @@ import io.quarkus.runtime.LaunchMode;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 class RoqFrontMatterStep5RecordProcessor {
@@ -265,11 +266,7 @@ class RoqFrontMatterStep5RecordProcessor {
         return items.stream().collect(Collectors.groupingBy(RoqFrontMatterExtraDataBuildItem::pageId));
     }
 
-    /**
-     * Merge extra data into the page's data. Extra data keys are added only when the page's own front matter
-     * does not already define them (user FM wins).
-     */
-    private static JsonObject mergeExtraData(JsonObject pageData, String pageId,
+    static JsonObject mergeExtraData(JsonObject pageData, String pageId,
             Map<String, List<RoqFrontMatterExtraDataBuildItem>> extraByPageId) {
         final List<RoqFrontMatterExtraDataBuildItem> extras = extraByPageId.get(pageId);
         if (extras == null || extras.isEmpty()) {
@@ -280,6 +277,9 @@ class RoqFrontMatterStep5RecordProcessor {
             for (String key : extra.data().fieldNames()) {
                 if (!merged.containsKey(key)) {
                     merged.put(key, extra.data().getValue(key));
+                } else if (merged.getValue(key) instanceof JsonArray ea
+                        && extra.data().getValue(key) instanceof JsonArray ia) {
+                    ea.addAll(ia);
                 }
             }
         }
