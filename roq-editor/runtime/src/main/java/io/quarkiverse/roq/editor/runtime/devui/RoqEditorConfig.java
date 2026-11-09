@@ -107,6 +107,65 @@ public interface RoqEditorConfig {
         boolean enabled();
 
         /**
+         * Publish workflow mode.
+         * <p>
+         * {@code PR}: Publish from {@code main} creates a content branch, pushes it and surfaces a
+         * PR-creation link. Subsequent publishes on the content branch update the same branch until
+         * its remote ref disappears (PR merged), at which point the editor returns to {@code main}.
+         * <p>
+         * {@code DIRECT}: Publish commits and pushes straight to the current branch.
+         */
+        @JsonProperty("mode")
+        @WithDefault("PR")
+        Mode mode();
+
+        enum Mode {
+            PR,
+            DIRECT
+        }
+
+        /**
+         * PR-flow specific options. Only consulted when {@link #mode()} is {@code PR}.
+         */
+        @JsonProperty("prFlow")
+        PrFlowConfig prFlow();
+
+        interface PrFlowConfig {
+
+            /**
+             * Prefix used for auto-generated content branches. A branch is considered a
+             * "content branch" when its name starts with this prefix.
+             */
+            @JsonProperty("contentBranchPrefix")
+            @WithDefault("content/")
+            String contentBranchPrefix();
+
+            /**
+             * Strategy for subsequent publishes on the same content branch.
+             * <p>
+             * {@code NEW_COMMITS}: each Publish adds a new commit. No force-push, history preserved.
+             * <p>
+             * {@code AMEND}: each Publish amends the previous commit. Single-commit PR, requires
+             * force-push (with-lease) on the content branch.
+             */
+            @JsonProperty("commitStrategy")
+            @WithDefault("NEW_COMMITS")
+            CommitStrategy commitStrategy();
+
+            enum CommitStrategy {
+                NEW_COMMITS,
+                AMEND
+            }
+
+            /**
+             * Explicit name of the main/default branch. When empty, it is detected from
+             * {@code refs/remotes/origin/HEAD} and falls back to {@code main}.
+             */
+            @JsonIgnore
+            Optional<String> mainBranch();
+        }
+
+        /**
          * Optional SSH passphrase used as a fallback when no SSH agent is available to unlock a
          * passphrase-protected key for remote operations.
          * <p>

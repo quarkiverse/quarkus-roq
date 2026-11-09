@@ -1,3 +1,5 @@
+import { html } from 'lit';
+
 /**
  * Orchestrator for Git synchronization background tasks.
  * Handles polling for repository status and automatic sync/publish.
@@ -189,7 +191,16 @@ export class SyncManager {
      */
     async _handleOperationResult(result, successMessage, opType, fullRefresh = false) {
         if (result?.success) {
-            this.onNotification(successMessage, 'success');
+            if (result.prCreationUrl) {
+                const url = result.prCreationUrl;
+                const branch = result.targetBranch;
+                this.onNotification(
+                    html`Pushed to <code>${branch}</code>. <a href=${url} target="_blank" rel="noopener">Open pull request ↗</a>`,
+                    'success',
+                    15000);
+            } else {
+                this.onNotification(successMessage, 'success');
+            }
             if (this.status) {
                 const updated = { ...this.status };
                 if (opType === 'publish' || opType === 'publishAndSync') {
@@ -231,10 +242,13 @@ export class SyncManager {
      * Manually triggers a Git Publish (commit + push).
      * @param {string} message - The commit message
      * @param {string[]} filePaths - List of files to stage and commit
+     * @param {string|null} branchName - When set, name of the content branch to create (PR flow only)
      * @returns {Promise<Object>} Result of the operation
      */
-    async manualPublish(message, filePaths) {
-        const result = await this.jsonRpc.publishContent({ message, filePaths: filePaths ?? [] }).then(r => r.result);
+    async manualPublish(message, filePaths, branchName = null) {
+        const result = await this.jsonRpc
+                .publishContent({ message, filePaths: filePaths ?? [], branchName })
+                .then(r => r.result);
         return this._handleOperationResult(result, 'Content published successfully', 'publish', true);
     }
 
@@ -242,10 +256,13 @@ export class SyncManager {
      * Triggers a publish followed by a sync.
      * @param {string} message - The commit message
      * @param {string[]} filePaths - List of files to publish
+     * @param {string|null} branchName - When set, name of the content branch to create (PR flow only)
      * @returns {Promise<Object>} Combined result
      */
-    async publishAndSync(message, filePaths) {
-        const result = await this.jsonRpc.publishAndSync({ message, filePaths: filePaths ?? [] }).then(r => r.result);
+    async publishAndSync(message, filePaths, branchName = null) {
+        const result = await this.jsonRpc
+                .publishAndSync({ message, filePaths: filePaths ?? [], branchName })
+                .then(r => r.result);
         return this._handleOperationResult(result, 'Content published and synchronized successfully', 'publishAndSync', true);
     }
 }
