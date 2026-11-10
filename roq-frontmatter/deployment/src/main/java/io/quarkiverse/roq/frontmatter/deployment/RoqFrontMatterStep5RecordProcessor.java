@@ -279,7 +279,7 @@ class RoqFrontMatterStep5RecordProcessor {
                     merged.put(key, extra.data().getValue(key));
                 } else if (merged.getValue(key) instanceof JsonArray ea
                         && extra.data().getValue(key) instanceof JsonArray ia) {
-                    ea.addAll(ia);
+                    merged.put(key, new JsonArray().addAll(ea).addAll(ia));
                 }
             }
         }

@@ -44,9 +44,10 @@ class RoqFrontMatterMergeExtraDataTest {
     @Test
     void multiplePluginsArraysMerge() {
         JsonObject pageData = new JsonObject().put("title", "Hello");
+        JsonArray firstPluginAlts = new JsonArray().add("alt1");
         Map<String, List<RoqFrontMatterExtraDataBuildItem>> extras = Map.of("page.html", List.of(
                 new RoqFrontMatterExtraDataBuildItem("page.html",
-                        new JsonObject().put("seoAlternates", new JsonArray().add("alt1"))),
+                        new JsonObject().put("seoAlternates", firstPluginAlts)),
                 new RoqFrontMatterExtraDataBuildItem("page.html",
                         new JsonObject().put("seoAlternates", new JsonArray().add("alt2")))));
         JsonObject result = RoqFrontMatterStep5RecordProcessor.mergeExtraData(pageData, "page.html", extras);
@@ -54,6 +55,7 @@ class RoqFrontMatterMergeExtraDataTest {
         assertEquals(2, alts.size());
         assertEquals("alt1", alts.getString(0));
         assertEquals("alt2", alts.getString(1));
+        assertEquals(List.of("alt1"), firstPluginAlts.getList());
     }
 
     @Test
