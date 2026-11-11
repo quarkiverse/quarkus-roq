@@ -181,7 +181,7 @@ writer.save(authors, Path.of("x.yml"));  // explicit target, format from the ext
 - Supported: `OBJECT_FILE` and `ARRAY_FILE` (the bean's single `List` property is written as the root array). Directory mappings throw `UnsupportedOperationException`.
 - Injected class-based beans are client proxies; they are unwrapped automatically.
 - `DataSerializer#write(data, originalContent, DataFormat)` is the file-agnostic core (useful in prod or tests).
-- `save(bean)` fails if the source file no longer exists (e.g. the app runs away from the project it was built from).
+- `save(bean)` only works for local project files (the Roq site `data/` directory): data from classpath resources (a theme, `src/main/resources`) can't be saved. It also fails if the source file no longer exists (e.g. the app runs away from the project it was built from).
 - In dev mode, saving a data file triggers a live reload.
 
 ### Common Pitfalls

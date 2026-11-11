@@ -54,7 +54,7 @@ public class DataMappingWriter {
         final String source = sourceFiles.get(type.getName());
         if (source == null) {
             throw new IllegalArgumentException(
-                    "No writable data file found for %s. Only @DataMapping (OBJECT_FILE and ARRAY_FILE) types loaded from a local file can be saved, use save(data, path) otherwise."
+                    "No writable data file found for %s. Only @DataMapping (OBJECT_FILE and ARRAY_FILE) types loaded from a local project file (not a classpath resource) can be saved, use save(data, path) otherwise."
                             .formatted(type.getName()));
         }
         final Path file = Path.of(source);
