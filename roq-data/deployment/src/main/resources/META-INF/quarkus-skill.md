@@ -166,6 +166,24 @@ JsonArray contributors;
 {/let}
 ```
 
+### Writing Data Back (Reverse Mode)
+
+Inject `DataMappingWriter` to write a `@DataMapping` bean (or a new instance of a mapped type) back to its source file. Comments (YAML), key order and layout of the existing file are kept, and unchanged values are left untouched.
+
+```java
+@Inject
+DataMappingWriter writer;
+
+writer.save(new Authors(updatedList));   // writes to the file recorded at build time, returns its path
+writer.save(authors, Path.of("x.yml"));  // explicit target, format from the extension
+```
+
+- Supported: `OBJECT_FILE` and `ARRAY_FILE` (the bean's single `List` property is written as the root array). Directory mappings throw `UnsupportedOperationException`.
+- Injected class-based beans are client proxies; they are unwrapped automatically.
+- `DataSerializer#write(data, originalContent, DataFormat)` is the file-agnostic core (useful in prod or tests).
+- `save(bean)` fails if the source file no longer exists (e.g. the app runs away from the project it was built from).
+- In dev mode, saving a data file triggers a live reload.
+
 ### Common Pitfalls
 
 - **Name must match annotation value** — `@DataMapping("authors")` requires a file named `authors.yaml`/`.yml`/`.json` in `data/`, or a directory named `authors/` for `ARRAY_DIR`/`OBJECT_DIR`.
