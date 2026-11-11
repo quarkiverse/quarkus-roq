@@ -629,7 +629,7 @@ void rename() {
 ----
 <1> Saves to `data/mountain.yml` (or `.json`), using the source file recorded at build time
 
-Only `OBJECT_FILE` and `ARRAY_FILE` mappings can be saved. In dev mode, saving triggers a live reload. Saving needs the source file to be on a writable local filesystem; when that's not the case (e.g. in prod), use `writer.save(data, path)` to write to an explicit file, or `DataSerializer.write(data, originalContent, format)` to get the updated content without touching any file.
+Only `OBJECT_FILE` and `ARRAY_FILE` mappings can be saved. In dev mode, saving triggers a live reload. Saving needs the source file to be a local project file (data from classpath resources, e.g. in a theme or under `src/main/resources`, can't be saved) which still exists; when that's not the case (e.g. in prod), use `writer.save(data, path)` to write to an explicit file, or `DataSerializer.write(data, originalContent, format)` to get the updated content without touching any file.
 
 === Collections from data
 

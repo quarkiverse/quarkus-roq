@@ -30,7 +30,8 @@ public class RoqDataMappingWriterTest {
     @RegisterExtension
     static final QuarkusExtensionTest quarkusUnitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
-                    .addClasses(Foo.class, Foos.class, Baz.class, Gone.class)
+                    .addClasses(Foo.class, Foos.class, Baz.class, Gone.class, FromResource.class)
+                    .add(new StringAsset("name: From resources\n"), "data/fromresource.yml")
                     .add(new StringAsset("quarkus.roq.dir=target/roq-data-writer-test"),
                             "application.properties"));
 
@@ -51,6 +52,10 @@ public class RoqDataMappingWriterTest {
     public record Gone(String name) {
     }
 
+    @DataMapping("fromresource")
+    public record FromResource(String name) {
+    }
+
     @Inject
     DataMappingWriter writer;
 
@@ -59,6 +64,9 @@ public class RoqDataMappingWriterTest {
 
     @Inject
     Baz baz;
+
+    @Inject
+    FromResource fromResource;
 
     @Test
     void savesToTheSourceFile() {
@@ -100,6 +108,19 @@ public class RoqDataMappingWriterTest {
         baz.setName("Renamed");
         writer.save(baz);
         assertThat(read("data/baz.yml")).isEqualTo(BAZ.replace("Super Heroes from Yml", "Renamed"));
+    }
+
+    @Test
+    void refuseClasspathResource() throws IOException {
+        // loaded from a classpath resource, its file is in the build output
+        assertThat(fromResource.name()).isEqualTo("From resources");
+        assertThatThrownBy(() -> writer.save(new FromResource("Changed")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not a classpath resource");
+        // an explicit target is fine
+        Path target = SITE.resolve("copy/fromresource.yml");
+        writer.save(new FromResource("Copied"), target);
+        assertThat(Files.readString(target)).isEqualTo("name: Copied\n");
     }
 
     @Test
