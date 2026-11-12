@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.quarkiverse.roq.deployment.config.RoqJacksonConfig;
 import io.quarkiverse.roq.deployment.exception.RoqJacksonConfigException;
@@ -25,6 +26,9 @@ public class RoqJacksonProcessor {
     RoqJacksonBuildItem findProject(RoqJacksonConfig jacksonConfig) {
         YAMLMapper.Builder yamlMapperBuilder = YAMLMapper.builder();
         JsonMapper.Builder jsonMapperBuilder = JsonMapper.builder();
+        // added so data mappings can use java.time types (LocalDate, LocalDateTime...) for dates
+        yamlMapperBuilder.addModule(new JavaTimeModule());
+        jsonMapperBuilder.addModule(new JavaTimeModule());
         if (!jacksonConfig.failOnUnknownProperties()) {
             // this feature is enabled by default, so we disable it
             yamlMapperBuilder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
