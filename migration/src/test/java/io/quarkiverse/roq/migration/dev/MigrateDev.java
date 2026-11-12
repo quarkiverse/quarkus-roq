@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration.dev;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import io.quarkiverse.roq.migration.gatsby.GatsbyMigrator;
  * <pre>
  * mvn -pl migration test-compile exec:java -Dexec.classpathScope=test \
  *     -Dexec.mainClass=io.quarkiverse.roq.migration.dev.MigrateDev \
- *     -Dexec.args="/path/to/site /path/to/output [--no-build]"
+ *     -Dexec.args="/path/to/site /path/to/output [--no-build] [--reference-site=https://example.org]"
  * </pre>
  *
  * The Roq project is created by {@link RoqScaffolder}, with the {@code roq create} of a locally built Roq CLI
@@ -33,15 +34,18 @@ public class MigrateDev {
     public static void main(String... args) throws Exception {
         List<String> positional = new ArrayList<>();
         boolean build = true;
+        URI referenceSite = null;
         for (String arg : args) {
             if (arg.equals("--no-build")) {
                 build = false;
+            } else if (arg.startsWith("--reference-site=")) {
+                referenceSite = URI.create(arg.substring("--reference-site=".length()));
             } else {
                 positional.add(arg);
             }
         }
         if (positional.size() != 2) {
-            System.err.println("Usage: MigrateDev <site> <output-dir> [--no-build]");
+            System.err.println("Usage: MigrateDev <site> <output-dir> [--no-build] [--reference-site=<url>]");
             System.exit(2);
         }
         Path source = Path.of(positional.get(0)).toAbsolutePath().normalize();
@@ -62,7 +66,7 @@ public class MigrateDev {
         };
         try {
             new MigrationRunner(migrator, source, new RoqScaffolder(repo), builder(),
-                    new MigrationOptions(output, build, console))
+                    new MigrationOptions(output, build, console, referenceSite))
                     .run();
         } catch (MigrationException e) {
             System.err.println("Migration failed: " + e.getMessage());

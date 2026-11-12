@@ -10,7 +10,8 @@ package io.quarkiverse.roq.migration.engine;
  * written;</li>
  * <li>the runner then creates the Roq project with its {@link Scaffolder};</li>
  * <li>{@link #restructure} through {@link #checkResult} convert the {@link TargetSite};</li>
- * <li>finally the runner builds the site with its {@link SiteBuilder}.</li>
+ * <li>the runner then builds the site with its {@link SiteBuilder};</li>
+ * <li>finally {@link #validate} compares the built site with the {@link ReferenceSite}, when there is one.</li>
  * </ol>
  * Every stage must be implemented; leave the body empty, with a comment, when a site type has nothing to do in it.
  * Report progress and non-fatal problems through {@link TargetSite#report()}, and throw {@link MigrationException} to
@@ -62,4 +63,13 @@ public abstract class SiteMigrator {
      * Fail on anything the conversion left behind that would break the site.
      */
     protected abstract void checkResult(TargetSite site) throws Exception;
+
+    /**
+     * Compare the built site with the site before the migration, and report the differences; or, when there is
+     * nothing to compare with, report what the user should check themselves.
+     *
+     * @param reference the site before the migration; null if the site was not built, there is no reference site, or
+     *        it cannot be reached
+     */
+    protected abstract void validate(TargetSite site, ReferenceSite reference) throws Exception;
 }

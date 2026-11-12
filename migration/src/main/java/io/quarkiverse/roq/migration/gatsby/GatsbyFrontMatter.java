@@ -53,8 +53,6 @@ final class GatsbyFrontMatter {
                     + "{=site.pageContent(site.page('" + homePage + "'))}\n");
             site.report().info("Wrote content/index.html, which shows " + homePage + " at /");
         }
-        site.report().todo("Check the page URLs against the old site; pages without a slug or path are served at "
-                + "/<file-name>/, lower case with punctuation replaced by - (site.page-link=/:path/)");
     }
 
     /**
