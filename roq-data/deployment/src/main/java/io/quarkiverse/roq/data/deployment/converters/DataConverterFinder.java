@@ -1,31 +1,28 @@
 package io.quarkiverse.roq.data.deployment.converters;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
+import io.quarkiverse.roq.data.runtime.DataFormat;
 
 public final class DataConverterFinder {
 
-    private final Map<String, DataConverter> converterByExtension;
+    private final DataConverter jsonConverter;
+    private final DataConverter yamlConverter;
 
     public DataConverterFinder(JsonMapper jsonMapper, YAMLMapper yamlMapper) {
-        DataConverter jsonConverter = new JsonConverter(jsonMapper);
-        DataConverter yamlConverter = new YamlConverter(yamlMapper);
-        this.converterByExtension = Map.of(
-                "yaml", yamlConverter,
-                "yml", yamlConverter,
-                "json", jsonConverter);
+        this.jsonConverter = new JsonConverter(jsonMapper);
+        this.yamlConverter = new YamlConverter(yamlMapper);
     }
 
     public DataConverter fromFileName(String fileName) {
-        if (!fileName.contains(".")) {
-            return null;
-        }
-        final String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-        return converterByExtension.get(extension);
+        return DataFormat.fromFileName(fileName)
+                .map(format -> switch (format) {
+                    case YAML -> yamlConverter;
+                    case JSON -> jsonConverter;
+                })
+                .orElse(null);
     }
 
 }

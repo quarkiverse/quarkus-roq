@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import io.quarkiverse.roq.data.deployment.DataConverter;
+import io.quarkiverse.tools.projectscanner.ProjectFile;
 import io.quarkus.builder.item.MultiBuildItem;
 
 /**
@@ -24,6 +25,11 @@ public final class RoqDataBuildItem extends MultiBuildItem {
     private final Path sourceFile;
 
     /**
+     * Where the file comes from: a local project file or a classpath resource.
+     */
+    private final ProjectFile.Origin origin;
+
+    /**
      * The content of the Roq data file.
      */
     private final byte[] content;
@@ -33,15 +39,21 @@ public final class RoqDataBuildItem extends MultiBuildItem {
      */
     private final DataConverter converter;
 
-    public RoqDataBuildItem(String name, Path sourceFile, byte[] content, DataConverter converter) {
+    public RoqDataBuildItem(String name, Path sourceFile, ProjectFile.Origin origin, byte[] content,
+            DataConverter converter) {
         this.name = name;
         this.sourceFile = sourceFile;
+        this.origin = origin;
         this.content = content;
         this.converter = converter;
     }
 
     public Path sourceFile() {
         return sourceFile;
+    }
+
+    public ProjectFile.Origin origin() {
+        return origin;
     }
 
     public String getName() {
@@ -66,11 +78,12 @@ public final class RoqDataBuildItem extends MultiBuildItem {
             return false;
         RoqDataBuildItem that = (RoqDataBuildItem) o;
         return Objects.equals(name, that.name) && Objects.equals(sourceFile, that.sourceFile)
-                && Objects.deepEquals(content, that.content) && Objects.equals(converter, that.converter);
+                && origin == that.origin && Objects.deepEquals(content, that.content)
+                && Objects.equals(converter, that.converter);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, sourceFile, Arrays.hashCode(content), converter);
+        return Objects.hash(name, sourceFile, origin, Arrays.hashCode(content), converter);
     }
 }
