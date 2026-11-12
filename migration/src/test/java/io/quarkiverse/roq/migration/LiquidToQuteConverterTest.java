@@ -33,6 +33,27 @@ class LiquidToQuteConverterTest {
     }
 
     @Test
+    void testPreLoopBreakGuardBecomesEarlyReturn() {
+        // The guides-nav includes open with a pre-loop guard:
+        //   {% unless cat_data %}{% break %}{% endunless %}
+        // Qute has no {% break %} tag, so this must convert to a faithful early return:
+        // gate the rest of the template on the positive condition, {#if cat_data}...{/if}.
+        String input = String.join("\n",
+                "{% assign cat_data = site.data.foo.bar %}",
+                "{% unless cat_data %}{% break %}{% endunless %}",
+                "<nav>",
+                "{% for cat in cat_data %}{{ cat.title }}{% endfor %}",
+                "</nav>");
+        String result = converter.convert(input);
+        assertFalse(result.contains("{%"),
+                "No raw Liquid tag (including {% break %}) should survive conversion: " + result);
+        assertTrue(result.contains("{#if cat_data}"),
+                "Break guard should become a positive early-return {#if cat_data}: " + result);
+        assertTrue(result.indexOf("{#if cat_data}") < result.indexOf("<nav>"),
+                "Early-return {#if} should wrap the body that follows the guard: " + result);
+    }
+
+    @Test
     void testTernaryWithMethodCall() {
         String input = "{=post.data.author ?: \"\".split(\",\")}";
         String expected = "{=post.data.author.or(\"\").split(\",\").raw}";
@@ -1607,6 +1628,67 @@ class LiquidToQuteConverterTest {
     }
 
     @Test
+    void testMutableVarInOutputExpressionGetsRawAfterRead() {
+        // When a mutable variable appears in an output expression {=var},
+        // it should become {=_m.read('var').raw}, not {=var.raw}
+        String input = "{% if mode %}{% assign search_script = host %}{% endif %}"
+                + "{=search_script}";
+        String result = converter.convert(input);
+        assertTrue(result.contains("_m.read('search_script').raw"),
+                "Mutable var in output should be _m.read('var').raw: " + result);
+        assertFalse(result.contains("{=search_script.raw}"),
+                "Should NOT have bare variable name with .raw: " + result);
+    }
+
+    @Test
+    void testMutableVarReferencedInIncludedPartial() {
+        // The partial head-csp.html contains {=search_script} which should become
+        // {=_m.read('search_script').raw} when the variable is assigned before the include
+        // Note: This test simulates what would happen in the main template - the partial
+        // itself is converted separately and needs to reference the mutable var correctly
+
+        // Simulate the main template that assigns the variable and includes the partial
+        String mainTemplate = "{% if mode %}{% assign search_script = host %}{% endif %}"
+                + "{% include head-csp.html %}";
+        String mainResult = converter.convert(mainTemplate);
+
+        // The main template should use _m.assign
+        assertTrue(mainResult.contains("_m.assign('search_script',"),
+                "Main template should use _m.assign: " + mainResult);
+
+        // Now simulate the partial that references the variable
+        // The partial is converted separately and doesn't know about the assignment context
+        // but should detect that *_script variables are potentially mutable
+        converter.clearConversions(); // Clear conversion history for fresh partial conversion
+        converter.setConvertingPartials(true);
+        String partialInput = "<script>{=search_script}</script>";
+        String partialResult = converter.convert(partialInput);
+
+        // The partial should use _m.read since *_script matches the mutable pattern
+        assertTrue(partialResult.contains("_m.read('search_script').raw"),
+                "Partial should use _m.read() for *_script variables: " + partialResult);
+        assertFalse(partialResult.contains("{=search_script.raw}"),
+                "Partial should NOT use bare variable.raw: " + partialResult);
+    }
+
+    @Test
+    void testPartialWithMultipleMutablePatternVariables() {
+        // Test that partials correctly handle multiple variables matching the mutable pattern
+        converter.setConvertingPartials(true);
+        String input = "<script src=\"{=search_script}\"></script>"
+                + "<link href=\"{=main_style}\">"
+                + "<div>{=arbitrary_content}</div>";
+        String result = converter.convert(input);
+
+        assertTrue(result.contains("_m.read('search_script').raw"),
+                "Should convert search_script to _m.read(): " + result);
+        assertTrue(result.contains("_m.read('main_style').raw"),
+                "Should convert main_style to _m.read(): " + result);
+        assertTrue(result.contains("_m.read('arbitrary_content').raw"),
+                "Should convert arbitrary_content to _m.read(): " + result);
+    }
+
+    @Test
     void testSingleAssignStaysAsLet() {
         // Single assign, used only within scope — no mutable treatment needed
         String input = "{% assign x = \"hello\" %}\n{=x}\nmore";
@@ -1812,6 +1894,27 @@ class LiquidToQuteConverterTest {
                 "push pattern should not appear in result: " + result);
         assertTrue(result.contains("{#for stats in tag_words.orEmpty}"),
                 "Loop should iterate over stats variable: " + result);
+    }
+
+    @Test
+    void testSiteTagsExtractionCollapseWithIntermediateVariable() {
+        // Two-step push pattern: intermediate assign for downcase, then push
+        String input = "{% assign tag_keys = \"\" | split: \"\" %}" +
+                "{% for stats in site.tags %}" +
+                "{% assign tag_lower = stats[0] | downcase %}" +
+                "{% assign tag_keys = tag_keys | push: tag_lower %}" +
+                "{% endfor %}" +
+                "{% assign tag_words = tag_keys | uniq | sort %}" +
+                "{% for tag in tag_words %}" +
+                "<a href=\"/tag/{{ tag }}\">{{ tag }}</a>" +
+                "{% endfor %}";
+        String result = converter.convert(input);
+        assertTrue(result.contains("tagsCount.distinct.sort('name')"),
+                "Two-step push pattern should collapse to tagsCount.distinct.sort('name'): " + result);
+        assertFalse(result.contains(".push("),
+                "push pattern should not appear in result: " + result);
+        assertFalse(result.contains("tag_keys"),
+                "Intermediate accumulator should be eliminated: " + result);
     }
 
     @Test
