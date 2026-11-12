@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.cfg.JsonNodeFeature;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.quarkiverse.roq.RoqJacksonSettings;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.data.runtime.writer.DataTreeWriter;
 import io.quarkus.arc.ClientProxy;
@@ -38,7 +38,7 @@ public class DataSerializer {
     private final DataTreeWriter treeWriter;
 
     public DataSerializer() {
-        this(null);
+        this(RoqJacksonSettings.DEFAULTS);
     }
 
     /**
@@ -46,18 +46,20 @@ public class DataSerializer {
      *        {@code quarkus.roq.jackson.property-naming-strategy})
      */
     public DataSerializer(PropertyNamingStrategy propertyNamingStrategy) {
-        final JsonMapper.Builder builder = JsonMapper.builder()
+        this(RoqJacksonSettings.DEFAULTS.withPropertyNamingStrategy(propertyNamingStrategy));
+    }
+
+    /**
+     * @param settings the settings data files are read with, so that data is written the same way
+     */
+    public DataSerializer(RoqJacksonSettings settings) {
+        // a bean is written whole, and values are kept exactly as they are
+        this.mapper = settings.configure(JsonMapper.builder())
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
                 .disable(JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES)
-                // java.time values are written as ISO-8601 text, the way they are read
-                .addModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        if (propertyNamingStrategy != null) {
-            builder.propertyNamingStrategy(propertyNamingStrategy);
-        }
-        this.mapper = builder.build();
+                .build();
         this.treeWriter = new DataTreeWriter(mapper);
     }
 
@@ -118,7 +120,7 @@ public class DataSerializer {
                     "@DataMapping(type=ARRAY_FILE) class %s should expose exactly one List property to be written, found %d"
                             .formatted(type.getName(), lists.size()));
         }
-        final BeanPropertyDefinition list = lists.getFirst();
+        final BeanPropertyDefinition list = lists.get(0);
         list.getAccessor().fixAccess(true);
         return list;
     }

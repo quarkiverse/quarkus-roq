@@ -4,14 +4,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
+import io.quarkiverse.roq.RoqJacksonSettings;
 import io.quarkiverse.roq.deployment.config.RoqJacksonConfig;
 import io.quarkiverse.roq.deployment.exception.RoqJacksonConfigException;
 import io.quarkiverse.roq.deployment.items.RoqJacksonBuildItem;
@@ -23,29 +21,11 @@ public class RoqJacksonProcessor {
 
     @BuildStep
     RoqJacksonBuildItem findProject(RoqJacksonConfig jacksonConfig) {
-        YAMLMapper.Builder yamlMapperBuilder = YAMLMapper.builder();
-        JsonMapper.Builder jsonMapperBuilder = JsonMapper.builder();
-        if (!jacksonConfig.failOnUnknownProperties()) {
-            // this feature is enabled by default, so we disable it
-            yamlMapperBuilder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            jsonMapperBuilder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        }
-        if (!jacksonConfig.failOnEmptyBeans()) {
-            // this feature is enabled by default, so we disable it
-            yamlMapperBuilder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-            jsonMapperBuilder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-        }
-
-        if (jacksonConfig.acceptCaseInsensitiveEnums()) {
-            yamlMapperBuilder.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
-            jsonMapperBuilder.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
-        }
-        final Optional<PropertyNamingStrategy> propertyNamingStrategy = determinePropertyNamingStrategyClassName(jacksonConfig);
-        if (propertyNamingStrategy.isPresent()) {
-            jsonMapperBuilder.propertyNamingStrategy(propertyNamingStrategy.get());
-            yamlMapperBuilder.propertyNamingStrategy(propertyNamingStrategy.get());
-        }
-        return new RoqJacksonBuildItem(jsonMapperBuilder.build(), yamlMapperBuilder.build());
+        final RoqJacksonSettings settings = new RoqJacksonSettings(jacksonConfig.failOnUnknownProperties(),
+                jacksonConfig.failOnEmptyBeans(), jacksonConfig.acceptCaseInsensitiveEnums(), null)
+                .withPropertyNamingStrategy(determinePropertyNamingStrategyClassName(jacksonConfig).orElse(null));
+        return new RoqJacksonBuildItem(settings.configure(JsonMapper.builder()).build(),
+                settings.configure(YAMLMapper.builder()).build(), settings);
     }
 
     private Optional<PropertyNamingStrategy> determinePropertyNamingStrategyClassName(RoqJacksonConfig jacksonConfig) {
