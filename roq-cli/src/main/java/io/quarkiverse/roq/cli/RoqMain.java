@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 
 import io.quarkus.cli.common.OutputOptionMixin;
 import io.quarkus.cli.common.OutputProvider;
+import io.quarkus.devtools.project.BuildTool;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -20,8 +21,20 @@ import picocli.CommandLine.Command;
 @QuarkusMain
 @Command(name = "roq", mixinStandardHelpOptions = true, versionProvider = RoqVersionProvider.class, subcommands = {
         StartCommand.class, ServeCommand.class,
-        CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class })
+        CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class,
+        MigrateCommand.class })
 public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputProvider {
+
+    /**
+     * The build tools a Roq project can use.
+     */
+    static final List<BuildTool> BUILD_TOOLS = List.of(BuildTool.MAVEN, BuildTool.GRADLE, BuildTool.GRADLE_KOTLIN_DSL);
+
+    /**
+     * The main build file of a project, one per build tool: {@code pom.xml}, {@code build.gradle} or
+     * {@code build.gradle.kts}.
+     */
+    static final List<String> BUILD_FILES = BUILD_TOOLS.stream().map(BuildTool::getDependenciesFile).toList();
 
     @Inject
     CommandLine.IFactory factory;
@@ -62,7 +75,7 @@ public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputPro
 
     static boolean isRoqProject() {
         Path dir = Paths.get(System.getProperty("user.dir"));
-        for (String buildFile : new String[] { "pom.xml", "build.gradle", "build.gradle.kts" }) {
+        for (String buildFile : BUILD_FILES) {
             Path path = dir.resolve(buildFile);
             if (Files.exists(path)) {
                 try {

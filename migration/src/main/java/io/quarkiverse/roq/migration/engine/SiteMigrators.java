@@ -28,7 +28,8 @@ public final class SiteMigrators {
     }
 
     /**
-     * @return the migrators that come with Roq
+     * @return the migrators that come with Roq; list each one under "Supported generators" in
+     *         {@code blog/content/docs/migrating.adoc}
      */
     public static SiteMigrators builtIn() {
         return BUILT_IN;

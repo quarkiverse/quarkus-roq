@@ -1,9 +1,13 @@
 package io.quarkiverse.roq.cli;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Map;
 
+import io.quarkus.cli.common.BuildOptions;
 import io.quarkus.cli.common.BuildToolContext;
 import io.quarkus.cli.common.BuildToolDelegatingCommand;
+import io.quarkus.cli.common.RunModeOption;
 import io.quarkus.devtools.project.BuildTool;
 import picocli.CommandLine.Command;
 
@@ -40,6 +44,17 @@ public class GenerateCommand extends BuildToolDelegatingCommand {
     public void populateContext(BuildToolContext context) {
         super.populateContext(context);
         context.getPropertiesOptions().properties.put("quarkus.roq.generator.batch", "true");
+    }
+
+    /**
+     * Generates the site in a directory other than the current one, as {@code roq migrate} does with the site it
+     * migrated.
+     *
+     * @return the exit code of the build
+     */
+    int generate(Path projectDir) throws Exception {
+        return call(new BuildToolContext(projectDir, new RunModeOption(), new BuildOptions(), propertiesOptions,
+                new ArrayList<>(), new ArrayList<>()));
     }
 
 }
