@@ -3,6 +3,9 @@ package io.quarkiverse.roq.data.test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -128,6 +131,37 @@ class RoqDataSerializerTest {
                 size: 1.5e3
                 date: 2026-11-12
                 """);
+    }
+
+    @Test
+    void javaTimeValuesAreWrittenAsIsoText() {
+        record Release(String version, LocalDate releaseDate, LocalDateTime cut, Instant published) {
+        }
+        String yaml = """
+                version: "3.20"
+                releaseDate: 2025-03-26 # community GA
+                cut: 2025-03-19T08:09:29
+                published: 2025-03-26T10:00:00Z
+                """;
+        Release release = new Release("3.20", LocalDate.of(2025, 3, 26), LocalDateTime.of(2025, 3, 19, 8, 9, 29),
+                Instant.parse("2025-03-26T10:00:00Z"));
+        assertThat(serializer.write(release, yaml, DataFormat.YAML)).isEqualTo(yaml);
+        Release moved = new Release("3.20", LocalDate.of(2025, 3, 27), release.cut(), release.published());
+        assertThat(serializer.write(moved, yaml, DataFormat.YAML)).isEqualTo("""
+                version: "3.20"
+                releaseDate: 2025-03-27 # community GA
+                cut: 2025-03-19T08:09:29
+                published: 2025-03-26T10:00:00Z
+                """);
+        String json = """
+                {
+                  "version": "3.20",
+                  "releaseDate": "2025-03-26",
+                  "cut": "2025-03-19T08:09:29",
+                  "published": "2025-03-26T10:00:00Z"
+                }
+                """;
+        assertThat(serializer.write(moved, json, DataFormat.JSON)).isEqualTo(json.replace("2025-03-26\"", "2025-03-27\""));
     }
 
     @Test
