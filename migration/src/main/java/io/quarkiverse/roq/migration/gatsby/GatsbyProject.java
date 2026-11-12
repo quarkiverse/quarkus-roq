@@ -1,10 +1,15 @@
 package io.quarkiverse.roq.migration.gatsby;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.quarkiverse.roq.migration.MvnpmDependencies;
 import io.quarkiverse.roq.migration.engine.MigrationException;
 import io.quarkiverse.roq.migration.engine.SourceSite;
 
@@ -17,9 +22,25 @@ import io.quarkiverse.roq.migration.engine.SourceSite;
  * @param markdownSources the {@code gatsby-source-filesystem} directories holding Markdown pages
  * @param imageSource the {@code gatsby-source-filesystem} directory holding images, or null
  * @param homePage the Markdown page shown at {@code /}, e.g. {@code docs/Home.md}, or null
+ * @param browserImports what {@code gatsby-browser.js} imports, in order; its global styles
+ * @param npmVersions the installed version of each npm package {@code gatsby-browser.js} imports for its side effects,
+ *        such as a font; null where neither package-lock.json nor package.json says
  */
 record GatsbyProject(String root, GatsbyConfig config, List<String> markdownSources, String imageSource,
-        String homePage) {
+        String homePage, List<BrowserImport> browserImports, Map<String, String> npmVersions) {
+
+    /**
+     * @param bindsNames true for {@code import x from "y"}, used by code; false for {@code import "y"}, such as a
+     *        stylesheet or font
+     */
+    record BrowserImport(String module, boolean bindsNames) {
+
+        boolean isLocal() {
+            return module.startsWith(".");
+        }
+    }
+
+    static final Pattern IMPORT = Pattern.compile("(?m)^\\s*import\\s+(?:([^\"';]+?)\\s+from\\s+)?[\"']([^\"']+)[\"']");
 
     static final List<String> CONFIG_FILES = List.of("gatsby-config.js", "gatsby-config.mjs", "gatsby-config.ts");
     static final List<String> PROJECT_DIRS = List.of("", "site", "website", "www");
@@ -70,7 +91,30 @@ record GatsbyProject(String root, GatsbyConfig config, List<String> markdownSour
                 }
             }
         }
-        return new GatsbyProject(root, config, markdownSources, imageSource, homePage);
+
+        List<BrowserImport> browserImports = new ArrayList<>();
+        Map<String, String> npmVersions = new LinkedHashMap<>();
+        String browser = join(root, "gatsby-browser.js");
+        if (source.isFile(browser)) {
+            String lock = source.isFile(join(root, "package-lock.json")) ? source.readString(join(root, "package-lock.json"))
+                    : null;
+            String packageJson = source.isFile(join(root, "package.json")) ? source.readString(join(root, "package.json"))
+                    : null;
+            Matcher imported = IMPORT.matcher(source.readString(browser));
+            while (imported.find()) {
+                BrowserImport browserImport = new BrowserImport(imported.group(2), imported.group(1) != null);
+                browserImports.add(browserImport);
+                if (!browserImport.isLocal() && !browserImport.bindsNames()) {
+                    String npm = MvnpmDependencies.npmPackage(browserImport.module());
+                    try {
+                        npmVersions.putIfAbsent(npm, MvnpmDependencies.version(lock, packageJson, npm));
+                    } catch (IOException e) {
+                        throw new MigrationException("Cannot read the npm package versions: " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
+        return new GatsbyProject(root, config, markdownSources, imageSource, homePage, browserImports, npmVersions);
     }
 
     /**

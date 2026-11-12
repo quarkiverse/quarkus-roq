@@ -19,6 +19,7 @@ import io.quarkiverse.roq.migration.engine.MigrationOutput;
 import io.quarkiverse.roq.migration.engine.MigrationReport;
 import io.quarkiverse.roq.migration.engine.MigrationRunner;
 import io.quarkiverse.roq.migration.engine.MigrationRunner.MigrationResult;
+import io.quarkiverse.roq.migration.engine.ProjectDependency;
 
 class GatsbyMigratorTest {
 
@@ -64,7 +65,15 @@ class GatsbyMigratorTest {
                           }
                         }
                         """),
-                Map.entry("site/package-lock.json", "{}"),
+                Map.entry("site/package-lock.json", """
+                        {
+                          "lockfileVersion": 3,
+                          "packages": {
+                            "node_modules/@fontsource/open-sans": {"version": "5.0.29"},
+                            "node_modules/prismjs": {"version": "1.29.0"}
+                          }
+                        }
+                        """),
                 Map.entry("site/babel.config.js", "module.exports = { presets: [\"@babel/preset-env\"] }\n"),
                 Map.entry("site/jest.config.js", "module.exports = { setupFiles: [\"<rootDir>/loadershim.js\"] }\n"),
                 Map.entry("site/loadershim.js", "global.___loader = {}\n"),
@@ -104,6 +113,8 @@ class GatsbyMigratorTest {
                 Map.entry("site/src/components/layout.css", "main { padding: 1em; }\n"),
                 Map.entry("site/src/components/index.module.css", ".hero { color: red; }\n"),
                 Map.entry("site/src/components/header.js", "import styled from \"styled-components\";\n"),
+                Map.entry("site/src/components/hero.js", "import * as styles from \"./hero.module.css\";\n"),
+                Map.entry("site/src/components/hero.module.css", ".hero { color: blue; }\n"),
                 Map.entry("site/src/components/header.test.js", "it('renders', () => {})\n"),
                 Map.entry("site/src/images/logo.svg", "<svg/>"),
                 Map.entry("site/src/pages/index.jsx", "export default HomePage\n"),
@@ -143,11 +154,32 @@ class GatsbyMigratorTest {
                         "steps:\n  - run: npm run build\n    working-directory: site/\n  - run: npm run test:int\n")));
     }
 
+    /**
+     * Shaped like the pom.xml roq create writes: managed dependencies first, then the project's own.
+     */
+    static final String POM = """
+            <project>
+                <dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.quarkus.platform</groupId>
+                            <artifactId>quarkus-bom</artifactId>
+                        </dependency>
+                    </dependencies>
+                </dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.quarkiverse.roq</groupId>
+                        <artifactId>quarkus-roq</artifactId>
+                    </dependency>
+                </dependencies>
+            </project>
+            """;
+
     MigrationResult migrate() throws MigrationException {
-        INFO.clear();
-        return new MigrationRunner(new GatsbyMigrator(), repo, site -> {
-        }, site -> {
-        }, new MigrationOptions(out, false, QUIET)).run();
+        return new MigrationRunner(new GatsbyMigrator(), repo, site -> Files.writeString(site.dir().resolve("pom.xml"), POM),
+                site -> {
+                }, new MigrationOptions(out, false, QUIET)).run();
     }
 
     List<String> actionItems(MigrationResult result) {
@@ -262,15 +294,31 @@ class GatsbyMigratorTest {
     }
 
     @Test
-    void copiesStylesInTheOrderTheSiteLoadsThem() throws Exception {
+    void importsStylesInTheOrderTheSiteLoadsThem() throws Exception {
         migrate();
 
+        // gatsby-browser.js order, local and npm imports mixed, then component styles
         assertThat(out.resolve("web/main.js")).hasContent("""
                 import './_normalize.css';
                 import './_style.css';
+                import 'prismjs/themes/prism.css';
+                import '@fontsource/open-sans';
+                import '@fontsource/open-sans/300.css';
                 import './_layout.css';
                 """);
         assertThat(out.resolve("web/_layout.css")).hasContent("main { padding: 1em; }");
+        assertThat(out.resolve("web/_hero.module.css")).doesNotExist();
+    }
+
+    @Test
+    void asksForTheImportedNpmPackagesAsMvnpmDependencies() throws Exception {
+        MigrationResult result = migrate();
+
+        // The scaffolder adds them; the migrator does not edit the build file
+        assertThat(result.analysis().dependencies()).containsExactly(
+                new ProjectDependency("org.mvnpm", "prismjs", "1.29.0", "provided"),
+                new ProjectDependency("org.mvnpm.at.fontsource", "open-sans", "5.0.29", "provided"));
+        assertThat(out.resolve("pom.xml")).hasContent(POM);
     }
 
     @Test
@@ -314,7 +362,7 @@ class GatsbyMigratorTest {
                 "Port the React component site/src/components/header.js to Qute in templates/",
                 "Recreate the page site/src/pages/404.js as content/404.html",
                 "Port the home page site/src/pages/index.jsx to templates/layouts/main.html or content/index.md",
-                "Convert the CSS module site/src/components/index.module.css to plain CSS in web/; "
+                "Convert the CSS module site/src/components/hero.module.css to plain CSS in web/; "
                         + "its class names were scoped to a component",
                 "Move the styles written with styled-components into CSS in web/",
                 "The 1 Jest unit tests of the React components go with them; write Roq tests (@RoqAndRoll) for "
@@ -324,12 +372,9 @@ class GatsbyMigratorTest {
                 "Update .github/workflows/wikisync.yml: it uses docs/, which moved unchanged to content/; "
                         + "point it at content/");
         assertThat(items).anyMatch(item -> item.startsWith("Update .github/workflows/build.yml: it builds the Gatsby site"));
-        assertThat(items).filteredOn(item -> item.contains("npm package"))
-                .containsExactly(
-                        "Add the npm package prismjs (imported in site/gatsby-browser.js) as an org.mvnpm dependency, "
-                                + "and import what the site uses from it in web/main.js",
-                        "Add the npm package @fontsource/open-sans (imported in site/gatsby-browser.js) as an org.mvnpm "
-                                + "dependency, and import what the site uses from it in web/main.js");
+        assertThat(items).noneMatch(item -> item.contains("npm package") || item.contains("mvnpm"));
+        // Nothing imports it
+        assertThat(items).noneMatch(item -> item.contains("index.module.css"));
         assertThat(items).noneMatch(item -> item.contains("gatsby-starter-default") || item.contains("markdownRemark"));
         assertThat(out.resolve(MigrationReport.ACTION_ITEMS_FILE)).exists();
     }
