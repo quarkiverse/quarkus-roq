@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.cfg.JsonNodeFeature;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkiverse.roq.data.runtime.writer.DataTreeWriter;
 import io.quarkus.arc.ClientProxy;
@@ -49,7 +50,10 @@ public class DataSerializer {
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-                .disable(JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES);
+                .disable(JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES)
+                // java.time values are written as ISO-8601 text, the way they are read
+                .addModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         if (propertyNamingStrategy != null) {
             builder.propertyNamingStrategy(propertyNamingStrategy);
         }
@@ -114,7 +118,7 @@ public class DataSerializer {
                     "@DataMapping(type=ARRAY_FILE) class %s should expose exactly one List property to be written, found %d"
                             .formatted(type.getName(), lists.size()));
         }
-        final BeanPropertyDefinition list = lists.get(0);
+        final BeanPropertyDefinition list = lists.getFirst();
         list.getAccessor().fixAccess(true);
         return list;
     }
