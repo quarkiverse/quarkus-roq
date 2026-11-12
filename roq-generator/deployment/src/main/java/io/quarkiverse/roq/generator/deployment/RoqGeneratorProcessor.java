@@ -13,8 +13,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+
+import org.jboss.jandex.DotName;
+import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.deployment.items.LargeRecordBuildItem;
@@ -23,6 +27,7 @@ import io.quarkiverse.roq.generator.runtime.ConfiguredPathsProvider;
 import io.quarkiverse.roq.generator.runtime.Origin;
 import io.quarkiverse.roq.generator.runtime.RoqGenerator;
 import io.quarkiverse.roq.generator.runtime.RoqGeneratorConfig;
+import io.quarkiverse.roq.generator.runtime.RoqGeneratorMain;
 import io.quarkiverse.roq.generator.runtime.RoqGeneratorRecorder;
 import io.quarkiverse.roq.generator.runtime.RoqSelection;
 import io.quarkiverse.roq.generator.runtime.SelectedPath;
@@ -36,12 +41,16 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
+import io.quarkus.deployment.pkg.PackageConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem;
 import io.quarkus.devui.spi.JsonRPCProvidersBuildItem;
 import io.quarkus.devui.spi.page.CardPageBuildItem;
 import io.quarkus.devui.spi.page.Page;
+import io.quarkus.runtime.annotations.QuarkusMain;
 import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointBuildItem;
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 import io.quarkus.vertx.http.deployment.spi.StaticResourcesBuildItem;
@@ -49,6 +58,8 @@ import io.quarkus.vertx.http.runtime.GeneratedStaticResourcesRecorder;
 
 class RoqGeneratorProcessor {
 
+    private static final Logger LOG = Logger.getLogger(RoqGeneratorProcessor.class);
+    private static final DotName QUARKUS_MAIN = DotName.createSimple(QuarkusMain.class.getName());
     private static final String FEATURE = "roq-generator";
     private static final String SELECTION_RESOURCE = "roq-recorded/generator-selection.ser";
     private static final String STATIC_FILES_RESOURCE = "roq-recorded/generator-static-files.ser";
@@ -67,6 +78,37 @@ class RoqGeneratorProcessor {
                 .icon("font-awesome-solid:link"));
 
         return pageBuildItem;
+    }
+
+    /**
+     * In batch mode, register {@link RoqGeneratorMain} as the application entry point so that the site is generated
+     * once the application has started, and the application exits when done. This is skipped in dev mode, where the
+     * application must stay up until it is stopped.
+     */
+    @BuildStep(onlyIfNot = IsDevelopment.class)
+    void batchMain(RoqGeneratorConfig config,
+            CombinedIndexBuildItem index,
+            PackageConfig packageConfig,
+            BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        if (!config.batch()) {
+            return;
+        }
+        // Same precedence as Quarkus' MainClassBuildStep: an explicit main class, then an unnamed @QuarkusMain
+        final Optional<String> otherMain = packageConfig.mainClass()
+                .or(() -> index.getIndex().getAnnotations(QUARKUS_MAIN).stream()
+                        .filter(a -> a.value("name") == null || a.value("name").asString().isEmpty())
+                        .map(a -> a.target().asClass().name().toString())
+                        .findFirst());
+        if (otherMain.isPresent()) {
+            LOG.warnf("'quarkus.roq.generator.batch' is enabled but the application provides its own main class (%s), "
+                    + "which takes precedence: the static site will not be generated on startup. "
+                    + "Inject RoqGenerator and call generateBlocking() from your main to generate it.",
+                    otherMain.get());
+            return;
+        }
+        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqGeneratorMain.class));
+        quarkusApplicationClass.produce(new QuarkusApplicationClassBuildItem(RoqGeneratorMain.class));
     }
 
     @BuildStep
