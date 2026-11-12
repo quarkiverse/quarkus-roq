@@ -2,6 +2,7 @@ package io.quarkiverse.roq.plugin.asciidoc.common.deployment;
 
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeaderParserBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqMarkdownConverterBuildItem;
 import io.quarkiverse.roq.plugin.asciidoc.common.runtime.AsciidocTemplateExtension;
 import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocKeys;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -21,6 +22,18 @@ public class RoqPluginAsciidocCommonProcessor {
     @BuildStep
     void process(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(AsciidocTemplateExtension.class));
+    }
+
+    /**
+     * The AsciiDoc to Markdown converter, for the build steps that need a page as Markdown; it reads the site's
+     * attributes and safe mode as the AsciidoctorJ plugin does for the page.
+     */
+    @BuildStep
+    RoqMarkdownConverterBuildItem markdownConverter(AsciidocCommonConfig config) {
+        final var attributes = AsciidocMarkdownConverter.siteAttributes(config.attributes());
+        attributes.putIfAbsent("sitegen", "roq");
+        return new RoqMarkdownConverterBuildItem("asciidoc",
+                new AsciidocMarkdownConverter(attributes, AsciidocMarkdownConverter.includes(config.safeMode())));
     }
 
     @BuildStep

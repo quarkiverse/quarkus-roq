@@ -32,5 +32,49 @@ endif::add-copy-button-to-env-var[]
 |boolean
 |`+++false+++`
 
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc_quarkus-asciidoc-attributes-attributes]] [.property-path]##link:#quarkus-roq-plugin-asciidoc_quarkus-asciidoc-attributes-attributes[`+++quarkus.asciidoc.attributes."attributes"+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoc.attributes."attributes"+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The AsciiDoc attributes applied when a page is rendered, and when a page is converted to Markdown at build time (the Markdown twin plugin). The same properties configure the AsciidoctorJ plugin, see its `attributes`.
+
+For a boolean attribute (a flag that is set or unset, such as `sectanchors`), use the value `"true"`, which is converted to an empty value before it reaches the parser.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++`
+endif::add-copy-button-to-env-var[]
+--
+|Map<String,String>
+|
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-asciidoc_quarkus-asciidoc-safe-mode]] [.property-path]##link:#quarkus-roq-plugin-asciidoc_quarkus-asciidoc-safe-mode[`+++quarkus.asciidoc.safe-mode+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.asciidoc.safe-mode+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The safe mode that bounds what a build-time conversion to Markdown may include: `UNSAFE` allows any file, `SAFE` and `SERVER` the files inside the site directory, `SECURE` none. The AsciidoctorJ plugin also renders its pages with this property, see its `safe-mode`.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_SAFE_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ASCIIDOC_SAFE_MODE+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`+++SAFE+++`
+
 |===
 
