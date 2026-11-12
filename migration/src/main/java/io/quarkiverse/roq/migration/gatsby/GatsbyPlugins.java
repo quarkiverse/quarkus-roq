@@ -57,12 +57,18 @@ final class GatsbyPlugins {
 
     /**
      * @param siteDir the site being converted, where local plugins live in the Gatsby project's plugins/
+     * @param components the site's React components, to leave out what their conversion already did
      * @return one action item per thing to do, in the order the plugins are configured
      */
-    static Set<String> actionItems(GatsbyProject project, Path siteDir) throws IOException {
+    static Set<String> actionItems(GatsbyProject project, Path siteDir, GatsbyComponents components)
+            throws IOException {
         Set<String> actions = new LinkedHashSet<>();
         for (String plugin : project.config().plugins()) {
             if (HANDLED.contains(plugin) || NOTES.containsKey(plugin)) {
+                continue;
+            }
+            if (plugin.equals("gatsby-plugin-image") && !unconvertedComponentsUse(components, plugin)) {
+                // The converted components' images are plain <img> tags already
                 continue;
             }
             if (SHARP.contains(plugin)) {
@@ -103,6 +109,11 @@ final class GatsbyPlugins {
             }
         }
         return large.isEmpty() ? null : String.join(", ", large);
+    }
+
+    private static boolean unconvertedComponentsUse(GatsbyComponents components, String module) {
+        return components.outcomes().values().stream().filter(o -> o.converted() == null)
+                .anyMatch(o -> o.component().imports().values().stream().anyMatch(i -> i.from().equals(module)));
     }
 
     /**
