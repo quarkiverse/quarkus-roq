@@ -20,10 +20,17 @@ import io.quarkiverse.roq.migration.engine.TargetSite;
  */
 final class GatsbyStyles {
 
+    static final String COMPONENTS_CSS = "_components.css";
+
     private GatsbyStyles() {
     }
 
-    static void convert(GatsbyProject project, TargetSite site) throws IOException {
+    /**
+     * @param components the React components, whose converted styled-components go to {@value #COMPONENTS_CSS}
+     * @param fontAwesome the Font Awesome stylesheet to import for converted icons; null if none is needed
+     */
+    static void convert(GatsbyProject project, TargetSite site, GatsbyComponents components, String fontAwesome)
+            throws IOException {
         Path dir = site.dir();
         Path src = dir.resolve(project.path("src"));
         Path web = dir.resolve("web");
@@ -80,6 +87,17 @@ final class GatsbyStyles {
             }
         }
 
+        // Icons and styled-components of the components converted to Qute
+        if (fontAwesome != null) {
+            imports.add("import '" + fontAwesome + "';");
+        }
+        String componentsCss = components.css();
+        if (!componentsCss.isEmpty()) {
+            Files.writeString(web.resolve(COMPONENTS_CSS), componentsCss);
+            imports.add("import './" + COMPONENTS_CSS + "';");
+            site.report().info("Moved the styled-components of the converted components to web/" + COMPONENTS_CSS);
+        }
+
         if (!imports.isEmpty()) {
             Files.writeString(web.resolve("main.js"), String.join("\n", imports) + "\n");
             site.report().info("Wrote web/main.js, which imports " + copied.size() + " stylesheets copied to web/"
@@ -87,9 +105,13 @@ final class GatsbyStyles {
         }
         // Not in what only the Markdown route uses, which Roq's page layout replaces
         Set<String> replaced = GatsbyRoutes.replacedByRoq(project, site.dir()).keySet();
-        if (SiteFiles.files(src, GatsbyStyles::usesStyledComponents).stream()
-                .anyMatch(file -> !replaced.contains(SiteFiles.relativePath(site.dir(), file)))) {
-            site.report().todo("Move the styles written with styled-components into CSS in web/");
+        List<String> unconverted = components.outcomes().values().stream()
+                .filter(o -> o.converted() == null && !replaced.contains(o.component().file())
+                        && usesStyledComponents(dir.resolve(o.component().file())))
+                .map(o -> o.component().file()).toList();
+        if (!unconverted.isEmpty()) {
+            site.report().todo("Move the styles written with styled-components in " + String.join(", ", unconverted)
+                    + " into CSS in web/");
         }
     }
 
