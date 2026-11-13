@@ -915,12 +915,15 @@ NOTE: Supported extensions: `.json`, `.yml`, `.yaml`.
 bar: Roq
 ----
 
-Access it with the `cdi` namespace:
+Access it with the `data` namespace (or its equivalent, the `cdi` namespace):
 
 [source,html]
 ----
+{=data:foo.bar}
 {=cdi:foo.bar}
 ----
+
+NOTE: `data:` is an alias for `cdi:`: it resolves any named CDI bean (data files, `@DataMapping` beans or your own `@Named` beans). When no bean matches the name, it falls back to the standard Qute `data:` namespace (the root template data, e.g. `data:page`).
 
 For structured data:
 
