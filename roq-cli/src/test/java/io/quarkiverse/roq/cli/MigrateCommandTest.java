@@ -14,6 +14,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.quarkiverse.roq.migration.engine.ReferenceSite;
 import io.quarkiverse.roq.migration.engine.Scaffolder;
 import io.quarkiverse.roq.migration.engine.SiteAnalysis;
 import io.quarkiverse.roq.migration.engine.SiteBuilder;
@@ -84,6 +85,10 @@ class MigrateCommandTest {
         @Override
         protected void checkResult(TargetSite site) {
             site.report().todo("Check the posts");
+        }
+
+        @Override
+        protected void validate(TargetSite site, ReferenceSite reference) {
         }
     }
 
