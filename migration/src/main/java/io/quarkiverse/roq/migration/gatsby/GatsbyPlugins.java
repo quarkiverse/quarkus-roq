@@ -75,6 +75,10 @@ final class GatsbyPlugins {
                 }
                 continue;
             }
+            if (plugin.equals(GatsbyIcons.PLUGIN) && GatsbyIcons.handles(project)) {
+                // The favicon and the manifest are migrated
+                continue;
+            }
             String local = project.path("plugins/" + plugin);
             if (ACTIONS.containsKey(plugin)) {
                 actions.add(ACTIONS.get(plugin));
