@@ -1,5 +1,9 @@
 package io.quarkiverse.roq.generator.deployment;
 
+import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
+
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +16,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+
+import org.jboss.jandex.DotName;
+import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.LargeRecords;
 import io.quarkiverse.roq.deployment.items.LargeRecordBuildItem;
@@ -48,12 +55,6 @@ import io.quarkus.vertx.http.deployment.devmode.NotFoundPageDisplayableEndpointB
 import io.quarkus.vertx.http.deployment.spi.GeneratedStaticResourceBuildItem;
 import io.quarkus.vertx.http.deployment.spi.StaticResourcesBuildItem;
 import io.quarkus.vertx.http.runtime.GeneratedStaticResourcesRecorder;
-import org.jboss.jandex.DotName;
-import org.jboss.logging.Logger;
-
-import static io.quarkiverse.tools.stringpaths.StringPaths.prefixWithSlash;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toMap;
 
 class RoqGeneratorProcessor {
 
