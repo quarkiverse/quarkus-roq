@@ -52,6 +52,12 @@
     --color-link-hover: var(--color-gray-700);
     --color-link-hover-dark: var(--color-gray-300);
 
+    /* Links inside markdown content (bio items) */
+    --color-content-link: var(--color-accent-700);
+    --color-content-link-dark: var(--color-accent-400);
+    --color-content-link-hover: var(--color-accent-900);
+    --color-content-link-hover-dark: var(--color-accent-300);
+
     /* Profile image border */
     --color-profile-border: var(--color-purple-200);
     --color-profile-border-dark: var(--color-purple-800);
@@ -118,6 +124,9 @@
 }
 .markdown pre {
     @apply bg-gray-100 p-3 rounded overflow-x-auto text-sm mb-4;
+}
+.markdown a {
+    @apply font-medium text-content-link underline decoration-1 underline-offset-2 hover:text-content-link-hover hover:decoration-2 dark:text-content-link-dark dark:hover:text-content-link-hover-dark;
 }
 
 
