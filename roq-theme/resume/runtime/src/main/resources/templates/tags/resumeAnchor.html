@@ -1,0 +1,19 @@
+{@java.lang.String anchorId}
+{@java.lang.String label}
+<a href="#{anchorId}"
+   class="resume-anchor group/anchor relative inline-flex cursor-pointer align-middle rounded-sm p-1
+          text-muted opacity-0 transition-opacity duration-150
+          hover:text-icon-highlight focus-visible:opacity-100 group-hover:opacity-100 data-copied:opacity-100
+          dark:text-muted-dark dark:hover:text-icon-highlight-dark"
+   aria-label="{roq_theme:copy_link}: {label}"
+   title="{roq_theme:copy_link}">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </svg>
+  <span role="status"
+        class="pointer-events-none absolute left-full top-1/2 z-10 ml-1 -translate-y-1/2 whitespace-nowrap
+               rounded-sm bg-gray-900 px-2 py-1 text-xs font-normal text-white opacity-0 transition-opacity
+               group-data-copied/anchor:opacity-100 dark:bg-white dark:text-gray-900">{roq_theme:link_copied}</span>
+</a>

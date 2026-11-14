@@ -46,7 +46,10 @@ public class RoqThemeResumeTest {
                 .asString();
         assertThat(body).containsPattern("<h3[^>]*id=\"Experience\"");
         assertThat(body).contains("href=\"#Experience\"");
-        assertThat(body).contains("Copy link to this section");
+        assertThat(body).contains("Copy link");
+        // Items get an anchor too, prefixed by their section id to stay unique
+        assertThat(body).contains("id=\"Education-1833-Meeting-Charles-Babbage\"");
+        assertThat(body).contains("href=\"#Education-1833-Meeting-Charles-Babbage\"");
     }
 
     @Test

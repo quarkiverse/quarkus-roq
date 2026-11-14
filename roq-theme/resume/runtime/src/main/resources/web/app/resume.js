@@ -5,10 +5,10 @@ window.Alpine = Alpine
 
 Alpine.start()
 
-// Section anchors: clicking the link icon next to a section heading copies the full URL (with the anchor)
-// to the clipboard, without navigating (the address bar and scroll position are left untouched)
+// Anchors: clicking the link icon next to a section heading or a resume item copies the full URL
+// (with the anchor) to the clipboard, without navigating (the address bar and scroll position are left untouched)
 document.addEventListener('click', async (event) => {
-    const link = event.target.closest('a.section-anchor');
+    const link = event.target.closest('a.resume-anchor');
     if (!link) return;
     event.preventDefault();
 
@@ -25,3 +25,24 @@ document.addEventListener('click', async (event) => {
         link.title = url;
     }
 });
+
+// When the page is opened with an anchor pointing to an item hidden behind "Show more" or inside a
+// collapsed item, reveal it and scroll to it
+function revealHashTarget() {
+    if (!location.hash) return;
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (!target) return;
+    for (let el = target.parentElement; el; el = el.parentElement) {
+        if (el.tagName === 'DETAILS') {
+            el.open = true;
+        }
+        if (el.hasAttribute('x-data')) {
+            const data = Alpine.$data(el);
+            if ('showAll' in data) data.showAll = true;
+        }
+    }
+    Alpine.nextTick(() => target.scrollIntoView());
+}
+
+revealHashTarget();
+window.addEventListener('hashchange', revealHashTarget);
