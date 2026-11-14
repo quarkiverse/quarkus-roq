@@ -53,6 +53,50 @@ public class RoqThemeResumeTest {
     }
 
     @Test
+    public void testCollapsibleItems() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        // collapsed: true -> <details> without "open"
+        assertThat(body).containsPattern(
+                "<li id=\"Experience-1843-Notes-on-the-Analytical-Engine\"[^>]*>\\s*<details\\s*>");
+        // collapsed: false -> <details open>
+        assertThat(body).containsPattern(
+                "<li id=\"Experience-1840-1842-Correspondence-with-Augustus-De-Morgan\"[^>]*>\\s*<details open>");
+        // The anchor of a collapsible item sits in its <summary>, so it stays visible when collapsed
+        assertThat(body).containsPattern(Pattern.compile(
+                "<summary>(?:(?!</summary>).)*href=\"#Experience-1843-Notes-on-the-Analytical-Engine\"",
+                Pattern.DOTALL));
+    }
+
+    @Test
+    public void testNestedItemAnchors() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        // Sub-item ids are prefixed by their parent item id
+        assertThat(body).contains(
+                "id=\"Experience-1843-Notes-on-the-Analytical-Engine-Note-A-Beyond-calculation\"",
+                "href=\"#Experience-1843-Notes-on-the-Analytical-Engine-Note-A-Beyond-calculation\"",
+                "id=\"Experience-1843-Notes-on-the-Analytical-Engine-Note-G-Bernoulli-numbers-algorithm\"",
+                "id=\"Experience-1840-1842-Correspondence-with-Augustus-De-Morgan-1841-Calculus-lessons\"");
+        // ... and rendered inside the (collapsed) parent <details>
+        assertThat(body).containsPattern(Pattern.compile(
+                "<li id=\"Experience-1843-Notes-on-the-Analytical-Engine\"[^>]*>\\s*<details\\s*>"
+                        + "(?:(?!</details>).)*<li id=\"Experience-1843-Notes-on-the-Analytical-Engine-Note-G-Bernoulli-numbers-algorithm\"",
+                Pattern.DOTALL));
+    }
+
+    @Test
+    public void testItemsBeyondThreeAreBehindShowMore() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        // The 4th item of a section is hidden until "Show more" is clicked, but keeps its anchor
+        assertThat(body).containsPattern(
+                "x-show=\"showAll \\|\\| 3 < 3\" x-cloak>\\s*<li id=\"Experience-1835-1852-Countess-of-Lovelace\"");
+        assertThat(body).contains("href=\"#Experience-1835-1852-Countess-of-Lovelace\"");
+        assertThat(body).contains("'... Show more'");
+    }
+
+    @Test
     public void testHtmlLangAttribute() {
         final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
