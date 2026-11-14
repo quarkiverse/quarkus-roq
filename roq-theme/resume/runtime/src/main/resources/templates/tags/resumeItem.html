@@ -20,7 +20,7 @@
     <h5 class="mb-2 font-bold text-heading dark:text-heading-dark">
       {item.title}{#if item.link??} -
     <a
-      class="font-medium text-link underline hover:text-link-hover dark:text-link-dark dark:hover:text-link-hover-dark"
+      class="font-medium text-link underline wrap-anywhere hover:text-link-hover dark:text-link-dark dark:hover:text-link-hover-dark"
       href="{item.link}"
       target="_blank" rel="noopener noreferrer"
     >{item.link}</a>{/if}
@@ -29,7 +29,7 @@
   </summary>
 {/if}
 
-  <div class="text-sm/relaxed text-muted dark:text-muted-dark markdown">
+  <div class="text-sm/relaxed text-muted dark:text-muted-dark markdown wrap-anywhere">
 {#if item.content}
   {item.content.markdownify}
 {/if}

@@ -41,6 +41,20 @@ public class RoqThemeResumeTest {
     }
 
     @Test
+    public void testLongUrlsCanWrap() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        // Item links display the raw URL: without wrap-anywhere, a long URL widens the whole page on phones
+        assertThat(body).containsPattern(
+                "<a\\s+class=\"[^\"]*\\bwrap-anywhere\\b[^\"]*\"\\s+href=\"https://archive\\.example\\.org/lovelace/");
+        assertThat(body).containsPattern("class=\"[^\"]*\\bmarkdown wrap-anywhere\\b");
+        final String css = RestAssured.when().get(bundle.style("app")).then().statusCode(200).log().ifValidationFails()
+                .extract()
+                .asString();
+        assertThat(css).contains(".wrap-anywhere{overflow-wrap:anywhere}");
+    }
+
+    @Test
     public void testHtmlLangAttribute() {
         final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();
