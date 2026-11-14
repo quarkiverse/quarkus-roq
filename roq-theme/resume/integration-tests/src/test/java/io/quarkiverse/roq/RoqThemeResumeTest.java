@@ -41,6 +41,15 @@ public class RoqThemeResumeTest {
     }
 
     @Test
+    public void testSectionAnchors() {
+        final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
+                .asString();
+        assertThat(body).containsPattern("<h3[^>]*id=\"Experience\"");
+        assertThat(body).contains("href=\"#Experience\"");
+        assertThat(body).contains("Copy link to this section");
+    }
+
+    @Test
     public void testHtmlLangAttribute() {
         final String body = RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();

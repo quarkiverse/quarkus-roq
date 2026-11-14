@@ -9,4 +9,10 @@ public interface ThemeMessageBundle {
     @Message(defaultValue = "Contact me")
     String contact_title();
 
+    @Message(defaultValue = "Copy link to this section")
+    String copy_section_link();
+
+    @Message(defaultValue = "Link copied!")
+    String link_copied();
+
 }
