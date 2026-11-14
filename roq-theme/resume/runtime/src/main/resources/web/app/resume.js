@@ -26,12 +26,14 @@ document.addEventListener('click', async (event) => {
     }
 });
 
-// When the page is opened with an anchor pointing to an item hidden behind "Show more" or inside a
-// collapsed item, reveal it and scroll to it
+// When the page is opened with an anchor pointing to an item hidden behind "Show more", inside a
+// collapsed item, or which is itself a collapsed item, reveal (and expand) it and scroll to it
 function revealHashTarget() {
     if (!location.hash) return;
     const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (!target) return;
+    const ownDetails = target.querySelector(':scope > details');
+    if (ownDetails) ownDetails.open = true;
     for (let el = target.parentElement; el; el = el.parentElement) {
         if (el.tagName === 'DETAILS') {
             el.open = true;
