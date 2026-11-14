@@ -8,7 +8,6 @@ import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
@@ -27,19 +25,15 @@ import org.jboss.logging.Logger;
 
 import io.quarkus.arc.All;
 import io.quarkus.runtime.LaunchMode;
-import io.quarkus.runtime.Quarkus;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.VertxHttpConfig;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpResponseExpectation;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -70,26 +64,6 @@ public class RoqGenerator implements Handler<RoutingContext> {
         this.httpBuildTimeConfig = httpBuildTimeConfig;
         this.staticFiles = ConfiguredPathsProvider.staticFiles();
         selectedPaths = prepare(config, selection);
-    }
-
-    void onStart(@Observes Router router) {
-        router.route("/roq/ping").method(HttpMethod.GET).handler(routingContext -> {
-            routingContext.response().end("pong");
-        });
-        if (config.batch()) {
-            generate().subscribe().with(t -> {
-                LOGGER.info("Roq generation succeeded in directory: " + outputDir());
-                Quarkus.asyncExit(0);
-            }, throwable -> {
-                if (throwable instanceof ConnectException) {
-                    LOGGER.error("Roq generation failed");
-                } else {
-                    LOGGER.error("Roq generation failed", throwable);
-                }
-
-                Quarkus.asyncExit(1);
-            });
-        }
     }
 
     public String outputDir() {
@@ -135,7 +109,6 @@ public class RoqGenerator implements Handler<RoutingContext> {
         }
 
         return clearOutputDir(fs, outputDir)
-                .chain(this::pollRoqPing)
                 .chain(() -> Uni.join().all(all).andFailFast().map(l -> outputDir))
                 .ifNoItem().after(Duration.ofSeconds(config.timeout()))
                 .fail();
@@ -149,20 +122,6 @@ public class RoqGenerator implements Handler<RoutingContext> {
                 return Future.succeededFuture();
             }
         }).toCompletionStage());
-    }
-
-    private Uni<Void> pollRoqPing() {
-        final String pingPath = join(httpBuildTimeConfig.rootPath(), "/roq/ping");
-        return Multi.createFrom().ticks().every(Duration.ofMillis(500))
-                .onItem().transformToUniAndMerge(tick -> getSend(pingPath)
-                        .map(r -> true)
-                        .onFailure().recoverWithItem(false))
-                .filter(success -> success)
-                .toUni()
-                .replaceWithVoid()
-                .ifNoItem().after(Duration.ofSeconds(30))
-                .failWith(() -> new RuntimeException(
-                        "Quarkus didn't start after 30 seconds (no response on '%s').".formatted(pingPath)));
     }
 
     private Uni<Buffer> fetchContent(String path) {
