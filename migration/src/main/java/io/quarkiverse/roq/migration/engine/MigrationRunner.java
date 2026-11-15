@@ -1,6 +1,7 @@
 package io.quarkiverse.roq.migration.engine;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -38,6 +39,7 @@ public final class MigrationRunner {
     private final Scaffolder scaffolder;
     private final SiteBuilder builder;
     private final boolean build;
+    private final URI referenceSite;
     private final MigrationOutput output;
 
     public MigrationRunner(SiteMigrator migrator, Path sourceDir, Scaffolder scaffolder, SiteBuilder builder,
@@ -48,6 +50,7 @@ public final class MigrationRunner {
         this.scaffolder = scaffolder;
         this.builder = builder;
         this.build = options.build();
+        this.referenceSite = options.referenceSite();
         this.output = options.output();
     }
 
@@ -79,13 +82,39 @@ public final class MigrationRunner {
         stage(report, "assets", "Fix static assets and stylesheets", () -> migrator.convertAssets(site));
         stage(report, "code", "Generate Java code for site-specific extensions", () -> migrator.generateCode(site));
         stage(report, "check", "Check the converted site", () -> migrator.checkResult(site));
-        // Before the build, so the list is there even if the build fails
-        report.writeActionItems(siteDir, migrator.type());
-        if (build) {
-            stage(report, "build", "Build the site", () -> builder.build(site));
+        try {
+            if (build) {
+                stage(report, "build", "Build the site", () -> builder.build(site));
+            }
+            stage(report, "validate", "Compare the site with the one before the migration",
+                    () -> migrator.validate(site, build ? reference(analysis, report) : null));
+        } finally {
+            // Even if the build fails
+            report.writeActionItems(siteDir, migrator.type());
         }
         report.printActionItems();
         return new MigrationResult(siteDir, analysis, report.warnings(), report.actionItems());
+    }
+
+    /**
+     * @return the reference site given in the options, else the one the migrator found; null if there is none, or it
+     *         cannot be reached
+     */
+    private ReferenceSite reference(SiteAnalysis analysis, MigrationReport report) throws InterruptedException {
+        URI url = referenceSite != null ? referenceSite : analysis.referenceSite();
+        if (url == null) {
+            return null;
+        }
+        ReferenceSite reference = new ReferenceSite(url, siteDir.resolve(SiteBuilder.GENERATED_SITE));
+        try {
+            reference.checkReachable();
+        } catch (IOException | IllegalArgumentException e) {
+            report.warn("Cannot reach " + url + " (" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName())
+                    + "), so the site was not compared with it");
+            return null;
+        }
+        report.info("Comparing the site with " + url);
+        return reference;
     }
 
     private void stage(MigrationReport report, String name, String description, Stage stage)

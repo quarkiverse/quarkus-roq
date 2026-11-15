@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration.gatsby;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Locale;
 import io.quarkiverse.roq.migration.MvnpmDependencies;
 import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.MigrationException;
+import io.quarkiverse.roq.migration.engine.ReferenceSite;
 import io.quarkiverse.roq.migration.engine.SiteAnalysis;
 import io.quarkiverse.roq.migration.engine.SiteMigrator;
 import io.quarkiverse.roq.migration.engine.SiteType;
@@ -68,6 +70,10 @@ public class GatsbyMigrator extends SiteMigrator {
         });
         String slug = slugify(project.config().siteMetadata().getOrDefault("title", source.name()));
         analysis.projectName((slug.isEmpty() ? slugify(source.name()) : slug) + "-website");
+        String siteUrl = project.config().siteMetadata().get("siteUrl");
+        if (siteUrl != null && siteUrl.matches("https?://.+")) {
+            analysis.referenceSite(URI.create(siteUrl));
+        }
     }
 
     @Override
@@ -155,6 +161,24 @@ public class GatsbyMigrator extends SiteMigrator {
             SiteFiles.deleteTree(dir.resolve("src"));
             SiteFiles.deleteTree(dir.resolve("plugins"));
             site.report().info("Removed the Gatsby project files");
+        }
+    }
+
+    @Override
+    protected void validate(TargetSite site, ReferenceSite reference) throws Exception {
+        if (reference == null) {
+            site.report().todo("Check the page URLs against the old site; pages without a slug or path are served at "
+                    + "/<file-name>/, lower case with punctuation replaced by - (site.page-link=/:path/)");
+            return;
+        }
+        List<String> missing = reference.missingPages();
+        if (missing.isEmpty()) {
+            site.report().info("The " + reference.builtPages().size() + " pages are at the same URLs as on "
+                    + reference.url());
+        } else {
+            site.report().todo(reference.url() + " has nothing at these URLs of the migrated site: "
+                    + String.join(", ", missing) + "; give the pages the URLs they had, with link: in their front "
+                    + "matter, unless they are new");
         }
     }
 

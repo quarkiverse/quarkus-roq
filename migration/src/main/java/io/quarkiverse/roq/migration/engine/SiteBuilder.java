@@ -6,5 +6,10 @@ package io.quarkiverse.roq.migration.engine;
 @FunctionalInterface
 public interface SiteBuilder {
 
+    /**
+     * Where the built site is, in the converted site.
+     */
+    String GENERATED_SITE = "target/roq";
+
     void build(TargetSite site) throws Exception;
 }

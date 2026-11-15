@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -13,6 +16,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.sun.net.httpserver.HttpServer;
+
+import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.MigrationException;
 import io.quarkiverse.roq.migration.engine.MigrationOptions;
 import io.quarkiverse.roq.migration.engine.MigrationOutput;
@@ -20,6 +26,7 @@ import io.quarkiverse.roq.migration.engine.MigrationReport;
 import io.quarkiverse.roq.migration.engine.MigrationRunner;
 import io.quarkiverse.roq.migration.engine.MigrationRunner.MigrationResult;
 import io.quarkiverse.roq.migration.engine.ProjectDependency;
+import io.quarkiverse.roq.migration.engine.SiteBuilder;
 
 class GatsbyMigratorTest {
 
@@ -200,6 +207,45 @@ class GatsbyMigratorTest {
                 + "# Roq builds the site in target/\ntarget/");
         assertThat(GatsbyContent.BUILD_OUTPUT.matcher("/public/").matches()).isTrue();
         assertThat(GatsbyContent.BUILD_OUTPUT.matcher("site/public").matches()).isFalse();
+    }
+
+    @Test
+    void comparesThePageUrlsWithTheLiveSite() throws Exception {
+        assertThat(migrate().analysis().referenceSite()).hasToString("https://hub.quarkiverse.io");
+
+        HttpServer live = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        live.createContext("/", exchange -> {
+            exchange.sendResponseHeaders(List.of("/", "/home/").contains(exchange.getRequestURI().getPath()) ? 200 : 404,
+                    -1);
+            exchange.close();
+        });
+        live.start();
+        URI url = URI.create("http://localhost:" + live.getAddress().getPort());
+        List<String> items;
+        try {
+            SiteFiles.deleteTree(out);
+            INFO.clear();
+            items = actionItems(new MigrationRunner(new GatsbyMigrator(), repo, site -> {
+            }, site -> {
+                for (String page : List.of("index.html", "home/index.html", "checklist/index.html")) {
+                    Path file = site.dir().resolve(SiteBuilder.GENERATED_SITE).resolve(page);
+                    Files.createDirectories(file.getParent());
+                    Files.writeString(file, "<html></html>");
+                }
+            }, new MigrationOptions(out, true, QUIET, url)).run());
+        } finally {
+            live.stop(0);
+        }
+
+        assertThat(items).contains(url + " has nothing at these URLs of the migrated site: /checklist/ (404); give the "
+                + "pages the URLs they had, with link: in their front matter, unless they are new");
+        assertThat(items).noneMatch(item -> item.startsWith("Check the page URLs"));
+    }
+
+    @Test
+    void asksToCheckThePageUrlsWhenTheSiteIsNotBuilt() throws Exception {
+        assertThat(actionItems(migrate())).contains("Check the page URLs against the old site; pages without a slug or "
+                + "path are served at /<file-name>/, lower case with punctuation replaced by - (site.page-link=/:path/)");
     }
 
     @Test
