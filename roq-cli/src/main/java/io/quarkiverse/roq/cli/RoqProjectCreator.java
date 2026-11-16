@@ -3,18 +3,25 @@ package io.quarkiverse.roq.cli;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Model;
+import org.eclipse.aether.artifact.DefaultArtifact;
 
+import io.quarkus.bootstrap.resolver.maven.MavenArtifactResolver;
 import io.quarkus.devtools.commands.CreateProject;
 import io.quarkus.devtools.commands.CreateProjectHelper;
 import io.quarkus.devtools.commands.data.QuarkusCommandOutcome;
 import io.quarkus.devtools.project.BuildTool;
 import io.quarkus.devtools.project.QuarkusProject;
 import io.quarkus.devtools.project.QuarkusProjectHelper;
+import io.quarkus.maven.utilities.MojoUtils;
 import io.quarkus.registry.catalog.ExtensionCatalog;
 
 /**
@@ -26,6 +33,8 @@ public class RoqProjectCreator {
     public static final String ROQ_GROUP_ID = "io.quarkiverse.roq";
     public static final String ROQ_EXTENSION = ROQ_GROUP_ID + ":quarkus-roq";
     public static final String ROQ_PREFIX = ROQ_GROUP_ID + ":quarkus-roq-";
+    public static final String ROQ_BOM_ARTIFACT_ID = "quarkus-roq-bom";
+    public static final String ROQ_VERSION_PROPERTY = "quarkus-roq.version";
 
     private final Path projectDir;
     private final String artifactId;
@@ -141,6 +150,58 @@ public class RoqProjectCreator {
 
     private void postCreate() throws IOException {
         deleteDirIfNoFiles(projectDir.resolve("src"));
+        importRoqBom(projectDir.resolve("pom.xml"), QuarkusProjectHelper.artifactResolver());
+    }
+
+    /**
+     * Import the Roq BOM in a Maven project and let it manage the versions of the Roq and Web Bundler dependencies,
+     * so they cannot drift apart. Nothing is changed when the Roq version in use has no BOM.
+     *
+     * @return true if the pom was updated
+     */
+    static boolean importRoqBom(Path pomFile, MavenArtifactResolver resolver) throws IOException {
+        if (!Files.isRegularFile(pomFile)) {
+            return false;
+        }
+        Model model = MojoUtils.readPom(pomFile.toFile());
+        String roqVersion = model.getDependencies().stream()
+                .filter(d -> ROQ_EXTENSION.equals(d.getGroupId() + ":" + d.getArtifactId()))
+                .map(Dependency::getVersion)
+                .findFirst().orElse(null);
+        if (roqVersion == null) {
+            return false;
+        }
+        Set<String> managed = new HashSet<>();
+        try {
+            resolver.resolveDescriptor(new DefaultArtifact(ROQ_GROUP_ID, ROQ_BOM_ARTIFACT_ID, "pom", roqVersion))
+                    .getManagedDependencies()
+                    .forEach(d -> managed.add(d.getArtifact().getGroupId() + ":" + d.getArtifact().getArtifactId()));
+        } catch (Exception e) {
+            // Roq versions released before the BOM
+            return false;
+        }
+        if (managed.isEmpty()) {
+            return false;
+        }
+
+        model.getProperties().setProperty(ROQ_VERSION_PROPERTY, roqVersion);
+        Dependency bom = new Dependency();
+        bom.setGroupId(ROQ_GROUP_ID);
+        bom.setArtifactId(ROQ_BOM_ARTIFACT_ID);
+        bom.setVersion("${" + ROQ_VERSION_PROPERTY + "}");
+        bom.setType("pom");
+        bom.setScope("import");
+        if (model.getDependencyManagement() == null) {
+            model.setDependencyManagement(new DependencyManagement());
+        }
+        model.getDependencyManagement().getDependencies().add(0, bom);
+        for (Dependency dependency : model.getDependencies()) {
+            if (managed.contains(dependency.getGroupId() + ":" + dependency.getArtifactId())) {
+                dependency.setVersion(null);
+            }
+        }
+        MojoUtils.write(model, pomFile.toFile());
+        return true;
     }
 
     private String withVersion(String gav) {

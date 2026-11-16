@@ -841,6 +841,8 @@ roq create my-site -x plugin:tagging,plugin:sitemap
 | Pin a specific Roq version
 |===
 
+Maven projects created with `roq create` import the <<bom,Roq BOM>>, which manages the versions of the Roq and Web Bundler dependencies.
+
 === `roq start`
 
 Start dev mode with live reload:
@@ -1013,6 +1015,70 @@ Never put an SSH passphrase in `application.properties`. Provide it via the `EDI
 === Editor configuration reference
 
 include::../../includes/configs/quarkus-roq-editor_editor.adoc[]
+
+[#bom]
+== Aligning versions with the Roq BOM
+
+Roq is built against a specific Quarkus Web Bundler version. When another version reaches your classpath (for example by adding `quarkus-web-bundler-tailwindcss` with its own version), the build fails with errors such as `NoSuchMethodError`, `NoClassDefFoundError` or `ClassNotFoundException`.
+
+The `quarkus-roq-bom` manages the version of every Roq artifact (core, plugins, themes) and of the Web Bundler artifacts they are compatible with. Import it once and drop the versions from those dependencies:
+
+.pom.xml
+[source,xml]
+----
+<properties>
+    <quarkus-roq.version>...</quarkus-roq.version>
+</properties>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkiverse.roq</groupId>
+            <artifactId>quarkus-roq-bom</artifactId>
+            <version>${quarkus-roq.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- the Quarkus platform BOM stays as it is -->
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkiverse.roq</groupId>
+        <artifactId>quarkus-roq-plugin-tagging</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkiverse.web-bundler</groupId>
+        <artifactId>quarkus-web-bundler-tailwindcss</artifactId>
+    </dependency>
+</dependencies>
+----
+
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation enforcedPlatform("io.quarkiverse.roq:quarkus-roq-bom:${quarkusRoqVersion}")
+    implementation 'io.quarkiverse.roq:quarkus-roq'
+    implementation 'io.quarkiverse.web-bundler:quarkus-web-bundler-tailwindcss'
+}
+----
+
+The BOM does not manage the Quarkus version: keep importing the Quarkus platform BOM next to it.
+
+NOTE: `quarkus-roq-bom` is not available for Roq 2.2.0 and older.
+
+To check which versions end up in your build:
+
+[source,shell]
+----
+mvn dependency:tree -Dincludes=io.quarkiverse.web-bundler,io.quarkiverse.roq
+----
 
 == Updating Roq
 

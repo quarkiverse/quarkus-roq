@@ -22,6 +22,13 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.quarkiverse.roq</groupId>
+                <artifactId>quarkus-roq-bom</artifactId>
+                <version>${quarkus-roq.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
                 <version>${quarkus.platform.version}</version>
@@ -34,57 +41,46 @@
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-theme-default</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-tagging</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-sitemap</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-lunr</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-aliases</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-asciidoc-jruby</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-markdown-twin</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-series</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-qrcode</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-plugin-og-card</artifactId>
-            <version>${quarkus-roq.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -120,7 +116,6 @@
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
             <artifactId>quarkus-roq-testing</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
