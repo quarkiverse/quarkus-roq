@@ -1,0 +1,38 @@
+---
+layout: page
+title: Expressions
+image: hero-landscape.jpg
+cover: gallery-food.jpg
+---
+
+<section class="fm-hero">
+{#img src=page.image preset='hero' alt='FM hero'/}
+</section>
+
+<section class="fm-avatar">
+{#img src=page.image('avatar-portrait.jpg') preset='avatar' alt='Author'/}
+</section>
+
+<section class="fm-direct">
+{#img src=page.image preset='direct'/}
+</section>
+
+<section class="img-path">
+<a style='background-image: url("{img:path(page.image, "hero")}")'>path test</a>
+</section>
+
+<section class="img-url">
+<span>{img:url(page.image, "hero").absolute}</span>
+</section>
+
+<section class="elvis">
+{#img src=page.image(page.data.cover).or(page.image) preset='gallery-image' alt='Elvis'/}
+</section>
+
+<section class="encoded">
+{#img src=page.image('Foé photo.jpg') preset='single-format' alt='Encoded'/}
+</section>
+
+<section class="listing">
+{#for post in site.collections.posts}{#card post=post /}{/for}
+</section>

@@ -7,7 +7,7 @@ qute: false
 tags: [tutorial]
 series: roq-blog-lab
 date: 2026-07-05 12:00
-image: https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: image.jpg
 ---
 
 Link-tree sites are everywhere: a clean page with your photo, a few links, maybe some social icons. Simple enough that you could build one in plain HTML, but what if you want multiple link pages, QR codes, and zero-effort deployment?

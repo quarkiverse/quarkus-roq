@@ -1,7 +1,7 @@
 ---
 title: "Collapsible Sections: Hide and Reveal Content in Your Posts"
 description: The Roq default theme now styles HTML collapsible sections out of the box, in both Markdown and AsciiDoc content. Perfect for tutorials with hints, FAQs, and long reference sections.
-image: https://images.unsplash.com/photo-1563261438-73168c06ae56?q=80&w=1200&auto=format&fit=crop
+image: image.jpg
 tags: new-feature, cool-stuff
 ---
 

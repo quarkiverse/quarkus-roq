@@ -1,0 +1,24 @@
+---
+layout: page
+title: Image Test Page
+---
+
+<section class="absolute">
+{#img '/images/hero-landscape.jpg' preset='post-card' alt='Absolute ref'/}
+</section>
+
+<section class="page-image">
+{#img 'gallery-food.jpg' preset='gallery-image' alt='Page image'/}
+</section>
+
+<section class="sibling-image">
+{#img 'sibling-photo.jpg' preset='gallery-image' alt='Sibling image'/}
+</section>
+
+<section class="builtin-preset">
+{#img 'gallery-food.jpg' preset='roq-content' alt='Builtin preset'/}
+</section>
+
+<section class="single-format">
+{#img 'gallery-food.jpg' preset='single-format' alt='Single format'/}
+</section>

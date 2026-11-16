@@ -1,7 +1,7 @@
 ---
 title: Smarter Search Ranking
 description: How we fixed search boost to let keyword relevance shine.
-image: https://images.unsplash.com/photo-1520500807606-4ac9ae633574?q=80&w=1200&auto=format&fit=crop
+image: image.jpg
 author: ia3andy
 tags: improvement,plugin
 date: 2026-07-16 14:00:00 +0200

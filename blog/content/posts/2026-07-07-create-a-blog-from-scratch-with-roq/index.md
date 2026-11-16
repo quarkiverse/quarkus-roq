@@ -7,7 +7,7 @@ qute: false
 tags: [tutorial]
 series: roq-blog-lab
 date: 2026-07-05 11:00
-image: https://images.unsplash.com/photo-1604716053460-3f66248bf8de?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: image.jpg
 ---
 
 The [first tutorial](/posts/create-a-blog-with-roq/) showed you how to create a blog using the default theme. Everything was styled and ready to go. But what if you want to understand how it all works under the hood? What if you want full control over every layout, every class, every pixel?

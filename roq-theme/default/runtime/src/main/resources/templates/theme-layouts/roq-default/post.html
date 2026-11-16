@@ -14,7 +14,7 @@ asciidoc-attributes:
     {#if page.image}
     <div class="page-cover-image">
       <figure>
-        <img class="page-image" src="{page.image}" alt="{page.title}">
+        {#img src=page.image preset='roq-hero' alt=page.title class='page-image' loading='eager'/}
         {#if page.data.figCaption??}
         <figcaption>{page.data.figCaption}</figcaption>
         {/if}

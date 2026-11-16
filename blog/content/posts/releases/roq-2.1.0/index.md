@@ -1,7 +1,7 @@
 ---
 title: "Roq 2.1.0"
 layout: release
-image: https://images.unsplash.com/photo-1470596914251-afb0b4510279?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+image: image.jpg
 description: Roq 2.1 brings a standalone CLI, LLMs.txt generation, dynamic pages from data, custom error pages, and much more.
 author: ia3andy
 tags: release, minor, breaking, cool-stuff

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.NormalPage;
+import io.quarkiverse.roq.frontmatter.runtime.model.SerializedPage;
 import io.quarkus.builder.item.SimpleBuildItem;
 
 /**
@@ -11,13 +12,23 @@ import io.quarkus.builder.item.SimpleBuildItem;
  */
 public final class RoqFrontMatterRecordedNormalPagesBuildItem extends SimpleBuildItem {
     private final Supplier<List<NormalPage>> pages;
-    private final int size;
+    private final List<SerializedPage> serialized;
     private final boolean hasSiteIndex;
 
-    public RoqFrontMatterRecordedNormalPagesBuildItem(Supplier<List<NormalPage>> pages, int size, boolean hasSiteIndex) {
+    /**
+     * @param pages the pages as the recorder builds them at runtime
+     * @param serialized the same pages in their recorded form, for build-time consumers (see
+     *        {@link RoqFrontMatterSiteModelBuildItem})
+     */
+    public RoqFrontMatterRecordedNormalPagesBuildItem(Supplier<List<NormalPage>> pages, List<SerializedPage> serialized,
+            boolean hasSiteIndex) {
         this.pages = pages;
-        this.size = size;
+        this.serialized = List.copyOf(serialized);
         this.hasSiteIndex = hasSiteIndex;
+    }
+
+    public List<SerializedPage> serialized() {
+        return serialized;
     }
 
     public Supplier<List<NormalPage>> pages() {
@@ -25,7 +36,7 @@ public final class RoqFrontMatterRecordedNormalPagesBuildItem extends SimpleBuil
     }
 
     public boolean isEmpty() {
-        return size == 0;
+        return serialized.isEmpty();
     }
 
     public boolean hasSiteIndex() {

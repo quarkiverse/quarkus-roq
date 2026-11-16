@@ -21,8 +21,8 @@
   {#if page.image}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image:src" content="{page.image.absolute}" />
-  <meta property="og:image" content="{page.image.absolute}" />
+  <meta name="twitter:image:src" content="{img:url(page.image, 'roq-og').absolute}" />
+  <meta property="og:image" content="{img:url(page.image, 'roq-og').absolute}" />
   {#else}
   <!-- SEO IMAGE -->
   <meta name="twitter:card" content="summary">

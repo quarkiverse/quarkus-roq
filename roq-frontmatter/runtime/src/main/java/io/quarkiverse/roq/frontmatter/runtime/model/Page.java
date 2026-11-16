@@ -42,6 +42,7 @@ import io.vertx.core.json.JsonObject;
 public class Page {
 
     private static final Logger LOG = Logger.getLogger(Page.class);
+    private Site site;
 
     private final RoqUrl url;
     private final JsonObject data;
@@ -210,8 +211,24 @@ public class Page {
         return image(img);
     }
 
+    /**
+     * @return the site this page belongs to: the one bound with {@link #bindSite(Site)} when set, otherwise the
+     *         {@link Site} bean of the running application.
+     */
     public Site site() {
+        if (site != null) {
+            return site;
+        }
         return Arc.container().beanInstanceSupplier(Site.class).get().get();
+    }
+
+    /**
+     * Bind this page to a site so that {@link #site()} (and everything built on it, such as {@link #image()})
+     * works without a CDI container. Intended for build-time evaluation of page expressions and for tests; at
+     * runtime the site bean is used.
+     */
+    public void bindSite(Site site) {
+        this.site = site;
     }
 
     /**
@@ -227,7 +244,6 @@ public class Page {
             return null;
         }
         if (source().usePublicFiles()) {
-            // Use site static files
             return site().image(name);
         }
         String path = String.valueOf(name);

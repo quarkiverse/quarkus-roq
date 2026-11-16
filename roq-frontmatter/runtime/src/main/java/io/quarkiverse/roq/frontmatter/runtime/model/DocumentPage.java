@@ -5,7 +5,6 @@ import java.util.StringJoiner;
 
 import jakarta.enterprise.inject.Vetoed;
 
-import io.quarkus.arc.Arc;
 import io.quarkus.qute.TemplateData;
 import io.vertx.core.json.JsonObject;
 
@@ -41,7 +40,7 @@ public final class DocumentPage extends Page {
      * @return the collection associated with this page
      */
     public RoqCollection collection() {
-        return Arc.container().beanInstanceSupplier(Site.class).get().get().collections().resolveCollection(this);
+        return site().collections().resolveCollection(this);
     }
 
     /**

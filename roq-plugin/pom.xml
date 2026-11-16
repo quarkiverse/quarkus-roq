@@ -33,5 +33,6 @@
         <module>hybrid</module>
         <module>og-card</module>
         <module>toc</module>
+        <module>image</module>
     </modules>
 </project>
