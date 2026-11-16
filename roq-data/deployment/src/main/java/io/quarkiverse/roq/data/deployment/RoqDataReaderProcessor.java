@@ -465,7 +465,7 @@ public class RoqDataReaderProcessor {
             var name = removeExtension(toUnixPath(file.scopedPath()));
             DataConverter dataConverter = converter.fromFileName(file.scopedPath());
             if (dataConverter != null) {
-                items.add(new RoqDataBuildItem(name, file.file(), file.content(), dataConverter));
+                items.add(new RoqDataBuildItem(name, file.file(), file.origin(), file.content(), dataConverter));
             }
         }
         return items;
