@@ -111,6 +111,10 @@ public class RoqBlogTest {
         RestAssured.when().get("/plugin/toc/index.md").then().statusCode(200)
                 .body(containsString("Add `{page.tocHtml}` to a layout:"))
                 .body(not(containsString("{|")));
+        // A page with qute: false is escaped: its twin has the text without the escape wrapper.
+        RestAssured.when().get("/posts/create-a-blog-with-roq/index.md").then().statusCode(200)
+                .body(startsWith("# Create your own Blog with Roq (30min)\n\nSo you want a blog."))
+                .body(not(containsString("|||")));
     }
 
     @Test
