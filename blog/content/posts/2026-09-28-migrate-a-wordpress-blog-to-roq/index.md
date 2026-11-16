@@ -236,7 +236,7 @@ slug: "template-featured-image-vertical"
 categories: 
   - "classic"
   - "template-2"
-image: "images/featured-image-vertical.jpg"
+image: https://images.unsplash.com/photo-1580901369227-308f6f40bdeb?q=80&w=1200&auto=format&fit=crop
 tags:
   - "codex"
   - "edge-case"

@@ -13,7 +13,7 @@ asciidoc-attributes:
   {#if page.image}
   <div class="post-cover">
     <figure>
-      <img src="{page.image}" alt="{page.title}">
+      {#img src=page.image preset='roq-hero' alt=page.title loading='eager'/}
       {#if page.data.get('fig-caption')??}
       <figcaption>{page.data.get('fig-caption')}</figcaption>
       {/if}

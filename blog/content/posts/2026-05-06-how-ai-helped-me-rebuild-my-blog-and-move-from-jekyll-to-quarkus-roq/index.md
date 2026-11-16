@@ -244,7 +244,7 @@ I extracted the character + desk + rainbow flow, cleaned the edges, removed the 
 Not glamorous, but effective.
 
 
-![hero-gimp-extracted.webp](hero-gimp-extracted.webp)
+{#img 'hero-gimp-extracted.webp' preset='roq-content' alt='The hero illustration extracted with GIMP'/}
 
 
 

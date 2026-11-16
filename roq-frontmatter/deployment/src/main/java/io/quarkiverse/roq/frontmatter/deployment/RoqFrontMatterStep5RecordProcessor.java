@@ -2,10 +2,9 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -28,6 +27,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutp
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedCollectionBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedNormalPagesBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterRecordedPageBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterSiteModelBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterRecorder;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
@@ -90,15 +90,16 @@ class RoqFrontMatterStep5RecordProcessor {
 
         final Map<ConfiguredCollection, List<RoqFrontMatterPublishDocumentPageBuildItem>> byCollection = documents.stream()
                 .collect(Collectors.groupingBy(RoqFrontMatterPublishDocumentPageBuildItem::collection));
-        final Set<String> documentIds = new HashSet<>();
+        final Map<String, SerializedPage> serializedById = new HashMap<>();
         final List<Supplier<List<DocumentPage>>> publishedDocuments = new ArrayList<>();
         for (Map.Entry<ConfiguredCollection, List<RoqFrontMatterPublishDocumentPageBuildItem>> e : byCollection.entrySet()) {
             final ConfiguredCollection collection = e.getKey();
             final List<SerializedPage> serialized = new ArrayList<>();
             for (RoqFrontMatterPublishDocumentPageBuildItem item : e.getValue()) {
-                serialized.add(SerializedPage.ofDocument(collection.id(), item.url(), item.source(), item.data(),
-                        collection.hidden()));
-                documentIds.add(item.source().id());
+                final SerializedPage serializedPage = SerializedPage.ofDocument(collection.id(), item.url(),
+                        item.source(), item.data(), collection.hidden());
+                serialized.add(serializedPage);
+                serializedById.put(item.source().id(), serializedPage);
                 pagesProducer.produce(new RoqFrontMatterRecordedPageBuildItem(item.source().id(), item.url(),
                         collection.hidden()));
             }
@@ -107,7 +108,7 @@ class RoqFrontMatterStep5RecordProcessor {
                     SerializedPage.SERIALIZABLE_CLASSES));
             final Supplier<List<DocumentPage>> docs = recorder.createDocuments(resourcePath);
             publishedDocuments.add(docs);
-            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(collection, docs));
+            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(collection, docs, serialized));
         }
 
         if (generatedCollections.isEmpty()) {
@@ -115,14 +116,17 @@ class RoqFrontMatterStep5RecordProcessor {
         }
         final Supplier<Map<String, DocumentPage>> documentsById = recorder.createDocumentsById(publishedDocuments);
         for (RoqFrontMatterPublishDerivedCollectionBuildItem i : generatedCollections) {
+            final List<SerializedPage> derived = new ArrayList<>();
             for (String id : i.documentIds()) {
-                if (!documentIds.contains(id)) {
+                final SerializedPage serializedPage = serializedById.get(id);
+                if (serializedPage == null) {
                     throw new IllegalStateException("No document found for id " + id);
                 }
+                derived.add(serializedPage);
             }
             final Supplier<List<DocumentPage>> docs = recorder.createDerivedDocuments(documentsById,
                     new ArrayList<>(i.documentIds()));
-            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(i.collection(), docs));
+            collectionsProducer.produce(new RoqFrontMatterRecordedCollectionBuildItem(i.collection(), docs, derived));
         }
     }
 
@@ -161,7 +165,41 @@ class RoqFrontMatterStep5RecordProcessor {
                 SerializedPage.SERIALIZABLE_CLASSES));
         final Supplier<List<NormalPage>> recordedPages = recorder.createPages(resourcePath);
         normalPagesProducer.produce(
-                new RoqFrontMatterRecordedNormalPagesBuildItem(recordedPages, pages.size(), !siteIndexPages.isEmpty()));
+                new RoqFrontMatterRecordedNormalPagesBuildItem(recordedPages, serialized, !siteIndexPages.isEmpty()));
+    }
+
+    /**
+     * The site model for build-time consumers, built from the same recorded pages the application will run with,
+     * under the same conditions as the site bean (null when there is no site index).
+     */
+    @BuildStep
+    RoqFrontMatterSiteModelBuildItem buildTimeSiteModel(
+            RoqFrontMatterRootUrlBuildItem rootUrlItem,
+            RoqSiteConfig config,
+            RoqFrontMatterRecordedNormalPagesBuildItem normalPagesItem,
+            List<RoqFrontMatterRecordedCollectionBuildItem> collectionItems) {
+        if (rootUrlItem == null || normalPagesItem == null || !normalPagesItem.hasSiteIndex()) {
+            return null;
+        }
+        final List<NormalPage> pages = normalPagesItem.serialized().stream().map(s -> (NormalPage) s.toPage()).toList();
+        // a document may belong to several collections (derived ones): one object per document id
+        final Map<String, DocumentPage> documentsById = new LinkedHashMap<>();
+        final Map<String, RoqCollection> collections = new HashMap<>();
+        for (RoqFrontMatterRecordedCollectionBuildItem item : collectionItems) {
+            final List<DocumentPage> documents = new ArrayList<>();
+            for (SerializedPage serialized : item.serialized()) {
+                documents.add(documentsById.computeIfAbsent(serialized.source().id(),
+                        id -> (DocumentPage) serialized.toPage()));
+            }
+            collections.put(item.collection().id(), new RoqCollection(item.collection(), documents));
+        }
+        final NormalPage indexPage = pages.stream().filter(p -> p.source().isSiteIndex()).findFirst().orElseThrow();
+        final Site site = new Site(indexPage.url(), config.imagesPath(), indexPage.data(), pages,
+                new RoqCollections(Map.copyOf(collections)));
+        final List<DocumentPage> documents = List.copyOf(documentsById.values());
+        pages.forEach(p -> p.bindSite(site));
+        documents.forEach(p -> p.bindSite(site));
+        return new RoqFrontMatterSiteModelBuildItem(site, pages, collections, documents);
     }
 
     @BuildStep

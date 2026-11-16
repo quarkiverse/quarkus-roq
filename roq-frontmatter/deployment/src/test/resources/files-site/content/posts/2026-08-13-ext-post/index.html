@@ -2,8 +2,11 @@
 layout: post
 title: Ext Post
 link: /posts/:slug:ext!
+image: chart.svg
 ---
 <h1>{page.title}</h1>
 <p>A directory post using :ext! in its link, with an attached SVG chart.</p>
 <span class="page-url">{page.url.path}</span>
 <span class="attachment-url">{page.file("chart.svg").path}</span>
+<div class="hero">{#img src=page.image alt='Chart' class='page-image' loading='eager'/}</div>
+<div class="no-image">{#img src=page.data.getString('missing') alt='Nothing'/}</div>

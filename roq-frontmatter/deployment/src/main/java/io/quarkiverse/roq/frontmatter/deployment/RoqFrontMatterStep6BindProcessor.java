@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
@@ -22,8 +23,10 @@ import io.quarkiverse.roq.frontmatter.deployment.items.RoqPathBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterLayoutTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterPageTemplateBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterUnpublishedFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.record.RoqFrontMatterOutputBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages;
+import io.quarkiverse.roq.frontmatter.runtime.RoqImageFallbackNamespaceResolver;
 import io.quarkiverse.roq.frontmatter.runtime.RoqLlmsTxtTemplateExtension;
 import io.quarkiverse.roq.frontmatter.runtime.RoqNoOpBundleSectionHelperFactory;
 import io.quarkiverse.roq.frontmatter.runtime.RoqQuteEngineObserver;
@@ -186,6 +189,7 @@ public class RoqFrontMatterStep6BindProcessor {
         }
         var builder = AdditionalBeanBuildItem.builder()
                 .addBeanClasses(
+                        RoqImageFallbackNamespaceResolver.class,
                         RoqTemplateExtension.class,
                         RoqLlmsTxtTemplateExtension.class,
                         RoqQuteEngineObserver.class,
@@ -240,10 +244,18 @@ public class RoqFrontMatterStep6BindProcessor {
             LaunchModeBuildItem launchMode,
             BuildProducer<RoqPathBuildItem> pathProducer,
             List<RoqFrontMatterStaticFileBuildItem> staticFiles,
+            List<RoqFrontMatterUnpublishedFileBuildItem> unpublishedFiles,
             BuildProducer<GeneratedStaticResourceBuildItem> staticResourcesProducer) {
+        final Set<String> unpublished = unpublishedFiles.stream()
+                .map(i -> prefixWithSlash(i.resourcePath()))
+                .collect(Collectors.toSet());
         Map<String, String> paths = new HashMap<>();
         for (RoqFrontMatterStaticFileBuildItem staticFile : staticFiles) {
             final String endpoint = prefixWithSlash(staticFile.link());
+            if (unpublished.contains(endpoint)) {
+                LOGGER.debugf("Unpublished static file: '%s'", endpoint);
+                continue;
+            }
             final String sourceDescription = staticFile.isFile() ? staticFile.filePath().toString() : endpoint;
             final String prev = paths.put(endpoint, sourceDescription);
             if (prev != null) {

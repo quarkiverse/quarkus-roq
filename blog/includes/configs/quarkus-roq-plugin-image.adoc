@@ -1,0 +1,32 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-roq-plugin-image_quarkus-roq-plugin-image-publish-originals]] [.property-path]##link:#quarkus-roq-plugin-image_quarkus-roq-plugin-image-publish-originals[`+++quarkus.roq.plugin.image.publish-originals+++`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.roq.plugin.image.publish-originals+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Whether the original files of the images converted at build time are published (served, and written to the generated site) next to their generated variants. By default only the variants are published: a page attachment or a public image that was converted stays private, pages still resolve it.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_ROQ_PLUGIN_IMAGE_PUBLISH_ORIGINALS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_ROQ_PLUGIN_IMAGE_PUBLISH_ORIGINALS+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`+++false+++`
+
+|===
+

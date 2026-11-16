@@ -42,6 +42,18 @@ class RoqThemeTheCodeTest {
     }
 
     @Test
+    void testPostCoverWithoutImagePlugin() {
+        // the theme uses {#img}: without the image plugin, Roq's fallback tag renders a plain img
+        String body = given()
+                .when().get("/posts/the-first-roq")
+                .then()
+                .statusCode(200)
+                .extract().body().asString();
+        assertThat(body).contains("<img src=\"/posts/the-first-roq/cover.jpg\" alt=\"The First Roq!\" loading=\"eager\">")
+                .doesNotContain("srcset");
+    }
+
+    @Test
     void test404Page() {
         String body = given()
                 .when().get("/404")

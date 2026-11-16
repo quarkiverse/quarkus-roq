@@ -65,6 +65,15 @@ public class RoqThemeDefaultTest {
     }
 
     @Test
+    public void testPostCoverWithoutImagePlugin() {
+        // the theme uses {#img}: without the image plugin, Roq's fallback tag renders a plain img
+        final String body = RestAssured.when().get("/posts/post-without-avatar").then().statusCode(200).log()
+                .ifValidationFails().extract().asString();
+        assertThat(body).contains("<img src=\"/posts/post-without-avatar/cover.jpg\" alt=\"Post Without Avatar\""
+                + " class=\"page-image\" loading=\"eager\">").doesNotContain("srcset");
+    }
+
+    @Test
     public void test404() {
         final String body = RestAssured.when().get("/404.html").then().statusCode(200).log().ifValidationFails().extract()
                 .asString();

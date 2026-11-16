@@ -40,7 +40,7 @@ page-class: page-alt page-wide
     <div class="marketplace-card-lower">
       {#if item.image??}
       <div class="marketplace-card-screenshot">
-        <img src="{=item.image}" alt="{=item.title}">
+        {#img src=item.image preset='roq-content' alt=item.title/}
       </div>
       {/if}
       <div class="marketplace-card-body">
