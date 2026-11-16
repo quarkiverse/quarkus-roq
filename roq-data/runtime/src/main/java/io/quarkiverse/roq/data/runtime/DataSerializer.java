@@ -23,8 +23,9 @@ import io.quarkus.arc.ClientProxy;
  * <p>
  * When the original content of the data file is provided, it is updated rather than regenerated:
  * <ul>
- * <li>YAML comments, key order, indentation and string quoting are preserved</li>
- * <li>JSON key order, indentation and line breaks are preserved</li>
+ * <li>YAML comments, key order and string quoting are preserved (the layout is normalized by SnakeYAML, e.g. blank
+ * lines may be dropped)</li>
+ * <li>JSON key order is preserved (it is always pretty-printed)</li>
  * <li>values which didn't change are left untouched</li>
  * <li>keys which are not bound to the Java type are left untouched</li>
  * </ul>

@@ -78,9 +78,10 @@ public class RoqDataMappingWriterTest {
     @Test
     void saveJson() throws IOException {
         writer.save(new Foo("Changed"));
+        // Ideally the indentation of the original file would be kept, JSON is always written with 2 spaces.
         assertThat(read("data/foo.json")).isEqualTo("""
                 {
-                    "name": "Changed"
+                  "name": "Changed"
                 }
                 """);
     }

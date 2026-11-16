@@ -168,7 +168,7 @@ JsonArray contributors;
 
 ### Writing Data Back (Reverse Mode)
 
-Inject `DataMappingWriter` to write a `@DataMapping` bean (or a new instance of a mapped type) back to its source file. Comments (YAML), key order and layout of the existing file are kept, and unchanged values are left untouched.
+Inject `DataMappingWriter` to write a `@DataMapping` bean (or a new instance of a mapped type) back to its source file. YAML comments, key order and quoting of the existing file are kept, and unchanged values are left untouched. The YAML layout is normalized (e.g. blank lines may be dropped).
 
 ```java
 @Inject

@@ -610,9 +610,9 @@ public record HeroMap(Map<String, Hero> map) {
 
 `DataMappingWriter` is the reverse of `@DataMapping`: it writes a typed data object back to the file it was loaded from. It updates the existing file rather than regenerating it:
 
-* YAML comments, key order, indentation and string quoting are kept
-* JSON key order, indentation and line breaks are kept
-* values that didn't change are left exactly as they were
+* YAML comments, key order and string quoting are kept (the layout is normalized, e.g. blank lines may be dropped)
+* JSON key order is kept (it is always pretty-printed)
+* values that didn't change are left as they were
 * keys the Java type doesn't bind (when `quarkus.roq.jackson.fail-on-unknown-properties=false`) are kept
 
 [source,java]
@@ -629,7 +629,7 @@ void rename() {
 ----
 <1> Saves to `data/mountain.yml` (or `.json`), using the source file recorded at build time
 
-Only `OBJECT_FILE` and `ARRAY_FILE` mappings can be saved. In dev mode, saving triggers a live reload. Saving needs the source file to be a local project file (data from classpath resources, e.g. in a theme or under `src/main/resources`, can't be saved) which still exists; when that's not the case (e.g. in prod), use `writer.save(data, path)` to write to an explicit file, or `DataSerializer.write(data, originalContent, format)` to get the updated content without touching any file.
+Only `OBJECT_FILE` and `ARRAY_FILE` mappings can be saved. Directory mappings (`ARRAY_DIR` and `OBJECT_DIR`) are not supported, and calling `save` on one throws an `UnsupportedOperationException`. In dev mode, saving triggers a live reload. Saving needs the source file to be a local project file (data from classpath resources, e.g. in a theme or under `src/main/resources`, can't be saved) which still exists; when that's not the case (e.g. in prod), use `writer.save(data, path)` to write to an explicit file, or `DataSerializer.write(data, originalContent, format)` to get the updated content without touching any file.
 
 === Collections from data
 

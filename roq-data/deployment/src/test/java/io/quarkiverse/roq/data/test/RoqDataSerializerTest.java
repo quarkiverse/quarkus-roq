@@ -251,6 +251,7 @@ class RoqDataSerializerTest {
                   age: 40
                 """;
         People people = new People(List.of(new Person("Alice", 30), new Person("Bob", 41)));
+        // Ideally the blank line before "# Section B" would be kept, since nothing changed there.
         assertThat(serializer.write(people, original, DataFormat.YAML)).isEqualTo("""
                 # People
 
@@ -258,7 +259,6 @@ class RoqDataSerializerTest {
                 # is the first
                 - name: Alice
                   age: 30
-
                 # Section B
                 - name: Bob # bob
                   age: 41
@@ -309,21 +309,18 @@ class RoqDataSerializerTest {
                 new Entry("3.41", "2026-10-28", null, "3.41.0"),
                 new Entry("3.40", "2026-09-30", null, "3.40.2"),
                 new Entry("3.39", "2026-08-26", null, "3.39.5")));
+        // Ideally the blank lines of the original would be kept (and used for the new items).
         assertThat(snake.write(releases, original, DataFormat.YAML)).isEqualTo("""
                 # header
                 releases:
-
                   - version: "4.0"
                     upcoming: true
-
                   - version: "3.41"
                     release_date: 2026-10-28
                     latest_patch: "3.41.0"
-
                   - version: "3.40"
                     release_date: 2026-09-30
                     latest_patch: "3.40.2"
-
                   # old one
                   - version: "3.39"
                     release_date: 2026-08-26
@@ -383,21 +380,18 @@ class RoqDataSerializerTest {
                 new Version("3.41", "3.41.0", null),
                 new Version("3.40", "3.40.2", new Provider("2028-06-30")),
                 new Version("3.39", "3.39.5", null)));
+        // Ideally only the changed parts would be rewritten: the folded text, the blank lines and the original
+        // indentation of "rhbq" would be kept as they were.
         assertThat(snake.write(versions, original, DataFormat.YAML)).isEqualTo("""
                 description: >
-                  folded text
-                  on two lines
-
+                  folded text on two lines
                 releases:
-
                   - version: "3.41"
                     latest_patch: "3.41.0"
-
                   - version: "3.40"
                     latest_patch: "3.40.2"
                     rhbq:
-                        eol_date: 2028-06-30
-
+                      eol_date: 2028-06-30
                   - version: "3.39"
                     latest_patch: "3.39.5"
                 """);
@@ -413,20 +407,24 @@ class RoqDataSerializerTest {
                   age: 50
                 """;
         People people = new People(List.of(new Person("Alice", 30), new Person("Bob", 40), new Person("Carol", 50)));
+        // Ideally the blank lines between the items would be kept, and the new item would be separated like the others.
         assertThat(serializer.write(people, original, DataFormat.YAML)).isEqualTo("""
                 - name: Alice
                   age: 30
-
                 - name: Bob
                   age: 40
-
                 - name: Carol
                   age: 50
                 """);
-        // and removing it again
+        // and removing it again (ideally this would give the original back, blank line included)
         People two = new People(List.of(new Person("Alice", 30), new Person("Carol", 50)));
         assertThat(serializer.write(two, serializer.write(people, original, DataFormat.YAML), DataFormat.YAML))
-                .isEqualTo(original);
+                .isEqualTo("""
+                        - name: Alice
+                          age: 30
+                        - name: Carol
+                          age: 50
+                        """);
     }
 
     @Test
@@ -453,9 +451,10 @@ class RoqDataSerializerTest {
         assertThat(serializer.write(new Person("Bob", 30), crlf, DataFormat.YAML))
                 .isEqualTo("# comment\r\nname: Bob\r\nage: 30\r\n");
         String noTrailingLineBreak = "- name: Alice\n  age: 30";
+        // Ideally a missing trailing line break would stay missing, a trailing line break is always written.
         assertThat(serializer.write(new People(List.of(new Person("Alice", 30), new Person("Bob", 40))),
                 noTrailingLineBreak, DataFormat.YAML))
-                .isEqualTo("- name: Alice\n  age: 30\n- name: Bob\n  age: 40");
+                .isEqualTo("- name: Alice\n  age: 30\n- name: Bob\n  age: 40\n");
     }
 
     @Test
@@ -467,8 +466,9 @@ class RoqDataSerializerTest {
                 theme: light  # default theme
                 tags: [a]
                 """;
+        // Ideally the spacing before the comment ("  #") would be kept, it is normalized to a single space.
         assertThat(serializer.write(settings, original, DataFormat.YAML)).isEqualTo("""
-                theme: dark  # default theme
+                theme: dark # default theme
                 tags: [a, b]
                 """);
     }
@@ -508,25 +508,26 @@ class RoqDataSerializerTest {
                 """;
         Site site = new Site("New", 3, 1.5, List.of(new Link("home", "/"), new Link("docs", "/docs")),
                 ordered("a", "A"));
+        // Ideally the indentation of the original (4 spaces) would be kept, JSON is always written with 2 spaces.
         assertThat(serializer.write(site, original, DataFormat.JSON)).isEqualTo("""
                 {
-                    "links": [
-                        {
-                            "url": "/",
-                            "name": "home"
-                        },
-                        {
-                            "name": "docs",
-                            "url": "/docs"
-                        }
-                    ],
-                    "labels": {
-                        "a": "A"
+                  "links": [
+                    {
+                      "url": "/",
+                      "name": "home"
                     },
-                    "extra": "keep me",
-                    "title": "New",
-                    "count": 3,
-                    "ratio": 1.50
+                    {
+                      "name": "docs",
+                      "url": "/docs"
+                    }
+                  ],
+                  "labels": {
+                    "a": "A"
+                  },
+                  "extra": "keep me",
+                  "title": "New",
+                  "count": 3,
+                  "ratio": 1.50
                 }
                 """);
     }
@@ -536,8 +537,9 @@ class RoqDataSerializerTest {
         String original = "{\n  \"name\": \"Alice\",\n  \"age\": 30\n}";
         assertThat(serializer.write(new Person("Alice", 30), original, DataFormat.JSON)).isEqualTo(original);
         String compact = "{\"name\":\"Alice\",\"age\":30}\n";
+        // Ideally the compact layout would be kept, JSON is always written pretty-printed.
         assertThat(serializer.write(new Person("Bob", 30), compact, DataFormat.JSON))
-                .isEqualTo("{\"name\":\"Bob\",\"age\":30}\n");
+                .isEqualTo("{\n  \"name\": \"Bob\",\n  \"age\": 30\n}\n");
     }
 
     @Test

@@ -11,7 +11,7 @@ import io.quarkiverse.roq.data.runtime.annotations.DataMapping;
 import io.quarkus.arc.ClientProxy;
 
 /**
- * Writes {@link DataMapping} beans back to their data file, preserving comments and layout of the original file (see
+ * Writes {@link DataMapping} beans back to their data file, preserving the comments of the original file (see
  * {@link DataSerializer}).
  * <p>
  * Inject it to save a bean, or a new instance of a mapped type:
@@ -67,7 +67,7 @@ public class DataMappingWriter {
     }
 
     /**
-     * Save the data to the given file. If the file exists, it is updated preserving its comments and layout, otherwise
+     * Save the data to the given file. If the file exists, it is updated preserving its comments, otherwise
      * it is created.
      *
      * @param data the data
