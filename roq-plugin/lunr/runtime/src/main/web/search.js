@@ -9,14 +9,23 @@ const setupSearch = function (options = {}) {
         searchTriggerInput = '.search-trigger-input',
         searchField = '#search-field',
         resultContainer = '#search-results',
-        url = '/search-index.json'
+        url = '/search-index.json',
+        indexes = {}
     } = options;
 
-    const searchButtonEl = document.querySelector(searchButton);
-    const searchTriggerInputEl = document.querySelector(searchTriggerInput);
+    // index name -> url of its JSON file; "default" falls back to url
+    const indexUrls = {default: url, ...indexes};
 
-    let idx = null;
-    let documents = null;
+    const triggerEls = Array.from(new Set(
+        document.querySelectorAll(`${searchButton}, ${searchTriggerInput}, [data-search-indexes]`)
+    ));
+
+    // url -> Promise of the fetched documents
+    const fetchedDocuments = new Map();
+    // sorted urls -> Promise of {index, store}
+    const builtIndexes = new Map();
+    let activeIndex = null;
+    let openRequest = 0;
     let searchQuery = null;
     const searchInputEl = document.querySelector(`${searchField} input[type=search]`)
     let searchResultContainerEl = document.querySelector(resultContainer);
@@ -53,12 +62,60 @@ const setupSearch = function (options = {}) {
         }
     }
 
-    function openSearch(e) {
+    function triggerUrls(triggerEl) {
+        const names = (triggerEl?.dataset.searchIndexes ?? '').split(/\s+/).filter(Boolean);
+        const urls = [];
+        for (const name of names.length > 0 ? names : ['default']) {
+            if (name in indexUrls) {
+                urls.push(indexUrls[name]);
+            } else {
+                console.warn(`Unknown search index "${name}"`);
+            }
+        }
+        return urls.length > 0 ? urls : [indexUrls.default];
+    }
+
+    function fetchDocuments(indexUrl) {
+        if (!fetchedDocuments.has(indexUrl)) {
+            fetchedDocuments.set(indexUrl, fetch(indexUrl).then(response => response.json()));
+        }
+        return fetchedDocuments.get(indexUrl);
+    }
+
+    function loadIndex(urls) {
+        const key = [...new Set(urls)].sort().join(' ');
+        if (!builtIndexes.has(key)) {
+            builtIndexes.set(key, Promise.all(urls.map(fetchDocuments))
+                // documents are keyed by page id, so a page present in several indexes is kept once
+                .then(all => buildIndex(Object.assign({}, ...all))));
+        }
+        return builtIndexes.get(key);
+    }
+
+    function activateIndex(triggerEl) {
+        const request = ++openRequest;
+        activeIndex = null;
+        enableSearchInput(false);
+        loadIndex(triggerUrls(triggerEl))
+            .then(index => {
+                if (request !== openRequest) {
+                    return;
+                }
+                activeIndex = index;
+                enableSearchInput(true);
+                searchInputEl.focus();
+            })
+            .catch(error => console.error('Error loading search index:', error));
+    }
+
+    function openSearch(e, triggerEl) {
         e.preventDefault();
         lastFocusedElement = document.activeElement;
         searchOverlay.classList.add("active");
         searchOverlay.setAttribute("aria-hidden", "false");
         searchOverlay.addEventListener("keydown", trapFocus);
+        clearSearchResults(true);
+        activateIndex(triggerEl);
         setTimeout(() => {
             searchInputEl.value = '';
             searchInputEl.focus();
@@ -77,12 +134,8 @@ const setupSearch = function (options = {}) {
         }
     }
 
-    if (searchButtonEl) {
-        searchButtonEl.addEventListener("click", openSearch);
-    }
-
-    if (searchTriggerInputEl) {
-        searchTriggerInputEl.addEventListener("click", openSearch);
+    for (const triggerEl of triggerEls) {
+        triggerEl.addEventListener("click", (e) => openSearch(e, triggerEl));
     }
     closeSearch.addEventListener("click", closeSearchOverlay);
 
@@ -104,7 +157,7 @@ const setupSearch = function (options = {}) {
         // Cmd+K or Ctrl+K: open search only if not active
         if ((e.metaKey || e.ctrlKey) && e.key === "k" && !isSearchActive) {
             e.preventDefault();
-            openSearch(e);
+            openSearch(e, triggerEls[0]);
         }
     });
 
@@ -115,25 +168,33 @@ const setupSearch = function (options = {}) {
     }
 
 
-    const feedLoaded = function (data) {
-        documents = data;
-        idx = lunr(function () {
+    function buildIndex(data) {
+        // copy the entries: fetched documents are cached and shared between combinations
+        const documents = {};
+        for (const [key, entry] of Object.entries(data)) {
+            documents[key] = {...entry, id: key, content: decodeHtml(entry.content)};
+        }
+        const start = performance.now()
+        const idx = lunr(function () {
             this.ref('id')
             this.field('title', {boost: 2})
             this.field('summary')
             this.field('tags', {boost: 1.5})
             this.field('content')
 
-
-            for (const [key, entry] of Object.entries(documents)) {
-                entry.content = decodeHtml(entry.content);
-                entry.id = key
+            for (const entry of Object.values(documents)) {
                 const boost = entry.boost ?? 1
                 this.add(entry, {boost})
             }
         })
-        console.log('idx ready')
-        initSearch()
+        searchInputEl.dispatchEvent(
+            new CustomEvent('loadedindex', {
+                detail: {
+                    took: performance.now() - start,
+                },
+            })
+        )
+        return {index: idx, store: {documents}}
     }
 
     function createSearchResult(result, store, searchResultDataset) {
@@ -332,14 +393,14 @@ const setupSearch = function (options = {}) {
         return searchResultContainerEl.childElementCount === 0
     }
 
-    function executeSearch(index, query) {
-        if (query === searchQuery) {
+    function executeSearch(query) {
+        if (query === searchQuery || !activeIndex) {
             return;
         }
         searchQuery = query;
         try {
             if (!query) return clearSearchResults()
-            searchIndex(index.index, index.store, query)
+            searchIndex(activeIndex.index, activeIndex.store, query)
             searchResultContainerEl.style.display = 'block';
         } catch (err) {
             if (err instanceof lunr.QueryParseError) {
@@ -349,24 +410,14 @@ const setupSearch = function (options = {}) {
         }
     }
 
-    function toggleFilter(e, index) {
+    function toggleFilter(e) {
         searchInputEl.focus()
         if (!isClosed()) {
-            executeSearch(index)
+            executeSearch()
         }
     }
 
-    function initSearch(lunr, data) {
-        const start = performance.now()
-        const index = {index: idx, store: {documents}}
-        enableSearchInput(true)
-        searchInputEl.dispatchEvent(
-            new CustomEvent('loadedindex', {
-                detail: {
-                    took: performance.now() - start,
-                },
-            })
-        )
+    function initSearch() {
         searchInputEl.addEventListener(
             'keydown',
             (e) => {
@@ -376,14 +427,14 @@ const setupSearch = function (options = {}) {
         searchInputEl.addEventListener(
             'input',
             debounce(function (e) {
-                executeSearch(index, e.target.value.trim());
+                executeSearch(e.target.value.trim());
             }, 300, {'leading': true, 'trailing': true})
         )
         searchInputEl.addEventListener('click', confineEvent)
         searchResultContainerEl.addEventListener('click', confineEvent)
         if (facetFilterInput) {
             facetFilterInput.parentElement.addEventListener('click', confineEvent)
-            facetFilterInput.addEventListener('change', (e) => toggleFilter(e, index))
+            facetFilterInput.addEventListener('change', toggleFilter)
         }
         document.documentElement.addEventListener('click', (e) => {
             clearSearchResults(true);
@@ -552,14 +603,9 @@ const setupSearch = function (options = {}) {
     }
 
 
-    // disable the search input until the index is loaded
+    // the search input stays disabled until a trigger opens the search and its index is loaded
     enableSearchInput(false);
-
-
-    fetch(options.url)
-        .then(response => response.json())
-        .then(feedLoaded)
-        .catch(error => console.error('Error loading feed:', error));
+    initSearch();
 }
 
 window.setupSearch = setupSearch;

@@ -1,1 +1,1 @@
-<button type="button" id="search-button" class="search-button" aria-label="Search"></button>
+{#let searchIndexes=cdi:site.searchIndexNames(indexes ?: '')}<button type="button" id="search-button" class="search-button" aria-label="Search"{#if searchIndexes} data-search-indexes="{searchIndexes}"{/if}></button>{/let}
