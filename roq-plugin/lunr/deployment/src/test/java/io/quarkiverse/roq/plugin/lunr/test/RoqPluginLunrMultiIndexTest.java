@@ -70,4 +70,11 @@ public class RoqPluginLunrMultiIndexTest {
         RestAssured.when().get("/search-index.json").then().statusCode(200).log().ifValidationFails()
                 .body(not(containsString("\"title\":\"Secret Recipe\"")));
     }
+
+    @Test
+    @DisplayName("Hand-written index files win: no index is generated for a declared name")
+    public void testDeclaredIndexesNotGenerated() {
+        RestAssured.when().get("/search-index/recipes.json").then().statusCode(404);
+        RestAssured.when().get("/search-index/default.json").then().statusCode(404);
+    }
 }

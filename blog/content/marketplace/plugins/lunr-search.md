@@ -13,16 +13,16 @@ Enable search for your site without the need for external, server-side, search s
 
 ### Setup
 
-1. Add the search index JSON:
+The search index is generated at build time and served at `/search-index.json`, no index file is needed. To take it over, for example to add front matter, add `content/search-index.json`; it replaces the generated one:
 
 {|
 ```html
-<!-- content/search-index.json -->
+<!-- content/search-index.json (optional) -->
 {#include fm/search-index.json}
 ```
 |}
 
-2. Inject the search script in the `<head>` of your layout. For example with the default theme:
+1. Inject the search script in the `<head>` of your layout. For example with the default theme:
 
 {|
 ```html
@@ -39,7 +39,7 @@ theme-layout: default
 ```
 |}
 
-3. Inject the search overlay in the `<body>` and search button in the navigation:
+2. Inject the search overlay in the `<body>` and search button in the navigation:
 
 {|
 ```html
@@ -90,7 +90,9 @@ search-indexes: recipes
 
 A page without `search-indexes` belongs to the `default` index, so a site that never sets the key keeps a single index. `default` is an index like the others, not a superset: in this example recipes are not in `default`, while posts are in both. `search: false` and `no-index-all` still keep a page out of every index. A value set on a page replaces the one from its layout.
 
-2. Add one index file per index, named with `search-index-name`. The existing `content/search-index.json` stays the `default` index:
+The build generates one index per name in use: `default` at `/search-index.json` and every other name at `/search-index/<name>.json`, here `/search-index/posts.json` and `/search-index/recipes.json`. Index names may contain letters, digits, `-` and `_`; any other name is skipped with a warning in the build log. A typo in `search-indexes` is not reported: `search-indexes: recipe` creates an extra `recipe` index instead of adding the page to `recipes`, so check the names passed to `setupSearch` in the page source when a page is missing from an index.
+
+To take over an index, add a content file naming it with `search-index-name`. That name is no longer generated and the file's own URL is used:
 
 {|
 ```
@@ -102,9 +104,7 @@ search-index-name: recipes
 ```
 |}
 
-Index names may contain letters, digits, `-` and `_`.
-
-3. Give each search trigger the indexes it searches with the `indexes` parameter. Without it, a trigger searches `default`:
+2. Give each search trigger the indexes it searches with the `indexes` parameter. Without it, a trigger searches `default`:
 
 {|
 ```html
@@ -129,7 +129,7 @@ Index names may contain letters, digits, `-` and `_`.
 
 The trigger renders the names as `data-search-indexes="posts recipes"`. A hand-written trigger can use the same attribute; it is bound to the search overlay without needing `id="search-button"`.
 
-An index is downloaded the first time a trigger using it opens the search, and is reused for later searches on the page. When a trigger names several indexes, they are combined into one, and a page that belongs to several of them shows up once. A name that matches no index file is ignored with a warning in the build log. A page listing a name in `search-indexes` that has no index file is not reported: check the spelling if a page is missing from an index.
+An index is downloaded the first time a trigger using it opens the search, and is reused for later searches on the page. When a trigger names several indexes, they are combined into one, and a page that belongs to several of them shows up once. A name that matches no index is ignored with a warning in the build log.
 
 ### Controlling indexing
 

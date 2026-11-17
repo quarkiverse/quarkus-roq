@@ -12,17 +12,17 @@ import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension;
 /**
  * Parsing and resolution of search index names.
  */
-final class RoqLunrIndexNames {
+public final class RoqLunrIndexNames {
 
     /**
      * The index a page belongs to when it does not declare {@link RoqLunrKeys#SEARCH_INDEXES}.
      */
-    static final String DEFAULT = "default";
+    public static final String DEFAULT = "default";
 
     /**
      * Reserved trigger value expanding to every existing index.
      */
-    static final String ALL = "all";
+    public static final String ALL = "all";
 
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z0-9_-]+");
 
@@ -33,7 +33,7 @@ final class RoqLunrIndexNames {
      * @param value the {@link RoqLunrKeys#SEARCH_INDEXES} front matter value (string, list or null)
      * @return the indexes a page belongs to, {@link #DEFAULT} when none is declared
      */
-    static List<String> membership(Object value) {
+    public static List<String> membership(Object value) {
         final List<String> names = RoqTemplateExtension.asStrings(value);
         return names.isEmpty() ? List.of(DEFAULT) : names;
     }
@@ -64,7 +64,7 @@ final class RoqLunrIndexNames {
      * Index names are rendered into HTML attributes and an inline script, so they are restricted to
      * letters, digits, {@code -} and {@code _}. {@link #ALL} is reserved.
      */
-    static boolean isValidName(String name) {
+    public static boolean isValidName(String name) {
         return name != null && VALID_NAME.matcher(name).matches() && !ALL.equals(name);
     }
 
