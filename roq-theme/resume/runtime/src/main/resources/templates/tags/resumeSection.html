@@ -2,10 +2,14 @@
 {#let
   headingClass=(headingClass ?: "text-xl font-medium text-heading dark:text-heading-dark")
   borderClass=(borderClass ?: "mb-8 border-b-4 border-section-border py-2.5 dark:border-section-border-dark")
+  anchorId=title.slugify
 }
 <section {#if class??}class="{class}"{/if}>
   <div class="{borderClass}">
-    <h3 class="{headingClass}">{title}</h3>
+    <h3 class="{headingClass} group flex items-center gap-2" id="{anchorId}">
+      {title}
+      {#resumeAnchor anchorId=anchorId label=title /}
+    </h3>
   </div>
   <ul
     class="relative space-y-6 pl-6

@@ -206,6 +206,19 @@ public interface RoqFrontMatterKeys {
      */
     String BODY_CLASS = "body-class";
 
+    // ── SEO ─────────────────────────────────────────────────────────────
+
+    /**
+     * Alternate versions of the page, which the seo tag renders as {@code <link rel="alternate">} — a list of entries
+     * with an {@code href} and an optional {@code type}, or {@code seoAlternates: false} for none. The markdown-twin
+     * plugin fills it.
+     * <br>
+     * ▸ Scope: page / document
+     * <br>
+     * ▸ Access: {@code page.data.seoAlternates}
+     */
+    String SEO_ALTERNATES = "seoAlternates";
+
     // ── Indexation ──────────────────────────────────────────────────────
 
     /**

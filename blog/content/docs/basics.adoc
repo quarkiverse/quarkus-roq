@@ -576,6 +576,10 @@ Common values:
 
 The `<meta name="robots">` tag is rendered when the `robots` key is set on the page, or as `noindex` when the page sets `no-index-all: true` (see <<no-index-all>>).
 
+==== Alternate versions of a page (per page)
+
+The `{#seo page site /}` tag renders the page's `seoAlternates` data, a list of entries with an `href` and an optional `type`, as `<link rel="alternate">` tags. The link:/plugin/markdown-twin/[Markdown Twin plugin] fills it with the page's Markdown twin. A list set in a page's FrontMatter keeps its entries, and the plugin adds the twin's entry after them. Set `seoAlternates` to `false` to render none.
+
 [[no-index-all]]
 ==== Excluding a page from all indexes (per page)
 

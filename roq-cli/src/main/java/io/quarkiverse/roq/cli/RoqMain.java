@@ -22,7 +22,7 @@ import picocli.CommandLine.Command;
 @Command(name = "roq", mixinStandardHelpOptions = true, versionProvider = RoqVersionProvider.class, subcommands = {
         StartCommand.class, ServeCommand.class,
         CreateCommand.class, AddCommand.class, UpdateCommand.class, GenerateCommand.class, BlogCommand.class,
-        MigrateCommand.class })
+        ThemeCommand.class, MigrateCommand.class })
 public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputProvider {
 
     /**
@@ -74,7 +74,10 @@ public class RoqMain implements QuarkusApplication, Callable<Integer>, OutputPro
     }
 
     static boolean isRoqProject() {
-        Path dir = Paths.get(System.getProperty("user.dir"));
+        return isRoqProject(Paths.get(System.getProperty("user.dir")));
+    }
+
+    static boolean isRoqProject(Path dir) {
         for (String buildFile : BUILD_FILES) {
             Path path = dir.resolve(buildFile);
             if (Files.exists(path)) {

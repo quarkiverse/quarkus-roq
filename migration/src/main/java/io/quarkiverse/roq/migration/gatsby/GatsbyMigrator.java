@@ -1,5 +1,6 @@
 package io.quarkiverse.roq.migration.gatsby;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Locale;
 import io.quarkiverse.roq.migration.MvnpmDependencies;
 import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.MigrationException;
+import io.quarkiverse.roq.migration.engine.ReferenceSite;
 import io.quarkiverse.roq.migration.engine.SiteAnalysis;
 import io.quarkiverse.roq.migration.engine.SiteMigrator;
 import io.quarkiverse.roq.migration.engine.SiteType;
@@ -41,6 +43,18 @@ public class GatsbyMigrator extends SiteMigrator {
      */
     private String homePage;
 
+    /**
+     * Set by {@link #analyze}: the site's React components and pages, and which could be converted.
+     */
+    private GatsbyComponents components;
+
+    /**
+     * Set by {@link #analyze}: the Font Awesome stylesheet converted icons need, or null.
+     */
+    private String fontAwesome;
+
+    static final String FONT_AWESOME = "@fortawesome/fontawesome-free";
+
     @Override
     public SiteType type() {
         return SiteType.GATSBY;
@@ -68,6 +82,29 @@ public class GatsbyMigrator extends SiteMigrator {
         });
         String slug = slugify(project.config().siteMetadata().getOrDefault("title", source.name()));
         analysis.projectName((slug.isEmpty() ? slugify(source.name()) : slug) + "-website");
+        String siteUrl = project.config().siteMetadata().get("siteUrl");
+        if (siteUrl != null && siteUrl.matches("https?://.+")) {
+            analysis.referenceSite(URI.create(siteUrl));
+        }
+
+        components = GatsbyComponents.read(source, project);
+        if (components.usesIcons()) {
+            // Converted icons are Font Awesome's CSS classes, from the free package of the version the site used
+            String lock = read(source, project.path("package-lock.json"));
+            String packageJson = read(source, project.path("package.json"));
+            try {
+                String version = MvnpmDependencies.version(lock, packageJson, FONT_AWESOME);
+                if (version == null) {
+                    version = MvnpmDependencies.version(lock, packageJson, "@fortawesome/fontawesome-svg-core");
+                }
+                if (version != null) {
+                    analysis.dependencies().add(MvnpmDependencies.dependency(FONT_AWESOME, version));
+                    fontAwesome = FONT_AWESOME + "/css/all.min.css";
+                }
+            } catch (java.io.IOException e) {
+                throw new MigrationException("Cannot read the npm package versions: " + e.getMessage(), e);
+            }
+        }
     }
 
     @Override
@@ -99,12 +136,16 @@ public class GatsbyMigrator extends SiteMigrator {
         Files.writeString(config, properties);
 
         GatsbyPlugins.notes(project).forEach(site.report()::info);
-        GatsbyPlugins.actionItems(project, site.dir()).forEach(site.report()::todo);
+        GatsbyPlugins.actionItems(project, site.dir(), components).forEach(site.report()::todo);
     }
 
     @Override
     protected void convertTemplates(TargetSite site) throws Exception {
-        GatsbyTemplates.convert(project, site, homePage);
+        GatsbyTemplates.convert(project, site, homePage, components);
+        if (components.usesIcons() && fontAwesome == null) {
+            site.report().todo("Add the org.mvnpm.at.fortawesome:fontawesome-free dependency and import "
+                    + FONT_AWESOME + "/css/all.min.css in web/main.js, for the icons of the converted components");
+        }
     }
 
     @Override
@@ -119,7 +160,7 @@ public class GatsbyMigrator extends SiteMigrator {
 
     @Override
     protected void convertAssets(TargetSite site) throws Exception {
-        GatsbyStyles.convert(project, site);
+        GatsbyStyles.convert(project, site, components, fontAwesome);
     }
 
     @Override
@@ -155,6 +196,28 @@ public class GatsbyMigrator extends SiteMigrator {
             SiteFiles.deleteTree(dir.resolve("src"));
             SiteFiles.deleteTree(dir.resolve("plugins"));
             site.report().info("Removed the Gatsby project files");
+        }
+    }
+
+    private static String read(SourceSite source, String path) throws MigrationException {
+        return source.isFile(path) ? source.readString(path) : null;
+    }
+
+    @Override
+    protected void validate(TargetSite site, ReferenceSite reference) throws Exception {
+        if (reference == null) {
+            site.report().todo("Check the page URLs against the old site; pages without a slug or path are served at "
+                    + "/<file-name>/, lower case with punctuation replaced by - (site.page-link=/:path/)");
+            return;
+        }
+        List<String> missing = reference.missingPages();
+        if (missing.isEmpty()) {
+            site.report().info("The " + reference.builtPages().size() + " pages are at the same URLs as on "
+                    + reference.url());
+        } else {
+            site.report().todo(reference.url() + " has nothing at these URLs of the migrated site: "
+                    + String.join(", ", missing) + "; give the pages the URLs they had, with link: in their front "
+                    + "matter, unless they are new");
         }
     }
 

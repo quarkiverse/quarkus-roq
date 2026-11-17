@@ -1,4 +1,7 @@
-<li class="{#if nested??}list-none{/if} relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark">
+{#let prefix=(parentId ?: '')}
+{#let itemKey=(prefix + '-' + item.header + '-' + item.title)}
+{#let anchorId=itemKey.slugify}
+<li id="{anchorId}" class="{#if nested??}list-none{/if} relative before:absolute before:top-6 before:-left-[1.875rem] before:block before:size-4 before:rounded-full before:border-1 before:border-2 before:border-timeline-dot-border/75 before:bg-main before:content-[''] dark:before:border-timeline-dot-border-dark/75 dark:before:bg-main-dark">
 
 {#if item.logo??}
   <a href="{item.logo.link}" target="_blank" rel="noopener noreferrer"><img src="{site.image(item.logo.imageUrl)}" alt="{item.logo.label}" class="h-15 m-2"></a>
@@ -17,13 +20,14 @@
   </h4>
 {/if}
 
-    <h5 class="mb-2 font-bold text-heading dark:text-heading-dark">
+    <h5 class="group mb-2 font-bold text-heading dark:text-heading-dark">
       {item.title}{#if item.link??} -
     <a
       class="font-medium text-link underline wrap-anywhere hover:text-link-hover dark:text-link-dark dark:hover:text-link-hover-dark"
       href="{item.link}"
       target="_blank" rel="noopener noreferrer"
     >{item.link}</a>{/if}
+      {#resumeAnchor anchorId=anchorId label=item.title /}
   </h5>
 {#if item.collapsible}
   </summary>
@@ -36,7 +40,7 @@
 {#if item.subItems}
   <ul>
     {#for subItem in item.subItems}
-      {#resumeItem site=site item=subItem nested=true}
+      {#resumeItem site=site item=subItem nested=true parentId=anchorId}
       {/resumeItem}
     {/for}
   </ul>
@@ -52,3 +56,6 @@
 {#if item.ruler}
 <hr>
 {/if}
+{/let}
+{/let}
+{/let}

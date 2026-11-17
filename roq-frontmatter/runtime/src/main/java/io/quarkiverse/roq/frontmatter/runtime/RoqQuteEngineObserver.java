@@ -5,12 +5,13 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.SOURC
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes.TEMPLATE_ID;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.*;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
@@ -24,8 +25,9 @@ public class RoqQuteEngineObserver {
     private final Map<String, SourceFile> templatePathMapping;
 
     @Inject
-    public RoqQuteEngineObserver(Sources sources) {
-        this.templatePathMapping = initTemplatePathMapping(sources);
+    public RoqQuteEngineObserver(Instance<Sources> sources) {
+        // There are no sources when the site has no layouts and no pages (e.g. all files are ignored)
+        this.templatePathMapping = sources.isResolvable() ? initTemplatePathMapping(sources.get()) : Collections.emptyMap();
     }
 
     void configureEngine(@Observes EngineBuilder builder) {
@@ -55,14 +57,9 @@ public class RoqQuteEngineObserver {
     }
 
     private static Map<String, SourceFile> initTemplatePathMapping(Sources sources) {
-        final Map<String, SourceFile> templatePathMapping = new HashMap<>();
-        if (sources == null) {
-            return templatePathMapping;
-        }
         // A template can be used in multiple pages
-        templatePathMapping.putAll(sources.list().stream()
+        return sources.list().stream()
                 .collect(Collectors.toMap(TemplateSource::generatedQuteTemplateId, TemplateSource::file,
-                        (a, b) -> a)));
-        return templatePathMapping;
+                        (a, b) -> a));
     }
 }

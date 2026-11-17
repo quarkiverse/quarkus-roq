@@ -1,5 +1,6 @@
 # Overrides the codestart data/bio.yml for the integration tests (same content, plus extra items)
-# to cover: a long URL.
+# to cover: a long URL, more than 3 items in a section ("Show more"), collapsed and expanded collapsible items,
+# and nested sub-items.
 - title: Experience
   items:
     - header: "1842 - 1843"
@@ -13,6 +14,39 @@
         - Recognized the machine's potential beyond pure calculation
         - Described how the engine could handle letters and symbols
         - Published what is now considered the first computer program
+
+    - header: "1843"
+      title: "Notes on the Analytical Engine"
+      collapsible: true
+      collapsed: true
+      content: |
+        A set of seven notes, labelled A to G, appended to the translation.
+      subItems:
+        - header: "Note A"
+          title: "Beyond calculation"
+          content: |
+            The engine could manipulate symbols, not only numbers.
+        - header: "Note G"
+          title: "Bernoulli numbers algorithm"
+          content: |
+            Step-by-step method to compute Bernoulli numbers with the engine.
+
+    - header: "1840 - 1842"
+      title: "Correspondence with Augustus De Morgan"
+      collapsible: true
+      collapsed: false
+      content: |
+        Advanced mathematics studied by correspondence.
+      subItems:
+        - header: "1841"
+          title: "Calculus lessons"
+          content: |
+            Questions and exercises on functions and series.
+
+    - header: "1835 - 1852"
+      title: "Countess of Lovelace"
+      content: |
+        Member of the London scientific society of her time.
 
 - title: Education
   items:
