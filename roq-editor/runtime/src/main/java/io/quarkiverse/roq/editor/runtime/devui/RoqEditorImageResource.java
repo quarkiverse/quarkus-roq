@@ -75,7 +75,7 @@ public class RoqEditorImageResource {
 
             Path targetDir;
             String resultPath;
-            String newPagePath = null;
+            PageConversion conversion = null;
 
             if ("page".equals(location)) {
                 if (pagePath == null || pagePath.isEmpty()) {
@@ -93,9 +93,9 @@ public class RoqEditorImageResource {
                 } else {
                     // The page is a single file, convert it to a directory page
                     // (e.g. posts/my-post.md -> posts/my-post/index.md) so files can be attached to it
-                    ConvertedPage converted = convertToDirectoryPage(page, pageFilePath);
-                    targetDir = converted.dir();
-                    newPagePath = converted.sourcePath();
+                    // The page file is only moved once the image is copied, see below
+                    conversion = planDirectoryPageConversion(page, pageFilePath);
+                    targetDir = conversion.dir();
                 }
                 resultPath = sanitizedFilename;
             } else if ("public".equals(location)) {
@@ -142,7 +142,24 @@ public class RoqEditorImageResource {
             }
 
             uploadedFile = Path.of(fileUpload.uploadedFileName());
-            Files.copy(uploadedFile, targetFile);
+            String newPagePath = null;
+            if (conversion == null) {
+                Files.copy(uploadedFile, targetFile);
+            } else {
+                // Create the directory, copy the image, then move the page file as the last step,
+                // so that a failure leaves the page untouched
+                boolean dirCreated = !Files.exists(targetDir);
+                try {
+                    Files.createDirectories(targetDir);
+                    Files.copy(uploadedFile, targetFile);
+                    Files.move(conversion.pageFile(), conversion.indexFile());
+                } catch (IOException | RuntimeException e) {
+                    rollbackConversion(targetFile, targetDir, dirCreated);
+                    throw e;
+                }
+                newPagePath = conversion.sourcePath();
+                LOG.infof("Converted page '%s' to directory page '%s'", pagePath, newPagePath);
+            }
 
             LOG.infof("Successfully uploaded image: %s to %s", sanitizedFilename, targetDir);
 
@@ -174,10 +191,10 @@ public class RoqEditorImageResource {
     }
 
     /**
-     * Converts a single-file page into a directory page so files can be attached to it
-     * (e.g. posts/my-post.md becomes posts/my-post/index.md).
+     * Computes the conversion of a single-file page into a directory page so files can be attached to it
+     * (e.g. posts/my-post.md becomes posts/my-post/index.md). Nothing is changed on disk.
      */
-    private ConvertedPage convertToDirectoryPage(Page page, Path pageFilePath) throws IOException {
+    private PageConversion planDirectoryPageConversion(Page page, Path pageFilePath) throws IOException {
         String fileName = pageFilePath.getFileName().toString();
         int dotIndex = fileName.lastIndexOf('.');
         String baseName = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
@@ -187,18 +204,29 @@ public class RoqEditorImageResource {
         if (Files.exists(indexFile)) {
             throw new IOException("Cannot convert page to a directory, file already exists: " + indexFile);
         }
-        Files.createDirectories(pageDir);
-        Files.move(pageFilePath, indexFile);
         // sourcePath is relative to the content dir and uses '/' separators
         String sourcePath = page.sourcePath();
         int slash = sourcePath.lastIndexOf('/');
         String parentPath = slash >= 0 ? sourcePath.substring(0, slash + 1) : "";
         String newSourcePath = parentPath + baseName + "/index" + extension;
-        LOG.infof("Converted page '%s' to directory page '%s'", sourcePath, newSourcePath);
-        return new ConvertedPage(pageDir, newSourcePath);
+        return new PageConversion(pageFilePath, pageDir, indexFile, newSourcePath);
     }
 
-    private record ConvertedPage(Path dir, String sourcePath) {
+    /**
+     * Removes what a failed conversion left behind: the copied image and the directory if we created it.
+     */
+    private void rollbackConversion(Path targetFile, Path targetDir, boolean dirCreated) {
+        try {
+            Files.deleteIfExists(targetFile);
+            if (dirCreated) {
+                Files.deleteIfExists(targetDir);
+            }
+        } catch (Exception ex) {
+            LOG.warnf(ex, "Failed to clean up after failed page conversion: %s", targetDir);
+        }
+    }
+
+    private record PageConversion(Path pageFile, Path dir, Path indexFile, String sourcePath) {
     }
 
     private void sendError(RoutingContext ctx, String message) {
