@@ -66,7 +66,70 @@ The `{#search-button /}` component renders a plain `<div id="search-button" clas
 <button id="search-button" class="my-search-btn" aria-label="Search">⌘K</button>
 ```
 
-The search overlay also responds to the **Cmd+K** (macOS) / **Ctrl+K** (Windows/Linux) keyboard shortcut out of the box.
+The search overlay also responds to the **Cmd+K** (macOS) / **Ctrl+K** (Windows/Linux) keyboard shortcut out of the box. It searches with the first search trigger on the page.
+
+### Multiple indexes
+
+By default every searchable page goes into one index. A site with several content areas, such as blog posts and recipes, can give each area its own index, so that someone browsing recipes only finds recipes.
+
+1. Declare the indexes a page appears in with `search-indexes`. Set it on a layout to apply it to every page using that layout, for example a whole collection:
+
+```yaml
+# templates/layouts/post.html
+---
+search-indexes: [posts, default]
+---
+```
+
+```yaml
+# templates/layouts/recipe.html
+---
+search-indexes: recipes
+---
+```
+
+A page without `search-indexes` belongs to the `default` index, so a site that never sets the key keeps a single index. `default` is an index like the others, not a superset: in this example recipes are not in `default`, while posts are in both. `search: false` and `no-index-all` still keep a page out of every index. A value set on a page replaces the one from its layout.
+
+2. Add one index file per index, named with `search-index-name`. The existing `content/search-index.json` stays the `default` index:
+
+{|
+```
+<!-- content/recipes-search-index.json -->
+---
+search-index-name: recipes
+---
+{#include fm/search-index.json /}
+```
+|}
+
+Index names may contain letters, digits, `-` and `_`.
+
+3. Give each search trigger the indexes it searches with the `indexes` parameter. Without it, a trigger searches `default`:
+
+{|
+```html
+<!-- recipe pages search recipes -->
+{#search-button-input indexes="recipes" /}
+
+<!-- a combination of indexes, searched together -->
+{#search-button-input indexes="posts,recipes" /}
+
+<!-- every index -->
+{#search-button-input indexes="all" /}
+```
+|}
+
+`all` is reserved and covers every index, so a global search keeps working when you add new ones. The `indexes` value can also come from front matter, for example from a custom key set on a layout:
+
+{|
+```html
+{#search-button-input indexes=page.data('search-scope') /}
+```
+|}
+
+The trigger renders the names as `data-search-indexes="posts recipes"`. A hand-written trigger can use the same attribute; it is bound to the search overlay without needing `id="search-button"`.
+
+An index is downloaded the first time a trigger using it opens the search, and is reused for later searches on the page. When a trigger names several indexes, they are combined into one, and a page that belongs to several of them shows up once. A name that matches no index file is ignored with a warning in the build log. A page listing a name in `search-indexes` that has no index file is not reported: check the spelling if a page is missing from an index.
 
 ### Controlling indexing
 

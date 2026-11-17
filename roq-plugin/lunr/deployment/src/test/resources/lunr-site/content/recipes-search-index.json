@@ -1,0 +1,4 @@
+---
+search-index-name: recipes
+---
+{#include fm/search-index.json /}

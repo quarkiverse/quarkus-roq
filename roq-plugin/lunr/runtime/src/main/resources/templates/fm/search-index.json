@@ -1,1 +1,1 @@
-{site.searchIndex}
+{site.searchIndex(page)}
