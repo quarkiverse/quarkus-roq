@@ -1,5 +1,5 @@
 # Overrides the codestart data/bio.yml for the integration tests (same content, plus extra items)
-# to cover: more than 3 items in a section ("Show more"), collapsed and expanded collapsible items,
+# to cover: a long URL, more than 3 items in a section ("Show more"), collapsed and expanded collapsible items,
 # and nested sub-items.
 - title: Experience
   items:
@@ -63,6 +63,13 @@
         Introduced to Charles Babbage at a party, where she first
         encountered the Difference Engine. This meeting sparked a
         lifelong collaboration on computational machinery.
+
+    - header: "1840 - 1842"
+      title: "Correspondence with Augustus De Morgan"
+      # Long URL without break opportunities: must not widen the page on small screens
+      link: "https://archive.example.org/lovelace/correspondence/de-morgan/0123456789abcdef0123456789abcdef0123456789abcdef"
+      content: |
+        Advanced mathematics studied by correspondence.
 
 - title: Skills
   items:
