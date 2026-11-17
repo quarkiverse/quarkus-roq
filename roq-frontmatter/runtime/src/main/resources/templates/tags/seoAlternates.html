@@ -1,0 +1,8 @@
+{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}
+
+{#if page.data.seoAlternates??}
+  <!-- SEO ALTERNATES -->
+  {#for alternate in page.data.seoAlternates}
+  <link rel="alternate"{#if alternate.type??} type="{alternate.type}"{/if} href="{alternate.href}" />
+  {/for}
+{/if}
