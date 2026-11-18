@@ -16,6 +16,34 @@ TIP: Already using Roq and looking to update to a newer version? See the link:{s
 * The Roq CLI installed (see link:{site-url}docs/getting-started/[Getting Started])
 * Java 21+ installed
 
+[[roq-migrate]]
+== Migrating with `roq migrate`
+
+`roq migrate` detects which generator built a site and, for the generators it supports, migrates it for you:
+
+[source,shell]
+----
+roq migrate my-site
+----
+
+* The migrated site is written to `my-site-roq` next to the original, which is left untouched. Use `-o` to choose the directory, or `--in-place` to migrate the site in its own directory. Using `--in-place` is destructive, so commit first.
+* It creates the Roq project, moves the content, templates, configuration and assets into the Roq layout, and converts what it can.
+* What it could not convert is listed at the end and written as a checklist to `ROQ-MIGRATION.md` in the migrated site.
+* It then builds the site, as `roq generate` does. Use `--no-build` to skip that.
+
+For a generator it recognises but does not support yet, it says so and stops, without writing anything:
+
+[source,shell]
+----
+$ roq migrate my-hugo-site
+❗ /home/me/my-hugo-site looks like a Hugo site, but Hugo sites cannot be migrated yet
+----
+
+[[supported-generators]]
+=== Supported generators
+
+No generator is supported yet. Until yours is, migrate by hand with the rest of this guide.
+
 == Using an LLM to accelerate migration
 
 An LLM (Large Language Model) such as Claude, ChatGPT, or a locally hosted model can accelerate the migration of your templates, layouts, and content files.

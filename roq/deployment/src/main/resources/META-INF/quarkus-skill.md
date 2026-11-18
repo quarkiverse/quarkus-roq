@@ -130,6 +130,7 @@ Uses `@RoqAndRoll(port=8082)` from the `roq-testing` module with REST Assured fo
 - `roq theme init my-theme` — scaffold a theme packaged as a jar for other sites, in `theme/`: in a Maven site it is added to the site resources, elsewhere a new preview site with starter layouts is created
 - `roq update` — update the Roq/Quarkus project to latest versions
 - `roq blog` — list blog posts from a Roq site RSS feed
+- `roq migrate my-site` — migrate a site from another static site generator, which it detects, to `my-site-roq/`; `-o dir` to set an output directory or `--in-place` to destructively overwrite the target project, `--no-build` to skip the build. It writes what it could not convert to `ROQ-MIGRATION.md`. It says so when it cannot migrate a generator yet
 
 ### AI Agent Integration
 
