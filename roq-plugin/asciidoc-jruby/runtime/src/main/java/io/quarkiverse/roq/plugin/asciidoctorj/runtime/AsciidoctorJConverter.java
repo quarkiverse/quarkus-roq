@@ -22,6 +22,7 @@ import org.asciidoctor.ast.Document;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.frontmatter.runtime.RoqTemplateAttributes;
+import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocAttributes;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 
 @Singleton
@@ -31,10 +32,8 @@ public class AsciidoctorJConverter {
     public static final String ROOTDIR = "root_dir";
     public static final String PAGEDIR = "page_dir";
     public static final String TRUE = Boolean.TRUE.toString();
-    // Marker for an empty attribute value, since SmallRye Config rejects empty map values.
-    // TODO document it in AsciidoctorJConfig javadoc once https://github.com/quarkusio/quarkus/pull/57909
-    // is released (until then the generated config docs would render <<empty>> as a broken xref)
-    public static final String EMPTY = "<<empty>>";
+    // Kept for compatibility, see RoqAsciidocAttributes.EMPTY.
+    public static final String EMPTY = RoqAsciidocAttributes.EMPTY;
 
     private final Asciidoctor asciidoctor;
     private final Map<String, String> configuredAttributes;
@@ -104,7 +103,7 @@ public class AsciidoctorJConverter {
         // AsciiDoc attributes (e.g. sectanchors) are stored as "true" in config.
         // Convert back to "" so AsciidoctorJ sees them as boolean flags.
         // Value attributes that must be empty (e.g. idprefix) use the EMPTY marker instead.
-        configuredAttributes.forEach((k, v) -> attributes.attribute(k, TRUE.equals(v) || EMPTY.equals(v) ? "" : v));
+        configuredAttributes.forEach((k, v) -> attributes.attribute(k, RoqAsciidocAttributes.value(v)));
         asciidocAttributes.forEach(attributes::attribute);
 
         final OptionsBuilder optionsBuilder = Options.builder();

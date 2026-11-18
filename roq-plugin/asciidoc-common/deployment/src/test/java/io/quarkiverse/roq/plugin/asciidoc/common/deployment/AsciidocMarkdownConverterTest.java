@@ -405,9 +405,21 @@ class AsciidocMarkdownConverterTest {
 
     @Test
     void siteAttributesTrueBecomesAnEmptyValueAndUnsetMarkersAreKept() {
-        assertThat(AsciidocMarkdownConverter.siteAttributes(Map.of("sectanchors", "true", "icons", "font", "!toc", "")))
-                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "icons", "font", "!toc", ""));
+        assertThat(AsciidocMarkdownConverter.siteAttributes(
+                Map.of("sectanchors", "true", "idprefix", "<<empty>>", "icons", "font", "!toc", "")))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "idprefix", "", "icons", "font", "!toc", ""));
         assertThat(AsciidocMarkdownConverter.siteAttributes(null)).isEmpty();
+    }
+
+    @Test
+    void theEmptyMarkerOfASiteAttributeGivesAnEmptyValue() throws IOException {
+        final Path page = tmp.resolve("page.adoc");
+        Files.writeString(page, "= Doc\n\nSee page{outfilesuffix} and [{idprefix}].\n\n"
+                + "xref:other.adoc[Other] and link:other{outfilesuffix}[Other3].\n");
+        final Map<String, String> configured = Map.of("outfilesuffix", "<<empty>>", "idprefix", "<<empty>>");
+        assertThat(new AsciidocMarkdownConverter(AsciidocMarkdownConverter.siteAttributes(configured), Includes.SITE)
+                .convert(page, tmp, Map.of(), Map.of(), null))
+                .contains("# Doc\n\nSee page and \\[\\].\n\n[Other](../other/index.md) and [Other3](other).\n");
     }
 
     @Test
@@ -427,15 +439,18 @@ class AsciidocMarkdownConverterTest {
                 .withSources(new PropertiesConfigSource(Map.of(
                         "quarkus.asciidoc.attributes.sectanchors", "true",
                         "quarkus.asciidoc.attributes.icons", "font",
+                        "quarkus.asciidoc.attributes.idprefix", "<<empty>>",
                         "quarkus.asciidoc.attributes.\"!toc\"", "true",
                         "quarkus.asciidoc.safe-mode", "unsafe"), "test", 100))
                 .build();
         final AsciidocCommonConfig mapping = config.getConfigMapping(AsciidocCommonConfig.class);
         assertThat(mapping.attributes())
-                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "true", "icons", "font", "!toc", "true"));
-        // What the converter gets from it: the flag set, the unset marker kept for the conversion to apply.
+                .containsExactlyInAnyOrderEntriesOf(
+                        Map.of("sectanchors", "true", "icons", "font", "idprefix", "<<empty>>", "!toc", "true"));
+        // What the converter gets from it: the flag set, the marked value empty, the unset marker kept for the
+        // conversion to apply.
         assertThat(AsciidocMarkdownConverter.siteAttributes(mapping.attributes()))
-                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "icons", "font", "!toc", ""));
+                .containsExactlyInAnyOrderEntriesOf(Map.of("sectanchors", "", "icons", "font", "idprefix", "", "!toc", ""));
         assertThat(mapping.safeMode()).isEqualTo("unsafe");
         assertThat(mapping.qute()).isFalse();
         // The defaults when nothing is set.

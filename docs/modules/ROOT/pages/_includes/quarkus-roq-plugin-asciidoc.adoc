@@ -44,6 +44,8 @@ The AsciiDoc attributes applied when a page is rendered, and when a page is conv
 
 For a boolean attribute (a flag that is set or unset, such as `sectanchors`), use the value `"true"`, which is converted to an empty value before it reaches the parser.
 
+For a value attribute that needs to be empty (such as `idprefix`), the AsciidoctorJ plugin and the conversion to Markdown read a dedicated "empty" marker value, described in the Jekyll migration guide.
+
 
 ifdef::add-copy-button-to-env-var[]
 Environment variable: env_var_with_copy_button:+++QUARKUS_ASCIIDOC_ATTRIBUTES__ATTRIBUTES_+++[]
