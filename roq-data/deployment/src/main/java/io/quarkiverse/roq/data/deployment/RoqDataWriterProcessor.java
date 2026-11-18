@@ -8,8 +8,7 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-
+import io.quarkiverse.roq.RoqJacksonSettings;
 import io.quarkiverse.roq.data.deployment.items.DataMappingBuildItem;
 import io.quarkiverse.roq.data.deployment.items.RoqDataBuildItem;
 import io.quarkiverse.roq.data.runtime.DataMappingWriter;
@@ -59,9 +58,9 @@ class RoqDataWriterProcessor {
             }
         }
 
-        final PropertyNamingStrategy strategy = jackson.getJsonMapper().getSerializationConfig()
-                .getPropertyNamingStrategy();
-        final String strategyClass = strategy == null ? null : strategy.getClass().getName();
+        // the writer maps data with the same settings as the reader
+        final RoqJacksonSettings settings = jackson.getSettings();
+        final String strategyClass = settings.propertyNamingStrategy();
         if (strategyClass != null) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(strategyClass).constructors().build());
         }
@@ -69,7 +68,7 @@ class RoqDataWriterProcessor {
         // Lazy and removable: no cost for applications which don't inject it
         beans.produce(SyntheticBeanBuildItem.configure(DataMappingWriter.class)
                 .scope(Singleton.class)
-                .supplier(recorder.dataWriterSupplier(sourceFiles, strategyClass))
+                .supplier(recorder.dataWriterSupplier(sourceFiles, settings))
                 .done());
     }
 }
