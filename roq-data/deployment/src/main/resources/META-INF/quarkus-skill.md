@@ -24,9 +24,10 @@ john:
   url: https://example.com
 ```
 
-**Template access**:
+**Template access** (`inject:` is equivalent to `cdi:`):
 ```html
 {=cdi:authors.ia3andy.name}
+{=inject:authors.ia3andy.name}
 ```
 
 ### Data Directories
