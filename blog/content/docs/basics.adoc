@@ -919,11 +919,12 @@ NOTE: Supported extensions: `.json`, `.yml`, `.yaml`.
 bar: Roq
 ----
 
-Access it with the `cdi` namespace:
+Access it with the `cdi` namespace, or its equivalent, the `inject` namespace:
 
 [source,html]
 ----
 {=cdi:foo.bar}
+{=inject:foo.bar}
 ----
 
 For structured data:
