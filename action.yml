@@ -46,6 +46,10 @@ inputs:
     description: "Path of the artifact to upload (from the site-directory)"
     required: false
     default: "target/roq"
+  include-hidden-files:
+    description: "Include hidden files and directories (those starting with a dot, e.g. .well-known) in the GitHub Pages artifact. .git and .github are always excluded."
+    required: false
+    default: 'false'
   site-future:
     description: "Generate future posts"
     required: false
@@ -146,3 +150,4 @@ runs:
       uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
       with:
         path: ${{ env.SITE_DIR }}${{ inputs.artifact-path }}
+        include-hidden-files: ${{ inputs.include-hidden-files }}
