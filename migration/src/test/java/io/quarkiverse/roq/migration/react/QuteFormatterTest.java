@@ -62,4 +62,13 @@ class QuteFormatterTest {
     void leavesWhatItCannotReadAsItIs() {
         assertThat(QuteFormatter.format("<div><p>unclosed</div>")).isEqualTo("<div><p>unclosed</div>");
     }
+
+    @Test
+    void keepsGatsbyConstrainedImagesInline() {
+        // Their wrapper is an inline block, so a line break before it would show as a space
+        assertThat(QuteFormatter.format("<p>A<div class=\"gatsby-image-wrapper gatsby-image-wrapper-constrained\">"
+                + "<div><img></div><img></div> logo</p>"))
+                .isEqualTo("<p>A<div class=\"gatsby-image-wrapper gatsby-image-wrapper-constrained\"><div><img></div><img>"
+                        + "</div> logo</p>");
+    }
 }
