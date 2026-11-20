@@ -18,6 +18,7 @@ class ImageSizeTest {
         assertThat(ImageSize.of("logo.png", image("png", 200, 100))).isEqualTo(new ImageSize(200, 100));
         assertThat(ImageSize.of("a.gif", image("gif", 300, 150))).isEqualTo(new ImageSize(300, 150));
         assertThat(ImageSize.of("photo.JPG", image("jpg", 640, 480))).isEqualTo(new ImageSize(640, 480));
+        assertThat(ImageSize.of("scan.tiff", image("tiff", 120, 90))).isEqualTo(new ImageSize(120, 90));
     }
 
     /**
