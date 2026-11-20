@@ -29,6 +29,9 @@ public interface AsciidocCommonConfig {
      * <p>
      * For a boolean attribute (a flag that is set or unset, such as {@code sectanchors}), use the value {@code "true"},
      * which is converted to an empty value before it reaches the parser.
+     * <p>
+     * For a value attribute that needs to be empty (such as {@code idprefix}), the AsciidoctorJ plugin and the
+     * conversion to Markdown read a dedicated "empty" marker value, described in the Jekyll migration guide.
      */
     Map<String, String> attributes();
 
