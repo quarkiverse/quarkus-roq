@@ -3,6 +3,7 @@ package io.quarkiverse.roq.migration.react;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +47,23 @@ class JsxToQuteConverterTest {
         public boolean isPagePath(String field) {
             return field.equals("fields.slug");
         }
+
+        @Override
+        public String queriedPage(ReactComponent component, String query, Map<String, String> equalities) {
+            return query.equals("markdownRemark") && equalities.equals(Map.of("fields.slug", "home"))
+                    ? "site.page('Home.md')"
+                    : null;
+        }
+
+        @Override
+        public boolean isPageHtml(String field) {
+            return field.equals("html");
+        }
+
+        @Override
+        public String layoutFor(ReactComponent component, ReactComponent.Import imported) {
+            return imported.from().equals("../components/layout") ? "main" : null;
+        }
     };
 
     static String body(String component) throws JsxToQuteConverter.Unsupported {
@@ -74,6 +92,81 @@ class JsxToQuteConverterTest {
                 export default C
                 """)).isEqualTo("<div class=\"box\" for=\"x\" data-x=\"1\" hidden><img src=\"/a.png\" alt=\"A\">It&#39;s "
                 + "<b>bold</b></div>");
+    }
+
+    @Test
+    void convertsTheConstantsAComponentDeclaresBeforeRendering() throws Exception {
+        assertThat(body("""
+                const C = ({user}) => {
+                  const {name, role: job} = user
+                  const label = name || 'Anonymous';
+                  return <p title={job}>{label}</p>
+                }
+                export default C
+                """)).isEqualTo("<p title=\"{=user.or('').role??}\">{=user.or('').name ?: 'Anonymous'}</p>");
+    }
+
+    static final String HOME_PAGE = """
+            import Layout from "../components/layout"
+            const HomePage = ({data}) => {
+                const {markdownRemark} = data
+                const {fields, html} = markdownRemark
+                return (
+                    <Layout pageName={fields.pageName} kind="home" wide={true}>
+                        <div className="home" dangerouslySetInnerHTML={{__html: html}}/>
+                        <p>{fields.slug}</p>
+                    </Layout>
+                )
+            }
+            export const query = graphql`query Home { markdownRemark(fields: {slug: {eq: "home"}}) { html fields { slug } } }`
+            export const Head = () => <Seo title="Home" description="The hub"/>
+            export default HomePage
+            """;
+
+    @Test
+    void convertsPagesThatRenderInTheLayoutToRoqPages() throws Exception {
+        JsxToQuteConverter.ConvertedPage page = JsxToQuteConverter.convertPage(
+                ReactComponent.read("src/pages/index.jsx", HOME_PAGE), CONTEXT);
+
+        // The page query's page, the literal props it gives the layout, and its Head's title
+        assertThat(page.frontMatter()).containsExactly(Map.entry("layout", "main"), Map.entry("kind", "home"),
+                Map.entry("wide", "true"), Map.entry("title", "Home"), Map.entry("description", "The hub"));
+        assertThat(page.omitted()).containsExactly("pageName");
+        assertThat(page.body()).isEqualTo("""
+                <div class="home">{=site.pageContent(site.page('Home.md')).raw}</div>
+                <p>{=site.page('Home.md').slug}</p>
+                """);
+    }
+
+    @Test
+    void saysWhyItCannotConvertAPage() {
+        Map<String, String> reasons = Map.of(
+                HOME_PAGE.replace("eq: \"home\"", "eq: \"away\""),
+                "its page query asks for markdownRemark(fields: {slug: {eq: \"away\"}}), which is not one of the "
+                        + "site's pages",
+                HOME_PAGE.replace("../components/layout", "../components/other"),
+                "it does not render its content in the site's layout",
+                HOME_PAGE.replace("<p>{fields.slug}</p>", "<p>{html}</p>"),
+                "it renders the HTML of the page it queries as text",
+                HOME_PAGE.replace("{{__html: html}}", "{{__html: fields.slug}}"),
+                "it sets raw HTML with dangerouslySetInnerHTML, from fields.slug, which is not the HTML of a page");
+        reasons.forEach((page, reason) -> {
+            try {
+                JsxToQuteConverter.convertPage(ReactComponent.read("src/pages/index.jsx", page), CONTEXT);
+                throw new AssertionError("converted");
+            } catch (JsxToQuteConverter.Unsupported e) {
+                assertThat(e.getMessage()).as(reason).isEqualTo(reason);
+            }
+        });
+    }
+
+    @Test
+    void readsTheRootLayoutsPropsFromThePagesFrontMatter() throws Exception {
+        String template = JsxToQuteConverter.convertLayout(ReactComponent.read("src/components/layout.js",
+                "const L = ({children, pageName}) => <main title={pageName}>{children}</main>\nexport default L"),
+                CONTEXT).template();
+
+        assertThat(template).contains("<main title=\"{=page.data.pageName??}\">{#insert /}</main>");
     }
 
     @Test
@@ -122,6 +215,22 @@ class JsxToQuteConverterTest {
                 export default C
                 """)).isEqualTo("<p>{#if a??}<b>A</b>{/if}{#if !b??}<i>not B</i>{/if}"
                 + "{#if a??}<span>yes</span>{#else}<span>no</span>{/if}</p>");
+    }
+
+    @Test
+    void convertsConditionsWithComparisonsAndSeveralOperands() throws Exception {
+        assertThat(body("""
+                const C = ({kind, count, user}) => (
+                  <p>
+                    {kind === "home" || count > 3 || <i>other</i>}
+                    {kind !== 'away' && count <= 10 && <b>near</b>}
+                    {!(kind == "a" || user.admin) ? <u>neither</u> : null}
+                  </p>
+                )
+                export default C
+                """)).isEqualTo("<p>{#if ! ((kind?? == 'home') || (count?? > 3))}<i>other</i>{/if}"
+                + "{#if (kind?? != 'away') && (count?? <= 10)}<b>near</b>{/if}"
+                + "{#if ! ((kind?? == 'a') || user.or('').admin??)}<u>neither</u>{/if}</p>");
     }
 
     @Test
@@ -403,8 +512,8 @@ class JsxToQuteConverterTest {
                 "const C = () => {\n const data = useStaticQuery(graphql`{ allMarkdownRemark(limit: 5) { nodes { id } } }`)\n"
                         + " return <p/> }\nexport default C",
                 "it filters or sorts what it queries with useStaticQuery",
-                "const C = () => { const x = 1\n return <p>{x}</p> }\nexport default C",
-                "it runs code before rendering (const x = 1)",
+                "const C = () => { console.log(1)\n return <p/> }\nexport default C",
+                "it runs code before rendering (console.log(1))",
                 "const C = () => <p>{Math.max(1, 2)}</p>\nexport default C",
                 "it uses the expression Math.max(1, 2)",
                 "const C = () => <p>{other}</p>\nexport default C",
@@ -414,7 +523,7 @@ class JsxToQuteConverterTest {
                 "import {Thing} from 'library'\nconst C = () => <Thing/>\nexport default C",
                 "it uses <Thing> from library",
                 "const C = ({html}) => <div dangerouslySetInnerHTML={{__html: html}}/>\nexport default C",
-                "it sets raw HTML with dangerouslySetInnerHTML",
+                "it sets raw HTML with dangerouslySetInnerHTML, from html, which is not the HTML of a page",
                 "const C = () => {\n const data = useStaticQuery(graphql`{ allMarkdownRemark { totalCount } }`)\n"
                         + " return <p/> }\nexport default C",
                 "it queries allMarkdownRemark with useStaticQuery");

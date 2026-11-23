@@ -118,6 +118,18 @@ record GatsbyProject(String root, GatsbyConfig config, List<String> markdownSour
     }
 
     /**
+     * @param sourceDir one of the {@link #markdownSources()}
+     * @param file a Markdown file in it, relative to the migrated directory
+     * @return where the file goes in {@code content/}: where it is in its source directory, under the directory's name
+     *         when the site has several
+     */
+    String contentPath(String sourceDir, String file) {
+        String inSource = file.substring(sourceDir.length() + 1);
+        return markdownSources.size() == 1 ? inSource
+                : sourceDir.substring(sourceDir.lastIndexOf('/') + 1) + "/" + inSource;
+    }
+
+    /**
      * @return a path in the Gatsby project, relative to the migrated directory
      */
     String path(String relative) {

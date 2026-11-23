@@ -21,11 +21,16 @@ import java.util.regex.Pattern;
  * @param props the props the component takes
  * @param prelude the code the component runs before returning its JSX, apart from build-time queries; empty if none
  * @param queries the variables holding the results of {@code useStaticQuery}, with their GraphQL query
+ * @param pageQuery the GraphQL query a Gatsby page exports, whose result the page gets as its {@code data} prop; null
+ *        if there is none
  * @param jsx the JSX the component returns; null if it could not be found
+ * @param head the JSX of the {@code Head} a Gatsby page exports, which renders its {@code <head>}; null if there is
+ *        none
  * @param styled the styled-components the file defines, by name
  */
 public record ReactComponent(String file, String name, Kind kind, List<String> reasons, Map<String, Import> imports,
-        Set<String> props, String prelude, Map<String, String> queries, String jsx, Map<String, Styled> styled) {
+        Set<String> props, String prelude, Map<String, String> queries, String pageQuery, String jsx, String head,
+        Map<String, Styled> styled) {
 
     public enum Kind {
         /**
@@ -75,6 +80,8 @@ public record ReactComponent(String file, String name, Kind kind, List<String> r
             "const\\s+(\\w+)\\s*=\\s*styled(?:\\.(\\w+)|\\(\\s*(\\w+)\\s*\\)|\\((\\s*\\w+\\s*=>\\s*<(\\w+)[^`]*?)\\))\\s*`([^`]*)`");
     static final Pattern QUERY = Pattern.compile(
             "const\\s+(\\w+|\\{[^}]*})\\s*=\\s*useStaticQuery\\(\\s*graphql\\s*`([^`]*)`\\s*\\)\\s*;?");
+    static final Pattern PAGE_QUERY = Pattern.compile("export\\s+const\\s+\\w+\\s*=\\s*graphql\\s*`([^`]*)`");
+    static final String HEAD = "Head";
     static final Pattern HANDLER = Pattern.compile("\\son[A-Z]\\w*\\s*=\\s*\\{");
     static final Pattern STATE = Pattern.compile("\\b(useState|useReducer)\\s*\\(");
     static final Pattern EFFECT = Pattern.compile("\\b(useEffect|useLayoutEffect)\\s*\\(");
@@ -120,13 +127,17 @@ public record ReactComponent(String file, String name, Kind kind, List<String> r
             name = export.group(1) != null ? export.group(1) : export.group(2);
         }
         Definition definition = name == null ? null : definition(js, name);
+        Matcher pageQuery = PAGE_QUERY.matcher(js);
+        Definition head = js.contains("export const " + HEAD) || js.contains("export function " + HEAD)
+                ? definition(js, HEAD)
+                : null;
 
         List<String> reasons = new ArrayList<>();
         Kind kind = classify(js, reasons);
         return new ReactComponent(file, name, kind, List.copyOf(reasons), imports,
                 definition == null ? Set.of() : definition.props(),
-                definition == null ? "" : definition.prelude(), queries,
-                definition == null ? null : definition.jsx(), styled);
+                definition == null ? "" : definition.prelude(), queries, pageQuery.find() ? pageQuery.group(1) : null,
+                definition == null ? null : definition.jsx(), head == null ? null : head.jsx(), styled);
     }
 
     static Kind classify(String js, List<String> reasons) {

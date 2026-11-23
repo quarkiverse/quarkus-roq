@@ -114,7 +114,7 @@ public class GatsbyMigrator extends SiteMigrator {
 
     @Override
     protected void convertFrontMatter(TargetSite site) throws Exception {
-        GatsbyFrontMatter.convert(project, site, homePage);
+        GatsbyFrontMatter.convert(project, site, homePage, components);
     }
 
     @Override

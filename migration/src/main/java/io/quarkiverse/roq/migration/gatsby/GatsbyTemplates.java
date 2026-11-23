@@ -81,6 +81,7 @@ final class GatsbyTemplates {
         } else {
             reportWiring(components, report);
         }
+        writePages(project, site, components);
         components.guessedFields().forEach((file, fields) -> report.todo("Check the titles in templates/"
                 + components.outcomes().get(file).template() + ".html: " + file + " used " + String.join(", ", fields)
                 + ", which the site's gatsby-node.js or a plugin set; the template uses the front matter title, or "
@@ -90,20 +91,74 @@ final class GatsbyTemplates {
         Map<String, Set<String>> replaced = GatsbyRoutes.replacedByRoq(project, site.dir());
         for (GatsbyComponents.Outcome outcome : components.outcomes().values()) {
             reportOutcome(outcome, components, replaced, report);
+            for (String missing : outcome.missingFiles()) {
+                report.todo(outcome.component().file() + " loads " + missing + ", which is not in "
+                        + project.path("static") + "/, so it was a dead link on the Gatsby site too; the converted "
+                        + "template leaves it out. Add the file to public/ and the tag to the template if the site needs "
+                        + "it");
+            }
         }
     }
 
     /**
-     * The root layout's props, other than its content, came from the pages; a Roq layout only has the page and the
-     * site.
+     * The root layout's props, other than its content, came from the pages; the main layout reads them from the pages'
+     * front matter.
      */
     private static void reportLayoutProps(GatsbyComponents components, MigrationReport report) {
         ReactComponent layout = components.outcomes().get(components.rootLayout()).component();
         for (String prop : layout.props()) {
             if (!prop.equals("children")) {
-                report.todo("Give " + prop + " a value in templates/layouts/main.html, for example from page with "
-                        + "{#let}: the pages passed it to " + layout.file() + ", and a Roq layout only has page and "
-                        + "site");
+                report.info("templates/layouts/main.html reads " + prop + " from the front matter of each page, as "
+                        + "page.data." + prop + ", where " + layout.file() + " got it from the pages");
+            }
+        }
+    }
+
+    /**
+     * Writes the converted pages to {@code content/}, where Gatsby served them: {@code 404.js} at {@code /404.html},
+     * and {@code index.js} at {@code /} with the site's title and description.
+     */
+    private static void writePages(GatsbyProject project, TargetSite site, GatsbyComponents components)
+            throws IOException {
+        Path content = site.dir().resolve("content");
+        for (GatsbyComponents.Outcome outcome : components.outcomes().values()) {
+            JsxToQuteConverter.ConvertedPage page = outcome.convertedPage();
+            if (page == null) {
+                continue;
+            }
+            String file = outcome.component().file();
+            String base = outcome.template().replaceAll("\\.html$", "");
+            Path target = content.resolve(outcome.template());
+            List<String> existing;
+            try (Stream<Path> siblings = Files.isDirectory(target.getParent()) ? Files.list(target.getParent())
+                    : Stream.empty()) {
+                existing = siblings.map(p -> p.getFileName().toString())
+                        .filter(n -> n.replaceAll("\\.[^.]+$", "").equals(target.getFileName().toString()
+                                .replaceAll("\\.html$", "")))
+                        .toList();
+            }
+            if (!existing.isEmpty()) {
+                site.report().todo("Merge " + file + " into content/" + base.replaceAll("[^/]+$", "") + existing.get(0)
+                        + ": it was converted, but the site has that page already");
+                continue;
+            }
+            StringBuilder frontMatter = new StringBuilder();
+            page.frontMatter().forEach((key, value) -> frontMatter.append(key).append(": ")
+                    .append(GatsbyFrontMatter.quote(value)).append("\n"));
+            if (base.equals("404")) {
+                frontMatter.append("link: /404.html\n");
+            }
+            String yaml = base.equals("index")
+                    ? GatsbyFrontMatter.withIndexMetadata(frontMatter.toString(), project.config().siteMetadata())
+                    : frontMatter.toString();
+            Files.createDirectories(target.getParent());
+            Files.writeString(target, "---\n" + yaml + "---\n{! Converted from " + file + " by the migration to Roq !}\n"
+                    + page.body());
+            site.report().info("Converted " + file + " to content/" + outcome.template());
+            for (String prop : page.omitted()) {
+                site.report().todo("Set " + prop + " in the front matter of content/" + outcome.template()
+                        + ", for templates/layouts/main.html: " + file + " gave it to the layout from a value that Roq "
+                        + "has no equivalent for");
             }
         }
     }
@@ -126,14 +181,18 @@ final class GatsbyTemplates {
         String file = component.file();
         String name = file.substring(file.lastIndexOf('/') + 1);
         if (outcome.page()) {
+            String why = outcome.reason() != null && component.kind() == ReactComponent.Kind.STATIC
+                    ? ", but it could not be converted automatically because " + outcome.reason()
+                    : "";
             if (name.startsWith("{")) {
                 report.info(file + " renders the Markdown pages; Roq does that with templates/layouts/page.html");
+            } else if (outcome.convertedPage() != null) {
+                return;
             } else if (name.matches("index\\.(jsx?|tsx?)")) {
-                report.todo("Port the home page " + file + " to templates/layouts/main.html or content/index.md"
-                        + kindNote(component));
+                report.todo("Port the home page " + file + " to content/index.html" + kindNote(component) + why);
             } else {
                 report.todo("Recreate the page " + file + " as content/" + name.replaceAll("\\.[^.]+$", "") + ".html"
-                        + kindNote(component));
+                        + kindNote(component) + why);
             }
             return;
         }
@@ -149,7 +208,8 @@ final class GatsbyTemplates {
             String include = "{#include " + outcome.template();
             boolean used = wired(components).stream().anyMatch(i -> includes(i.include(), include))
                     || components.outcomes().values().stream()
-                            .anyMatch(o -> o.converted() != null && includes(o.converted().template(), include));
+                            .anyMatch(o -> o.converted() != null && includes(o.converted().template(), include)
+                                    || o.convertedPage() != null && includes(o.convertedPage().body(), include));
             if (!used) {
                 report.todo("Include templates/" + outcome.template() + ".html, converted from " + file
                         + ", where the site needs it: " + include + " /}");
