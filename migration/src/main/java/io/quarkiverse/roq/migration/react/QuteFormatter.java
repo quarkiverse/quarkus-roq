@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
  * Line breaks are only added next to block-level elements, where whitespace does not render, and around what contains
  * them: an element whose children include a block puts each block on its own indented line, and keeps the inline
  * content between them (text, links, images, expressions) together on one line, exactly as it was. Elements and Qute
- * sections that contain a block are laid out like blocks. The content of pre and textarea
- * elements is left as it is.
+ * sections that contain a block are laid out like blocks, apart from Gatsby's constrained image wrappers, which are
+ * divs shown inline. The content of pre and textarea elements is left as it is.
  */
 final class QuteFormatter {
 
@@ -24,6 +24,10 @@ final class QuteFormatter {
     static final Set<String> PREFORMATTED = Set.of("pre", "textarea");
     static final Set<String> VOID_ELEMENTS = JsxToQuteConverter.VOID_ELEMENTS;
     static final String INDENT = "  ";
+    /**
+     * Gatsby's constrained image wrapper, a div that is laid out inline.
+     */
+    static final Pattern INLINE_BLOCK = Pattern.compile("class=\"[^\"]*\\bgatsby-image-wrapper-constrained\\b");
 
     /**
      * An HTML tag, a Qute section tag such as {@code {#if x}}, {@code {#else}} or {@code {/if}}, or anything else.
@@ -38,7 +42,10 @@ final class QuteFormatter {
         }
 
         boolean isBlock() {
-            return !isText() && (BLOCKS.contains(name) || children.stream().anyMatch(Node::isBlock));
+            if (isText() || INLINE_BLOCK.matcher(open).find()) {
+                return false;
+            }
+            return BLOCKS.contains(name) || children.stream().anyMatch(Node::isBlock);
         }
     }
 

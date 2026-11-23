@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import io.quarkiverse.roq.migration.engine.MigrationException;
 import io.quarkiverse.roq.migration.engine.SourceSite;
+import io.quarkiverse.roq.migration.react.ImageSize;
 import io.quarkiverse.roq.migration.react.JsxToQuteConverter;
 import io.quarkiverse.roq.migration.react.ReactComponent;
 
@@ -65,7 +66,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
                 components.put(file, ReactComponent.read(file, source.readString(file)));
             }
         }
-        return new Reader(project, components).read();
+        return new Reader(source, project, components).read();
     }
 
     /**
@@ -73,6 +74,13 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
      */
     boolean layoutConverted() {
         return rootLayout != null && outcomes.get(rootLayout).converted() != null;
+    }
+
+    /**
+     * @return true if a converted component has Gatsby images, which need Gatsby's image CSS
+     */
+    boolean usesImages() {
+        return outcomes.values().stream().anyMatch(o -> o.converted() != null && o.converted().images());
     }
 
     /**
@@ -94,6 +102,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
     }
 
     private static final class Reader implements JsxToQuteConverter.Context {
+        private final SourceSite source;
         private final GatsbyProject project;
         private final Map<String, ReactComponent> components;
         private final Map<String, Outcome> outcomes = new LinkedHashMap<>();
@@ -102,7 +111,8 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
         private String rootLayout;
         private String pagePath;
 
-        Reader(GatsbyProject project, Map<String, ReactComponent> components) {
+        Reader(SourceSite source, GatsbyProject project, Map<String, ReactComponent> components) {
+            this.source = source;
             this.project = project;
             this.components = components;
         }
@@ -167,14 +177,30 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
 
         @Override
         public String imageUrl(ReactComponent component, String src) {
+            String image = image(component, src);
+            return image == null ? null
+                    : "site.url('images/" + image.substring(project.imageSource().length() + 1) + "')";
+        }
+
+        @Override
+        public ImageSize imageSize(ReactComponent component, String src) {
+            String image = image(component, src);
+            try {
+                return image == null || !source.isFile(image) ? null : ImageSize.of(image, source.readBytes(image));
+            } catch (MigrationException e) {
+                return null;
+            }
+        }
+
+        /**
+         * @return the image file a StaticImage shows, in the site's image source; null if it is not one
+         */
+        private String image(ReactComponent component, String src) {
             if (project.imageSource() == null || src.contains("://")) {
                 return null;
             }
             String image = GatsbyProject.normalise(parent(component.file()) + "/" + src);
-            if (image == null || !image.startsWith(project.imageSource() + "/")) {
-                return null;
-            }
-            return "site.url('images/" + image.substring(project.imageSource().length() + 1) + "')";
+            return image == null || !image.startsWith(project.imageSource() + "/") ? null : image;
         }
 
         @Override

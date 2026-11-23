@@ -1,5 +1,7 @@
 package io.quarkiverse.roq.migration.react;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -41,6 +43,14 @@ public final class JsxToQuteConverter {
         String imageUrl(ReactComponent component, String src);
 
         /**
+         * @param src the {@code src} of a {@code StaticImage}, relative to the component's file
+         * @return the size of the image; null if it cannot be read
+         */
+        default ImageSize imageSize(ReactComponent component, String src) {
+            return null;
+        }
+
+        /**
          * @param query a field of a static query that lists pages, e.g. {@code allMarkdownRemark}
          * @return how to list those pages in Qute; null if Roq has no equivalent
          */
@@ -78,8 +88,9 @@ public final class JsxToQuteConverter {
      * @param template the Qute template
      * @param css the CSS of the component's styled-components; empty if none
      * @param icons true if it uses Font Awesome icons, which need Font Awesome's CSS
+     * @param images true if it has Gatsby images, which need {@link #GATSBY_IMAGE_CSS}
      */
-    public record Converted(String template, String css, boolean icons) {
+    public record Converted(String template, String css, boolean icons, boolean images) {
     }
 
     /**
@@ -103,7 +114,37 @@ public final class JsxToQuteConverter {
      * StaticImage props for Gatsby's image processing, which Roq does not do.
      */
     static final Set<String> GATSBY_IMAGE_PROPS = Set.of("placeholder", "layout", "formats", "backgroundColor", "quality",
-            "transformOptions", "breakpoints", "aspectRatio", "imgStyle", "objectFit", "objectPosition");
+            "transformOptions", "breakpoints", "aspectRatio", "objectFit", "objectPosition", "sizes", "as");
+    static final Pattern NUMBER_OR_RATIO = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:\\s*/\\s*(\\d+(?:\\.\\d+)?))?");
+    /**
+     * The CSS Gatsby adds to pages with images, without what fades them in once loaded, which needs its JavaScript.
+     */
+    public static final String GATSBY_IMAGE_CSS = """
+            /* How gatsby-plugin-image lays out images */
+            .gatsby-image-wrapper {
+              position: relative;
+              overflow: hidden;
+            }
+
+            .gatsby-image-wrapper img {
+              bottom: 0;
+              height: 100%;
+              left: 0;
+              margin: 0;
+              max-width: none;
+              padding: 0;
+              position: absolute;
+              right: 0;
+              top: 0;
+              width: 100%;
+              object-fit: cover;
+            }
+
+            .gatsby-image-wrapper-constrained {
+              display: inline-block;
+              vertical-align: top;
+            }
+            """;
     static final Map<String, String> SITE_METADATA = Map.of("title", "site.title", "description", "site.description",
             "siteUrl", "site.url");
     static final Map<String, String> DOM_ATTRIBUTES = Map.of("className", "class", "htmlFor", "for", "tabIndex",
@@ -128,6 +169,7 @@ public final class JsxToQuteConverter {
     private final StringBuilder css = new StringBuilder();
     private final Set<String> cssClasses = new LinkedHashSet<>();
     private boolean icons;
+    private boolean images;
     /**
      * The variables of the lists being rendered with map(), by their JavaScript name.
      */
@@ -214,7 +256,7 @@ public final class JsxToQuteConverter {
         StringBuilder body = new StringBuilder();
         render(parsed.element(), body);
         template.append(QuteFormatter.format(body.toString())).append("\n");
-        return new Converted(template.toString(), css.toString(), icons);
+        return new Converted(template.toString(), css.toString(), icons, images);
     }
 
     /**
@@ -352,6 +394,10 @@ public final class JsxToQuteConverter {
         }
     }
 
+    /**
+     * Renders a {@code StaticImage} as Gatsby does without its lazy loading: a wrapper with the image's class, style
+     * and background colour, sized for its layout, around the image. {@link #GATSBY_IMAGE_CSS} lays them out.
+     */
     private void renderImage(Jsx.Element element, StringBuilder out, String extraClass) throws Unsupported {
         Jsx.Attribute src = element.attribute("src");
         if (src == null || src.string() == null) {
@@ -361,9 +407,118 @@ public final class JsxToQuteConverter {
         if (url == null) {
             throw new Unsupported("the StaticImage " + src.string() + " is not one of the site's images");
         }
-        List<Jsx.Attribute> attributes = new ArrayList<>();
-        attributes.add(new Jsx.Attribute("src", null, null));
-        // Gatsby renders the image in a wrapper with its background colour, and its CSS resets the image's margin
+        String layout = Objects.requireNonNullElse(literal(element.attribute("layout")), "constrained");
+        if (!List.of("constrained", "fixed", "fullWidth").contains(layout)) {
+            throw new Unsupported("a StaticImage has the layout " + layout);
+        }
+        Double width = number(element, "width");
+        Double height = number(element, "height");
+        Double aspectRatio = number(element, "aspectRatio");
+        ImageSize natural = context.imageSize(component, src.string());
+        if (aspectRatio == null && width != null && height != null) {
+            aspectRatio = width / height;
+        } else if (aspectRatio == null && natural != null) {
+            aspectRatio = natural.aspectRatio();
+        }
+        boolean fullWidth = layout.equals("fullWidth");
+        if (aspectRatio == null || !fullWidth && width == null && height == null && natural == null) {
+            renderPlainImage(element, url, out, extraClass);
+            return;
+        }
+        // As Gatsby sizes it: the dimensions given, the other one from the aspect ratio, or the image's own width
+        if (width == null && !fullWidth) {
+            width = height != null ? height * aspectRatio : natural.width();
+        }
+        if (height == null && !fullWidth) {
+            height = width / aspectRatio;
+        }
+        long w = fullWidth ? 0 : Math.round(width);
+        long h = fullWidth ? 0 : Math.round(height);
+
+        String background = literal(element.attribute("backgroundColor"));
+        List<String> wrapperStyle = new ArrayList<>();
+        List<String> imageStyle = new ArrayList<>();
+        List<Jsx.Attribute> imageAttributes = new ArrayList<>(List.of(new Jsx.Attribute("src", null, null)));
+        Jsx.Attribute className = null;
+        for (Jsx.Attribute attribute : element.attributes()) {
+            String name = attribute.name();
+            if (name == null) {
+                throw new Unsupported("a StaticImage is given {..." + attribute.code() + "}");
+            }
+            switch (name) {
+                case "className" -> className = attribute;
+                case "imgClassName" ->
+                    imageAttributes.add(new Jsx.Attribute("className", attribute.string(), attribute.code()));
+                case "style" -> wrapperStyle.add(attribute.code() == null ? attribute.string() : style(attribute.code()));
+                case "imgStyle" -> imageStyle.add(attribute.code() == null ? attribute.string() : style(attribute.code()));
+                case "src", "width", "height" -> {
+                }
+                default -> {
+                    if (!GATSBY_IMAGE_PROPS.contains(name)) {
+                        imageAttributes.add(attribute);
+                    }
+                }
+            }
+        }
+        if (layout.equals("fixed")) {
+            wrapperStyle.add("width: " + w + "px");
+            wrapperStyle.add("height: " + h + "px");
+        }
+        if (background != null) {
+            wrapperStyle.add("background-color: " + background);
+        }
+        imageStyle.add("object-fit: " + Objects.requireNonNullElse(literal(element.attribute("objectFit")), "cover"));
+        String position = literal(element.attribute("objectPosition"));
+        if (position != null) {
+            imageStyle.add("object-position: " + position);
+        }
+        if (background != null) {
+            imageStyle.add("background-color: " + background);
+        }
+        imageAttributes.add(new Jsx.Attribute("style", String.join("; ", imageStyle), null));
+        if (element.attribute("decoding") == null) {
+            imageAttributes.add(new Jsx.Attribute("decoding", "async", null));
+        }
+        if (element.attribute("loading") == null) {
+            imageAttributes.add(new Jsx.Attribute("loading", "lazy", null));
+        }
+
+        List<Jsx.Attribute> wrapperAttributes = new ArrayList<>(
+                List.of(new Jsx.Attribute("data-gatsby-image-wrapper", null, null)));
+        // Bare, it is only the wrapper's own classes
+        wrapperAttributes.add(className != null ? className : new Jsx.Attribute("className", null, null));
+        if (!wrapperStyle.isEmpty()) {
+            wrapperAttributes.add(new Jsx.Attribute("style", String.join("; ", wrapperStyle), null));
+        }
+        String classes = "gatsby-image-wrapper" + (layout.equals("constrained") ? " gatsby-image-wrapper-constrained" : "")
+                + (extraClass == null ? "" : " " + extraClass);
+        out.append("<div").append(attributes(new Jsx.Element("div", wrapperAttributes, List.of()), classes)).append('>');
+        switch (layout) {
+            case "constrained" -> out.append("<div style=\"max-width: ").append(w).append("px; display: block\">")
+                    .append("<img alt=\"\" role=\"presentation\" aria-hidden=\"true\" ")
+                    .append("src=\"data:image/svg+xml;charset=utf-8,%3Csvg%20height='").append(h).append("'%20width='")
+                    .append(w).append("'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E\" ")
+                    .append("style=\"max-width: 100%; display: block; position: static\"></div>");
+            case "fullWidth" -> out.append("<div aria-hidden=\"true\" style=\"padding-top: ")
+                    .append(BigDecimal.valueOf(100 / aspectRatio).setScale(4, RoundingMode.HALF_UP).stripTrailingZeros()
+                            .toPlainString())
+                    .append("%\"></div>");
+            default -> {
+            }
+        }
+        String rendered = attributes(new Jsx.Element("img", imageAttributes, List.of()), null)
+                .replaceFirst(" src", Matcher.quoteReplacement(" src=\"{=" + url + "}\""));
+        out.append("<img").append(rendered).append("></div>");
+        images = true;
+    }
+
+    /**
+     * Renders a {@code StaticImage} whose size is not known as an image with the look Gatsby gives it, without the
+     * wrapper that would need the size.
+     */
+    private void renderPlainImage(Jsx.Element element, String url, StringBuilder out, String extraClass)
+            throws Unsupported {
+        List<Jsx.Attribute> attributes = new ArrayList<>(List.of(new Jsx.Attribute("src", null, null)));
         List<String> look = new ArrayList<>(List.of("margin: 0",
                 "object-fit: " + Objects.requireNonNullElse(literal(element.attribute("objectFit")), "cover")));
         String position = literal(element.attribute("objectPosition"));
@@ -375,9 +530,10 @@ public final class JsxToQuteConverter {
             look.add("background-color: " + background);
         }
         for (Jsx.Attribute attribute : element.attributes()) {
-            if ("style".equals(attribute.name()) && attribute.code() != null) {
+            if (("style".equals(attribute.name()) || "imgStyle".equals(attribute.name())) && attribute.code() != null) {
                 look.add(0, style(attribute.code()));
-            } else if (!"src".equals(attribute.name()) && !GATSBY_IMAGE_PROPS.contains(attribute.name())) {
+            } else if (!"src".equals(attribute.name()) && !"imgClassName".equals(attribute.name())
+                    && !GATSBY_IMAGE_PROPS.contains(attribute.name())) {
                 attributes.add(attribute);
             }
         }
@@ -385,6 +541,23 @@ public final class JsxToQuteConverter {
         String rendered = attributes(new Jsx.Element("img", attributes, List.of()), extraClass)
                 .replaceFirst(" src", Matcher.quoteReplacement(" src=\"{=" + url + "}\""));
         out.append("<img").append(rendered).append('>');
+    }
+
+    /**
+     * @return the number an attribute is, such as {@code {36}} or {@code {16 / 9}}; null if there is no such attribute
+     */
+    private static Double number(Jsx.Element element, String name) throws Unsupported {
+        Jsx.Attribute attribute = element.attribute(name);
+        if (attribute == null) {
+            return null;
+        }
+        String value = attribute.string() != null ? attribute.string() : JsSource.unwrap(attribute.code());
+        Matcher number = NUMBER_OR_RATIO.matcher(value);
+        if (!number.matches()) {
+            throw new Unsupported("a StaticImage has a computed " + name + " (" + value + ")");
+        }
+        double n = Double.parseDouble(number.group(1));
+        return number.group(2) == null ? n : n / Double.parseDouble(number.group(2));
     }
 
     /**

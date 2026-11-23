@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 class JsxToQuteConverterTest {
 
     /**
-     * Local components convert to partials/<name>, except ./broken; images are under src/images; allMarkdownRemark
-     * lists the Markdown pages, served at fields.slug.
+     * Local components convert to partials/<name>, except ./broken; images are under src/images, and only wide.png has a
+     * known size; allMarkdownRemark lists the Markdown pages, served at fields.slug.
      */
     static final JsxToQuteConverter.Context CONTEXT = new JsxToQuteConverter.Context() {
         @Override
@@ -21,6 +21,11 @@ class JsxToQuteConverterTest {
         @Override
         public String imageUrl(ReactComponent component, String src) {
             return src.startsWith("../images/") ? "site.url('images/" + src.substring(10) + "')" : null;
+        }
+
+        @Override
+        public ImageSize imageSize(ReactComponent component, String src) {
+            return src.equals("../images/wide.png") ? new ImageSize(200, 100) : null;
         }
 
         @Override
@@ -204,8 +209,76 @@ class JsxToQuteConverterTest {
                 + "<script defer src=\"/a.js\"></script>");
     }
 
+    /**
+     * The invisible image that gives a constrained Gatsby image its size.
+     */
+    static String sizer(int height, int width) {
+        return "<img alt=\"\" role=\"presentation\" aria-hidden=\"true\" src=\"data:image/svg+xml;charset=utf-8,%3Csvg%20"
+                + "height='" + height + "'%20width='" + width + "'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'"
+                + "%3E%3C/svg%3E\" style=\"max-width: 100%; display: block; position: static\">";
+    }
+
     @Test
-    void keepsTheLookOfGatsbyImages() throws Exception {
+    void convertsGatsbyImagesAsGatsbyRendersThem() throws Exception {
+        JsxToQuteConverter.Converted converted = JsxToQuteConverter.convert(ReactComponent.read("src/components/c.js", """
+                import {StaticImage} from "gatsby-plugin-image"
+                const C = () => <StaticImage src="../images/wide.png" alt="Wide" height={36} backgroundColor="white"/>
+                export default C
+                """), CONTEXT);
+
+        // Constrained: at most as wide as the image at that height, which an invisible SVG of that size sets
+        assertThat(converted.template()).contains("<div data-gatsby-image-wrapper class=\"gatsby-image-wrapper "
+                + "gatsby-image-wrapper-constrained\" style=\"background-color: white\">"
+                + "<div style=\"max-width: 72px; display: block\">" + sizer(36, 72) + "</div>"
+                + "<img src=\"{=site.url('images/wide.png')}\" alt=\"Wide\" style=\"object-fit: cover; background-color: white\" "
+                + "decoding=\"async\" loading=\"lazy\"></div>");
+        assertThat(converted.images()).isTrue();
+    }
+
+    @Test
+    void sizesGatsbyImagesForTheirLayout() throws Exception {
+        // The image's own width, and its aspect ratio
+        assertThat(body("""
+                import {StaticImage} from "gatsby-plugin-image"
+                const C = () => <StaticImage src="../images/wide.png" alt="" layout="fixed"/>
+                export default C
+                """)).startsWith("<div data-gatsby-image-wrapper class=\"gatsby-image-wrapper\" "
+                + "style=\"width: 200px; height: 100px\"><img");
+        // The aspect ratio given; a full width image is a block
+        assertThat(body("""
+                import {StaticImage} from "gatsby-plugin-image"
+                const C = () => <StaticImage src="../images/wide.png" alt="" layout="fullWidth" aspectRatio={16 / 9}/>
+                export default C
+                """)).isEqualTo("""
+                <div data-gatsby-image-wrapper class="gatsby-image-wrapper">
+                  <div aria-hidden="true" style="padding-top: 56.25%"></div>
+                  <img src="{=site.url('images/wide.png')}" alt="" style="object-fit: cover" decoding="async" loading="lazy">
+                </div>""");
+        // Both dimensions given, whatever the image's size
+        assertThat(body("""
+                import {StaticImage} from "gatsby-plugin-image"
+                const C = () => <StaticImage src="../images/wide.png" alt="" width={50} height={50}/>
+                export default C
+                """)).contains("<div style=\"max-width: 50px; display: block\">" + sizer(50, 50) + "</div>");
+    }
+
+    @Test
+    void putsTheClassAndStyleOfGatsbyImagesOnTheWrapperAndTheImgOnesOnTheImage() throws Exception {
+        assertThat(body("""
+                import {StaticImage} from "gatsby-plugin-image"
+                const Framed = styled(StaticImage)`border: 1px solid;`
+                const C = () => <Framed src="../images/wide.png" alt="" className="logo" style={{margin: 4}}
+                    imgClassName="photo" imgStyle={{opacity: 0.5}} objectFit="contain" objectPosition="top" title="T"/>
+                export default C
+                """)).isEqualTo("<div data-gatsby-image-wrapper class=\"gatsby-image-wrapper gatsby-image-wrapper-constrained "
+                + "c-framed logo\" style=\"margin: 4px\"><div style=\"max-width: 200px; display: block\">"
+                + sizer(100, 200) + "</div><img src=\"{=site.url('images/wide.png')}\" alt=\"\" "
+                + "class=\"photo\" title=\"T\" style=\"opacity: 0.5; object-fit: contain; object-position: top\" "
+                + "decoding=\"async\" loading=\"lazy\"></div>");
+    }
+
+    @Test
+    void givesGatsbyImagesOfUnknownSizeTheirLook() throws Exception {
         assertThat(body("""
                 import {StaticImage} from "gatsby-plugin-image"
                 const C = () => <StaticImage src="../images/logo.png" alt="Logo" style={{width: 36}} backgroundColor="white"

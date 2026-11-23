@@ -236,7 +236,7 @@ class GatsbyMigratorTest {
                 Map.entry("site/src/components/hero.js", "import * as styles from \"./hero.module.css\";\n"),
                 Map.entry("site/src/components/hero.module.css", ".hero { color: blue; }\n"),
                 Map.entry("site/src/components/header.test.js", "it('renders', () => {})\n"),
-                Map.entry("site/src/images/logo.svg", "<svg/>"),
+                Map.entry("site/src/images/logo.svg", "<svg viewBox=\"0 0 200 100\"/>"),
                 Map.entry("site/src/pages/index.jsx", """
                         import * as React from 'react'
                         import Layout from "../components/layout"
@@ -557,6 +557,7 @@ class GatsbyMigratorTest {
                 import './_layout.css';
                 import '@fortawesome/fontawesome-free/css/all.min.css';
                 import './_components.css';
+                import './_gatsby-image.css';
                 """);
         assertThat(out.resolve("web/_layout.css")).hasContent("main { padding: 1em; }");
         assertThat(out.resolve("web/_hero.module.css")).doesNotExist();
@@ -680,8 +681,12 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("templates/partials/header.html")).hasContent("""
                 {! Converted from site/src/components/header.js by the migration to Roq; parameters: siteTitle, pageName !}
                 <header style="margin: 0 auto; padding: 24px">
-                  <a href="https://www.quarkiverse.io/" class="header-logo"><img src="{=site.url('images/logo.svg')}" \
-                alt="Logo" height="36" style="margin: 0; object-fit: cover"></a>
+                  <a href="https://www.quarkiverse.io/" class="header-logo"><div data-gatsby-image-wrapper \
+                class="gatsby-image-wrapper gatsby-image-wrapper-constrained"><div style="max-width: 72px; display: block">\
+                <img alt="" role="presentation" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg%20\
+                height='36'%20width='72'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E" \
+                style="max-width: 100%; display: block; position: static"></div><img src="{=site.url('images/logo.svg')}" \
+                alt="Logo" style="object-fit: cover" decoding="async" loading="lazy"></div></a>
                   <a href="/" class="title">
                     <h1>{=siteTitle??}</h1>
                   </a>
@@ -732,7 +737,11 @@ class GatsbyMigratorTest {
                 }
                 """);
         assertThat(out.resolve("web/main.js")).content()
-                .endsWith("import '@fortawesome/fontawesome-free/css/all.min.css';\nimport './_components.css';\n");
+                .endsWith("import '@fortawesome/fontawesome-free/css/all.min.css';\nimport './_components.css';\n"
+                        + "import './_gatsby-image.css';\n");
+        // After the site's styles, as Gatsby adds it
+        assertThat(out.resolve("web/_gatsby-image.css")).content().contains(".gatsby-image-wrapper img {",
+                ".gatsby-image-wrapper-constrained {");
         // For the converted icons
         assertThat(result.analysis().dependencies())
                 .contains(new ProjectDependency("org.mvnpm.at.fortawesome", "fontawesome-free", "6.6.0", "provided"));

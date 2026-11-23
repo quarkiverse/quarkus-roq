@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import io.quarkiverse.roq.migration.MvnpmDependencies;
 import io.quarkiverse.roq.migration.SiteFiles;
 import io.quarkiverse.roq.migration.engine.TargetSite;
+import io.quarkiverse.roq.migration.react.JsxToQuteConverter;
 
 /**
  * Moves a Gatsby site's global styles to {@code web/main.js}, where Roq's web bundler picks them up: plain CSS is
@@ -21,6 +22,7 @@ import io.quarkiverse.roq.migration.engine.TargetSite;
 final class GatsbyStyles {
 
     static final String COMPONENTS_CSS = "_components.css";
+    static final String GATSBY_IMAGE_CSS = "_gatsby-image.css";
 
     private GatsbyStyles() {
     }
@@ -96,6 +98,13 @@ final class GatsbyStyles {
             Files.writeString(web.resolve(COMPONENTS_CSS), componentsCss);
             imports.add("import './" + COMPONENTS_CSS + "';");
             site.report().info("Moved the styled-components of the converted components to web/" + COMPONENTS_CSS);
+        }
+
+        if (components.usesImages()) {
+            // Gatsby adds it after the site's styles
+            Files.writeString(web.resolve(GATSBY_IMAGE_CSS), JsxToQuteConverter.GATSBY_IMAGE_CSS);
+            imports.add("import './" + GATSBY_IMAGE_CSS + "';");
+            site.report().info("Wrote web/" + GATSBY_IMAGE_CSS + ", the CSS Gatsby lays out the converted images with");
         }
 
         if (!imports.isEmpty()) {
