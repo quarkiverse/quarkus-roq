@@ -5,10 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -86,18 +89,33 @@ final class GatsbyIcons {
         Path manifest = site.dir().resolve("public").resolve(MANIFEST);
         if (Files.exists(manifest)) {
             report.info("Kept public/" + MANIFEST + ", which the site has already");
+            List<String> starter = starterNames(Files.readString(manifest));
+            if (!starter.isEmpty()) {
+                report.todo("Give public/" + MANIFEST + " the site's name: the site's own has the Gatsby starter's ("
+                        + String.join(", ", starter) + "); or delete it and its link in templates/layouts/main.html "
+                        + "if the site is not meant to be installed as an app");
+            }
         } else {
-            Files.writeString(manifest, manifest(options, favicon, sizes(icon)));
+            Map<String, String> named = siteNamed(options, project.config().siteMetadata().get("title"));
+            Files.writeString(manifest, manifest(named, favicon, sizes(icon)));
             report.info("Wrote public/" + MANIFEST + " from the options of " + PLUGIN);
+            List<String> starter = new ArrayList<>();
+            for (String option : List.of("name", "short_name")) {
+                if (STARTER_NAMES.contains(options.getOrDefault(option, ""))) {
+                    starter.add(options.get(option));
+                }
+            }
+            if (!starter.isEmpty() && named.equals(options)) {
+                report.todo("Give public/" + MANIFEST + " the site's name: it has the Gatsby starter's ("
+                        + String.join(", ", starter) + "), as the site's " + PLUGIN + " options did; or delete it and "
+                        + "its link in templates/layouts/main.html if the site is not meant to be installed as an app");
+            } else if (!starter.isEmpty()) {
+                report.info("Named the web app manifest after the site (" + named.get("name") + "), rather than "
+                        + "the Gatsby starter (" + String.join(", ", starter) + ") that the site's " + PLUGIN
+                        + " options still named");
+            }
         }
         head.add("<link rel=\"manifest\" href=\"{=site.url('" + MANIFEST + "')}\">");
-        String name = options.getOrDefault("name", "");
-        if (STARTER_NAMES.contains(name) || STARTER_NAMES.contains(options.getOrDefault("short_name", ""))) {
-            report.todo("Give public/" + MANIFEST + " the site's name: it has the Gatsby starter's (" + name + ", "
-                    + options.getOrDefault("short_name", "") + "), as the site's " + PLUGIN + " options did; or "
-                    + "delete it and its link in templates/layouts/main.html if the site is not meant to be installed "
-                    + "as an app");
-        }
         return head;
     }
 
@@ -120,6 +138,35 @@ final class GatsbyIcons {
         json.append("  \"icons\": [\n    { \"src\": \"images/").append(favicon).append("\", \"sizes\": \"").append(sizes)
                 .append("\", \"type\": \"").append(type).append("\" }\n  ]\n}\n");
         return json.toString();
+    }
+
+    /**
+     * @param json a web app manifest
+     * @return the Gatsby starter names it has for its name and short name
+     */
+    static List<String> starterNames(String json) {
+        List<String> starter = new ArrayList<>();
+        for (String option : List.of("name", "short_name")) {
+            Matcher value = Pattern.compile("\"" + option + "\"\\s*:\\s*\"([^\"]*)\"").matcher(json);
+            if (value.find() && STARTER_NAMES.contains(value.group(1))) {
+                starter.add(value.group(1));
+            }
+        }
+        return starter;
+    }
+
+    /**
+     * @param title the site's title, from its siteMetadata; null if it has none
+     * @return the options, with the site's title for the name and short name the Gatsby starters leave
+     */
+    static Map<String, String> siteNamed(Map<String, String> options, String title) {
+        if (title == null || title.isBlank()) {
+            return options;
+        }
+        Map<String, String> named = new LinkedHashMap<>(options);
+        named.replaceAll((option, value) -> List.of("name", "short_name").contains(option)
+                && STARTER_NAMES.contains(value) ? title : value);
+        return named;
     }
 
     /**
