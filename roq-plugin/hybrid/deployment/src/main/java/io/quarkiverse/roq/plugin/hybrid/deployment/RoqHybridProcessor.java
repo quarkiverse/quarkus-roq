@@ -12,6 +12,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.HandlerType;
@@ -33,6 +34,21 @@ class RoqHybridProcessor {
     @BuildStep
     void registerBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(RoqCacheManager.class));
+    }
+
+    /**
+     * {@code MemoryCacheStore} builds a Caffeine cache with {@code maximumSize} and {@code recordStats},
+     * which Caffeine resolves reflectively to the {@code SSSMS} cache and {@code PSMS} node classes.
+     */
+    @BuildStep
+    ReflectiveClassBuildItem registerCaffeineForReflection() {
+        return ReflectiveClassBuildItem.builder(
+                "com.github.benmanes.caffeine.cache.SSSMS",
+                "com.github.benmanes.caffeine.cache.PSMS")
+                .constructors()
+                .fields()
+                .reason(getClass().getName())
+                .build();
     }
 
     @BuildStep
