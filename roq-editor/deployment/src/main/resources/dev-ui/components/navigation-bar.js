@@ -10,6 +10,7 @@ export class NavigationBar extends LitElement {
     static styles = css`
         .navigation {
             border-bottom: 1px solid var(--lumo-contrast-20pct);
+            margin-bottom: var(--lumo-space-m);
         }
     `;
 
@@ -21,7 +22,6 @@ export class NavigationBar extends LitElement {
                     @selected-changed="${this._onTabChanged}">
                     <vaadin-tab>Posts</vaadin-tab>
                     <vaadin-tab>Pages</vaadin-tab>
-                    <vaadin-tab>Tags</vaadin-tab>
                 </vaadin-tabs>
             </div>
         `;

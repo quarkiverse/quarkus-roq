@@ -16,6 +16,8 @@ import {showFileSelector} from './components/file-selector-dialog.js';
 import {SyncManager} from './utils/sync-manager.js';
 import {markups, config} from 'build-time-data';
 import {containsDataRawTag, containsPotentialHtml, containsQuteSection} from "./utils/utils.js";
+import {defaultPagePath, replaceExtension, togglePagePathKind} from "./utils/page-path.js";
+import '@vaadin/checkbox';
 
 export class QwcRoqEditor extends LitElement {
 
@@ -295,7 +297,13 @@ export class QwcRoqEditor extends LitElement {
             <qwc-loading-dialog .open="${this._pendingRefreshPages === true}"></qwc-loading-dialog>
             ${this._selectedPage && this._fileContent !== null
               ? this._renderEditor()
-              : this._renderContent()
+              : html`
+                <qwc-navigation-bar
+                  .activeTab="${this._activeTab}"
+                  @tab-changed="${this._onTabChanged}">
+                </qwc-navigation-bar>
+                ${this._renderContent()}
+              `
             }
           </div>
         `;
@@ -393,7 +401,9 @@ export class QwcRoqEditor extends LitElement {
             .syncStatus="${this._syncStatus}"
             .syncing="${this._syncing}"
             .publishing="${this._publishing}"
+            @add-new-page="${this._addNewPage}"
             @page-open="${this._onPageOpen}"
+            @page-delete="${this._onPageDelete}"
             @sync-requested="${this._onSyncRequested}"
             @publish-requested="${this._onPublishRequested}"
             @show-conflicts="${(e) => showConflictDialog(e.detail.files)}">
@@ -416,11 +426,19 @@ export class QwcRoqEditor extends LitElement {
     _addNewPage(e) {
         const collectionId = e.target.collectionId;
         const defaultMarkup = (collectionId ? config.docMarkup : config.pageMarkup).toLowerCase()
-        showPrompt(`Add new ${collectionId ? 'document' : 'page'}` , { title: '', markup: defaultMarkup }, this._renderCreatePageForm).then(({title, markup}) => {
+        const defaults = collectionId
+            ? { title: '', markup: defaultMarkup }
+            : { title: '', markup: defaultMarkup, dirPage: true, path: '', pathEdited: false };
+        const renderer = collectionId ? this._renderCreateDocumentForm : this._renderCreatePageForm;
+        showPrompt(`Add new ${collectionId ? 'document' : 'page'}` , defaults, renderer).then((values) => {
+            const {title, markup} = values;
             if (title) {
+                const path = collectionId ? null : (values.pathEdited && values.path?.trim()
+                    ? values.path.trim()
+                    : (defaultPagePath(title, markup, values.dirPage !== false) || null));
                 this._pendingRefreshPages = true;
                 this._writeInProgress = true;
-                this._writeCall('createPage', {collectionId, title, markup}).then(jsonRpcResponse => {
+                this._writeCall('createPage', {collectionId: collectionId ?? null, title, markup, path}).then(jsonRpcResponse => {
                     const result = jsonRpcResponse.result;
                     if (collectionId) {
                         this._posts = [result.page].concat(this._posts);
@@ -445,6 +463,60 @@ export class QwcRoqEditor extends LitElement {
     }
 
     _renderCreatePageForm(ctx) {
+        const values = ctx.values;
+        const markup = values.markup ?? 'markdown';
+        const dirPage = values.dirPage !== false;
+        const generatedPath = defaultPagePath(values.title, markup, dirPage);
+        const path = values.pathEdited ? (values.path ?? '') : generatedPath;
+        return html`
+          <vaadin-select
+            label="Markup"
+            .items=${markups.map(m => ({ label: m, value: m}))}
+            .value=${markup}
+            @value-changed=${(e) => {
+              if (values.pathEdited && e.detail.value !== markup) {
+                ctx.update('path', replaceExtension(values.path, markup, e.detail.value));
+              }
+              ctx.update('markup', e.detail.value);
+            }}>
+          </vaadin-select>
+          <vaadin-text-field
+            label="Title"
+            autofocus
+            id="prompt-title"
+            .value=${values.title ?? ''}
+            @value-changed=${(e) => ctx.update('title', e.detail.value)}
+          >
+          </vaadin-text-field>
+          <vaadin-checkbox
+            id="prompt-dir-page"
+            label="Directory page (can hold its own images and files)"
+            .checked=${dirPage}
+            @checked-changed=${(e) => {
+              if (e.detail.value === dirPage) return;
+              if (values.pathEdited) {
+                ctx.update('path', togglePagePathKind(values.path, markup, e.detail.value));
+              }
+              ctx.update('dirPage', e.detail.value);
+            }}>
+          </vaadin-checkbox>
+          <vaadin-text-field
+            label="File path"
+            id="prompt-path"
+            helper-text="Relative to the content directory"
+            .value=${path}
+            @input=${(e) => {
+              const value = e.target.value;
+              // Back to the generated path when the field is cleared
+              ctx.update('path', value);
+              ctx.update('pathEdited', value.trim() !== '');
+            }}
+          >
+          </vaadin-text-field>
+        `;
+    }
+
+    _renderCreateDocumentForm(ctx) {
         return html`
           <vaadin-select
             label="Markup"

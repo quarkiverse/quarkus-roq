@@ -165,7 +165,7 @@ public class RoqEditorJsonRPCService {
     }
 
     @Blocking
-    public WriteActionResult<CreatePageResult> createPage(String collectionId, String title, String markup) {
+    public WriteActionResult<CreatePageResult> createPage(String collectionId, String title, String markup, String path) {
         try {
             if (title == null || title.trim().isEmpty()) {
                 return WriteActionResult.error("Title parameter is required");
@@ -178,21 +178,34 @@ public class RoqEditorJsonRPCService {
             Path contentDir = resolveIndexContentDir();
             String slug = toSlug(title);
 
-            final String dirName;
-            final Path parentDir;
+            final boolean hasPath = path != null && !path.isBlank();
+            final Path file;
             final String date;
             if (collectionId != null) {
+                if (hasPath) {
+                    return WriteActionResult.error("A custom path is only supported for pages");
+                }
                 date = LocalDate.now().format(FILE_NAME_DATE_FORMAT);
-                dirName = resolveFileNamePattern(getCollectionConfig(collectionId).name(), date, slug);
-                parentDir = contentDir.resolve(collectionId);
+                String dirName = resolveFileNamePattern(getCollectionConfig(collectionId).name(), date, slug);
+                file = contentDir.resolve(collectionId).resolve(dirName).resolve("index." + extension);
             } else {
-                dirName = slug;
-                parentDir = contentDir;
                 date = null;
+                if (hasPath) {
+                    try {
+                        file = EditorPaths.resolveNewPagePath(contentDir, path, extension);
+                    } catch (IllegalArgumentException e) {
+                        return WriteActionResult.error(e.getMessage());
+                    }
+                } else if (slug.isEmpty()) {
+                    return WriteActionResult.error("Unable to generate a file path from the title, please set the file path");
+                } else {
+                    file = contentDir.resolve(slug).resolve("index." + extension);
+                }
             }
-
-            Path dir = parentDir.resolve(dirName);
-            Path file = dir.resolve("index." + extension);
+            if (Files.exists(file)) {
+                return WriteActionResult.error("A file already exists at: " + contentDir.relativize(file));
+            }
+            Path dir = file.getParent();
 
             String frontmatter = ("adoc".equals(extension) ? """
                     = %s
@@ -230,7 +243,10 @@ public class RoqEditorJsonRPCService {
             }
             final Page page = resolvePage(path);
             Path postPath = getPageAbsolutePath(page);
-            Path pathToDelete = page.source().isIndex() ? postPath.getParent() : postPath;
+            // Only delete the directory of an index page when no other page lives in it
+            boolean deleteDir = page.source().isIndex()
+                    && EditorPaths.canDeletePageDir(resolveContentDirPath(page), postPath, allPageFiles());
+            Path pathToDelete = deleteDir ? postPath.getParent() : postPath;
             CompletableFuture
                     .runAsync(() -> DevConsoleManager.invoke("roq-submit-delete", Map.of("path", pathToDelete.toString())));
             return WriteActionResult.success(new DeleteResult());
@@ -307,6 +323,13 @@ public class RoqEditorJsonRPCService {
 
     private Path resolveCollectionDir(DocumentPage page) {
         return resolveContentDirPath(page).resolve(page.collectionId());
+    }
+
+    private List<Path> allPageFiles() {
+        return site.allPages().stream()
+                .filter(p -> !p.source().generated())
+                .map(RoqEditorJsonRPCService::getPageAbsolutePath)
+                .toList();
     }
 
     private static Path getPageAbsolutePath(Page page) {
