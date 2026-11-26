@@ -17,12 +17,10 @@
         <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
             <artifactId>quarkus-web-bundler-spi</artifactId>
-            <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.tools</groupId>
             <artifactId>quarkus-project-scanner</artifactId>
-            <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>

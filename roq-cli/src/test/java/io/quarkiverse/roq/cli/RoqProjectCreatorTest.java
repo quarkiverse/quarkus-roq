@@ -7,9 +7,13 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import io.quarkus.maven.utilities.MojoUtils;
 
 public class RoqProjectCreatorTest {
 
@@ -62,6 +66,31 @@ public class RoqProjectCreatorTest {
         assertPomContains(projectDir, "quarkus-roq-plugin-markdown");
         assertPomContains(projectDir, "quarkus-roq-plugin-tagging");
         assertPomContains(projectDir, "quarkus-roq-plugin-sitemap");
+    }
+
+    @Test
+    void versionsAreManagedByTheRoqBom() throws Exception {
+        Path projectDir = createProject("bom-site", "plugin:tagging", "web:tailwindcss");
+
+        Model model = MojoUtils.readPom(projectDir.resolve("pom.xml").toFile());
+        assertThat(model.getProperties()).containsEntry("quarkus-roq.version", ROQ_VERSION);
+        assertThat(model.getDependencyManagement().getDependencies())
+                .first()
+                .satisfies(bom -> {
+                    assertThat(bom.getArtifactId()).isEqualTo("quarkus-roq-bom");
+                    assertThat(bom.getVersion()).isEqualTo("${quarkus-roq.version}");
+                    assertThat(bom.getScope()).isEqualTo("import");
+                });
+        assertThat(model.getDependencies())
+                .filteredOn(d -> d.getGroupId().equals("io.quarkiverse.roq")
+                        || d.getGroupId().equals("io.quarkiverse.web-bundler"))
+                .extracting(Dependency::getArtifactId)
+                .contains("quarkus-roq", "quarkus-roq-theme-default", "quarkus-roq-plugin-tagging",
+                        "quarkus-web-bundler-tailwindcss");
+        assertThat(model.getDependencies())
+                .filteredOn(d -> d.getGroupId().equals("io.quarkiverse.roq")
+                        || d.getGroupId().equals("io.quarkiverse.web-bundler"))
+                .allSatisfy(d -> assertThat(d.getVersion()).as(d.getArtifactId()).isNull());
     }
 
     @Test

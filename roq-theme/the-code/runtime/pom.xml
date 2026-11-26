@@ -21,7 +21,6 @@
         <dependency>
             <groupId>io.quarkiverse.web-bundler</groupId>
             <artifactId>quarkus-web-bundler-tailwindcss</artifactId>
-            <version>${quarkus-web-bundler.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.roq</groupId>
