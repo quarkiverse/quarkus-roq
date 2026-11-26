@@ -2,6 +2,7 @@ package io.quarkiverse.roq.plugin.lunr.runtime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -30,23 +31,68 @@ public class RoqPluginLunrTemplateExtension {
         return page.source().isTargetHtml() && page.data().getBoolean(RoqLunrKeys.SEARCH, !page.noIndexAll());
     }
 
+    /**
+     * Kept for templates calling {@code site.searchIndex} directly instead of including {@code fm/search-index.json}.
+     *
+     * @return the {@code default} search index
+     */
     public static RawString searchIndex(Site site) {
+        return searchIndex(site, RoqLunrIndexNames.DEFAULT);
+    }
+
+    /**
+     * @param indexPage the index file being rendered, its {@code search-index-name} selects the index
+     * @return the search index named by the index file ({@code default} when it has no name)
+     */
+    public static RawString searchIndex(Site site, Page indexPage) {
+        return searchIndex(site, indexName(indexPage));
+    }
+
+    private static RawString searchIndex(Site site, String indexName) {
         JsonObject json = new JsonObject();
         for (RoqCollection collection : site.collections().list()) {
             if (!collection.hidden() && !collection.derived()) {
                 for (DocumentPage doc : collection) {
-                    if (search(doc)) {
+                    if (search(doc) && searchIndexes(doc).contains(indexName)) {
                         createPageJsonObjects(site, doc).forEach(json::put);
                     }
                 }
             }
         }
         for (NormalPage page : site.pages()) {
-            if (search(page)) {
+            if (search(page) && searchIndexes(page).contains(indexName)) {
                 createPageJsonObjects(site, page).forEach(json::put);
             }
         }
         return new RawString(json.toString());
+    }
+
+    /**
+     * @return the search indexes this page appears in ({@code default} when it declares none)
+     */
+    private static List<String> searchIndexes(Page page) {
+        return RoqLunrIndexNames.membership(page.data(RoqLunrKeys.SEARCH_INDEXES));
+    }
+
+    /**
+     * @param indexes the index names requested by a search trigger (string, list or null), {@code all} expands to
+     *        every index
+     * @return the existing names, space separated, or an empty string when none remains
+     */
+    public static String searchIndexNames(Site site, Object indexes) {
+        return String.join(" ", RoqLunrIndexFiles.resolve(site, indexes));
+    }
+
+    /**
+     * @return a JSON object mapping every search index name to its URL
+     */
+    public static RawString searchIndexUrls(Site site) {
+        return new RawString(new JsonObject(new LinkedHashMap<>(RoqLunrIndexFiles.urls(site))).encode());
+    }
+
+    private static String indexName(Page indexPage) {
+        final Object name = indexPage.data(RoqLunrKeys.SEARCH_INDEX_NAME);
+        return name == null ? RoqLunrIndexNames.DEFAULT : name.toString();
     }
 
     private static Map<String, JsonObject> createPageJsonObjects(Site site, Page page) {
