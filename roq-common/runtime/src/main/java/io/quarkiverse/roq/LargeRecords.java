@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -21,6 +22,12 @@ import io.vertx.core.json.JsonObject;
  * This avoids the JVM's 65,535 constant pool entry limit that the bytecode recorder
  * hits on large sites by storing serialized data in resource files instead of bytecode constants.
  */
+@RegisterForReflection(classNames = {
+        // JDK types written to large records (JSON converted to Map/List, record collection fields)
+        "java.util.ArrayList", "java.util.LinkedHashMap", "java.util.HashMap", "java.util.CollSer",
+        "java.lang.Number", "java.lang.Boolean", "java.lang.Integer", "java.lang.Long",
+        "java.lang.Double", "java.lang.Float", "java.math.BigInteger", "java.math.BigDecimal"
+}, serialization = true)
 public final class LargeRecords {
 
     private LargeRecords() {
