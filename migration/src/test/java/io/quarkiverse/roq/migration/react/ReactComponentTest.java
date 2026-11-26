@@ -9,6 +9,21 @@ import io.quarkiverse.roq.migration.react.ReactComponent.Kind;
 class ReactComponentTest {
 
     @Test
+    void readsThePageQueryAndTheHeadOfAPage() {
+        ReactComponent page = ReactComponent.read("src/pages/404.js", """
+                const NotFound = ({data}) => <Layout><h1>{data.site.siteMetadata.title}</h1></Layout>
+                export const query = graphql`query { site { siteMetadata { title } } }`
+                export const Head = () => <Seo title="404: Not Found" />
+                export default NotFound
+                """);
+
+        assertThat(page.pageQuery()).isEqualTo("query { site { siteMetadata { title } } }");
+        assertThat(page.head()).startsWith("<Seo title=\"404: Not Found\" />");
+        assertThat(page.jsx()).startsWith("<Layout>");
+        assertThat(ReactComponent.read("c.js", "const C = () => <p/>\nexport default C").head()).isNull();
+    }
+
+    @Test
     void readsAStaticComponent() {
         ReactComponent header = ReactComponent.read("src/components/header.js", """
                 import * as React from "react"

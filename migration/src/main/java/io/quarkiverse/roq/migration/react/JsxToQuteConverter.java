@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +76,39 @@ public final class JsxToQuteConverter {
         default boolean isPagePath(String field) {
             return false;
         }
+
+        /**
+         * @param query a field of a page query that picks one page, e.g. {@code markdownRemark}
+         * @param equalities what the page's fields must equal, by path, e.g. {@code fields.slug} must be {@code home}
+         * @return the Qute expression of that page, e.g. {@code site.page('Home.md')}; null if it is not one of the
+         *         site's pages
+         */
+        default String queriedPage(ReactComponent component, String query, Map<String, String> equalities) {
+            return null;
+        }
+
+        /**
+         * @param path a path on the site, such as the {@code src} of a script, e.g. {@code /js/menu.js}
+         * @return true if it is one of the site's own files, served from the site itself, that the site does not have
+         */
+        default boolean isMissingFile(String path) {
+            return false;
+        }
+
+        /**
+         * @return true if a field of a page is its content rendered as HTML, as {@code html} is
+         */
+        default boolean isPageHtml(String field) {
+            return false;
+        }
+
+        /**
+         * @return the Roq layout a page renders its content in when it renders it in this component, e.g.
+         *         {@code main} for the site's root layout; null if the component is not a converted layout
+         */
+        default String layoutFor(ReactComponent component, ReactComponent.Import imported) {
+            return null;
+        }
     }
 
     /**
@@ -89,8 +123,24 @@ public final class JsxToQuteConverter {
      * @param css the CSS of the component's styled-components; empty if none
      * @param icons true if it uses Font Awesome icons, which need Font Awesome's CSS
      * @param images true if it has Gatsby images, which need {@link #GATSBY_IMAGE_CSS}
+     * @param missingFiles the files of the site it referred to that the site does not have, which it leaves out
      */
-    public record Converted(String template, String css, boolean icons, boolean images) {
+    public record Converted(String template, String css, boolean icons, boolean images, List<String> missingFiles) {
+    }
+
+    /**
+     * A page component converted to a Roq page.
+     *
+     * @param frontMatter the page's front matter, such as its layout and title; values are as written in the JSX
+     * @param body the Qute template of the page's content
+     * @param css the CSS of the page's styled-components; empty if none
+     * @param icons true if it uses Font Awesome icons
+     * @param images true if it has Gatsby images
+     * @param omitted the props the page gives its layout that could not be put in its front matter
+     * @param missingFiles the files of the site it referred to that the site does not have, which it leaves out
+     */
+    public record ConvertedPage(Map<String, String> frontMatter, String body, String css, boolean icons, boolean images,
+            List<String> omitted, List<String> missingFiles) {
     }
 
     /**
@@ -115,6 +165,9 @@ public final class JsxToQuteConverter {
      */
     static final Set<String> GATSBY_IMAGE_PROPS = Set.of("placeholder", "layout", "formats", "backgroundColor", "quality",
             "transformOptions", "breakpoints", "aspectRatio", "objectFit", "objectPosition", "sizes", "as");
+    static final Pattern INNER_HTML = Pattern.compile("(?s)\\{\\s*__html\\s*:\\s*(.+?)\\s*,?\\s*}");
+    static final Pattern DECLARATION = Pattern.compile("(?s)(?:const|let|var)\\s+(\\{[^{}]*}|[A-Za-z_$][\\w$]*)\\s*=\\s*(.+)");
+    static final Pattern DESTRUCTURED = Pattern.compile("\\s*([A-Za-z_$][\\w$]*)\\s*(?::\\s*([A-Za-z_$][\\w$]*)\\s*)?");
     static final Pattern NUMBER_OR_RATIO = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:\\s*/\\s*(\\d+(?:\\.\\d+)?))?");
     /**
      * The CSS Gatsby adds to pages with images, without what fades them in once loaded, which needs its JavaScript.
@@ -170,6 +223,7 @@ public final class JsxToQuteConverter {
     private final Set<String> cssClasses = new LinkedHashSet<>();
     private boolean icons;
     private boolean images;
+    private final List<String> missingFiles = new ArrayList<>();
     /**
      * The variables of the lists being rendered with map(), by their JavaScript name.
      */
@@ -183,6 +237,28 @@ public final class JsxToQuteConverter {
     private record Loop(String variable, boolean edges, String index) {
     }
 
+    /**
+     * The constants the component declares before rendering, as the JavaScript they stand for: {@code markdownRemark}
+     * for {@code const {markdownRemark} = data} is {@code data.markdownRemark}.
+     */
+    private final Map<String, String> aliases = new LinkedHashMap<>();
+
+    /**
+     * The pages the page query picks, by query field, as Qute expressions.
+     */
+    private final Map<String, String> queriedPages = new LinkedHashMap<>();
+
+    /**
+     * True while converting the root layout, whose props come from the pages' front matter.
+     */
+    private boolean layout;
+
+    /**
+     * True while converting the value of {@code dangerouslySetInnerHTML}, where the HTML of a page can be rendered.
+     */
+    private boolean rawHtml;
+    private boolean rendersPageHtml;
+
     private JsxToQuteConverter(ReactComponent component, Context context) {
         this.component = component;
         this.context = context;
@@ -190,6 +266,78 @@ public final class JsxToQuteConverter {
 
     public static Converted convert(ReactComponent component, Context context) throws Unsupported {
         return new JsxToQuteConverter(component, context).convert();
+    }
+
+    /**
+     * Converts the site's root layout, which renders the pages in it: its props, other than its content, are read from
+     * each page's front matter.
+     */
+    public static Converted convertLayout(ReactComponent component, Context context) throws Unsupported {
+        JsxToQuteConverter converter = new JsxToQuteConverter(component, context);
+        converter.layout = true;
+        return converter.convert();
+    }
+
+    /**
+     * Converts a page component that renders its content in a converted layout, such as Gatsby's
+     * {@code src/pages/index.js}, to a Roq page: what it renders in the layout becomes the page's content, and the
+     * literal props it gives the layout and the title its {@code Head} gives become its front matter.
+     */
+    public static ConvertedPage convertPage(ReactComponent page, Context context) throws Unsupported {
+        return new JsxToQuteConverter(page, context).convertPage();
+    }
+
+    private ConvertedPage convertPage() throws Unsupported {
+        Jsx.Element root = prepare();
+        ReactComponent.Import imported = root.isComponent() ? component.imports().get(root.name()) : null;
+        String layoutName = imported != null && imported.isLocal() ? context.layoutFor(component, imported) : null;
+        if (layoutName == null) {
+            throw new Unsupported("it does not render its content in the site's layout");
+        }
+        Map<String, String> frontMatter = new LinkedHashMap<>();
+        frontMatter.put("layout", layoutName);
+        List<String> omitted = new ArrayList<>();
+        for (Jsx.Attribute attribute : root.attributes()) {
+            if (attribute.isSpread()) {
+                throw new Unsupported("<" + root.name() + "> is given {..." + attribute.code() + "}");
+            }
+            String value = literal(attribute);
+            if (value == null && attribute.code() != null && JsSource.unwrap(attribute.code()).matches("-?\\d+|true|false")) {
+                value = JsSource.unwrap(attribute.code());
+            }
+            if (value != null) {
+                frontMatter.put(attribute.name(), value);
+            } else {
+                omitted.add(attribute.name());
+            }
+        }
+        String title = headAttribute("title");
+        if (title != null) {
+            frontMatter.put("title", title);
+        }
+        String description = headAttribute("description");
+        if (description != null) {
+            frontMatter.put("description", description);
+        }
+        StringBuilder body = new StringBuilder();
+        renderChildren(root.children(), body);
+        return new ConvertedPage(frontMatter, QuteFormatter.format(body.toString()) + "\n", css.toString(), icons, images,
+                omitted, List.copyOf(missingFiles));
+    }
+
+    /**
+     * @return a literal attribute of the element the page's {@code Head} renders, such as the title of
+     *         {@code <Seo title="Home"/>}; null if there is none
+     */
+    private String headAttribute(String name) {
+        if (component.head() == null) {
+            return null;
+        }
+        try {
+            return literal(Jsx.parse(component.head(), 0).element().attribute(name));
+        } catch (Jsx.JsxException e) {
+            return null;
+        }
     }
 
     /**
@@ -228,22 +376,7 @@ public final class JsxToQuteConverter {
     }
 
     private Converted convert() throws Unsupported {
-        if (component.jsx() == null) {
-            throw new Unsupported("its JSX could not be found");
-        }
-        if (!component.prelude().isEmpty()) {
-            throw new Unsupported("it runs code before rendering ("
-                    + component.prelude().lines().findFirst().orElse("").strip() + ")");
-        }
-        for (String query : component.queries().values()) {
-            checkQuery(query);
-        }
-        Jsx.Parsed parsed;
-        try {
-            parsed = Jsx.parse(component.jsx(), 0);
-        } catch (Jsx.JsxException e) {
-            throw new Unsupported("its JSX could not be read: " + e.getMessage());
-        }
+        Jsx.Element root = prepare();
         StringBuilder template = new StringBuilder();
         template.append("{! Converted from ").append(component.file()).append(" by the migration to Roq");
         if (!component.props().isEmpty()) {
@@ -254,9 +387,137 @@ public final class JsxToQuteConverter {
         }
         template.append(" !}\n");
         StringBuilder body = new StringBuilder();
-        render(parsed.element(), body);
+        render(root, body);
         template.append(QuteFormatter.format(body.toString())).append("\n");
-        return new Converted(template.toString(), css.toString(), icons, images);
+        return new Converted(template.toString(), css.toString(), icons, images, List.copyOf(missingFiles));
+    }
+
+    /**
+     * Reads what the component works out before rendering: its constants, static queries and page query.
+     *
+     * @return the JSX it renders
+     */
+    private Jsx.Element prepare() throws Unsupported {
+        if (component.jsx() == null) {
+            throw new Unsupported("its JSX could not be found");
+        }
+        readPrelude();
+        for (String query : component.queries().values()) {
+            checkQuery(query);
+        }
+        if (component.pageQuery() != null) {
+            readPageQuery();
+        }
+        try {
+            return Jsx.parse(component.jsx(), 0).element();
+        } catch (Jsx.JsxException e) {
+            throw new Unsupported("its JSX could not be read: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Reads the code before the JSX, which may only declare constants: {@code const {a, b: c} = x} and
+     * {@code const a = x}.
+     */
+    private void readPrelude() throws Unsupported {
+        String rest = component.prelude().strip();
+        while (!rest.isEmpty()) {
+            int end = statementEnd(rest);
+            String statement = rest.substring(0, end).strip();
+            rest = rest.substring(Math.min(rest.length(), end + 1)).strip();
+            if (statement.isEmpty()) {
+                continue;
+            }
+            Matcher declaration = DECLARATION.matcher(statement);
+            if (!declaration.matches()) {
+                throw new Unsupported("it runs code before rendering (" + statement.lines().findFirst().orElse("") + ")");
+            }
+            String pattern = declaration.group(1);
+            String value = declaration.group(2).strip();
+            if (!pattern.startsWith("{")) {
+                aliases.put(pattern, value);
+                continue;
+            }
+            for (String entry : pattern.substring(1, pattern.length() - 1).split(",")) {
+                Matcher destructured = DESTRUCTURED.matcher(entry);
+                if (entry.isBlank()) {
+                    continue;
+                }
+                if (!destructured.matches()) {
+                    throw new Unsupported("it runs code before rendering (" + statement + ")");
+                }
+                String name = destructured.group(2) != null ? destructured.group(2) : destructured.group(1);
+                aliases.put(name, (isPath(value) ? value : "(" + value + ")") + "." + destructured.group(1));
+            }
+        }
+    }
+
+    /**
+     * @return true if the code is a path, such as {@code data.markdownRemark} or {@code site?.siteMetadata}
+     */
+    private static boolean isPath(String code) {
+        return code.replace("?.", ".").matches("[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*");
+    }
+
+    /**
+     * @return the end of the first statement: its semicolon or line break at the top level, or the end of the code
+     */
+    private static int statementEnd(String code) {
+        int semicolon = JsSource.indexAtTopLevel(code, ";");
+        int lineBreak = JsSource.indexAtTopLevel(code, "\n");
+        if (semicolon < 0) {
+            return lineBreak < 0 ? code.length() : lineBreak;
+        }
+        return lineBreak < 0 ? semicolon : Math.min(semicolon, lineBreak);
+    }
+
+    /**
+     * Reads the query a page exports, whose result it gets as its {@code data} prop: its fields must each pick one of
+     * the site's pages, or its siteMetadata.
+     */
+    private void readPageQuery() throws Unsupported {
+        GraphQlSelection selection;
+        try {
+            selection = GraphQlSelection.parse(component.pageQuery());
+        } catch (GraphQlSelection.InvalidQuery e) {
+            throw new Unsupported("its page query could not be read: " + e.getMessage());
+        }
+        for (Map.Entry<String, GraphQlSelection> field : selection.fields().entrySet()) {
+            if (field.getKey().equals("site")) {
+                if (!field.getValue().fields().keySet().equals(Set.of("siteMetadata"))) {
+                    throw new Unsupported("its page query asks for more than siteMetadata");
+                }
+                continue;
+            }
+            Map<String, String> equalities = GraphQlSelection.equalities(field.getValue().arguments());
+            String page = equalities == null ? null : context.queriedPage(component, field.getKey(), equalities);
+            if (page == null) {
+                throw new Unsupported("its page query asks for " + field.getKey()
+                        + (field.getValue().arguments() == null ? "" : "(" + field.getValue().arguments() + ")")
+                        + ", which is not one of the site's pages");
+            }
+            queriedPages.put(field.getKey(), page);
+        }
+    }
+
+    /**
+     * @return the code with a constant at its start replaced with what it stands for, e.g. {@code fields.title} is
+     *         {@code (data.markdownRemark).fields.title}; the code as it is if it does not start with a constant
+     */
+    private String expandAlias(String code) throws Unsupported {
+        Matcher start = IDENTIFIER.matcher(code);
+        if (!start.lookingAt() || !aliases.containsKey(start.group()) || loopOf(start.group()) != null) {
+            return code;
+        }
+        String alias = JsSource.unwrap(aliases.get(start.group()));
+        String rest = code.substring(start.end());
+        if (rest.isEmpty()) {
+            return alias;
+        }
+        if (!isPath(alias)) {
+            throw new Unsupported("it uses the expression " + code);
+        }
+        return alias + rest;
     }
 
     /**
@@ -269,7 +530,7 @@ public final class JsxToQuteConverter {
         } catch (GraphQlSelection.InvalidQuery e) {
             throw new Unsupported("its static query could not be read: " + e.getMessage());
         }
-        if (selection.arguments()) {
+        if (selection.hasArguments()) {
             throw new Unsupported("it filters or sorts what it queries with useStaticQuery");
         }
         for (Map.Entry<String, GraphQlSelection> field : selection.fields().entrySet()) {
@@ -330,6 +591,12 @@ public final class JsxToQuteConverter {
             }
             case "Script" -> {
                 if ("gatsby".equals(from)) {
+                    String src = literal(element.attribute("src"));
+                    if (src != null && context.isMissingFile(src)) {
+                        // It loaded nothing, and as a <script> tag in the page it would be a dead link
+                        missingFiles.add(src);
+                        return;
+                    }
                     renderTag("script", element, out, extraClass);
                     return;
                 }
@@ -361,6 +628,16 @@ public final class JsxToQuteConverter {
     }
 
     private void renderTag(String tag, Jsx.Element element, StringBuilder out, String extraClass) throws Unsupported {
+        Jsx.Attribute innerHtml = element.attribute("dangerouslySetInnerHTML");
+        if (innerHtml != null) {
+            List<Jsx.Attribute> others = element.attributes().stream().filter(a -> a != innerHtml).toList();
+            out.append('<').append(tag).append(attributes(new Jsx.Element(tag, others, List.of()), extraClass))
+                    .append('>').append(innerHtml(innerHtml)).append("</").append(tag).append('>');
+            if (!element.children().isEmpty()) {
+                throw new Unsupported("<" + tag + "> has both content and dangerouslySetInnerHTML");
+            }
+            return;
+        }
         out.append('<').append(tag).append(attributes(element, extraClass)).append('>');
         if (VOID_ELEMENTS.contains(tag)) {
             if (!element.children().isEmpty()) {
@@ -370,6 +647,31 @@ public final class JsxToQuteConverter {
         }
         renderChildren(element.children(), out);
         out.append("</").append(tag).append('>');
+    }
+
+    /**
+     * @return the Qute expression of {@code dangerouslySetInnerHTML={{__html: html}}}, which may only be the HTML of a
+     *         page
+     */
+    private String innerHtml(Jsx.Attribute attribute) throws Unsupported {
+        String object = attribute.code() == null ? "" : JsSource.unwrap(attribute.code());
+        Matcher html = INNER_HTML.matcher(object);
+        if (!html.matches()) {
+            throw new Unsupported("it sets raw HTML with dangerouslySetInnerHTML");
+        }
+        rawHtml = true;
+        rendersPageHtml = false;
+        String value;
+        try {
+            value = qute(html.group(1), false, false);
+        } finally {
+            rawHtml = false;
+        }
+        if (!rendersPageHtml || value.contains(" ")) {
+            throw new Unsupported("it sets raw HTML with dangerouslySetInnerHTML, from " + html.group(1).strip()
+                    + ", which is not the HTML of a page");
+        }
+        return "{=" + value + "}";
     }
 
     private void renderStyled(Jsx.Element element, String name, ReactComponent.Styled styled, StringBuilder out,
@@ -724,7 +1026,7 @@ public final class JsxToQuteConverter {
         if (c.contains(".map(")) {
             throw new Unsupported("it renders a list with map()");
         }
-        int or = JsSource.indexAtTopLevel(c, "||");
+        int or = beforeJsx(c, "||");
         if (or > 0) {
             String rendered = JsSource.unwrap(c.substring(or + 2));
             if (rendered.startsWith("<")) {
@@ -735,7 +1037,7 @@ public final class JsxToQuteConverter {
                 return;
             }
         }
-        int and = JsSource.indexAtTopLevel(c, "&&");
+        int and = beforeJsx(c, "&&");
         if (and > 0) {
             String rendered = JsSource.unwrap(c.substring(and + 2));
             if (rendered.startsWith("<")) {
@@ -799,7 +1101,8 @@ public final class JsxToQuteConverter {
     /**
      * Renders {@code list.map((item, i) => <jsx>)} as a {@code {#for}} over the pages a static query lists.
      */
-    private void renderMap(String list, String function, StringBuilder out) throws Unsupported {
+    private void renderMap(String code, String function, StringBuilder out) throws Unsupported {
+        String list = expandAlias(code);
         int arrow = JsSource.indexAtTopLevel(function, "=>");
         if (arrow < 0) {
             throw new Unsupported("it renders a list with map() and a function that is not an arrow function");
@@ -891,19 +1194,92 @@ public final class JsxToQuteConverter {
         }
     }
 
+    /**
+     * Translates a JavaScript condition to the condition of a Qute {@code {#if}}, whose {@code ||}, {@code &&},
+     * {@code !} and comparisons work as JavaScript's do on the values a template has.
+     */
     private String condition(String code) throws Unsupported {
         String c = JsSource.unwrap(code);
-        boolean not = c.startsWith("!");
-        String tested = not ? c.substring(1) : c;
-        String quteCondition = qute(tested, true, false);
-        return not ? negate(quteCondition) : quteCondition;
+        for (String operator : List.of("||", "&&")) {
+            List<String> operands = splitAtTopLevel(c, operator);
+            if (operands.size() > 1) {
+                List<String> conditions = new ArrayList<>();
+                for (String operand : operands) {
+                    String condition = condition(operand);
+                    conditions.add(condition.contains(" ") ? "(" + condition + ")" : condition);
+                }
+                return String.join(" " + operator + " ", conditions);
+            }
+        }
+        if (c.startsWith("!") && !c.startsWith("!=")) {
+            return negate(condition(c.substring(1)));
+        }
+        String[] comparison = comparison(c);
+        if (comparison != null) {
+            return qute(comparison[0], true, false) + " " + comparison[1] + " " + qute(comparison[2], true, false);
+        }
+        return qute(c, true, false);
+    }
+
+    /**
+     * @return the left operand, the Qute operator and the right operand of a comparison such as
+     *         {@code slug === "home"}; null if the code is not one
+     */
+    private static String[] comparison(String c) {
+        int at = -1;
+        String found = null;
+        for (String operator : List.of("===", "!==", "==", "!=", "<=", ">=", "<", ">")) {
+            int index = JsSource.indexAtTopLevel(c, operator);
+            if (index > 0 && (at < 0 || index < at)) {
+                at = index;
+                found = operator;
+            }
+        }
+        if (found == null || c.startsWith("=", at + found.length())) {
+            return null;
+        }
+        String operator = switch (found) {
+            case "===" -> "==";
+            case "!==" -> "!=";
+            default -> found;
+        };
+        return new String[] { c.substring(0, at), operator, c.substring(at + found.length()) };
+    }
+
+    /**
+     * @return the operands of an operator at the top level, e.g. of {@code ||} in {@code a || b || c}; the code alone
+     *         if it has no such operator
+     */
+    private static List<String> splitAtTopLevel(String code, String operator) {
+        List<String> operands = new ArrayList<>();
+        String rest = code;
+        int at;
+        while ((at = JsSource.indexAtTopLevel(rest, operator)) > 0) {
+            operands.add(rest.substring(0, at));
+            rest = rest.substring(at + operator.length());
+        }
+        operands.add(rest);
+        return operands;
+    }
+
+    /**
+     * @return the index of the last {@code ||} or {@code &&} at the top level that is followed by JSX, as in
+     *         {@code a || b || <li/>}; -1 if there is none
+     */
+    private static int beforeJsx(String code, String operator) {
+        List<String> operands = splitAtTopLevel(code, operator);
+        if (operands.size() < 2 || !JsSource.unwrap(operands.get(operands.size() - 1)).startsWith("<")) {
+            return -1;
+        }
+        return code.length() - operands.get(operands.size() - 1).length() - operator.length();
     }
 
     private static String negate(String condition) {
         if (condition.startsWith("!") && !condition.contains(" ")) {
             return condition.substring(1);
         }
-        return condition.contains(" ") ? "!(" + condition + ")" : "!" + condition;
+        // Qute reads "!(" as part of a name, but "! (" as negating what is in the parentheses
+        return condition.contains(" ") ? "! (" + condition + ")" : "!" + condition;
     }
 
     /**
@@ -915,6 +1291,10 @@ public final class JsxToQuteConverter {
      */
     private String qute(String code, boolean optional, boolean outsideComponent) throws Unsupported {
         String c = JsSource.unwrap(code);
+        String expanded = expandAlias(c);
+        if (!expanded.equals(c)) {
+            return qute(expanded, optional, outsideComponent);
+        }
         for (String fallback : List.of("||", "??")) {
             int at = JsSource.indexAtTopLevel(c, fallback);
             if (at > 0 && !c.startsWith("?", at + 2)) {
@@ -951,24 +1331,29 @@ public final class JsxToQuteConverter {
                 }
                 return loop.variable() + "_index";
             }
-            String field = pageFieldPath(path, loop, c);
-            String mapped = context.pageField(component, loop.variable(), field);
-            if (mapped == null) {
-                throw new Unsupported("it uses " + field + " of the pages it lists, which Roq has no equivalent for");
+            return pageValue(loop.variable(), pageFieldPath(path, loop, c), "the pages it lists");
+        }
+        if (root.equals("data") && component.pageQuery() != null && component.props().contains("data")
+                && path.length > 1) {
+            if (path[1].equals("site") && path.length > 3 && path[2].equals("siteMetadata")) {
+                return siteMetadata(String.join(".", List.of(path).subList(3, path.length)));
             }
-            return mapped;
+            String page = queriedPages.get(path[1]);
+            if (page == null || path.length < 3) {
+                throw new Unsupported("it uses " + c + ", which its page query does not give");
+            }
+            return pageValue(page, String.join(".", List.of(path).subList(2, path.length)), "the page it queries");
         }
         String queryPath = queryPath(root, path);
         if (queryPath != null) {
             if (!queryPath.startsWith("site.siteMetadata.")) {
                 throw new Unsupported("it uses " + c + " other than to render a list with map()");
             }
-            String key = queryPath.substring("site.siteMetadata.".length());
-            String mapped = SITE_METADATA.get(key);
-            if (mapped == null) {
-                throw new Unsupported("it uses siteMetadata." + key + ", which Roq has no place for");
-            }
-            return mapped;
+            return siteMetadata(queryPath.substring("site.siteMetadata.".length()));
+        }
+        if (layout && component.props().contains(root) && !root.equals("children") && !outsideComponent) {
+            // The pages give the root layout its props in their front matter
+            return "page.data." + String.join(".", path) + (optional ? "??" : "");
         }
         if (component.props().contains(root) && !outsideComponent) {
             if (path.length > 1) {
@@ -979,6 +1364,35 @@ public final class JsxToQuteConverter {
             return root + (optional ? "??" : "");
         }
         throw new Unsupported("it uses " + c + ", which is not a prop or siteMetadata");
+    }
+
+    private static String siteMetadata(String key) throws Unsupported {
+        String mapped = SITE_METADATA.get(key);
+        if (mapped == null) {
+            throw new Unsupported("it uses siteMetadata." + key + ", which Roq has no place for");
+        }
+        return mapped;
+    }
+
+    /**
+     * @param page the Qute expression of a page
+     * @param field a field of the page, e.g. {@code frontmatter.title}
+     * @param which which page it is, for the reason it cannot be converted
+     */
+    private String pageValue(String page, String field, String which) throws Unsupported {
+        if (context.isPageHtml(field)) {
+            if (!rawHtml) {
+                throw new Unsupported("it renders the HTML of " + which + " as text");
+            }
+            rendersPageHtml = true;
+            // Rendered HTML, which Qute would otherwise escape
+            return "site.pageContent(" + page + ").raw";
+        }
+        String mapped = context.pageField(component, page, field);
+        if (mapped == null) {
+            throw new Unsupported("it uses " + field + " of " + which + ", which Roq has no equivalent for");
+        }
+        return mapped;
     }
 
     /**
@@ -1111,7 +1525,7 @@ public final class JsxToQuteConverter {
         if (part.code() == null) {
             return null;
         }
-        String[] path = part.code().replace("?.", ".").split("\\.");
+        String[] path = expandAlias(part.code()).replace("?.", ".").split("\\.");
         Loop loop = loops.get(path[0]);
         if (loop == null) {
             return null;

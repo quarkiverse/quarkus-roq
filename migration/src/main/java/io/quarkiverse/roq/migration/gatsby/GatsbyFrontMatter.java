@@ -22,7 +22,8 @@ final class GatsbyFrontMatter {
     /**
      * @param homePage the home page relative to {@code content/}, or null
      */
-    static void convert(GatsbyProject project, TargetSite site, String homePage) throws Exception {
+    static void convert(GatsbyProject project, TargetSite site, String homePage, GatsbyComponents components)
+            throws Exception {
         Path content = site.dir().resolve("content");
         Map<String, String> metadata = project.config().siteMetadata();
         int converted = 0;
@@ -47,10 +48,10 @@ final class GatsbyFrontMatter {
         if (converted > 0) {
             site.report().info("Turned the slug or path of " + converted + " pages into a link");
         }
-        if (homePage != null && !homePage.equals("index.md")) {
+        if (homePage != null && !homePage.equals("index.md") && components.indexPage() == null) {
             // The home page keeps its name; an index page shows it at /
             Files.writeString(content.resolve("index.html"), "---\n" + withIndexMetadata("", metadata) + "---\n"
-                    + "{=site.pageContent(site.page('" + homePage + "'))}\n");
+                    + "{=site.pageContent(site.page('" + homePage + "')).raw}\n");
             site.report().info("Wrote content/index.html, which shows " + homePage + " at /");
         }
     }
@@ -85,7 +86,7 @@ final class GatsbyFrontMatter {
         return frontMatter.isEmpty() ? "" : frontMatter.replaceAll("(?s)^---\\R(.*?)---\\R?$", "$1");
     }
 
-    private static String quote(String value) {
+    static String quote(String value) {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }

@@ -10,7 +10,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import io.quarkiverse.roq.migration.FrontMatter;
 import io.quarkiverse.roq.migration.engine.MigrationException;
 import io.quarkiverse.roq.migration.engine.SourceSite;
 import io.quarkiverse.roq.migration.react.ImageSize;
@@ -19,7 +22,7 @@ import io.quarkiverse.roq.migration.react.ReactComponent;
 
 /**
  * The React components and pages of a Gatsby site, read during the analyze stage: what kind of component each is,
- * which could be converted to Qute partials, and how the site's layout uses them.
+ * which could be converted to Qute partials and Roq pages, and how the site's layout uses them.
  *
  * @param outcomes what happened to each component and page, by file, in file order
  * @param rootLayout the component pages render their content in, e.g. {@code site/src/components/layout.js}; null
@@ -35,17 +38,40 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
 
     /**
      * @param page true for a page in src/pages/, false for a component
-     * @param template the template it was converted to, e.g. {@code partials/header}, or {@code layouts/main} for the
-     *        root layout; null if it was not
-     * @param converted the conversion; null if it was not converted
-     * @param reason why it was not converted; null if it was, or for a page
+     * @param template the template it was converted to, e.g. {@code partials/header}, {@code layouts/main} for the
+     *        root layout, or {@code index.html} in {@code content/} for a page; null if it was not
+     * @param converted the conversion of a component; null if it was not converted, or for a page
+     * @param convertedPage the conversion of a page; null if it was not converted, or for a component
+     * @param reason why it was not converted; null if it was, or for the pages Roq renders itself
      */
     record Outcome(ReactComponent component, boolean page, String template, JsxToQuteConverter.Converted converted,
-            String reason) {
+            JsxToQuteConverter.ConvertedPage convertedPage, String reason) {
+
+        boolean isConverted() {
+            return converted != null || convertedPage != null;
+        }
+
+        boolean icons() {
+            return converted != null ? converted.icons() : convertedPage != null && convertedPage.icons();
+        }
+
+        boolean images() {
+            return converted != null ? converted.images() : convertedPage != null && convertedPage.images();
+        }
+
+        List<String> missingFiles() {
+            return converted != null ? converted.missingFiles()
+                    : convertedPage != null ? convertedPage.missingFiles() : List.of();
+        }
+
+        String css() {
+            return converted != null ? converted.css() : convertedPage != null ? convertedPage.css() : "";
+        }
     }
 
     static final List<String> EXTENSIONS = List.of(".js", ".jsx", ".tsx", ".ts");
     static final String MAIN_LAYOUT = "layouts/main";
+    static final String INDEX_PAGE = "index.html";
     /**
      * A File System Route page for each Markdown page, e.g. {@code {MarkdownRemark.fields__slug}.js}, which serves the
      * pages at that field.
@@ -53,6 +79,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
     static final Pattern MARKDOWN_ROUTE = Pattern.compile("\\{markdownRemark\\.(\\w+)}\\.(jsx?|tsx?)",
             Pattern.CASE_INSENSITIVE);
     static final Pattern FRONT_MATTER_FIELD = Pattern.compile("frontmatter\\.(\\w+)");
+    static final Pattern FRONT_MATTER_ENTRY = Pattern.compile("([\\w-]+):[ \\t]*(\\S.*)");
     /**
      * Gatsby's Markdown pages are the Markdown files of a Roq site.
      */
@@ -80,14 +107,22 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
      * @return true if a converted component has Gatsby images, which need Gatsby's image CSS
      */
     boolean usesImages() {
-        return outcomes.values().stream().anyMatch(o -> o.converted() != null && o.converted().images());
+        return outcomes.values().stream().anyMatch(Outcome::images);
     }
 
     /**
      * @return true if a converted component uses Font Awesome icons
      */
     boolean usesIcons() {
-        return outcomes.values().stream().anyMatch(o -> o.converted() != null && o.converted().icons());
+        return outcomes.values().stream().anyMatch(Outcome::icons);
+    }
+
+    /**
+     * @return the converted page shown at {@code /}, from {@code src/pages/index.js}; null if there is none
+     */
+    Outcome indexPage() {
+        return outcomes.values().stream().filter(o -> o.convertedPage() != null && INDEX_PAGE.equals(o.template()))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -95,9 +130,9 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
      */
     String css() {
         StringBuilder css = new StringBuilder();
-        outcomes.values().stream().filter(o -> o.converted() != null && !o.converted().css().isEmpty())
+        outcomes.values().stream().filter(o -> !o.css().isEmpty())
                 .forEach(o -> css.append(css.isEmpty() ? "" : "\n").append("/* ").append(o.component().file())
-                        .append(" */\n").append(o.converted().css()));
+                        .append(" */\n").append(o.css()));
         return css.toString();
     }
 
@@ -110,6 +145,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
         private final Map<String, Set<String>> guessedFields = new LinkedHashMap<>();
         private String rootLayout;
         private String pagePath;
+        private List<MarkdownPage> markdownPages;
 
         Reader(SourceSite source, GatsbyProject project, Map<String, ReactComponent> components) {
             this.source = source;
@@ -131,7 +167,7 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
             components.keySet().forEach(file -> sorted.put(file, outcomes.get(file)));
             Map<String, Set<String>> guessed = new LinkedHashMap<>();
             guessedFields.forEach((file, fields) -> {
-                if (outcomes.get(file).converted() != null) {
+                if (outcomes.get(file).isConverted()) {
                     guessed.put(file, fields);
                 }
             });
@@ -146,18 +182,30 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
             ReactComponent component = components.get(file);
             boolean page = file.startsWith(project.path("src/pages/"));
             Outcome outcome;
-            if (page) {
-                outcome = new Outcome(component, true, null, null, null);
+            if (page && file.substring(file.lastIndexOf('/') + 1).startsWith("{")) {
+                // A File System Route, which Roq's page layout replaces
+                outcome = new Outcome(component, true, null, null, null, null);
+            } else if (page) {
+                Outcome result;
+                try {
+                    JsxToQuteConverter.ConvertedPage converted = JsxToQuteConverter.convertPage(component, this);
+                    result = new Outcome(component, true, contentPage(file), null, converted, null);
+                } catch (JsxToQuteConverter.Unsupported e) {
+                    result = new Outcome(component, true, null, null, null, e.getMessage());
+                }
+                outcome = result;
             } else if (!converting.add(file)) {
                 return null; // Components that include each other
             } else {
                 Outcome result;
                 try {
-                    JsxToQuteConverter.Converted converted = JsxToQuteConverter.convert(component, this);
-                    String template = file.equals(rootLayout) ? MAIN_LAYOUT : "partials/" + baseName(file);
-                    result = new Outcome(component, false, template, converted, null);
+                    boolean layout = file.equals(rootLayout);
+                    JsxToQuteConverter.Converted converted = layout ? JsxToQuteConverter.convertLayout(component, this)
+                            : JsxToQuteConverter.convert(component, this);
+                    String template = layout ? MAIN_LAYOUT : "partials/" + baseName(file);
+                    result = new Outcome(component, false, template, converted, null, null);
                 } catch (JsxToQuteConverter.Unsupported e) {
-                    result = new Outcome(component, false, null, null, e.getMessage());
+                    result = new Outcome(component, false, null, null, null, e.getMessage());
                 }
                 outcome = result;
             }
@@ -232,6 +280,116 @@ record GatsbyComponents(Map<String, Outcome> outcomes, String rootLayout, List<J
         @Override
         public boolean isPagePath(String field) {
             return field.equals(pagePath);
+        }
+
+        /**
+         * Gatsby serves the files in the project's {@code static/} at the site's root.
+         */
+        @Override
+        public boolean isMissingFile(String path) {
+            return path.startsWith("/") && !path.startsWith("//") && !source.exists(project.path("static") + path);
+        }
+
+        @Override
+        public boolean isPageHtml(String field) {
+            return field.equals("html");
+        }
+
+        @Override
+        public String layoutFor(ReactComponent component, ReactComponent.Import imported) {
+            String file = resolve(component.file(), imported.from());
+            if (file == null || !file.equals(rootLayout)) {
+                return null;
+            }
+            Outcome layout = outcome(file);
+            return layout != null && layout.converted() != null ? MAIN_LAYOUT.substring("layouts/".length()) : null;
+        }
+
+        /**
+         * Finds the Markdown page a page query picks, from the fields that Gatsby's Markdown pages have in Roq too:
+         * the field the Markdown route serves the pages at, and the front matter.
+         */
+        @Override
+        public String queriedPage(ReactComponent component, String query, Map<String, String> equalities) {
+            if (!query.equals("markdownRemark")) {
+                return null;
+            }
+            List<MarkdownPage> matching = new ArrayList<>();
+            for (MarkdownPage page : markdownPages()) {
+                boolean matches = true;
+                for (Map.Entry<String, String> equality : equalities.entrySet()) {
+                    Matcher frontMatter = FRONT_MATTER_FIELD.matcher(equality.getKey());
+                    String value = equality.getKey().equals(pagePath) ? page.slug()
+                            : frontMatter.matches() ? page.frontMatter().get(frontMatter.group(1)) : null;
+                    if (value == null && !frontMatter.matches()) {
+                        return null; // A field Roq has no equivalent for
+                    }
+                    matches &= equality.getValue().replaceAll("^/|/$", "").equals(value);
+                }
+                if (matches) {
+                    matching.add(page);
+                }
+            }
+            return matching.size() == 1 ? "site.page('" + matching.get(0).contentPath() + "')" : null;
+        }
+
+        /**
+         * @param contentPath where the page is in {@code content/}, e.g. {@code Home.md}
+         * @param slug where Roq serves it, without slashes, e.g. {@code home}
+         */
+        private record MarkdownPage(String contentPath, String slug, Map<String, String> frontMatter) {
+        }
+
+        private List<MarkdownPage> markdownPages() {
+            if (markdownPages != null) {
+                return markdownPages;
+            }
+            markdownPages = new ArrayList<>();
+            for (String sourceDir : project.markdownSources()) {
+                List<String> files;
+                try {
+                    files = source.files(sourceDir);
+                } catch (MigrationException e) {
+                    continue;
+                }
+                for (String file : files) {
+                    if (!GatsbyProject.MARKDOWN.matcher(file).matches()) {
+                        continue;
+                    }
+                    Map<String, String> frontMatter = new LinkedHashMap<>();
+                    try {
+                        FrontMatter.block(source.readString(file)).lines().map(FRONT_MATTER_ENTRY::matcher)
+                                .filter(Matcher::matches)
+                                .forEach(m -> frontMatter.put(m.group(1),
+                                        m.group(2).strip().replaceAll("^([\"'])(.*)\\1$", "$2")));
+                    } catch (MigrationException e) {
+                        continue;
+                    }
+                    String contentPath = project.contentPath(sourceDir, file);
+                    String slug = frontMatter.containsKey("slug") ? frontMatter.get("slug").replaceAll("^/|/$", "")
+                            : frontMatter.containsKey("path") ? frontMatter.get("path").replaceAll("^/|/$", "")
+                                    : slugPath(contentPath);
+                    markdownPages.add(new MarkdownPage(contentPath, slug, frontMatter));
+                }
+            }
+            return markdownPages;
+        }
+
+        /**
+         * @return where Roq serves a page with {@code site.page-link=/:path/}, e.g. {@code docs/getting-started} for
+         *         {@code docs/Getting Started.md}
+         */
+        private static String slugPath(String contentPath) {
+            return Stream.of(contentPath.replaceAll("\\.[^./]+$", "").split("/")).map(GatsbyMigrator::slugify)
+                    .collect(Collectors.joining("/"));
+        }
+
+        /**
+         * @return where a page in {@code src/pages/} goes in {@code content/}, as Gatsby serves it: {@code index.js}
+         *         is {@code index.html}, {@code about.js} is {@code about.html}
+         */
+        private String contentPage(String file) {
+            return file.substring(project.path("src/pages/").length()).replaceAll("\\.[^.]+$", "") + ".html";
         }
 
         /**

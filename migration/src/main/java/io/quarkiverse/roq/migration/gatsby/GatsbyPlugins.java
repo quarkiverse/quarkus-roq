@@ -115,7 +115,7 @@ final class GatsbyPlugins {
     }
 
     private static boolean unconvertedComponentsUse(GatsbyComponents components, String module) {
-        return components.outcomes().values().stream().filter(o -> o.converted() == null)
+        return components.outcomes().values().stream().filter(o -> !o.isConverted())
                 .anyMatch(o -> o.component().imports().values().stream().anyMatch(i -> i.from().equals(module)));
     }
 

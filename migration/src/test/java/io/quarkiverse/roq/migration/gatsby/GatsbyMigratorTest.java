@@ -147,7 +147,7 @@ class GatsbyMigratorTest {
                         """),
                 Map.entry("site/src/components/header.js", """
                         import * as React from "react"
-                        import {Link} from "gatsby"
+                        import {Link, Script} from "gatsby"
                         import {StaticImage} from "gatsby-plugin-image"
                         import styled from "styled-components"
                         import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -173,6 +173,8 @@ class GatsbyMigratorTest {
                                         Edit this Page
                                     </a>
                                 )}
+                                <Script defer src="/static/fontawesome/fontawesome-all.js"/>
+                                <Script defer src="/CNAME"/>
                             </header>
                         )
 
@@ -202,7 +204,7 @@ class GatsbyMigratorTest {
                                     `)
                                     return (
                                         <ul>
-                                            {data.allMarkdownRemark.edges.map((edge, i) => edge.node.fields.slug.startsWith("_") || (
+                                            {data.allMarkdownRemark.edges.map((edge, i) => edge.node.fields.slug.startsWith("_") || edge.node.fields.slug === "home" || (
                                                 <li key={i}><Link to={"/" + edge.node.fields.slug}>{edge.node.fields.title}</Link></li>
                                             ))}
                                         </ul>
@@ -240,7 +242,24 @@ class GatsbyMigratorTest {
                 Map.entry("site/src/pages/index.jsx", """
                         import * as React from 'react'
                         import Layout from "../components/layout"
-                        const HomePage = () => <Layout><p>Home</p></Layout>
+                        import {graphql} from "gatsby"
+
+                        const HomePage = ({data}) => {
+                            const {markdownRemark} = data
+                            const {fields, html} = markdownRemark
+                            return (
+                                <Layout pageName={fields.pageName}>
+                                    <div dangerouslySetInnerHTML={{__html: html}}/>
+                                </Layout>
+                            )
+                        }
+
+                        export const query = graphql`
+                          query Home {
+                            markdownRemark(fields: {slug: {eq: "home"}}) { fields { pageName } html }
+                          }
+                        `
+
                         export default HomePage
                         """),
                 Map.entry("site/src/pages/{markdownRemark.fields__slug}.jsx", """
@@ -269,6 +288,7 @@ class GatsbyMigratorTest {
                         import * as React from "react"
                         import Layout from "../components/layout"
                         const NotFoundPage = () => <Layout><h1>404: Not Found</h1></Layout>
+                        export const Head = () => <Seo title="404: Not Found" />
                         export default NotFoundPage
                         """),
                 Map.entry("site/plugins/gatsby-frontmatter-defaults/gatsby-node.js", "exports.onCreateNode = () => {}\n"),
@@ -491,8 +511,48 @@ class GatsbyMigratorTest {
     }
 
     @Test
-    void showsTheHomePageAtTheRootWithTheSiteMetadata() throws Exception {
-        migrate();
+    void convertsThePagesToRoqPages() throws Exception {
+        List<String> items = actionItems(migrate());
+
+        // The home page is the Markdown page its page query picks, by the field the Markdown route serves pages at
+        assertThat(out.resolve("content/index.html")).hasContent("""
+                ---
+                title: "Quarkiverse Hub"
+                description: "The Quarkiverse Hub provides support for Quarkus extension projects."
+                link: /
+                layout: "main"
+                ---
+                {! Converted from site/src/pages/index.jsx by the migration to Roq !}
+                <div>{=site.pageContent(site.page('Home.md')).raw}</div>
+                """);
+        // Served where Gatsby served it, titled by its Head
+        assertThat(out.resolve("content/404.html")).hasContent("""
+                ---
+                layout: "main"
+                title: "404: Not Found"
+                link: /404.html
+                ---
+                {! Converted from site/src/pages/404.js by the migration to Roq !}
+                <h1>404: Not Found</h1>
+                """);
+        assertThat(items).contains("Set pageName in the front matter of content/index.html, for "
+                + "templates/layouts/main.html: site/src/pages/index.jsx gave it to the layout from a value that Roq has "
+                + "no equivalent for");
+        assertThat(items).noneMatch(item -> item.contains("index.jsx to") || item.contains("404.js as"));
+    }
+
+    @Test
+    void showsTheHomePageAtTheRootWhenTheIndexPageIsNotConverted() throws Exception {
+        write(Map.of("site/src/pages/index.jsx", """
+                import * as React from 'react'
+                import {useState} from 'react'
+                const HomePage = () => {
+                    const [open, setOpen] = useState(false)
+                    return <p onClick={() => setOpen(!open)}>Home</p>
+                }
+                export default HomePage
+                """));
+        List<String> items = actionItems(migrate());
 
         assertThat(out.resolve("content/index.html")).hasContent("""
                 ---
@@ -501,8 +561,10 @@ class GatsbyMigratorTest {
                 layout: main
                 link: /
                 ---
-                {=site.pageContent(site.page('Home.md'))}
+                {=site.pageContent(site.page('Home.md')).raw}
                 """);
+        assertThat(items).contains("Port the home page site/src/pages/index.jsx to content/index.html; it is "
+                + "interactive, with event handlers (onClick), state (useState)");
     }
 
     @Test
@@ -637,7 +699,7 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("templates/layouts/main.html")).content().contains("""
                 <body>
                   {! Converted from site/src/components/layout.js by the migration to Roq; parameters: pageName !}
-                  {#include partials/header siteTitle=(site.title ?: 'Title') pageName=pageName?? /}
+                  {#include partials/header siteTitle=(site.title ?: 'Title') pageName=page.data.pageName?? /}
                   <div style="display: flex; column-gap: 40px">
                     {#include partials/navigation /}
                     <main>{#insert /}</main>
@@ -646,8 +708,7 @@ class GatsbyMigratorTest {
                 </body>
                 """);
         assertThat(out.resolve("templates/partials/layout.html")).doesNotExist();
-        assertThat(items).contains("Give pageName a value in templates/layouts/main.html, for example from page with "
-                + "{#let}: the pages passed it to site/src/components/layout.js, and a Roq layout only has page and site");
+        // The pages give it the props they gave layout.js, in their front matter
         assertThat(items).noneMatch(item -> item.contains("layout.js to Qute") || item.startsWith("Pass "));
     }
 
@@ -661,7 +722,7 @@ class GatsbyMigratorTest {
                 <ul>
                   {#for edge in site.pages}
                     {#if edge.source.markup == 'markdown'}
-                      {#if !edge.baseFileName.slugify(true).startsWith('_')}
+                      {#if ! (edge.baseFileName.slugify(true).startsWith('_') || (edge.baseFileName.slugify(true) == 'home'))}
                         <li><a href="{=edge.url}">{=edge.data.title ?: edge.baseFileName.replace('-', ' ')}</a></li>
                       {/if}
                     {/if}
@@ -700,9 +761,6 @@ class GatsbyMigratorTest {
         assertThat(items).contains(
                 "Reproduce the local Gatsby plugin site/plugins/gatsby-frontmatter-defaults/ (see its gatsby-node.js); "
                         + "it has no Roq equivalent",
-                "Recreate the page site/src/pages/404.js as content/404.html; it is a static template",
-                "Port the home page site/src/pages/index.jsx to templates/layouts/main.html or content/index.md; "
-                        + "it is a static template",
                 "Convert the CSS module site/src/components/hero.module.css to plain CSS in web/; "
                         + "its class names were scoped to a component",
                 "The 1 Jest unit tests of the React components go with them; write Roq tests (@RoqAndRoll) for "
@@ -721,7 +779,7 @@ class GatsbyMigratorTest {
 
     @Test
     void convertsStaticComponentsToQutePartials() throws Exception {
-        migrate();
+        MigrationResult result = migrate();
 
         assertThat(out.resolve("templates/partials/header.html")).hasContent("""
                 {! Converted from site/src/components/header.js by the migration to Roq; parameters: siteTitle, pageName !}
@@ -736,9 +794,14 @@ class GatsbyMigratorTest {
                     <h1>{=siteTitle??}</h1>
                   </a>
                   {#if pageName??}<a href="https://github.com/example/edit/main/docs/{=pageName??}.md">\
-                <i class="fa-solid fa-pencil" aria-hidden="true"></i>Edit this Page</a>{/if}
+                <i class="fa-solid fa-pencil" aria-hidden="true"></i>Edit this Page</a>{/if}<script defer src="/CNAME"></script>
                 </header>
                 """);
+        // Not in site/static/, so it was a dead link on the Gatsby site, whose <Script> added it in the browser
+        assertThat(actionItems(result)).contains("site/src/components/header.js loads "
+                + "/static/fontawesome/fontawesome-all.js, which is not in site/static/, so it was a dead link on the Gatsby "
+                + "site too; the converted template leaves it out. Add the file to public/ and the tag to the template if "
+                + "the site needs it");
         assertThat(out.resolve("templates/partials/footer.html")).hasContent("""
                 {! Converted from site/src/components/footer.js by the migration to Roq !}
                 <footer class="navigation">Sponsored by <a href="https://www.redhat.com/">Red Hat</a></footer>
@@ -804,8 +867,9 @@ class GatsbyMigratorTest {
                         + "with event handlers (onChange), state (useState), which a Qute template is not",
                 "Move what the React component site/src/components/stars.js computes in the browser (state set from "
                         + "useEffect, fetch) to build time, with Roq data or Qute, then port it to Qute in templates/");
-        // Converted, and used by the layout
-        assertThat(items).noneMatch(item -> item.contains("header.js") || item.contains("footer.js"));
+        // Converted, and used by the layout; apart from the script header.js loads that the site does not have
+        assertThat(items).noneMatch(item -> item.contains("header.js") && !item.contains(" loads ")
+                || item.contains("footer.js"));
         // Its only StaticImage was converted
         assertThat(items).noneMatch(item -> item.contains("<StaticImage>"));
     }
