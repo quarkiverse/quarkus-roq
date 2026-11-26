@@ -20,6 +20,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqMarkdownConverter
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqMarkdownConverterBuildItem.MarkdownConversion;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterTemplateUtils;
 import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
+import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocAttributes;
 import io.quarkiverse.roq.plugin.asciidoc.common.runtime.RoqAsciidocKeys;
 import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.vertx.core.json.JsonObject;
@@ -57,8 +58,6 @@ public final class AsciidocMarkdownConverter implements RoqMarkdownConverterBuil
      */
     static final String DEFAULT_CROSS_REFERENCE_SUFFIX = "/index.md";
 
-    private static final String TRUE = Boolean.TRUE.toString();
-
     /**
      * Prefix of a cross reference when the page URL is unknown; with a URL the processor passes its parent path, as the
      * AsciidoctorJ plugin does for the HTML page.
@@ -92,8 +91,9 @@ public final class AsciidocMarkdownConverter implements RoqMarkdownConverterBuil
     /**
      * The site attributes as the AsciidoctorJ plugin reads them from {@code quarkus.asciidoc.attributes.*}:
      * {@code true} becomes an empty value, because SmallRye Config cannot hold an empty map value for an attribute that
-     * is only set. An unset marker ({@code !name}) is kept as written: the conversion applies it as Asciidoctor does,
-     * and unsets the attribute.
+     * is only set, and so does the {@code <<empty>>} marker ({@link RoqAsciidocAttributes#EMPTY}), which a site writes
+     * for a value attribute that must be empty, such as {@code idprefix}. An unset marker ({@code !name}) is kept as
+     * written: the conversion applies it as Asciidoctor does, and unsets the attribute.
      */
     public static Map<String, String> siteAttributes(Map<String, String> configured) {
         final Map<String, String> attributes = new LinkedHashMap<>();
@@ -103,7 +103,7 @@ public final class AsciidocMarkdownConverter implements RoqMarkdownConverterBuil
                 if (key == null || key.isBlank() || entry.getValue() == null) {
                     continue;
                 }
-                attributes.put(key, TRUE.equals(entry.getValue()) ? "" : entry.getValue());
+                attributes.put(key, RoqAsciidocAttributes.value(entry.getValue()));
             }
         }
         return attributes;
