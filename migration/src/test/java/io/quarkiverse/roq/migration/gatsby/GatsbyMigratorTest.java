@@ -276,8 +276,15 @@ class GatsbyMigratorTest {
                 Map.entry("site/static/CNAME", "hub.example.org\n"),
                 Map.entry("docs/Home.md", "# Welcome to the hub!\n\nSee [the checklist](checklist).\n"),
                 // Shortcodes, a known one and not, and ones that are not shortcodes: in code, and a time
-                Map.entry("docs/Checklist.md", "| :exclamation: IMPORTANT :octocat: |\n\n`:not-this:` at 10:30:45\n\n"
-                        + "```\nmvn io.quarkus:quarkus-maven-plugin:create\n```\n"),
+                Map.entry("docs/Checklist.md", """
+                        | :exclamation: IMPORTANT :octocat: |
+
+                        `:not-this:` at 10:30:45
+
+                        ```
+                        mvn io.quarkus:quarkus-maven-plugin:create
+                        ```
+                        """),
                 // No ":" in file names, which Windows does not allow; the Hub has one, and Roq slugifies it away
                 Map.entry("docs/Infrastructure-for-Quarkus-3.x-Manual-upgrade.md", "Upgrade by hand.\n"),
                 Map.entry("docs/With-Slug.md", "---\ntitle: Has a slug\nslug: /custom/place\n---\nBody\n"),
@@ -326,8 +333,14 @@ class GatsbyMigratorTest {
         migrate();
 
         // public/ has the images and static files now
-        assertThat(out.resolve(".gitignore")).hasContent("# gatsby files\n.cache/\n\n.DS_Store\n\n"
-                + "# Roq builds the site in target/\ntarget/");
+        assertThat(out.resolve(".gitignore")).hasContent("""
+                # gatsby files
+                .cache/
+
+                .DS_Store
+
+                # Roq builds the site in target/
+                target/""");
         assertThat(GatsbyContent.BUILD_OUTPUT.matcher("/public/").matches()).isTrue();
         assertThat(GatsbyContent.BUILD_OUTPUT.matcher("site/public").matches()).isFalse();
     }
@@ -411,7 +424,7 @@ class GatsbyMigratorTest {
         assertThat(out.resolve("public/images/apple-touch-icon.png")).hasBinaryContent(png());
         assertThat(out.resolve("public/manifest.webmanifest")).hasContent("""
                 {
-                  "name": "gatsby-starter-default",
+                  "name": "Quarkiverse Hub",
                   "icons": [
                     { "src": "images/favicon.png", "sizes": "64x64", "type": "image/png" }
                   ]
@@ -422,10 +435,35 @@ class GatsbyMigratorTest {
                   <link rel="manifest" href="{=site.url('manifest.webmanifest')}">
                   {#bundle /}
                 """);
-        assertThat(items).contains("Give public/manifest.webmanifest the site's name: it has the Gatsby starter's "
-                + "(gatsby-starter-default, ), as the site's gatsby-plugin-manifest options did; or delete it and its link "
-                + "in templates/layouts/main.html if the site is not meant to be installed as an app");
+        // Named after the site rather than the Gatsby starter its options named
+        assertThat(INFO).contains("Named the web app manifest after the site (Quarkiverse Hub), rather than the Gatsby "
+                + "starter (gatsby-starter-default) that the site's gatsby-plugin-manifest options still named");
+        assertThat(items).noneMatch(item -> item.contains("manifest.webmanifest"));
+        // Without a site title, there is nothing better to name it after
+        assertThat(GatsbyIcons.siteNamed(Map.of("name", "starter"), null)).containsEntry("name", "starter");
         assertThat(items).noneMatch(item -> item.startsWith("Add a web app manifest"));
+    }
+
+    @Test
+    void checksTheNameOfAManifestTheSiteHasAlready() throws Exception {
+        Files.write(repo.resolve("site/src/images/logo.png"), png());
+        Files.createDirectories(repo.resolve("site/static"));
+        Files.writeString(repo.resolve("site/static/manifest.webmanifest"), "{ \"name\": \"gatsby-starter-default\" }");
+        List<String> items = actionItems(migrate());
+
+        assertThat(out.resolve("public/manifest.webmanifest")).hasContent("{ \"name\": \"gatsby-starter-default\" }");
+        assertThat(items).contains("Give public/manifest.webmanifest the site's name: the site's own has the Gatsby "
+                + "starter's (gatsby-starter-default); or delete it and its link in templates/layouts/main.html if the "
+                + "site is not meant to be installed as an app");
+    }
+
+    @Test
+    void leavesAManifestTheSiteHasAlreadyWithItsOwnName() throws Exception {
+        Files.write(repo.resolve("site/src/images/logo.png"), png());
+        Files.createDirectories(repo.resolve("site/static"));
+        Files.writeString(repo.resolve("site/static/manifest.webmanifest"), "{ \"name\": \"Quarkiverse Hub\" }");
+
+        assertThat(actionItems(migrate())).noneMatch(item -> item.contains("manifest.webmanifest"));
     }
 
     @Test
@@ -526,8 +564,15 @@ class GatsbyMigratorTest {
         List<String> items = actionItems(migrate());
 
         assertThat(Files.readString(out.resolve("content/Checklist.md"))).isEqualTo(
-                "| ❗ IMPORTANT :octocat: |\n\n`:not-this:` at 10:30:45\n\n"
-                        + "```\nmvn io.quarkus:quarkus-maven-plugin:create\n```\n");
+                """
+                        | ❗ IMPORTANT :octocat: |
+
+                        `:not-this:` at 10:30:45
+
+                        ```
+                        mvn io.quarkus:quarkus-maven-plugin:create
+                        ```
+                        """);
         assertThat(INFO).contains("Turned emoji shortcodes into emoji, as gatsby-remark-emoji did and Roq does not: "
                 + ":exclamation: in content/Checklist.md");
         assertThat(items).contains("Replace these emoji shortcodes with the emoji, which gatsby-remark-emoji turned them "
@@ -737,8 +782,11 @@ class GatsbyMigratorTest {
                 }
                 """);
         assertThat(out.resolve("web/main.js")).content()
-                .endsWith("import '@fortawesome/fontawesome-free/css/all.min.css';\nimport './_components.css';\n"
-                        + "import './_gatsby-image.css';\n");
+                .endsWith("""
+                        import '@fortawesome/fontawesome-free/css/all.min.css';
+                        import './_components.css';
+                        import './_gatsby-image.css';
+                        """);
         // After the site's styles, as Gatsby adds it
         assertThat(out.resolve("web/_gatsby-image.css")).content().contains(".gatsby-image-wrapper img {",
                 ".gatsby-image-wrapper-constrained {");
