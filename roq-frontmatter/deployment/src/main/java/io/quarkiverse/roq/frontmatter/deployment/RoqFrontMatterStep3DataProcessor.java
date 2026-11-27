@@ -6,6 +6,7 @@ import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DATE;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DRAFT;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LINK;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.PAGINATE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TRANSLATIONS;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -14,7 +15,9 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +34,7 @@ import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReading
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqLayoutNotFoundException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqSiteScanningException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
+import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterLanguageVariant;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDocumentBuildItem;
@@ -42,6 +46,7 @@ import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterRootUr
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterStaticFileBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.publish.RoqFrontMatterPublishNormalPageBuildItem;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
+import io.quarkiverse.roq.frontmatter.runtime.model.Language;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageSource;
 import io.quarkiverse.roq.frontmatter.runtime.model.RootUrl;
@@ -49,9 +54,11 @@ import io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
 import io.quarkiverse.roq.frontmatter.runtime.utils.FuturePages;
 import io.quarkiverse.roq.frontmatter.runtime.utils.TemplateLink;
+import io.quarkiverse.tools.stringpaths.StringPaths;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class RoqFrontMatterStep3DataProcessor {
@@ -99,6 +106,11 @@ public class RoqFrontMatterStep3DataProcessor {
             layoutTemplateProducer.produce(new RoqFrontMatterLayoutTemplateBuildItem(item, data));
         }
 
+        // Multilingual (only when variants exist): grouped pages are produced after all default variant URLs are known
+        final Map<String, DefaultVariantLink> defaultLinks = new HashMap<>();
+        final List<PendingPage> groupedPages = new ArrayList<>();
+        final List<PendingPage> pendingTranslations = new ArrayList<>();
+
         // Process pages: merge parent data, then filter by date/draft rules
         for (RoqFrontMatterRawPageBuildItem item : rawPages) {
             if (item.layout() != null && !layoutsById.containsKey(item.layout())) {
@@ -144,17 +156,88 @@ public class RoqFrontMatterStep3DataProcessor {
                             config.slugifyFiles())
                     : null;
             final PageSource pageSource = new PageSource(item.templateSource(), draft, dateString, files, false);
+            final RoqFrontMatterLanguageVariant variant = item.languageVariant();
+            if (variant != null && !variant.isDefault()) {
+                // A translation takes its URL from its default variant: resolved once all default URLs are known
+                pendingTranslations.add(new PendingPage(item, data, pageSource, null));
+                continue;
+            }
             String linkTemplate = data.getString(LINK);
             if (linkTemplate == null) {
                 linkTemplate = item.collection() != null ? item.collection().link() : config.pageLink();
             }
+            final TemplateLink.PageLinkData linkData = new TemplateLink.PageLinkData(pageSource, item.collectionId(), data);
             final String link = TemplateLink.pageLink(config.pathPrefixOrEmpty(),
                     linkTemplate,
-                    new TemplateLink.PageLinkData(pageSource, item.collectionId(), data));
+                    linkData);
             RoqUrl url = rootUrl.resolve(link);
 
-            pageTemplatesProducer.produce(new RoqFrontMatterPageTemplateBuildItem(item, data, pageSource, url));
+            if (variant == null) {
+                pageTemplatesProducer.produce(new RoqFrontMatterPageTemplateBuildItem(item, data, pageSource, url));
+            } else {
+                defaultLinks.put(variant.group(), new DefaultVariantLink(linkTemplate, linkData));
+                groupedPages.add(new PendingPage(item, data, pageSource, url));
+            }
         }
+
+        if (pendingTranslations.isEmpty() && groupedPages.isEmpty()) {
+            return;
+        }
+
+        // Multilingual: a translation is served at /<lang> followed by its default variant's URL path.
+        // The default variant's permalink is resolved again with the language as base path, so the translation
+        // reuses the default variant's slug (never its own title).
+        for (PendingPage translation : pendingTranslations) {
+            final RoqFrontMatterLanguageVariant variant = translation.item().languageVariant();
+            final DefaultVariantLink defaultLink = defaultLinks.get(variant.group());
+            if (defaultLink == null) {
+                LOGGER.warnf("Ignoring translation '%s' because its default variant is not published",
+                        translation.item().templateSource().path());
+                continue;
+            }
+            final String link = TemplateLink.pageLink(
+                    StringPaths.join(config.pathPrefixOrEmpty(), variant.lang()),
+                    defaultLink.linkTemplate(),
+                    defaultLink.linkData());
+            // A translation is not a collection member, so it gets no now() fallback: without its own date it
+            // takes its default variant's date
+            PageSource pageSource = translation.pageSource();
+            if (pageSource.dateString() == null) {
+                pageSource = new PageSource(pageSource.template(), pageSource.draft(),
+                        defaultLink.linkData().pageSource().dateString(), pageSource.files(), pageSource.generated());
+            }
+            groupedPages.add(new PendingPage(translation.item(), translation.data(), pageSource,
+                    rootUrl.resolve(link)));
+        }
+
+        // Each variant lists the other variants of its group as {lang, flag, url} (url is the resource path)
+        final Map<String, List<PendingPage>> groups = new LinkedHashMap<>();
+        for (PendingPage page : groupedPages) {
+            groups.computeIfAbsent(page.item().languageVariant().group(), k -> new ArrayList<>()).add(page);
+        }
+        for (List<PendingPage> group : groups.values()) {
+            for (PendingPage page : group) {
+                final JsonArray translations = new JsonArray();
+                for (PendingPage other : group) {
+                    if (other != page) {
+                        final String lang = other.item().languageVariant().lang();
+                        translations.add(new JsonObject()
+                                .put("lang", lang)
+                                .put("flag", Language.fromCode(lang).map(Language::flag).orElse(""))
+                                .put("url", other.url().resourcePath()));
+                    }
+                }
+                page.data().put(TRANSLATIONS, translations);
+                pageTemplatesProducer.produce(
+                        new RoqFrontMatterPageTemplateBuildItem(page.item(), page.data(), page.pageSource(), page.url()));
+            }
+        }
+    }
+
+    private record PendingPage(RoqFrontMatterRawPageBuildItem item, JsonObject data, PageSource pageSource, RoqUrl url) {
+    }
+
+    private record DefaultVariantLink(String linkTemplate, TemplateLink.PageLinkData linkData) {
     }
 
     private static List<TemplateDebugPrinter.DebugTemplateEntry> getDebugTemplateEntries(

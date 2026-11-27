@@ -1,0 +1,6 @@
+---
+title: Langue explicite
+lang: fr
+---
+
+Texte explicite.

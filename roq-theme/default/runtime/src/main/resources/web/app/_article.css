@@ -59,6 +59,21 @@
         @apply md:flex-row md:justify-between md:items-start;
     }
 
+    .article-page .language-switcher {
+        @apply flex flex-wrap gap-2 mb-6;
+    }
+
+    .article-page .language-switcher-link {
+        @apply inline-flex items-center justify-center;
+        @apply no-underline bg-neutral-50;
+        @apply border border-neutral-200 px-3 py-2 rounded-lg;
+        @apply text-accent-900 text-xs font-medium transition-all duration-300;
+        @apply hover:bg-accent-600 hover:text-white hover:border-accent-600;
+        @apply hover:shadow-md hover:-translate-y-0.5;
+        @apply dark:bg-neutral-800 dark:border-neutral-700;
+        @apply dark:text-accent-400 dark:hover:bg-accent-600 dark:hover:border-accent-600;
+    }
+
     .article-page .page-share {
         @apply flex items-center gap-3;
     }

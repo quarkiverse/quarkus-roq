@@ -15,9 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
+import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterAttachment;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.FrontMatterTemplateMetadata;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterDependencyParserConfigsBuildItem;
@@ -32,7 +36,9 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterHeader
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterQuteMarkupBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedLayoutBuildItem;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLanguageUtils;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqFrontMatterConfigException;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.PageFiles;
 import io.quarkiverse.tools.projectscanner.ProjectFile;
@@ -187,6 +193,10 @@ public class RoqFrontMatterStep1ScanProcessor {
         final Map<String, ConfiguredCollection> collections = config.collections().stream()
                 .collect(Collectors.toMap(ConfiguredCollection::id, Function.identity()));
 
+        // Multilingual: index.<lang>.<ext> is a translation of the folder's index.<ext> when <lang> is in the
+        // language catalogue and is not the default locale. Any other token is an ordinary file.
+        final Set<String> languages = RoqFrontMatterLanguageUtils.translationLanguages(config.defaultLocale());
+
         // First pass: classify files as templates or attachments.
         // Index templates register as attachment owners for sibling non-template files.
         Map<Path, List<RoqFrontMatterAttachment>> pageAttachments = new HashMap<>();
@@ -196,20 +206,30 @@ public class RoqFrontMatterStep1ScanProcessor {
             String sp = toUnixPath(f.scopedPath());
             final Path spPath = Path.of(sp);
             boolean isTpl = templatePredicate.test(spPath);
-            boolean isIdx = isTpl && INDEX_FILES.contains(fileName(sp));
-            boolean isSiteIdx = isIdx && sp.startsWith("index.");
+            // A translation (index.<lang>.<ext>) is an index template of its folder, like the default variant.
+            // It is never the site index: only the default variant can be.
+            boolean isTranslation = isTpl && isTranslationIndex(fileName(sp), languages);
+            // Same predicate as Step 2: when the feature is on, index.qute.<ext> is an index file too.
+            boolean isIdx = isTpl && RoqFrontMatterLanguageUtils.isIndexFile(fileName(sp), languages);
+            // Site index selection is unchanged by the feature: only a root index.<html-ext> can be the site index.
+            boolean isSiteIdx = isIdx && !isTranslation && sp.startsWith("index.")
+                    && INDEX_FILES.contains(fileName(sp));
             Path parent = spPath.getParent();
 
             if (isTpl) {
                 // Determine if this page belongs to a collection (top-level dir matches a collection id).
                 // The collection index itself (e.g. posts/index.html) is NOT a collection member —
                 // it's a regular page that typically lists the collection via pagination.
+                // Translations are not collection members either: only the default variant is listed.
                 ConfiguredCollection collection = null;
                 String topDirName = spPath.getName(0).toString();
                 boolean isCollectionDir = collections.containsKey(topDirName);
                 boolean isCollectionIndex = isCollectionDir && isIdx && spPath.getNameCount() == 2;
-                if (isCollectionDir && !isCollectionIndex) {
+                if (isCollectionDir && !isCollectionIndex && !isTranslation) {
                     collection = collections.get(topDirName);
+                }
+                if (isTranslation) {
+                    LOGGER.debugf("Roq content scan found translation '%s'", sp);
                 }
 
                 // Index pages own attachments: site index gets static/public files, others get sibling files
@@ -237,16 +257,164 @@ public class RoqFrontMatterStep1ScanProcessor {
             }
         }
 
+        final Set<String> groupsWithTranslations = validateLanguageLayout(allContentFiles, entries, languages,
+                config.defaultLocale());
+
         // Second pass: collect metadata (front matter, markup) and produce scanned build items
         for (ContentEntry entry : entries) {
             FrontMatterTemplateMetadata metadata = collectMetadata(entry.file(), false, markupList, headerParserList,
                     quteConfig, depParserConfigs.configs());
+            if (entry.isIndex()) {
+                validateFrontMatterLang(entry, metadata, languages, config.defaultLocale(), groupsWithTranslations);
+            }
 
             LOGGER.debugf("Roq content scan producing scanned template '%s'", metadata.templateId());
             scannedContentProducer.produce(new RoqFrontMatterScannedContentBuildItem(
                     metadata, entry.collection(),
                     entry.isIndex(), entry.isSiteIndex(), entry.attachments()));
         }
+    }
+
+    private static String parentDir(String scopedPath) {
+        int i = scopedPath.lastIndexOf('/');
+        return i < 0 ? "" : scopedPath.substring(0, i);
+    }
+
+    private static RoqFrontMatterConfigException languageError(String title, String detail, String hint) {
+        return new RoqFrontMatterConfigException(RoqException.builder(title).detail(detail).hint(hint));
+    }
+
+    /**
+     * Validates the multilingual layout of the content dir.
+     *
+     * @return the folders (scoped paths) that hold at least one translation
+     */
+    private static Set<String> validateLanguageLayout(List<ProjectFile> allContentFiles, List<ContentEntry> entries,
+            Set<String> languages, String defaultLocale) {
+        Map<String, List<String>> defaultFiles = new HashMap<>(); // folder -> default variant files
+        Map<String, String> translationFiles = new HashMap<>(); // folder + '#' + lang -> file
+        Set<String> translationFolders = new LinkedHashSet<>();
+        Set<String> usedLanguages = new HashSet<>();
+        for (ContentEntry entry : entries) {
+            String sp = toUnixPath(entry.file().scopedPath());
+            String name = fileName(sp);
+            String folder = parentDir(sp);
+            if (!name.startsWith("index.")) {
+                continue;
+            }
+            var plainIndex = RoqFrontMatterLanguageUtils.defaultLocaleSuffix(name, defaultLocale);
+            if (plainIndex.isPresent()) {
+                throw languageError(
+                        "Language '%s' is the default language and cannot be used as a file suffix ('%s')"
+                                .formatted(defaultLocale, sp),
+                        "The default language uses the plain index file, without a language suffix.",
+                        "Rename '%s' to the plain '%s' file.".formatted(name, plainIndex.get()));
+            }
+            var suffix = RoqFrontMatterLanguageUtils.parse(name, languages);
+            if (suffix.isEmpty()) {
+                continue;
+            }
+            if (suffix.get().lang() == null) {
+                // Counted through the shared index predicate, like Step 2 does when grouping variants
+                if (entry.isIndex()) {
+                    defaultFiles.computeIfAbsent(folder, k -> new ArrayList<>()).add(sp);
+                }
+                continue;
+            }
+            String lang = suffix.get().lang();
+            if (folder.isEmpty()) {
+                throw languageError(
+                        "Root-level translation '%s' is not supported (root translations are unsupported)".formatted(sp),
+                        "Translations are only supported for index files inside a folder, not at the content root.",
+                        "Move the translation into a folder next to a default-language index file.");
+            }
+            String previous = translationFiles.putIfAbsent(folder + "#" + lang, sp);
+            if (previous != null) {
+                throw languageError(
+                        "Duplicate language '%s' in folder '%s' (duplicate language variant)".formatted(lang, folder),
+                        "Both '%s' and '%s' are '%s' variants.".formatted(previous, sp, lang),
+                        "Keep a single index file per language in each folder.");
+            }
+            translationFolders.add(folder);
+            usedLanguages.add(lang);
+        }
+        // A language used by a translation must not be a top-level directory name: /<lang>/... would collide.
+        Set<String> topDirs = new HashSet<>();
+        for (ProjectFile f : allContentFiles) {
+            Path sp = Path.of(toUnixPath(f.scopedPath()));
+            if (sp.getNameCount() > 1) {
+                topDirs.add(sp.getName(0).toString());
+            }
+        }
+        for (String lang : usedLanguages) {
+            if (topDirs.contains(lang)) {
+                throw languageError(
+                        "Language '%s' collides with the top-level content directory '%s' (language/directory collision)"
+                                .formatted(lang, lang),
+                        "Translations are published under '/%s/', which would collide with the content directory '%s/'."
+                                .formatted(lang, lang),
+                        "Rename the directory '%s/' or the '%s' translations.".formatted(lang, lang));
+            }
+        }
+
+        for (String folder : translationFolders) {
+            List<String> defaults = defaultFiles.getOrDefault(folder, List.of());
+            if (defaults.size() > 1) {
+                throw languageError(
+                        "Duplicate language '%s' in folder '%s' (duplicate language variant)".formatted(defaultLocale, folder),
+                        "%s are all default-language ('%s') variants.".formatted(defaults, defaultLocale),
+                        "Keep a single index file per language in each folder.");
+            }
+            if (defaults.isEmpty()) {
+                throw languageError(
+                        "Folder '%s' has a translation but is missing its default-language variant".formatted(folder),
+                        "A translation (index.<lang>.<ext>) needs a default-language index file (index.<ext>) in the same folder"
+                                + " (a default-language variant is required).",
+                        "Add 'index.<ext>' to '%s'.".formatted(folder));
+            }
+        }
+        return translationFolders;
+    }
+
+    /**
+     * Validates the front matter {@code lang} of an index variant that belongs to a group with translations.
+     */
+    private static void validateFrontMatterLang(ContentEntry entry, FrontMatterTemplateMetadata metadata,
+            Set<String> languages, String defaultLocale, Set<String> groupsWithTranslations) {
+        String sp = toUnixPath(entry.file().scopedPath());
+        var suffix = RoqFrontMatterLanguageUtils.parse(fileName(sp), languages);
+        if (suffix.isEmpty()) {
+            return;
+        }
+        Object value = metadata.parsedHeaders().data().getValue("lang");
+        if (value == null) {
+            return;
+        }
+        String fmLang = String.valueOf(value);
+        if (suffix.get().lang() != null) {
+            if (!fmLang.equals(suffix.get().lang())) {
+                throw languageError(
+                        "Frontmatter lang '%s' of '%s' differs from its file suffix '%s' (frontmatter lang conflict)"
+                                .formatted(fmLang, sp, suffix.get().lang()),
+                        "A translation's language comes from its file name.",
+                        "Remove 'lang' from the front matter or make it '%s'.".formatted(suffix.get().lang()));
+            }
+        } else if (groupsWithTranslations.contains(parentDir(sp)) && !fmLang.equals(defaultLocale)) {
+            throw languageError(
+                    "Frontmatter lang '%s' of '%s' differs from site.default-locale '%s' (default variant lang mismatch)"
+                            .formatted(fmLang, sp, defaultLocale),
+                    "The default variant of a translated article is always in the default locale.",
+                    "Remove 'lang' from the front matter or set it to '%s'.".formatted(defaultLocale));
+        }
+    }
+
+    /**
+     * @return true when the file is a translation index ({@code index.<lang>.<ext>}) of a catalogue language.
+     */
+    private static boolean isTranslationIndex(String fileName, Set<String> languages) {
+        return RoqFrontMatterLanguageUtils.parse(fileName, languages)
+                .map(suffix -> suffix.lang() != null)
+                .orElse(false);
     }
 
     // ── Layout scanning ──────────────────────────────────────────────────

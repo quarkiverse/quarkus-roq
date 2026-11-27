@@ -1,0 +1,7 @@
+---
+title: Other DE
+lang: de
+translation-of: posts/2026/mon-article
+---
+
+Other DE

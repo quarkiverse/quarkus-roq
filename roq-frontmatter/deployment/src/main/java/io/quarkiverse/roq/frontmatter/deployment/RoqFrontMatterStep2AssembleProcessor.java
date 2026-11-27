@@ -2,15 +2,21 @@ package io.quarkiverse.roq.frontmatter.deployment;
 
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.processTemplate;
 import static io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLayoutUtils.getIncludeFilter;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LANG;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TRANSLATION_OF;
 import static io.quarkiverse.tools.stringpaths.StringPaths.slugify;
 import static io.quarkiverse.tools.stringpaths.StringPaths.toUnixPath;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -22,6 +28,7 @@ import io.quarkiverse.roq.data.deployment.items.RoqDataJsonBuildItem;
 import io.quarkiverse.roq.deployment.items.RoqProjectBuildItem;
 import io.quarkiverse.roq.exception.RoqException;
 import io.quarkiverse.roq.frontmatter.deployment.exception.RoqFrontMatterReadingException;
+import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterLanguageVariant;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.assemble.RoqFrontMatterRawPageBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.data.RoqFrontMatterDataModificationBuildItem;
@@ -29,7 +36,9 @@ import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterAvaila
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedContentBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.items.scan.RoqFrontMatterScannedLayoutBuildItem;
 import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterAssembleUtils.ProcessedTemplate;
+import io.quarkiverse.roq.frontmatter.deployment.util.RoqFrontMatterLanguageUtils;
 import io.quarkiverse.roq.frontmatter.runtime.config.ConfiguredCollection;
+import io.quarkiverse.roq.frontmatter.runtime.config.RoqFrontMatterConfigException;
 import io.quarkiverse.roq.frontmatter.runtime.config.RoqSiteConfig;
 import io.quarkiverse.roq.frontmatter.runtime.model.SourceFile;
 import io.quarkiverse.roq.frontmatter.runtime.model.TemplateSource;
@@ -84,21 +93,186 @@ public class RoqFrontMatterStep2AssembleProcessor {
                 .sorted(Comparator.comparing(RoqFrontMatterDataModificationBuildItem::order))
                 .toList();
 
+        // Multilingual: group the language variants of each article folder (empty when the feature is off)
+        final Map<RoqFrontMatterScannedContentBuildItem, RoqFrontMatterLanguageVariant> variants = languageVariants(
+                config, scannedContent);
+
         // processTemplate resolves layout, applies data modifications, and generates
         // the Qute template (with layout include and markup wrapping)
+        // Default variants are processed first: a translation inherits the layout of its default variant (Ruling 16)
+        final Map<RoqFrontMatterScannedContentBuildItem, ProcessedTemplate> processedByScanned = new HashMap<>();
+        final Map<String, JsonObject> defaultDataByGroup = new HashMap<>();
         for (RoqFrontMatterScannedContentBuildItem scanned : scannedContent) {
-            ProcessedTemplate processed = processTemplate(
-                    scanned.metadata(), true, false, scanned.collection(),
-                    scanned.isIndex(), scanned.isSiteIndex(),
-                    config, availableLayouts, sortedModifications);
+            final RoqFrontMatterLanguageVariant variant = variants.get(scanned);
+            if (variant == null || variant.isDefault()) {
+                ProcessedTemplate processed = processTemplate(
+                        scanned.metadata(), true, false, scanned.collection(),
+                        scanned.isIndex(), scanned.isSiteIndex(),
+                        config, availableLayouts, sortedModifications, null);
+                processedByScanned.put(scanned, processed);
+                if (variant != null) {
+                    defaultDataByGroup.put(variant.group(), processed.data());
+                }
+            }
+        }
+        for (RoqFrontMatterScannedContentBuildItem scanned : scannedContent) {
+            final RoqFrontMatterLanguageVariant variant = variants.get(scanned);
+            if (variant != null && !variant.isDefault()) {
+                // A translation is not a collection member: only the default-language variant is listed
+                processedByScanned.put(scanned, processTemplate(
+                        scanned.metadata(), true, false, null,
+                        scanned.isIndex(), scanned.isSiteIndex(),
+                        config, availableLayouts, sortedModifications,
+                        defaultDataByGroup.get(variant.group())));
+            }
+        }
+
+        for (RoqFrontMatterScannedContentBuildItem scanned : scannedContent) {
+            ProcessedTemplate processed = processedByScanned.get(scanned);
+
+            final RoqFrontMatterLanguageVariant variant = variants.get(scanned);
+            // Every content (page, document, translation) has a language: the default locale unless set otherwise
+            if (!processed.data().containsKey(LANG)) {
+                processed.data().put(LANG, config.defaultLocale());
+            }
+            if (variant != null) {
+                // The suffix sets the language of a translation; the default variant keeps a frontmatter lang if any.
+                // The URL prefix and the translations list need the computed URLs: they are set in Step 3.
+                if (!variant.isDefault() || !processed.data().containsKey(LANG)) {
+                    processed.data().put(LANG, variant.lang());
+                }
+                // Records the group of a translation (its front matter value is kept when set explicitly)
+                if (!variant.isDefault()) {
+                    processed.data().put(TRANSLATION_OF, variant.group());
+                }
+            }
 
             LOGGER.debugf("Roq content processing producing raw page '%s'", processed.id());
+            final boolean translation = variant != null && !variant.isDefault();
             rawPageProducer.produce(new RoqFrontMatterRawPageBuildItem(
                     processed.templateSource(), processed.layout(), processed.data(),
-                    scanned.collection(), scanned.metadata().parserConfig(),
+                    translation ? null : scanned.collection(), scanned.metadata().parserConfig(),
                     processed.generatedTemplate(),
-                    scanned.attachments()));
+                    scanned.attachments(), variant));
         }
+    }
+
+    /**
+     * Groups the multilingual variants. A page joins a group in one of two ways:
+     * <ul>
+     * <li>its front matter {@code translation-of} names the group. Pages sharing the value form one group, whatever
+     * their file name or folder. An explicit value wins over the folder of an index file;</li>
+     * <li>without {@code translation-of}, an index file ({@code index.<ext>} or {@code index.<lang>.<ext>}) joins the
+     * group of its folder.</li>
+     * </ul>
+     * The default variant is the page whose language is {@code site.default-locale}. Its language is its file suffix,
+     * else its front matter {@code lang}, else the default locale. A group without translation is not a group.
+     *
+     * @return the variant of each grouped scanned item; empty when the site has no translation
+     */
+    private static Map<RoqFrontMatterScannedContentBuildItem, RoqFrontMatterLanguageVariant> languageVariants(
+            RoqSiteConfig config, List<RoqFrontMatterScannedContentBuildItem> scannedContent) {
+        final String defaultLocale = config.defaultLocale();
+        final Set<String> languages = RoqFrontMatterLanguageUtils.translationLanguages(defaultLocale);
+        final Map<String, Map<String, RoqFrontMatterScannedContentBuildItem>> groups = new LinkedHashMap<>();
+        for (RoqFrontMatterScannedContentBuildItem scanned : scannedContent) {
+            if (scanned.isSiteIndex()) {
+                continue;
+            }
+            final Path path = Path.of(scanned.metadata().referencePath());
+            final String fileName = path.getFileName().toString();
+            final JsonObject data = scanned.metadata().parsedHeaders().data();
+            final Optional<RoqFrontMatterLanguageUtils.LanguageSuffix> suffix = RoqFrontMatterLanguageUtils.parse(fileName,
+                    languages);
+            final String group;
+            final String lang;
+            if (data.containsKey(TRANSLATION_OF)) {
+                final Object explicit = data.getValue(TRANSLATION_OF);
+                if (!(explicit instanceof String name) || name.isBlank()) {
+                    throw languageError(
+                            "Frontmatter key '%s' of '%s' must be a non-empty string".formatted(TRANSLATION_OF,
+                                    scanned.metadata().referencePath()),
+                            "'translation-of' names the translation group the page belongs to.",
+                            "Set 'translation-of' to a name shared by the pages of the same article.");
+                }
+                group = name;
+                final String fmLang = data.containsKey(LANG) ? String.valueOf(data.getValue(LANG)) : null;
+                lang = suffix.map(RoqFrontMatterLanguageUtils.LanguageSuffix::lang).orElse(
+                        fmLang != null ? fmLang : defaultLocale);
+            } else if (suffix.isPresent() && path.getParent() != null) {
+                group = toUnixPath(path.getParent().toString());
+                lang = suffix.get().lang() != null ? suffix.get().lang() : defaultLocale;
+            } else {
+                continue;
+            }
+            final Map<String, RoqFrontMatterScannedContentBuildItem> members = groups.computeIfAbsent(group,
+                    k -> new LinkedHashMap<>());
+            final RoqFrontMatterScannedContentBuildItem previous = members.putIfAbsent(lang, scanned);
+            if (previous != null) {
+                throw languageError(
+                        "Duplicate language '%s' in translation group '%s' (duplicate language variant)"
+                                .formatted(lang, group),
+                        "Both '%s' and '%s' are '%s' variants of the group."
+                                .formatted(previous.metadata().referencePath(),
+                                        scanned.metadata().referencePath(), lang),
+                        "Keep a single page per language in each translation group.");
+            }
+        }
+
+        final Set<String> topDirs = new HashSet<>();
+        for (RoqFrontMatterScannedContentBuildItem scanned : scannedContent) {
+            final Path sp = Path.of(scanned.metadata().referencePath());
+            if (sp.getNameCount() > 1) {
+                topDirs.add(sp.getName(0).toString());
+            }
+        }
+
+        final Map<RoqFrontMatterScannedContentBuildItem, RoqFrontMatterLanguageVariant> result = new HashMap<>();
+        for (Map.Entry<String, Map<String, RoqFrontMatterScannedContentBuildItem>> entry : groups.entrySet()) {
+            final String group = entry.getKey();
+            final Map<String, RoqFrontMatterScannedContentBuildItem> members = entry.getValue();
+            final RoqFrontMatterScannedContentBuildItem defaultVariant = members.get(defaultLocale);
+            final List<String> translationLangs = members.keySet().stream().filter(lang -> !lang.equals(defaultLocale))
+                    .toList();
+            if (translationLangs.isEmpty()) {
+                continue;
+            }
+            if (defaultVariant == null) {
+                throw languageError(
+                        "Translation group '%s' is missing its default-language variant".formatted(group),
+                        "A translated article needs a page in the default language ('%s') in the same group."
+                                .formatted(defaultLocale),
+                        "Add a page with the default language, or remove the translations of '%s'.".formatted(group));
+            }
+            for (String lang : translationLangs) {
+                if (!languages.contains(lang)) {
+                    throw languageError(
+                            "Language '%s' of translation group '%s' is not a supported translation language"
+                                    .formatted(lang, group),
+                            "The language comes from the file suffix or the front matter 'lang'.",
+                            "Use a language code of the built-in language catalogue.");
+                }
+                if (topDirs.contains(lang)) {
+                    throw languageError(
+                            "Language '%s' collides with the top-level content directory '%s' (language/directory collision)"
+                                    .formatted(lang, lang),
+                            "Translations are published under '/%s/', which would collide with the content directory '%s/'."
+                                    .formatted(lang, lang),
+                            "Rename the directory '%s/' or the '%s' translations.".formatted(lang, lang));
+                }
+            }
+            result.put(defaultVariant, new RoqFrontMatterLanguageVariant(group, defaultLocale, true));
+            members.forEach((lang, translation) -> {
+                if (!lang.equals(defaultLocale)) {
+                    result.put(translation, new RoqFrontMatterLanguageVariant(group, lang, false));
+                }
+            });
+        }
+        return result;
+    }
+
+    private static RoqFrontMatterConfigException languageError(String title, String detail, String hint) {
+        return new RoqFrontMatterConfigException(RoqException.builder(title).detail(detail).hint(hint));
     }
 
     // ── Layout processing ────────────────────────────────────────────────

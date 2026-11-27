@@ -1,0 +1,7 @@
+{#if page.translations}
+<nav class="language-switcher" aria-label="Languages">
+  {#for translation in page.translations}
+  <a href="{translation.url}" hreflang="{translation.lang}" lang="{translation.lang}" class="language-switcher-link">{translation.flag} {translation.lang}</a>
+  {/for}
+</nav>
+{/if}

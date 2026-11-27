@@ -89,6 +89,27 @@ public interface RoqFrontMatterKeys {
     String LANG = "lang";
 
     /**
+     * Other language variants of a multilingual article, computed at build time (not set in frontmatter).
+     * A JSON array of {@code {"lang": "...", "flag": "...", "url": "..."}} where {@code url} is the resource path from the site
+     * root.
+     * <br>
+     * ▸ Scope: page / document (only when the article has translations)
+     * <br>
+     * ▸ Access: {@code page.translations}
+     */
+    String TRANSLATIONS = "translations";
+
+    /**
+     * Names the translation group of a page. Pages sharing the value form one group: the default-language page and its
+     * translations. Set it in frontmatter, or leave it out and let an {@code index.<lang>.<ext>} file join its folder.
+     * Translations are pages of their own: they appear in the sitemap and the search index. Only default variants are
+     * collection members.
+     * <br>
+     * ▸ Scope: page
+     */
+    String TRANSLATION_OF = "translation-of";
+
+    /**
      * Custom URL slug — e.g. {@code slug: my-custom-slug} (overrides auto-generated slug from title)
      * <br>
      * ▸ Scope: page / document
