@@ -13,12 +13,14 @@ export class PagesList extends LitElement {
         syncStatus: { type: Object },
         syncing: { type: Boolean },
         publishing: { type: Boolean },
+        _syncingAllPaths: { type: Boolean, state: true },
         _filterText: { type: String, state: true }
     };
 
     constructor() {
         super();
         this._filterText = '';
+        this._syncingAllPaths = false;
     }
 
     static styles = css`
@@ -47,6 +49,7 @@ export class PagesList extends LitElement {
         const pages = this.pages || [];
         const type = this.collectionId ? 'Document' : 'Page';
         const filteredPages = this._filterPages(pages);
+        const unsyncedPages = pages.filter(p => p.suggestedPath);
         const hasSync = this.syncStatus && this.syncStatus.branch && this.syncStatus.branch !== 'no-git-repo';
         return html`
             <div class="toolbar">
@@ -66,6 +69,15 @@ export class PagesList extends LitElement {
                             .syncing="${this.syncing}"
                             .publishing="${this.publishing}">
                         </qwc-sync-status-bar>
+                    ` : ''}
+                    ${unsyncedPages.length > 0 ? html`
+                        <vaadin-button
+                            theme="warning"
+                            ?disabled="${this._syncingAllPaths}"
+                            @click="${this._onSyncAllNames}">
+                            <vaadin-icon icon="font-awesome-solid:camera-rotate" slot="prefix"></vaadin-icon>
+                            Sync all names (${unsyncedPages.length})
+                        </vaadin-button>
                     ` : ''}
                     <vaadin-button
                         theme="primary"
@@ -114,6 +126,15 @@ export class PagesList extends LitElement {
             detail: {
                 collectionId: this.collectionId
             }
+        }));
+    }
+
+    _onSyncAllNames() {
+        const pages = (this.pages || []).filter(p => p.suggestedPath);
+        this.dispatchEvent(new CustomEvent('sync-all-names', {
+            bubbles: true,
+            composed: true,
+            detail: { pages }
         }));
     }
 
