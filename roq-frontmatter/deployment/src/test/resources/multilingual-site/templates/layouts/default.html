@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{page.title}</title>
+</head>
+<body>
+<p data-lang="{page.lang}"></p>
+<nav class="translations">{#for t in page.translations}<a href="{t.url}">{t.flag} {t.lang}</a>{/for}</nav>
+{#insert /}
+</body>
+</html>

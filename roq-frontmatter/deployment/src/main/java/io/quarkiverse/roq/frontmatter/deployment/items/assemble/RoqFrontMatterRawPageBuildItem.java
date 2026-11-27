@@ -24,6 +24,7 @@ public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
     private final ParserConfig parserConfig;
     private final String generatedTemplate;
     private final List<RoqFrontMatterAttachment> attachments;
+    private final RoqFrontMatterLanguageVariant languageVariant;
 
     // null parserConfig defaults to ParserConfig.DEFAULT at bind time (same as TemplatePathBuildItem convention)
     public RoqFrontMatterRawPageBuildItem(TemplateSource templateSource, String layout, JsonObject data,
@@ -35,6 +36,16 @@ public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
     public RoqFrontMatterRawPageBuildItem(TemplateSource templateSource, String layout, JsonObject data,
             ConfiguredCollection collection, ParserConfig parserConfig, String generatedTemplate,
             List<RoqFrontMatterAttachment> attachments) {
+        this(templateSource, layout, data, collection, parserConfig, generatedTemplate, attachments, null);
+    }
+
+    /**
+     * @param languageVariant the multilingual article group membership, or {@code null} when the page is not a
+     *        variant of a translated article
+     */
+    public RoqFrontMatterRawPageBuildItem(TemplateSource templateSource, String layout, JsonObject data,
+            ConfiguredCollection collection, ParserConfig parserConfig, String generatedTemplate,
+            List<RoqFrontMatterAttachment> attachments, RoqFrontMatterLanguageVariant languageVariant) {
         this.templateSource = templateSource;
         this.layout = layout;
         this.data = data;
@@ -42,6 +53,15 @@ public final class RoqFrontMatterRawPageBuildItem extends MultiBuildItem {
         this.parserConfig = parserConfig;
         this.generatedTemplate = generatedTemplate;
         this.attachments = attachments;
+        this.languageVariant = languageVariant;
+    }
+
+    /**
+     * @return the multilingual article group membership, or {@code null} when the page is not a variant of a
+     *         translated article
+     */
+    public RoqFrontMatterLanguageVariant languageVariant() {
+        return languageVariant;
     }
 
     public String id() {

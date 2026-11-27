@@ -15,9 +15,9 @@ import io.restassured.RestAssured;
  * Site: {@code base-theme-site} (resource)
  * <p>
  * Verifies that roq-base theme layouts work as fallback when no local layouts are provided.
- * Also covers the {@code <html lang="...">} attribute: the site sets {@code lang: fr} and the
- * "about" page overrides it with {@code lang: de}, exercising the page → site fallback chain
- * (the JVM-default fallback case needs its own lang-free site, see
+ * Also covers the {@code <html lang="...">} attribute: the site index sets {@code lang: fr} and the
+ * "about" page overrides it with {@code lang: de}; a page without lang falls back to
+ * {@code quarkus.default-locale} (the JVM-default fallback case needs its own lang-free site, see
  * {@link RoqFrontMatterHtmlLangGlobalFallbackTest}).
  */
 @DisplayName("Roq FrontMatter - Base theme layouts")
@@ -55,10 +55,10 @@ public class RoqFrontMatterBaseThemeTest {
     }
 
     @Test
-    @DisplayName("html lang attribute falls back to the site's FM lang when the page has none")
-    public void testHtmlLangFallsBackToSite() {
+    @DisplayName("html lang attribute falls back to site.default-locale when the page has none")
+    public void testHtmlLangFallsBackToDefaultLocale() {
         RestAssured.when().get("/posts/hello-post").then().statusCode(200).log().ifValidationFails()
-                .body("html.@lang", equalTo("fr"));
+                .body("html.@lang", equalTo("en"));
     }
 
     @Test

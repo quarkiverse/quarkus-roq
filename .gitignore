@@ -72,3 +72,6 @@ build.js
 
 playwright-output/
 .playwright-mcp/
+
+# Local git worktrees
+.worktrees/

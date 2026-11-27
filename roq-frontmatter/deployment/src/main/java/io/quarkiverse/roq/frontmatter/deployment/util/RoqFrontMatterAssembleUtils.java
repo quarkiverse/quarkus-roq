@@ -57,10 +57,33 @@ public final class RoqFrontMatterAssembleUtils {
             ConfiguredCollection collection, boolean isIndex, boolean isSiteIndex,
             RoqSiteConfig config, RoqFrontMatterAvailableLayoutsBuildItem availableLayouts,
             List<RoqFrontMatterDataModificationBuildItem> dataModifications) {
+        return processTemplate(metadata, isPage, isThemeLayout, collection, isIndex, isSiteIndex, config,
+                availableLayouts, dataModifications, null);
+    }
+
+    /**
+     * Same as {@link #processTemplate(FrontMatterTemplateMetadata, boolean, boolean, ConfiguredCollection, boolean,
+     * boolean, RoqSiteConfig, RoqFrontMatterAvailableLayoutsBuildItem, List)}, but when the page sets no layout of its
+     * own, it inherits the {@code layout} or {@code theme-layout} data of {@code inheritedFrom} (the processed data of
+     * the default-language variant of a multilingual article). Pass {@code null} to inherit nothing.
+     */
+    public static ProcessedTemplate processTemplate(
+            FrontMatterTemplateMetadata metadata, boolean isPage, boolean isThemeLayout,
+            ConfiguredCollection collection, boolean isIndex, boolean isSiteIndex,
+            RoqSiteConfig config, RoqFrontMatterAvailableLayoutsBuildItem availableLayouts,
+            List<RoqFrontMatterDataModificationBuildItem> dataModifications, JsonObject inheritedFrom) {
 
         JsonObject data = metadata.parsedHeaders().data().copy();
         normalizeDeprecatedAliases(data, metadata);
         String content = metadata.parsedHeaders().content();
+
+        if (inheritedFrom != null && !data.containsKey(LAYOUT) && !data.containsKey(THEME_LAYOUT)) {
+            if (inheritedFrom.containsKey(THEME_LAYOUT)) {
+                data.put(THEME_LAYOUT, inheritedFrom.getValue(THEME_LAYOUT));
+            } else if (inheritedFrom.containsKey(LAYOUT)) {
+                data.put(LAYOUT, inheritedFrom.getValue(LAYOUT));
+            }
+        }
 
         LayoutRef layoutRef = resolveLayoutRef(data, isPage, metadata.isPartial(), collection, config);
         Optional<String> sourceTheme = extractSourceTheme(isThemeLayout, metadata.templateId());

@@ -1,8 +1,11 @@
 package io.quarkiverse.roq.frontmatter.runtime.model;
 
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.DESCRIPTION;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.LANG;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.NO_INDEX_ALL;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TITLE;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TRANSLATIONS;
+import static io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterKeys.TRANSLATION_OF;
 import static io.quarkiverse.roq.frontmatter.runtime.RoqTemplates.ROQ_PAGE_CONTENT_FRAGMENT;
 import static io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl.isAbsolute;
 import static io.quarkiverse.roq.frontmatter.runtime.utils.Pages.getImgFromData;
@@ -15,6 +18,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -32,6 +36,7 @@ import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateData;
 import io.quarkus.qute.TemplateInstance;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -319,6 +324,46 @@ public class Page {
      */
     public RoqUrl url() {
         return url;
+    }
+
+    /**
+     * The page language. Fallback chain, the same as the {@code <html lang>} attribute of the base theme:
+     * <ol>
+     * <li>the page {@code lang} data value (set from the file suffix for a language variant);</li>
+     * <li>{@code site.default-locale}.</li>
+     * </ol>
+     */
+    public String lang() {
+        return data.getString(LANG);
+    }
+
+    /**
+     * The other language variants of this article (from the build-time {@code translations} data).
+     * Empty when the article has no translation.
+     */
+    public List<Translation> translations() {
+        final Object value = data(TRANSLATIONS);
+        if (!(value instanceof JsonArray array) || array.isEmpty()) {
+            return List.of();
+        }
+        final RootUrl root = url() != null ? url().root() : null;
+        final List<Translation> result = new ArrayList<>(array.size());
+        for (Object entry : array) {
+            if (entry instanceof JsonObject t) {
+                result.add(new Translation(t.getString("lang"), t.getString("flag", ""),
+                        RoqUrl.fromRoot(root, t.getString("url"))));
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    /**
+     * True when this page is a translation (a non-default language variant of an article), from the build-time
+     * {@code translation-of} data.
+     */
+    public boolean isTranslation() {
+        final Object value = data(TRANSLATION_OF);
+        return value != null && !value.toString().isEmpty();
     }
 
     /**

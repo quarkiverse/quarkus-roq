@@ -1,0 +1,7 @@
+---
+title: Alpha EN
+lang: en
+translation-of: alpha
+---
+
+Alpha EN

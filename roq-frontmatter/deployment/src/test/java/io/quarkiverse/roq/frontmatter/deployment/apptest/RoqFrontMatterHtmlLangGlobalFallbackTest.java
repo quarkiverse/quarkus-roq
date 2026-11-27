@@ -38,6 +38,6 @@ public class RoqFrontMatterHtmlLangGlobalFallbackTest {
     @DisplayName("Index page falls back to the JVM default locale")
     public void testGlobalLangFallback() {
         RestAssured.when().get("/").then().statusCode(200).log().ifValidationFails()
-                .body("html.@lang", equalTo(Locale.getDefault().toLanguageTag()));
+                .body("html.@lang", equalTo(Locale.getDefault().getLanguage()));
     }
 }
